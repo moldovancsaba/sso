@@ -88,3 +88,17 @@
 | US10  | Identifier can be removed |
 | US11  | Activity log shown with ISO 8601 dates |
 
+---
+
+## 🔄 Updates for v0.2.0 → v1.0.0 Transition
+
+> 📅 Last updated: 2025-06-09T15:40:01Z
+
+### 🆕 New Stories
+
+- 🧪 As a developer, I want to test the SSO login from another application to verify the full redirect/token/validate cycle.
+- 🔁 As a user, I want the system to simply expire tokens after 10 minutes, without needing auto-renewal or refresh logic.
+- ✅ As a system owner, I want to manually QA all SSO flows before v1.0.0 tagging.
+- 🧰 As a maintainer, I want minimal backend tests for `/api/auth` and `/api/validate` to ensure stability.
+- 🚀 As a product owner, I want to tag and archive each version formally and prepare integration documentation per version.
+

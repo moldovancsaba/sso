@@ -109,3 +109,25 @@ All documentation files now contain version sections:
 ## 🔖 Current Version: v0.2.0
 
 For full change history and roadmap, see [`CHANGELOG.md`](./CHANGELOG.md).
+
+---
+
+## ✅ Task Checklist (v0.2.0 → v1.0.0)
+
+> 📅 Last updated: 2025-06-09T15:40:01Z
+
+### Must-Have Before v1.0.0
+
+- [ ] 🔁 Login from another app with redirect
+- [ ] ✅ Validate token via API
+- [ ] ⌛ Test session expiry after 10 minutes
+- [ ] 🧪 Manual QA for all flows
+- [ ] 🏁 Tag and archive v1.0.0 release
+
+### Optional
+
+- [ ] Minimal backend test cases
+- [ ] Dashboard metrics
+- [ ] Admin activity filters
+- [ ] Client-specific TTL support
+

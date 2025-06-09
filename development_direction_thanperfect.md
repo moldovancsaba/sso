@@ -68,3 +68,24 @@ Create a minimal, privacy-respecting SSO system that issues a session token base
 | ❌ External admin protection | Not implemented |
 | ❌ Redis token storage | Not implemented |
 
+---
+
+## 📦 Update – v0.2.0 → v1.0.0 Prep Phase
+
+> 📅 Last updated: 2025-06-09T15:40:01Z
+
+### 🚩 Immediate Tasks
+
+- [ ] Test login and redirect from a separate consumer app
+- [ ] Validate token format and behavior in target app
+- [ ] Confirm 10-minute session expiry
+- [ ] Confirm correct redirect behavior and param passing
+- [ ] Run through /admin CRUD interface
+- [ ] Tag stable version as `v1.0.0` after manual QA
+
+### 🔮 Optional Enhancements (After v1.0.0)
+
+- Activity filters in `/admin`
+- Dashboard-style token analytics
+- Source URL registry for per-client TTL or branding
+
