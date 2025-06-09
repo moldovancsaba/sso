@@ -1,8 +1,11 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/router';
 
 export default function Home() {
   const [value, setValue] = useState('');
   const [message, setMessage] = useState('');
+  const router = useRouter();
+  const redirect = router.query.redirect;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -12,7 +15,11 @@ export default function Home() {
       body: JSON.stringify({ value })
     });
     const data = await res.json();
-    setMessage(data.message || 'Token issued');
+    if (redirect) {
+      window.location.href = `${redirect}?token=${data.token}`;
+    } else {
+      setMessage(data.message || 'Token issued');
+    }
     document.cookie = `token=${data.token}; path=/`;
   };
 

@@ -1,204 +1,90 @@
-# User Stories Thanperfect
-
-## Version History
-
----
-
-### 🔖 v0.1.0
-📅 Released: 2025-06-08T12:00:00.000Z
-
 # thanperfect – User Stories
 
-This document describes detailed user stories to guide the development of the `thanperfect` minimal SSO system. Each story follows the standard "As a [user], I want [feature], so that [benefit]" format.
-
----
-
-## 🧑‍💻 User Role: Visitor
-
-### US01 – Submit an Identifier
-**As a** visitor  
-**I want to** type any string (e.g., ".", "❤️", "banana") into an input field and submit it  
-**So that** I can receive a session token without registering or logging in  
-
-### US02 – Receive Token for Known Identifier
-**As a** returning visitor  
-**I want to** receive a new session token if I enter an identifier that already exists  
-**So that** I can reuse my previous identity  
-
-### US03 – Receive Token for New Identifier
-**As a** new visitor  
-**I want to** receive a new session token if I enter a new identifier  
-**So that** I can immediately start using the system without approval  
-
----
-
-## 🔐 User Role: Session System
-
-### US04 – Create a Temporary Token
-**As the** system  
-**I want to** generate a secure 10-minute token after identifier submission  
-**So that** the user session can be validated temporarily  
-
-### US05 – Store Session Server-side
-**As the** system  
-**I want to** store the token in-memory with an expiration timestamp  
-**So that** I don’t need to persist it or use cookies for validation  
-
----
-
-## 📜 User Role: Administrator
-
-### US06 – View All Identifiers
-**As an** administrator  
-**I want to** see a list of all identifiers with their metadata  
-**So that** I can monitor all usage in one place  
-
-### US07 – Edit Identifier Value
-**As an** administrator  
-**I want to** change the value of an identifier  
-**So that** I can correct or manage identifiers  
-
-### US08 – Delete Identifier
-**As an** administrator  
-**I want to** remove an identifier from the system  
-**So that** I can clean up invalid or outdated entries  
-
----
-
-## 📈 User Role: Activity Logger
-
-### US09 – Log Identifier Creation
-**As the** system  
-**I want to** add a 'created' entry to the activity timeline when a new identifier is saved  
-**So that** we can track its origin accurately  
-
-### US10 – Log SSO Usage
-**As the** system  
-**I want to** log a 'used' activity with a timestamp and source URL  
-**So that** I can trace when and where the identifier was used  
-
-### US11 – Log Identifier Update
-**As the** system  
-**I want to** record an 'updated' activity when the identifier value changes  
-**So that** history is preserved  
-
----
-
-## ✅ Acceptance Criteria Summary
-
-| ID    | Criteria                                                                 |
-|-------|--------------------------------------------------------------------------|
-| US01  | Input accepts any UTF-8 character                                        |
-| US02  | Reusing an identifier results in a new token                             |
-| US03  | New identifier is stored and token issued                                |
-| US04  | Tokens are valid for exactly 10 minutes                                  |
-| US05  | Tokens are stored in a temporary in-memory structure                     |
-| US06  | Admin can access `/admin` to view all identifiers                        |
-| US07  | Admin can edit and update identifier values                              |
-| US08  | Admin can delete an identifier                                           |
-| US09  | All new identifiers include a 'created' activity                         |
-| US10  | Each token issue logs a 'used' event with timestamp and optional source  |
-| US11  | Identifier changes trigger an 'updated' log entry                        |
-
----
-
-### 🔖 v0.2.0
-📅 Released: 2025-06-09T15:13:22.751Z
-
-# thanperfect – User Stories
-
-> 📅 Last updated: 2025-06-09T15:04:28.268Z  
+> 📅 Last updated: 2025-06-09T15:30:51.540Z  
 > 📌 Version: v0.2.0
 
-
-This document describes detailed user stories to guide the development of the `thanperfect` minimal SSO system. Each story follows the standard "As a [user], I want [feature], so that [benefit]" format.
-
 ---
 
-## 🧑‍💻 User Role: Visitor
+## 🧑‍💻 Visitor
 
-### US01 – Submit an Identifier
+### US01 – Enter Identifier
 **As a** visitor  
-**I want to** type any string (e.g., ".", "❤️", "banana") into an input field and submit it  
-**So that** I can receive a session token without registering or logging in  
+**I want to** enter any text string as my identifier  
+**So that** I can get access without creating an account
 
-### US02 – Receive Token for Known Identifier
+### US02 – Reuse Identifier
 **As a** returning visitor  
-**I want to** receive a new session token if I enter an identifier that already exists  
-**So that** I can reuse my previous identity  
+**I want to** use the same identifier again  
+**So that** I continue with the same identity
 
-### US03 – Receive Token for New Identifier
-**As a** new visitor  
-**I want to** receive a new session token if I enter a new identifier  
-**So that** I can immediately start using the system without approval  
+### US03 – Get Token
+**As a** visitor  
+**I want to** receive a 10-minute session token  
+**So that** I can be temporarily authenticated
 
----
-
-## 🔐 User Role: Session System
-
-### US04 – Create a Temporary Token
-**As the** system  
-**I want to** generate a secure 10-minute token after identifier submission  
-**So that** the user session can be validated temporarily  
-
-### US05 – Store Session Server-side
-**As the** system  
-**I want to** store the token in-memory with an expiration timestamp  
-**So that** I don’t need to persist it or use cookies for validation  
+### US04 – Get Redirected After Auth
+**As a** visitor  
+**I want to** be redirected to my original app with the token  
+**So that** I can continue my login flow
 
 ---
 
-## 📜 User Role: Administrator
+## 🔐 Session System
 
-### US06 – View All Identifiers
-**As an** administrator  
-**I want to** see a list of all identifiers with their metadata  
-**So that** I can monitor all usage in one place  
+### US05 – Generate UUID Token
+**As the** system  
+**I want to** create a unique token for each login  
+**So that** it's secure and easy to validate
 
-### US07 – Edit Identifier Value
-**As an** administrator  
-**I want to** change the value of an identifier  
-**So that** I can correct or manage identifiers  
+### US06 – Expire After 10 Minutes
+**As the** system  
+**I want to** expire tokens after 10 minutes  
+**So that** old tokens can't be reused
 
-### US08 – Delete Identifier
-**As an** administrator  
-**I want to** remove an identifier from the system  
-**So that** I can clean up invalid or outdated entries  
+### US07 – Validate Token
+**As a** relying app  
+**I want to** send a token to `/api/validate`  
+**So that** I can confirm if it's valid
 
 ---
 
-## 📈 User Role: Activity Logger
+## 🛠 Admin
 
-### US09 – Log Identifier Creation
-**As the** system  
-**I want to** add a 'created' entry to the activity timeline when a new identifier is saved  
-**So that** we can track its origin accurately  
+### US08 – List All Identifiers
+**As an** admin  
+**I want to** see all stored identifiers  
+**So that** I can manage users
 
-### US10 – Log SSO Usage
-**As the** system  
-**I want to** log a 'used' activity with a timestamp and source URL  
-**So that** I can trace when and where the identifier was used  
+### US09 – Edit Identifier
+**As an** admin  
+**I want to** rename identifiers  
+**So that** I can fix typos or errors
 
-### US11 – Log Identifier Update
-**As the** system  
-**I want to** record an 'updated' activity when the identifier value changes  
-**So that** history is preserved  
+### US10 – Delete Identifier
+**As an** admin  
+**I want to** delete any identifier  
+**So that** I can clean up data
+
+### US11 – View Activities
+**As an** admin  
+**I want to** see a log of all activities per identifier  
+**So that** I understand usage over time
 
 ---
 
-## ✅ Acceptance Criteria Summary
+## 📄 Acceptance Criteria
 
-| ID    | Criteria                                                                 |
-|-------|--------------------------------------------------------------------------|
-| US01  | Input accepts any UTF-8 character                                        |
-| US02  | Reusing an identifier results in a new token                             |
-| US03  | New identifier is stored and token issued                                |
-| US04  | Tokens are valid for exactly 10 minutes                                  |
-| US05  | Tokens are stored in a temporary in-memory structure                     |
-| US06  | Admin can access `/admin` to view all identifiers                        |
-| US07  | Admin can edit and update identifier values                              |
-| US08  | Admin can delete an identifier                                           |
-| US09  | All new identifiers include a 'created' activity                         |
-| US10  | Each token issue logs a 'used' event with timestamp and optional source  |
-| US11  | Identifier changes trigger an 'updated' log entry                        |
+| Story | Criteria |
+|-------|----------|
+| US01  | Accept any valid UTF-8 input |
+| US02  | Match previous value if re-entered |
+| US03  | Return valid UUID token |
+| US04  | Redirect to URL with `?token=` |
+| US05  | Token stored with `expiresAt` timestamp |
+| US06  | Token becomes invalid after 10 mins |
+| US07  | `/api/validate` returns valid/false |
+| US08  | `/admin` shows all records |
+| US09  | Identifier can be updated inline |
+| US10  | Identifier can be removed |
+| US11  | Activity log shown with ISO 8601 dates |
 
