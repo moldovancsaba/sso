@@ -15,8 +15,12 @@ export default async function handler(
   try {
     const { token, redirect } = req.query;
 
-    if (!token || !redirect) {
-      return res.status(400).json({ error: 'Token and redirect URL are required' });
+    if (!token) {
+      return res.status(400).json({ error: 'Token is required' });
+    }
+
+    // If no redirect specified, go to home page
+    const redirectUrl = redirect ? (redirect as string).replace('undefined', '') : '/';
     }
 
     // Verify token
@@ -34,7 +38,7 @@ export default async function handler(
       });
 
       // Redirect to the specified URL
-      res.redirect(302, redirect as string);
+      res.redirect(302, redirectUrl);
     } catch (error) {
       return res.status(401).json({ error: 'Invalid or expired token' });
     }
