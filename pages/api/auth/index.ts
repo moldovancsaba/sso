@@ -28,7 +28,7 @@ export default async function handler(
       
       // Log the auth action
       const client = await clientPromise;
-      const db = client.db('thanperfect');
+      const db = client.db('sso');
       await db.collection('auth_logs').insertOne({
         identifier: (decoded as any).identifier,
         action: 'used',

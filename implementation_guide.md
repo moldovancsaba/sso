@@ -1,16 +1,16 @@
-# thanperfect – Implementation Guide
+# Simple SSO – Implementation Guide
 
 > 📅 Last updated: 2025-06-09T15:30:51.540Z  
 > 📌 Version: v0.2.0
 
-This guide documents how to implement, configure, and extend the thanperfect system.
+This guide documents how to implement, configure, and extend the Simple SSO system.
 
 ---
 
 ## 🏗️ Project Structure
 
 ```
-/thanperfect
+/sso
 ├── lib/
 │   ├── db.js
 │   └── tokenStore.js

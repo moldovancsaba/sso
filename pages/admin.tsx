@@ -12,7 +12,7 @@ interface AuthLog {
 export const getServerSideProps: GetServerSideProps = async () => {
   try {
     const client = await clientPromise;
-    const db = client.db('thanperfect');
+    const db = client.db('sso');
     const logs = await db
       .collection('auth_logs')
       .find({})

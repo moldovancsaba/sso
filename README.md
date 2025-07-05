@@ -1,13 +1,13 @@
-# thanperfect
+# Simple SSO
 
-**Version:** v0.2.0  
+[![Version](https://img.shields.io/badge/version-v0.2.0-blue.svg)](./CHANGELOG.md)
 **Last Updated:** 2025-06-09T15:30:51.540Z
 
 ---
 
 ## 🧠 Project Purpose
 
-thanperfect is a privacy-first, minimal SSO authentication mechanism using arbitrary string identifiers (such as `"."`, `"❤️"`, `"banana"`) in place of traditional usernames or email-based auth.
+Simple SSO is a privacy-first, minimal SSO authentication mechanism using arbitrary string identifiers (such as `"."`, `"❤️"`, `"banana"`) in place of traditional usernames or email-based auth.
 
 ---
 
@@ -71,7 +71,7 @@ thanperfect is a privacy-first, minimal SSO authentication mechanism using arbit
 
 1. **Redirect to thanperfect:**
    ```
-   https://thanperfect.com?redirect=https://yourapp.com/callback
+   https://sso.example.com?redirect=https://yourapp.com/callback
    ```
 
 2. **On submission**, user will be redirected with a token:
@@ -81,7 +81,7 @@ thanperfect is a privacy-first, minimal SSO authentication mechanism using arbit
 
 3. **Validate token in your app**:
    ```http
-   GET https://thanperfect.com/api/validate?token=abc123
+   GET https://sso.example.com/api/validate?token=abc123
    ```
 
 ---
@@ -100,9 +100,9 @@ thanperfect is a privacy-first, minimal SSO authentication mechanism using arbit
 All documentation files now contain version sections:
 - [`CHANGELOG.md`](./CHANGELOG.md)
 - [`implementation_guide.md`](./implementation_guide.md)
-- [`thanperfect_spec.md`](./thanperfect_spec.md)
-- [`user_stories_thanperfect.md`](./user_stories_thanperfect.md)
-- [`thanperfect_sso_integration.md`](./thanperfect_sso_integration.md)
+- [`sso_spec.md`](./sso_spec.md)
+- [`sso_user_stories.md`](./sso_user_stories.md)
+- [`sso_integration.md`](./sso_integration.md)
 
 ---
 

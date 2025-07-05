@@ -2,18 +2,18 @@
 
 ## System Overview
 
-ThanPerfect is a privacy-first ephemeral SSO system implementing secure JWT token management.
+Simple SSO is a privacy-first ephemeral SSO system implementing secure identifier-based authentication with arbitrary string identifiers and temporary tokens.
 
 ## Components
 
 ### Authentication System
 
-#### JWT Implementation
-- **Technology**: JSON Web Tokens (JWT)
+#### Token Implementation
+- **Technology**: UUID-based tokens
 - **Configuration**: 
-  - Short Time-To-Live (TTL)
-  - Secure signing using industry-standard algorithms
-  - No persistent token storage
+  - 10-minute Time-To-Live (TTL)
+  - Secure token generation using crypto.randomUUID()
+  - In-memory token storage
 
 #### Security Features
 - Ephemeral token handling
@@ -64,9 +64,9 @@ ThanPerfect is a privacy-first ephemeral SSO system implementing secure JWT toke
 ## Integration Points
 
 ### External Systems
-- GitHub authentication
-- Vercel deployment
-- MongoDB logging
+- MongoDB for identifier storage
+- External app integrations via token validation
+- Admin interface for management
 
 ### API Endpoints
 - Authentication routes

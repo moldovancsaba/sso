@@ -1,6 +1,14 @@
 {
-  "name": "thanperfect",
-  "version": "0.2.0",
+  "name": "sso",
+  "version": "1.0.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/moldovancsaba/sso.git"
+  },
+  "homepage": "https://sso.doneisbetter.com",
+  "deployment": {
+    "vercel": "https://vercel.com/narimato/sso"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -9,14 +17,14 @@
   "dependencies": {
     "@types/jsonwebtoken": "^9.0.10",
     "jsonwebtoken": "^9.0.2",
-    "mongoose": "^7.0.0",
-    "next": "^15.2.0",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "mongoose": "^7.8.7",
+    "next": "^15.3.5",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
   },
   "devDependencies": {
     "@types/react": "19.1.8",
-    "tailwindcss": "^3.0.0",
+    "tailwindcss": "^3.4.17",
     "typescript": "5.8.3",
     "autoprefixer": "^10.4.19"
   }

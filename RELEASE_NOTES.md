@@ -1,5 +1,11 @@
 # Release Notes
 
+## [v1.0.0] — 2025-07-05T20:12:47.000Z
+
+### Changed
+- Major version upgrade from 0.2.0 to 1.0.0
+- Marks the first stable release of ThanPerfect
+
 ## [v0.2.0] — 2025-07-05T17:11:25Z
 
 ### Changed

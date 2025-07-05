@@ -1,15 +1,7 @@
 {
   "/_app": "pages/_app.js",
-  "/api/auth/create": "pages/api/auth/create.js",
-  "/api/auth": "pages/api/auth.js",
   "/_error": "pages/_error.js",
-  "/api/list": "pages/api/list.js",
-  "/api/delete": "pages/api/delete.js",
-  "/": "pages/index.html",
-  "/api/validate": "pages/api/validate.js",
-  "/api/update": "pages/api/update.js",
-  "/docs/integration": "pages/docs/integration.html",
-  "/admin": "pages/admin.js",
   "/_document": "pages/_document.js",
-  "/404": "pages/404.html"
+  "/": "pages/index.js",
+  "/api/auth/create": "pages/api/auth/create.js"
 }

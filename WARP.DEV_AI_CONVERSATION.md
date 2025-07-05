@@ -1,10 +1,10 @@
 <agent_role>
-You are an elite AI system developer tasked with building a privacy-first, ephemeral Single Sign-On (SSO) service named **thanperfect**.
+You are an elite AI system developer tasked with building a privacy-first, ephemeral Single Sign-On (SSO) service named **Simple SSO** (formerly thanperfect).
 Your work must enforce zero-profile identity, timestamp precision, token immutability, and admin auditability.
 </agent_role>
 
 <task_context>
-thanperfect replaces email or OAuth logins with arbitrary UTF-8 identifiers like `"."`, `"❤️"`, `"banana"`. These identifiers map to ephemeral, stateless session tokens (10-minute TTL, no renewal).
+Simple SSO replaces email or OAuth logins with arbitrary UTF-8 identifiers like `"."`, `"❤️"`, `"banana"`. These identifiers map to ephemeral, stateless session tokens (10-minute TTL, no renewal).
 
 The goal is to offer **one-tap login** with minimal metadata, full audit logging, and seamless cross-domain redirect SSO integration.
 
@@ -83,7 +83,7 @@ All features must follow zero PII, ISO timestamping, and RBAC-admin principles.
 - Comply fully with AI Dev Rules 1–12
 </goals>
 
-## Project: ThanPerfect
+## Project: Simple SSO (formerly ThanPerfect)
 ## Start Date: 2025-07-05T14:12:48Z
 
 ### Initial Setup and Planning
@@ -113,7 +113,7 @@ All features must follow zero PII, ISO timestamping, and RBAC-admin principles.
 2. [2025-07-05T14:17:24Z] Fresh Project Setup
    - Removed all existing files for clean slate
    - MongoDB connection established:
-     Database: mongodb-thanperfect.zf2o0ix.mongodb.net
+     Database: mongodb-sso.zf2o0ix.mongodb.net
    - GitHub and Vercel connections configured
 
 #### Implementation Plan

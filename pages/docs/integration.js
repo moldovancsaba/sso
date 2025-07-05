@@ -15,13 +15,13 @@ export default function IntegrationGuide() {
         <section className="mb-8">
           <h2 className="text-2xl font-semibold mb-4">Quick Start</h2>
           <p className="mb-4">
-            Integrate thanperfect SSO in three simple steps:
+            Integrate Simple SSO in three simple steps:
           </p>
           
-          <h3 className="text-xl font-semibold mt-6 mb-2">1. Redirect to thanperfect</h3>
-          <p className="mb-2">Send users to thanperfect with your callback URL:</p>
+          <h3 className="text-xl font-semibold mt-6 mb-2">1. Redirect to Simple SSO</h3>
+          <p className="mb-2">Send users to Simple SSO with your callback URL:</p>
           <CodeBlock>
-            https://thanperfect.com?redirect=https://yourapp.com/callback
+            https://sso.example.com?redirect=https://yourapp.com/callback
           </CodeBlock>
 
           <h3 className="text-xl font-semibold mt-6 mb-2">2. Handle the Callback</h3>
@@ -33,7 +33,7 @@ export default function IntegrationGuide() {
           <h3 className="text-xl font-semibold mt-6 mb-2">3. Validate the Token</h3>
           <p className="mb-2">Verify the token using our validation endpoint:</p>
           <CodeBlock>
-            GET https://thanperfect.com/api/validate?token=abc123
+            GET https://sso.example.com/api/validate?token=abc123
           </CodeBlock>
         </section>
 
@@ -73,7 +73,7 @@ export default function IntegrationGuide() {
         <section className="mb-8">
           <h2 className="text-2xl font-semibold mb-4">Need Help?</h2>
           <p>
-            Check our <a href="https://github.com/moldovancsaba/thanperfect" className="text-blue-600 hover:underline">GitHub repository</a> for 
+            Check our <a href="https://github.com/moldovancsaba/sso" className="text-blue-600 hover:underline">GitHub repository</a> for 
             more examples and detailed documentation.
           </p>
         </section>

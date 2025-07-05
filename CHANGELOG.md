@@ -1,4 +1,4 @@
-# thanperfect – Changelog
+# Simple SSO – Changelog
 
 ## 🔖 v0.2.0
 📅 Released: 2025-06-09T15:30:51.540Z

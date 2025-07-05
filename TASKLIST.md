@@ -2,20 +2,39 @@
 
 ## Active Tasks
 
-### Authentication System
-- [ ] Implement token refresh mechanism
-- [ ] Add rate limiting to auth endpoints
-- [ ] Set up monitoring for token usage
+### v1.0.0 Critical Path
+- [ ] Login with redirect from external app (Priority: High)
+  Owner: TBD
+  Expected: 2025-06-15T00:00:00.000Z
 
-### Admin Interface
-- [ ] Create RBAC management interface
-- [ ] Implement audit log viewer
-- [ ] Add token revocation functionality
+- [ ] Token validation via API (Priority: High)
+  Owner: TBD
+  Expected: 2025-06-16T00:00:00.000Z
 
-### Integration
-- [ ] Document SSO implementation guide
-- [ ] Create example integration apps
-- [ ] Set up integration testing suite
+- [ ] Session expiry testing (Priority: High)
+  Owner: TBD
+  Expected: 2025-06-17T00:00:00.000Z
+
+- [ ] Manual QA for all flows (Priority: High)
+  Owner: TBD
+  Expected: 2025-06-18T00:00:00.000Z
+
+### Optional Enhancements
+- [ ] Backend test suite (Priority: Medium)
+  Owner: TBD
+  Expected: 2025-06-20T00:00:00.000Z
+
+- [ ] Dashboard metrics (Priority: Low)
+  Owner: TBD
+  Expected: 2025-06-22T00:00:00.000Z
+
+- [ ] Admin activity filters (Priority: Low)
+  Owner: TBD
+  Expected: 2025-06-24T00:00:00.000Z
+
+- [ ] Client-specific TTL support (Priority: Low)
+  Owner: TBD
+  Expected: 2025-06-25T00:00:00.000Z
 
 ## Completed Tasks
 

@@ -1,6 +1,6 @@
 import { MongoClient } from 'mongodb';
 
-const uri = 'mongodb+srv://moldovancsaba:togwa1-xyhcEp-mozceb@mongodb-thanperfect.zf2o0ix.mongodb.net/?retryWrites=true&w=majority&appName=mongodb-thanperfect';
+const uri = 'mongodb+srv://moldovancsaba:togwa1-xyhcEp-mozceb@mongodb-sso.zf2o0ix.mongodb.net/?retryWrites=true&w=majority&appName=mongodb-sso';
 const options = {};
 
 let client: MongoClient;
