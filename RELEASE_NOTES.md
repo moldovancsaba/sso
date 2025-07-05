@@ -1,5 +1,19 @@
 # Release Notes
 
+## [v3.0.2] — 2025-07-05T22:52:10Z
+
+### Added
+- Comprehensive API documentation with examples
+- Detailed integration guide with best practices
+- Rate limiting and security documentation
+
+### Changed
+- Updated all documentation to reflect current implementation
+- Improved error handling documentation
+
+### Deployed
+- Successfully deployed to https://sso.doneisbetter.com
+
 ## [v3.0.1] — 2025-07-05T22:46:15Z
 
 ### Added
