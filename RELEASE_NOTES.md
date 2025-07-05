@@ -1,5 +1,19 @@
 # Release Notes
 
+## [v3.0.5] — 2025-07-05T23:03:22Z
+
+### Fixed
+- Middleware composition and execution chain
+- API route handler syntax
+- Build and deployment issues
+
+### Changed
+- Improved middleware type safety
+- Enhanced middleware error handling
+
+### Deployed
+- Successfully deployed to https://sso.doneisbetter.com
+
 ## [v3.0.4] — 2025-07-05T23:03:22Z
 
 ### Added
