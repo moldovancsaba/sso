@@ -1,5 +1,24 @@
 # Release Notes
 
+## [v2.0.0] — 2025-07-05T21:23:25Z
+
+### Added
+- New admin dashboard with user management
+- Comprehensive documentation system
+- MongoDB integration for user persistence
+- API key authentication system
+
+### Changed
+- Complete navigation system overhaul
+- Enhanced user interface with Tailwind CSS
+- Improved error handling and validation
+
+### Technical
+- Migrated to Next.js 15.3.5
+- Implemented TypeScript throughout
+- Added proper MongoDB connection handling
+- Enhanced JWT token security
+
 ## [v1.0.0] — 2025-07-05T20:12:47.000Z
 
 ### Changed

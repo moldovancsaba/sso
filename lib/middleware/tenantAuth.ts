@@ -25,9 +25,32 @@ export async function validateTenant(
     const tenantsCollection = db.collection('tenants');
 
     // Find tenant by API key
-    const tenant = await tenantsCollection.findOne({
+    const tenantDoc = await tenantsCollection.findOne({
       'apiKeys.key': apiKey
-    }) as TenantConfig;
+    });
+
+    if (!tenantDoc) {
+      return res.status(401).json({ error: 'Invalid API key' });
+    }
+
+    // Map MongoDB document to TenantConfig
+    const tenant: TenantConfig = {
+      id: tenantDoc._id.toString(),
+      name: tenantDoc.name,
+      domain: tenantDoc.domain,
+      createdAt: tenantDoc.createdAt,
+      updatedAt: tenantDoc.updatedAt,
+      settings: {
+        allowedRedirectDomains: tenantDoc.settings?.allowedRedirectDomains || [],
+        tokenExpiryMinutes: tenantDoc.settings?.tokenExpiryMinutes || 60,
+        ipWhitelist: tenantDoc.settings?.ipWhitelist || [],
+        rateLimit: {
+          requestsPerMinute: tenantDoc.settings?.rateLimit?.requestsPerMinute || 100,
+          burstSize: tenantDoc.settings?.rateLimit?.burstSize || 10
+        }
+      },
+      apiKeys: tenantDoc.apiKeys || []
+    };
 
     if (!tenant) {
       return res.status(401).json({ error: 'Invalid API key' });
