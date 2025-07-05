@@ -28,36 +28,48 @@ export async function requestLogger(
   let error: string | undefined;
 
   // Override res.end to capture the status code and log the request
-  res.end = async function (chunk?: any, encoding?: any, callback?: () => void) {
+  const newEnd = function (chunk: any, encoding?: BufferEncoding | (() => void), callback?: () => void) {
     const responseTime = Date.now() - startTime;
     statusCode = res.statusCode;
 
-    try {
-      const client: MongoClient = await clientPromise;
-      const db = client.db('sso');
-      const logsCollection = db.collection('request_logs');
+    // Log the request asynchronously
+    (async () => {
+      try {
+        const client: MongoClient = await clientPromise;
+        const db = client.db('sso');
+        const logsCollection = db.collection('request_logs');
 
-      const logEntry: RequestLog = {
-        timestamp: new Date().toISOString(),
-        method: req.method || 'UNKNOWN',
-        url: req.url || '',
-        ip: clientIp || 'UNKNOWN',
-        userAgent: req.headers['user-agent'] || 'UNKNOWN',
-        tenantId: (req as any).tenant?.id,
-        statusCode,
-        responseTime,
-        error: error
-      };
+        const logEntry: RequestLog = {
+          timestamp: new Date().toISOString(),
+          method: req.method || 'UNKNOWN',
+          url: req.url || '',
+          ip: clientIp || 'UNKNOWN',
+          userAgent: req.headers['user-agent'] || 'UNKNOWN',
+          tenantId: (req as any).tenant?.id,
+          statusCode,
+          responseTime,
+          error: error
+        };
 
-      // Asynchronously log to MongoDB
-      await logsCollection.insertOne(logEntry);
-    } catch (err) {
-      console.error('Failed to log request:', err);
+        // Asynchronously log to MongoDB
+        await logsCollection.insertOne(logEntry);
+      } catch (err) {
+        console.error('Failed to log request:', err);
+      }
+    })();
+
+    // Handle overloaded function signature
+    if (typeof encoding === 'function') {
+      callback = encoding;
+      encoding = undefined;
     }
 
     // Call the original end method
-    return originalEnd.call(this, chunk, encoding, callback);
+    return originalEnd.call(res, chunk, encoding, callback);
   };
+
+  // Override the end method
+  res.end = newEnd;
 
   // Catch any errors
   try {
