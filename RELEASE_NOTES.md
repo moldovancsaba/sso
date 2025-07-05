@@ -1,5 +1,21 @@
 # Release Notes
 
+## [v3.0.4] — 2025-07-05T23:03:22Z
+
+### Added
+- Centralized Database service with singleton pattern
+- Improved type safety across API layer
+
+### Changed
+- Consolidated all database operations into single service
+- Removed duplicate MongoDB connections
+- Improved API key handling and validation
+- Enhanced error handling across all endpoints
+
+### Removed
+- Deprecated MongoDB connection files
+- Legacy API key handling code
+
 ## [v3.0.3] — 2025-07-05T22:58:35Z
 
 ### Added
