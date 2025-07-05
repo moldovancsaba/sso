@@ -2,11 +2,17 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import clientPromise from '../../../lib/db/mongodb';
 import { User } from '../../../lib/types/user';
 import { WithId, Document } from 'mongodb';
+import { validateTenant } from '../../../lib/middleware/tenantAuth';
+import { rateLimit } from '../../../lib/middleware/rateLimit';
+import { requestLogger } from '../../../lib/middleware/requestLogger';
+import { composeMiddleware } from '../../../lib/middleware/compose';
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
+// Handler with middleware stack
+const handler = composeMiddleware(
+  validateTenant,
+  rateLimit,
+  requestLogger,
+  async function (req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -37,4 +43,6 @@ export default async function handler(
     console.error('Error fetching users:', error);
     return res.status(500).json({ error: 'Internal server error' });
   }
-}
+});
+
+export default handler;

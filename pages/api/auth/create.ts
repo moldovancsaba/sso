@@ -3,14 +3,20 @@ import jwt from 'jsonwebtoken';
 import clientPromise from '../../../lib/db/mongodb';
 import { ObjectId } from 'mongodb';
 import { User } from '../../../lib/types/user';
+import { validateTenant } from '../../../lib/middleware/tenantAuth';
+import { rateLimit } from '../../../lib/middleware/rateLimit';
+import { requestLogger } from '../../../lib/middleware/requestLogger';
+import { composeMiddleware } from '../../../lib/middleware/compose';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
-  if (req.method !== 'POST') {
+// Handler with middleware stack
+const handler = composeMiddleware(
+  validateTenant,
+  rateLimit,
+  requestLogger,
+  async function (req: NextApiRequest, res: NextApiResponse) {
+    if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
@@ -18,7 +24,7 @@ export default async function handler(
     const { identifier } = req.body;
 
     if (!identifier) {
-      return res.status(400).json({ error: 'Identifier is required' });
+    return res.status(400).json({ error: 'Identifier is required' });
     }
 
     // Create a simple JWT token
@@ -64,4 +70,6 @@ export default async function handler(
     console.error('Auth error:', error);
     return res.status(500).json({ error: 'Internal server error' });
   }
-}
+});
+
+export default handler;

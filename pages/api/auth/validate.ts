@@ -1,10 +1,16 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { getApiKeyFromDb } from '../../../lib/db/apiKeys';
+import { validateTenant } from '../../../lib/middleware/tenantAuth';
+import { rateLimit } from '../../../lib/middleware/rateLimit';
+import { requestLogger } from '../../../lib/middleware/requestLogger';
+import { composeMiddleware } from '../../../lib/middleware/compose';
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
+// Handler with middleware stack
+const handler = composeMiddleware(
+  validateTenant,
+  rateLimit,
+  requestLogger,
+  async function (req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -37,4 +43,6 @@ export default async function handler(
     console.error('API key validation error:', error);
     return res.status(500).json({ error: 'Internal server error' });
   }
-}
+});
+
+export default handler;
