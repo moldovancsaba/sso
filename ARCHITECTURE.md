@@ -1,87 +1,59 @@
-# Architecture Documentation
+# SSO Architecture
 
 ## System Overview
 
-Simple SSO is a privacy-first ephemeral SSO system implementing secure identifier-based authentication with arbitrary string identifiers and temporary tokens.
+SSO (Single Sign-On) is a privacy-first system designed with minimal data collection, ephemeral token handling, and secure authentication.
 
-## Components
+## Core Components
 
-### Authentication System
+### Authentication Layer
+- **Tokens**: Short-lived JWTs
+- **TTL**: 10 minutes for security
+- **Tech**: UUID-based identifier tokens
 
-#### Token Implementation
-- **Technology**: UUID-based tokens
-- **Configuration**: 
-  - 10-minute Time-To-Live (TTL)
-  - Secure token generation using crypto.randomUUID()
-  - In-memory token storage
+### Security Features
+- Ephemeral token management
+- Automated token expiration
+- Strict rate limiting for endpoints
 
-#### Security Features
-- Ephemeral token handling
-- No server-side token storage
-- Automatic token expiration
-- Rate limiting on authentication endpoints
+### Backend Infrastructure
+- **API Layer**: Next.js API routes for authentication
+- **Data Layer**: MongoDB for logging and transient data
 
-### Backend Services
+### Frontend Interface
+- **Framework**: Next.js with TypeScript
+- **Styling**: Tailwind CSS for scalable design
+- **State**: Client-side state management using hooks
 
-#### API Layer
-- Next.js API routes
-- RESTful endpoints
-- Rate-limited routes for security
+## Security Overview
 
-#### Data Layer
-- MongoDB for minimal logging
-- No persistent user data storage
-- Privacy-first data handling
+### Workflow
+1. User submits identifier
+2. System issues JWT
+3. Token is temporary
+4. No server-side token storage
 
-### Frontend
+### Privacy Protocol
+- Minimal necessary data
+- No tracking or persistent logs
+- Secure transmission
 
-#### UI Components
-- Next.js with standardized TypeScript implementation
-- Unified TypeScript patterns across components
-- TailwindCSS for styling
-- Responsive design
-
-#### State Management
-- Server-side session handling
-- Client-side token management
-- Secure token storage in memory only
-
-## Security Architecture
-
-### Authentication Flow
-1. User initiates authentication
-2. System generates short-lived JWT
-3. Token delivered securely to client
-4. Token automatically expires after TTL
-5. No persistence of authentication state
-
-### Data Privacy
-- Minimal data collection
-- No user tracking
-- Ephemeral session management
-- Automatic data cleanup
-
-## Integration Points
+## Integration Architecture
 
 ### External Systems
-- MongoDB for identifier storage
-- External app integrations via token validation
-- Admin interface for management
+- MongoDB for transient data storage
+- Admin interface with controlled access
 
-### API Endpoints
-- Authentication routes
-- Protected resource access
-- Health check endpoints
+### Key Endpoints
+- Authentication and validation
+- Admin management
 
-## Development Considerations
+## Future Goals
 
-### Security Requirements
-- All endpoints must be rate-limited
-- No persistent token storage
-- Secure headers implementation
-- Regular security audits
+### Security Enhancements
+- Encrypted tokens
+- Improved audit logging
 
-### Performance Goals
-- Sub-100ms response times
-- Minimal database operations
-- Efficient token validation
+### Scalability
+- Multi-tenant support
+- Horizontal scaling

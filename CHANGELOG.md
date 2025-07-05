@@ -1,29 +1,34 @@
-# Simple SSO – Changelog
+# Changelog
 
-## 🔖 v0.2.0
-📅 Released: 2025-06-09T15:30:51.540Z
+## [v3.0.0] - 2025-07-05T22:09:47Z
+### Changed
+- Major UI upgrade to mobile-first design
+- Consolidated navigation to Docs and Admin
+- Improved documentation structure
+- Updated all documentation for consistency
 
-### ✅ Added
-- `/api/update` endpoint to allow identifier renaming
-- `/api/delete` endpoint for identifier removal
-- `/api/validate` endpoint to validate 10-minute tokens for SSO integration
-- Support for `redirect` query param on main page
-- Admin panel now includes:
-  - Inline editing
-  - Delete button
-  - Display of activity log with ISO 8601 timestamps
-- Merged and versioned documentation (.md files)
+### Added
+- Legal compliance with GTC and PP
+- Mobile-first responsive design
 
-### 🧠 Activity Log Format
-- All events are saved with `type`, `timestamp`, and optional `source`
-- Types: `created`, `used`, `updated`
+### Fixed
+- Resolved 404 errors in Next.js configuration
+- Removed App Router dependencies
 
----
+## [v2.0.0] - 2025-07-05T21:23:25Z
+### Added
+- Admin dashboard with user management
+- Comprehensive documentation system
+- MongoDB integration for user persistence
+- API key authentication system
 
-## 🔖 v0.1.0
-📅 Released: 2025-06-08T12:00:00.000Z
+### Changed
+- Complete navigation system overhaul
+- Enhanced user interface with Tailwind CSS
 
-- Initial version
-- Simple input form and backend
-- MongoDB model: `Identifier`
-- Token session system with 10-minute expiry
+## [v1.0.0] - 2025-07-05T20:12:47Z
+### Added
+- Initial stable release
+- JWT-based authentication system
+- Basic admin interface
+- Documentation framework

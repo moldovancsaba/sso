@@ -1,3 +1,66 @@
+# SSO
+
+[![Version](https://img.shields.io/badge/version-3.0.0-blue.svg)](https://github.com/moldovancsaba/sso)
+
+A modern, privacy-focused Single Sign-On system with minimal data collection and ephemeral token handling.
+
+## Features
+
+- Privacy-first authentication system
+- Minimal data collection
+- Short-lived JWT tokens
+- Mobile-first, responsive design
+- Comprehensive documentation
+
+## Quick Start
+
+```bash
+# Install dependencies
+npm install
+
+# Run development server
+npm run dev
+
+# Build for production
+npm run build
+
+# Start production server
+npm start
+```
+
+## Documentation
+
+- [Integration Guide](/docs/integration) - How to integrate SSO into your application
+- [General Terms and Conditions](/docs/gtc) - Terms of service
+- [Privacy Policy](/docs/privacy-policy) - Data handling and privacy practices
+
+## Project Documentation
+
+- [Architecture](ARCHITECTURE.md) - System design and components
+- [Release Notes](RELEASE_NOTES.md) - Version history and changes
+- [Roadmap](ROADMAP.md) - Future development plans
+- [Task List](TASKLIST.md) - Current development tasks
+- [Learnings](LEARNINGS.md) - Development insights and solutions
+
+## Environment Variables
+
+```env
+MONGODB_URI=your_mongodb_connection_string
+JWT_SECRET=your_jwt_secret_key
+```
+
+## Tech Stack
+
+- Next.js 15.3.5
+- TypeScript
+- MongoDB
+- TailwindCSS
+- JWT Authentication
+
+## License
+
+MIT © Done is Better
+
 # Simple SSO
 
 [![Version](https://img.shields.io/badge/version-v0.2.0-blue.svg)](./CHANGELOG.md)
