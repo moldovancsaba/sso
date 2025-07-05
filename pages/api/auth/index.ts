@@ -21,7 +21,6 @@ export default async function handler(
 
     // If no redirect specified, go to home page
     const redirectUrl = redirect ? (redirect as string).replace('undefined', '') : '/';
-    }
 
     // Verify token
     try {
