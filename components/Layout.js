@@ -12,7 +12,7 @@ export default function Layout({ children }) {
                   thanperfect
                 </Link>
               </div>
-              <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
+              <div className="flex ml-6 space-x-8">
                 <Link href="/" className="text-gray-900 hover:text-gray-500 px-3 py-2 rounded-md text-sm font-medium">
                   Home
                 </Link>
