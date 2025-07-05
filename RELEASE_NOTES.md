@@ -1,6 +1,20 @@
 # Release Notes
 
-## [v3.0.0] — 2025-07-05T22:06:47Z
+## [v3.0.1] — 2025-07-05T22:46:15Z
+
+### Added
+- Implemented comprehensive rate limiting system with sliding window and burst control
+- Added detailed request logging with response times and error tracking
+- Created middleware composition utility for clean API route handling
+
+### Changed
+- Updated all API routes to use new middleware stack
+- Improved error handling and response type safety
+
+### Deployed
+- Successfully deployed to https://sso.doneisbetter.com
+
+## [v3.0.0] — 2025-07-05T22:45:23.456Z
 
 ### Deployment
 - Successfully deployed to production at 2025-07-05T22:45:23.456Z
