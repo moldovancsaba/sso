@@ -1,7 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { MongoClient } from 'mongodb';
-import clientPromise from '../mongodb';
-import { TenantConfig } from '../types/tenant';
+import { Database } from '../db/database';
+import { TenantConfig, TenantDocument } from '../types/tenant';
 
 // Rate limiting using a simple in-memory store
 // In production, this should use Redis or a similar distributed cache
@@ -20,14 +19,8 @@ export async function validateTenant(
   }
 
   try {
-    const client: MongoClient = await clientPromise;
-    const db = client.db('sso');
-    const tenantsCollection = db.collection('tenants');
-
-    // Find tenant by API key
-    const tenantDoc = await tenantsCollection.findOne({
-      'apiKeys.key': apiKey
-    });
+    const db = await Database.getInstance();
+    const tenantDoc = await db.validateApiKey(apiKey);
 
     if (!tenantDoc) {
       return res.status(401).json({ error: 'Invalid API key' });
@@ -51,10 +44,6 @@ export async function validateTenant(
       },
       apiKeys: tenantDoc.apiKeys || []
     };
-
-    if (!tenant) {
-      return res.status(401).json({ error: 'Invalid API key' });
-    }
 
     // Validate IP whitelist
     if (tenant.settings.ipWhitelist.length > 0 && !tenant.settings.ipWhitelist.includes(clientIp)) {
@@ -84,17 +73,6 @@ export async function validateTenant(
 
     // Add tenant to request for use in route handlers
     (req as any).tenant = tenant;
-    
-    // Update API key last used timestamp
-    await tenantsCollection.updateOne(
-      { 'apiKeys.key': apiKey },
-      { 
-        $set: { 
-          'apiKeys.$.lastUsed': new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        } 
-      }
-    );
 
     next();
   } catch (error) {
