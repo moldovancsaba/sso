@@ -1,15 +1,23 @@
 {
   "name": "thanperfect",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start"
   },
   "dependencies": {
+    "@types/jsonwebtoken": "^9.0.10",
+    "jsonwebtoken": "^9.0.2",
     "mongoose": "^7.0.0",
     "next": "^15.2.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@types/react": "19.1.8",
+    "tailwindcss": "^3.0.0",
+    "typescript": "5.8.3",
+    "autoprefixer": "^10.4.19"
   }
 }

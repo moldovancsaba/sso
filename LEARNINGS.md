@@ -33,3 +33,9 @@
 - Implement proper rate limiting from the start
 - Document security decisions and their rationale
 - Regular security reviews are essential
+- Maintain consistent TypeScript patterns across the codebase
+
+### Development Standards
+- Unified TypeScript implementation improves code maintainability
+- Removing duplicate files reduces technical debt
+- Standardized type definitions enhance development experience

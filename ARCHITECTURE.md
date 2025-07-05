@@ -36,7 +36,8 @@ ThanPerfect is a privacy-first ephemeral SSO system implementing secure JWT toke
 ### Frontend
 
 #### UI Components
-- Next.js with TypeScript
+- Next.js with standardized TypeScript implementation
+- Unified TypeScript patterns across components
 - TailwindCSS for styling
 - Responsive design
 
