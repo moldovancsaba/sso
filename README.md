@@ -1,61 +1,133 @@
-# ThanPerfect
+# thanperfect
 
-[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/yourusername/thanperfect)
+**Version:** v0.2.0  
+**Last Updated:** 2025-06-09T15:30:51.540Z
 
-A privacy-first, ephemeral Single Sign-On (SSO) service that enables one-tap login with minimal metadata, full audit logging, and seamless cross-domain redirect SSO integration.
+---
 
-## Features
+## 🧠 Project Purpose
 
-- 🔐 **UTF-8 Identifier Auth** - Use any UTF-8 string as your identifier
-- 🪪 **Stateless Tokens** - 10-minute TTL with no refresh
-- 🔁 **Cross-Domain SSO** - Seamless redirect-based authentication
-- 🧾 **Full Audit Logging** - ISO 8601 compliant timestamped events
-- 👨‍💼 **Admin Dashboard** - RBAC-controlled management interface
+thanperfect is a privacy-first, minimal SSO authentication mechanism using arbitrary string identifiers (such as `"."`, `"❤️"`, `"banana"`) in place of traditional usernames or email-based auth.
 
-## Documentation
+---
 
-- [Architecture Overview](./ARCHITECTURE.md)
-- [Release Notes](./RELEASE_NOTES.md)
-- [Development Tasks](./TASKLIST.md)
-- [Project Roadmap](./ROADMAP.md)
-- [Learning Notes](./LEARNINGS.md)
-- [SSO Documentation](/docs/sso)
-  - [Overview](/docs/sso/overview.md)
-  - [Technical Specification](/docs/sso/technical-spec.md)
-  - [Integration Guide](/docs/sso/integration-guide.md)
-  - [API Reference](/docs/sso/api-reference.md)
+## ✅ Features
 
-## Getting Started
+- 🔐 Identifier-based session token generation
+- 🧠 Arbitrary UTF-8 input as identifier
+- ⏱️ 10-minute token issuance, no extension
+- 📜 Activity logging (`created`, `used`, `updated`) with timestamps and optional source URL
+- 🧩 Admin UI with inline editing and delete options
+- 🔁 SSO support with redirect and token validation
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## 🗃️ File Structure Overview
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+| Path | Purpose |
+|------|---------|
+| `/pages/index.js` | Identifier input + optional redirect handling |
+| `/pages/admin.js` | Management UI with ISO timestamped activities |
+| `/pages/api/auth.js` | Token issuance & activity logging |
+| `/pages/api/list.js` | Lists all identifiers |
+| `/pages/api/update.js` | Updates identifier and logs it |
+| `/pages/api/delete.js` | Deletes identifier |
+| `/pages/api/validate.js` | Validates token from external app |
+| `/lib/db.js` | MongoDB connection setup |
+| `/lib/tokenStore.js` | In-memory token storage |
+| `/models/Identifier.js` | Mongoose schema for identifier tracking |
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 🌐 Environment Setup
 
-## Learn More
+1. **Install dependencies:**
+   ```bash
+   npm install
+   ```
 
-To learn more about Next.js, take a look at the following resources:
+2. **Create your local `.env.local` file:**
+   ```env
+   MONGODB_URI=your_mongodb_uri_here
+   ```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+3. **Run app locally:**
+   ```bash
+   npm run dev
+   ```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+---
 
-## Deploy on Vercel
+## 🔐 Token Behavior
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- Token is generated with `crypto.randomUUID()`
+- Valid for **10 minutes** (in-memory only)
+- No refresh or extension logic included
+- Must re-authenticate after expiry
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+
+## 🔁 SSO Integration Guide
+
+1. **Redirect to thanperfect:**
+   ```
+   https://thanperfect.com?redirect=https://yourapp.com/callback
+   ```
+
+2. **On submission**, user will be redirected with a token:
+   ```
+   https://yourapp.com/callback?token=abc123
+   ```
+
+3. **Validate token in your app**:
+   ```http
+   GET https://thanperfect.com/api/validate?token=abc123
+   ```
+
+---
+
+## 🛠 Admin Features
+
+- View all stored identifiers
+- Edit any identifier inline
+- Delete identifier
+- View full `activities[]` log with ISO timestamps and source origin (if provided)
+
+---
+
+## 📄 Documentation
+
+All documentation files now contain version sections:
+- [`CHANGELOG.md`](./CHANGELOG.md)
+- [`implementation_guide.md`](./implementation_guide.md)
+- [`thanperfect_spec.md`](./thanperfect_spec.md)
+- [`user_stories_thanperfect.md`](./user_stories_thanperfect.md)
+- [`thanperfect_sso_integration.md`](./thanperfect_sso_integration.md)
+
+---
+
+## 🔖 Current Version: v0.2.0
+
+For full change history and roadmap, see [`CHANGELOG.md`](./CHANGELOG.md).
+
+---
+
+## ✅ Task Checklist (v0.2.0 → v1.0.0)
+
+> 📅 Last updated: 2025-06-09T15:40:01Z
+
+### Must-Have Before v1.0.0
+
+- [ ] 🔁 Login from another app with redirect
+- [ ] ✅ Validate token via API
+- [ ] ⌛ Test session expiry after 10 minutes
+- [ ] 🧪 Manual QA for all flows
+- [ ] 🏁 Tag and archive v1.0.0 release
+
+### Optional
+
+- [ ] Minimal backend test cases
+- [ ] Dashboard metrics
+- [ ] Admin activity filters
+- [ ] Client-specific TTL support
+
