@@ -1,5 +1,14 @@
 # Release Notes
 
+## [v3.0.3] — 2025-07-05T22:58:35Z
+
+### Added
+- Script to set up test tenant with API key
+- Automated tenant configuration setup
+
+### Changed
+- Added test tenant documentation
+
 ## [v3.0.2] — 2025-07-05T22:52:10Z
 
 ### Added
