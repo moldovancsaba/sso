@@ -1,5 +1,27 @@
 # Release Notes
 
+## [v3.0.0] — 2025-07-05T22:06:47Z
+
+### Added
+- Comprehensive documentation system with three sections:
+  - Integration Guide
+  - General Terms and Conditions (GTC)
+  - Privacy Policy (PP)
+- Legal compliance with GTC and Privacy Policy acceptance
+- Mobile-first, responsive design system
+
+### Changed
+- Simplified navigation to only show Docs and Admin
+- Rebranded from "Simple SSO" to just "SSO"
+- Improved UI with minimal, responsive components
+- Configured Next.js for optimal performance
+
+### Technical
+- Implemented mobile-first CSS architecture
+- Removed App Router dependencies for cleaner build
+- Enhanced build configuration for better performance
+- Unified TypeScript implementation across components
+
 ## [v2.0.0] — 2025-07-05T21:23:25Z
 
 ### Added
