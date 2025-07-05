@@ -1,15 +1,10 @@
 {
   "/_app": "pages/_app.js",
-  "/api/auth/create": "pages/api/auth/create.js",
-  "/api/users": "pages/api/users.js",
-  "/admin": "pages/admin.html",
-  "/docs/gtc": "pages/docs/gtc.html",
-  "/api/auth/validate": "pages/api/auth/validate.js",
-  "/docs": "pages/docs.html",
-  "/docs/integration": "pages/docs/integration.html",
-  "/docs/privacy-policy": "pages/docs/privacy-policy.html",
-  "/": "pages/index.html",
   "/_error": "pages/_error.js",
   "/_document": "pages/_document.js",
-  "/404": "pages/404.html"
+  "/docs": "pages/docs.js",
+  "/": "pages/index.js",
+  "/admin": "pages/admin.js",
+  "/api/users": "pages/api/users.js",
+  "/api/auth/create": "pages/api/auth/create.js"
 }
