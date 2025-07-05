@@ -9,8 +9,8 @@ import { composeMiddleware } from '../../../lib/middleware/compose';
 const handler = composeMiddleware(
   validateTenant,
   rateLimit,
-  requestLogger,
-async function (req: NextApiRequest, res: NextApiResponse) {
+  requestLogger
+)(async (req: NextApiRequest, res: NextApiResponse) => {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -42,8 +42,8 @@ async function (req: NextApiRequest, res: NextApiResponse) {
     });
   } catch (error) {
     console.error('API key validation error:', error);
-    return res.status(500).json({ error: 'Internal server error' });
+return res.status(500).json({ error: 'Internal server error' });
   }
-}
+});
 
 export default handler;

@@ -14,8 +14,8 @@ const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 const handler = composeMiddleware(
   validateTenant,
   rateLimit,
-  requestLogger,
-async function (req: NextApiRequest, res: NextApiResponse) {
+  requestLogger
+)(async (req: NextApiRequest, res: NextApiResponse) => {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -45,6 +45,6 @@ async function (req: NextApiRequest, res: NextApiResponse) {
     console.error('Auth error:', error);
 return res.status(500).json({ error: 'Internal server error' });
   }
-);
+});
 
 export default handler;

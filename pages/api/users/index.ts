@@ -11,8 +11,8 @@ import { composeMiddleware } from '../../../lib/middleware/compose';
 const handler = composeMiddleware(
   validateTenant,
   rateLimit,
-  requestLogger,
-async function (req: NextApiRequest, res: NextApiResponse) {
+  requestLogger
+)(async (req: NextApiRequest, res: NextApiResponse) => {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -23,8 +23,8 @@ async function (req: NextApiRequest, res: NextApiResponse) {
     return res.status(200).json(users);
   } catch (error) {
     console.error('Error fetching users:', error);
-    return res.status(500).json({ error: 'Internal server error' });
+return res.status(500).json({ error: 'Internal server error' });
   }
-}
+});
 
 export default handler;
