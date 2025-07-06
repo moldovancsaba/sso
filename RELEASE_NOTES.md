@@ -1,5 +1,16 @@
 # Release Notes
 
+## [v4.1.1] — 2025-07-06T09:04:56Z
+
+### Added
+- Comprehensive integration documentation for OAuth2 and NextAuth.js
+- Detailed API reference in integration guide
+- Security considerations and best practices
+
+### Fixed
+- Package.json repository URL format
+- TypeScript type definitions for OAuth client management
+
 ## [v4.1.0] — 2025-07-06T08:59:19Z
 
 ### Added
