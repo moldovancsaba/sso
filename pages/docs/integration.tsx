@@ -29,27 +29,29 @@ import { OAuth2Provider } from 'next-auth/providers';
 
 export default NextAuth({
   providers: [
-    OAuth2Provider({`
-                        id: 'sso',
-                        name: 'SSO',
-                        type: 'oauth',
-                        clientId: process.env.SSO_CLIENT_ID,
-                        clientSecret: process.env.SSO_CLIENT_SECRET,
-                        authorization: {
-                          url: 'https://sso.doneisbetter.com/api/oauth/authorize',
-                          params: { response_type: 'code' }
-                        },
-                        token: 'https://sso.doneisbetter.com/api/oauth/token',
-                        userinfo: {
-                          url: 'https://sso.doneisbetter.com/api/auth/validate',
-                          async request({ tokens }) {
-                            return {
-                              id: tokens.sub,
-                              identifier: tokens.identifier
-                            };
-                          }
-                        }
-                      })
+    OAuth2Provider({
+      id: 'sso',
+      name: 'SSO',
+      type: 'oauth',
+      clientId: process.env.SSO_CLIENT_ID,
+      clientSecret: process.env.SSO_CLIENT_SECRET,
+      authorization: {
+        url: 'https://sso.doneisbetter.com/api/oauth/authorize',
+        params: { response_type: 'code' }
+      },
+      token: 'https://sso.doneisbetter.com/api/oauth/token',
+      userinfo: {
+        url: 'https://sso.doneisbetter.com/api/auth/validate',
+        async request({ tokens }) {
+          return {
+            id: tokens.sub,
+            identifier: tokens.identifier
+          };
+        }
+      }
+    })
+  ]
+});`
                     ]
                   });
                 </pre>
