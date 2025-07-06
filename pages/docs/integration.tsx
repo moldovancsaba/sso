@@ -84,20 +84,20 @@ export default NextAuth({
                 <p>POST /api/auth/create</p>
                 <p>Create a new authentication token.</p>
                 <pre className='bg-gray-100 p-4 rounded-md'>
-                  /api/auth/create
-                  {
-                    "identifier": "user-identifier"
-                  }
+                  {`/api/auth/create
+{
+  "identifier": "user-identifier"
+}`}
                 </pre>
                 <h4>Validate Token</h4>
                 <p>POST /api/auth/validate</p>
                 <pre className='bg-gray-100 p-4 rounded-md'>
-                  {
-                    "valid": true,
-                    "user": {
-                      "identifier": "user-identifier"
-                    }
-                  }
+                  {`{
+  "valid": true,
+  "user": {
+    "identifier": "user-identifier"
+  }
+}`}
                 </pre>
                 <h2>Security Considerations</h2>
                 <p>Ensure best practices for security:</p>
