@@ -1,6 +1,8 @@
 import { MongoClient, Db } from 'mongodb';
 import { TenantDocument } from '../types/tenant';
 import { User } from '../types/user';
+import { OAuthClient } from '../types/oauth';
+import crypto from 'crypto';
 
 if (!process.env.MONGODB_URI) {
   throw new Error('Please add your Mongo URI to .env.local');
