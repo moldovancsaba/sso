@@ -24,12 +24,12 @@ export default function Integration() {
                 <h3>NextAuth.js Integration</h3>
                 <p>Learn how to set up the SSO service with NextAuth.js using OAuth:</p>
                 <pre className='bg-gray-100 p-4 rounded-md'>
-                  import NextAuth from 'next-auth';
-                  import { OAuth2Provider } from 'next-auth/providers';
-                  
-                  export default NextAuth({
-                    providers: [
-                      OAuth2Provider({
+                  {`import NextAuth from 'next-auth';
+import { OAuth2Provider } from 'next-auth/providers';
+
+export default NextAuth({
+  providers: [
+    OAuth2Provider({`
                         id: 'sso',
                         name: 'SSO',
                         type: 'oauth',
