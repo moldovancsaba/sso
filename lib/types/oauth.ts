@@ -1,4 +1,7 @@
+import { ObjectId } from 'mongodb';
+
 export interface OAuthClient {
+  _id?: ObjectId;
   id: string;
   name: string;
   clientId: string;

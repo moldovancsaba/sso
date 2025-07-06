@@ -99,13 +99,15 @@ export class Database {
       query.clientSecret = clientSecret;
     }
 
-    return this.db.collection('oauth_clients').findOne(query);
+    const client = await this.db.collection<OAuthClient>('oauth_clients').findOne(query);
+    return client ? { ...client, id: client._id.toString() } : null;
   }
 
   public async listOAuthClients(): Promise<OAuthClient[]> {
     if (!this.db) throw new Error('Database not initialized');
 
-    return this.db.collection('oauth_clients').find({}).toArray();
+    const clients = await this.db.collection<OAuthClient>('oauth_clients').find({}).toArray();
+    return clients.map(client => ({ ...client, id: client._id.toString() }));
   }
 
   // User operations
