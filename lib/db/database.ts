@@ -111,27 +111,34 @@ export class Database {
   }
 
   // User operations
-  public async findUser(identifier: string): Promise<User | null> {
+  public async findUser(identifierOrEmail: string): Promise<User | null> {
     if (!this.db) throw new Error('Database not initialized');
 
-    const user = await this.db.collection('users').findOne({ identifier });
+    const user = await this.db.collection('users').findOne({
+      $or: [
+        { identifier: identifierOrEmail },
+        { email: identifierOrEmail }
+      ]
+    });
     if (!user) return null;
 
     return {
       id: user._id.toString(),
       identifier: user.identifier,
+      email: user.email,
       createdAt: user.createdAt,
       lastLoginAt: user.lastLoginAt
     };
   }
 
-  public async createOrUpdateUser(identifier: string): Promise<User> {
+  public async createOrUpdateUser(identifier: string, email?: string): Promise<User> {
     if (!this.db) throw new Error('Database not initialized');
 
     const now = new Date().toISOString();
     const collection = this.db.collection('users');
 
-    const existingUser = await collection.findOne({ identifier });
+    const query = email ? { $or: [{ identifier }, { email }] } : { identifier };
+    const existingUser = await collection.findOne(query);
 
     if (existingUser) {
       await collection.updateOne(
@@ -142,6 +149,7 @@ export class Database {
       return {
         id: existingUser._id.toString(),
         identifier: existingUser.identifier,
+        email: existingUser.email,
         createdAt: existingUser.createdAt,
         lastLoginAt: now
       };
@@ -149,6 +157,7 @@ export class Database {
 
     const result = await collection.insertOne({
       identifier,
+      email,
       createdAt: now,
       lastLoginAt: now
     });
@@ -156,6 +165,7 @@ export class Database {
     return {
       id: result.insertedId.toString(),
       identifier,
+      email,
       createdAt: now,
       lastLoginAt: now
     };
@@ -173,6 +183,7 @@ export class Database {
     return users.map(user => ({
       id: user._id.toString(),
       identifier: user.identifier,
+      email: user.email,
       createdAt: user.createdAt,
       lastLoginAt: user.lastLoginAt
     }));

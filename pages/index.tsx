@@ -3,7 +3,9 @@ import Head from 'next/head';
 import Layout from '../components/Layout';
 
 export default function Home() {
+  const [loginMethod, setLoginMethod] = useState('anonymous'); // 'anonymous' or 'email'
   const [identifier, setIdentifier] = useState('');
+  const [email, setEmail] = useState('');
   const [token, setToken] = useState('');
   const [error, setError] = useState('');
   const [acceptedGtc, setAcceptedGtc] = useState(false);
@@ -12,8 +14,18 @@ export default function Home() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!identifier) {
+    if (loginMethod === 'anonymous' && !identifier) {
       setError('Identifier is required');
+      return;
+    }
+
+    if (loginMethod === 'email' && !email) {
+      setError('Email is required');
+      return;
+    }
+
+    if (loginMethod === 'email' && !email.includes('@')) {
+      setError('Invalid email format');
       return;
     }
     
@@ -29,7 +41,7 @@ export default function Home() {
           'Content-Type': 'application/json',
           'X-API-Key': process.env.NEXT_PUBLIC_DEFAULT_API_KEY!,
         },
-        body: JSON.stringify({ identifier }),
+        body: JSON.stringify(loginMethod === 'anonymous' ? { identifier } : { email }),
       });
 
       const data = await res.json();
@@ -57,17 +69,60 @@ export default function Home() {
             <h1 className="text-center mb-8">SSO</h1>
             
             <form onSubmit={handleLogin} className="space-y-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Identifier
-                </label>
-                <input
-                  type="text"
-                  value={identifier}
-                  onChange={(e) => setIdentifier(e.target.value)}
-                  className="input"
-                  placeholder="Enter any identifier"
-                />
+              <div className="space-y-4">
+                <div className="flex items-center space-x-4">
+                  <label className="inline-flex items-center">
+                    <input
+                      type="radio"
+                      value="anonymous"
+                      checked={loginMethod === 'anonymous'}
+                      onChange={(e) => setLoginMethod(e.target.value)}
+                      className="h-4 w-4 text-indigo-600 border-gray-300"
+                    />
+                    <span className="ml-2 text-sm text-gray-700">Anonymous Login</span>
+                  </label>
+                  <label className="inline-flex items-center">
+                    <input
+                      type="radio"
+                      value="email"
+                      checked={loginMethod === 'email'}
+                      onChange={(e) => setLoginMethod(e.target.value)}
+                      className="h-4 w-4 text-indigo-600 border-gray-300"
+                    />
+                    <span className="ml-2 text-sm text-gray-700">Email Login</span>
+                  </label>
+                </div>
+
+                {loginMethod === 'anonymous' ? (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Identifier
+                    </label>
+                    <input
+                      type="text"
+                      value={identifier}
+                      onChange={(e) => setIdentifier(e.target.value)}
+                      className="input"
+                      placeholder="Enter any identifier"
+                    />
+                  </div>
+                ) : (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Email Address
+                    </label>
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="input"
+                      placeholder="Enter your email address"
+                    />
+                    <p className="mt-1 text-sm text-gray-500">
+                      Sign in with email to unlock future benefits
+                    </p>
+                  </div>
+                )}
               </div>
 
               <div className="space-y-4">

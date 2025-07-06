@@ -1,6 +1,6 @@
 {
   "name": "@doneisbetter/sso",
-  "version": "5.0.0",
+  "version": "5.1.0",
   "description": "A secure, privacy-focused SSO solution with ephemeral token handling",
   "author": "Csaba Moldovan",
   "license": "MIT",

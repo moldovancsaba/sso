@@ -1,5 +1,23 @@
 # Release Notes
 
+## [v5.1.0] — 2025-07-06T20:25:16Z
+
+### Added
+- Alternative login methods:
+  - Anonymous login with chosen identifier (existing method)
+  - Email-based login for future benefits
+- User interface improvements:
+  - Radio button selection for login method
+  - Dynamic form fields based on selected method
+  - Email validation and format checking
+  - Helpful tooltips for email login benefits
+
+### Technical
+- Enhanced user schema to support optional email field
+- Updated database operations for email handling
+- Improved input validation and error messages
+- Maintained existing GTC and Privacy Policy requirements
+
 ## [v5.0.0] — 2025-07-06T11:20:40Z
 
 ### Major Changes

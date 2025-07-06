@@ -21,14 +21,18 @@ const handler = composeMiddleware(
   }
 
   try {
-    const { identifier } = req.body;
+    const { identifier, email } = req.body;
 
-    if (!identifier) {
-      return res.status(400).json({ error: 'Identifier is required' });
+    if (!identifier && !email) {
+      return res.status(400).json({ error: 'Either identifier or email is required' });
+    }
+
+    if (email && !email.includes('@')) {
+      return res.status(400).json({ error: 'Invalid email format' });
     }
 
     const db = await Database.getInstance();
-    const user = await db.createOrUpdateUser(identifier);
+    const user = await db.createOrUpdateUser(identifier || email, email);
 
     const token = jwt.sign(
       { 
