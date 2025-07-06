@@ -7,7 +7,7 @@
   "keywords": ["sso", "authentication", "security", "jwt", "privacy"],
   "repository": {
     "type": "git",
-    "url": "https://github.com/moldovancsaba/sso.git"
+    "url": "git+https://github.com/moldovancsaba/sso.git"
   },
   "homepage": "https://sso.doneisbetter.com",
   "deployment": {
