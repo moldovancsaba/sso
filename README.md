@@ -1,6 +1,8 @@
-# SSO
+# @doneisbetter/sso
 
-[![Version](https://img.shields.io/badge/version-3.0.0-blue.svg)](https://github.com/moldovancsaba/sso)
+[![Version](https://img.shields.io/badge/version-4.0.1-blue.svg)](https://github.com/moldovancsaba/sso)
+[![npm version](https://badge.fury.io/js/@doneisbetter%2Fsso.svg)](https://www.npmjs.com/package/@doneisbetter/sso)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 A modern, privacy-focused Single Sign-On system with minimal data collection and ephemeral token handling.
 
@@ -15,17 +17,11 @@ A modern, privacy-focused Single Sign-On system with minimal data collection and
 ## Quick Start
 
 ```bash
-# Install dependencies
-npm install
+# Install the package
+npm install @doneisbetter/sso
 
-# Run development server
-npm run dev
-
-# Build for production
-npm run build
-
-# Start production server
-npm start
+# Or using yarn
+yarn add @doneisbetter/sso
 ```
 
 ## Documentation

@@ -1,0 +1,39 @@
+# Development
+.next/
+node_modules/
+coverage/
+.vercel/
+.git/
+.github/
+.gitignore
+.env*
+.env.local
+.env.development
+.env.production
+.env.test
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Testing
+__tests__/
+test/
+tests/
+*.test.*
+*.spec.*
+
+# Documentation
+docs/
+*.md
+!README.md
+
+# Misc
+.DS_Store
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
