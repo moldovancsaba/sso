@@ -1,6 +1,6 @@
 # @doneisbetter/sso
 
-![Version](https://img.shields.io/badge/version-4.1.1-blue.svg)
+![Version](https://img.shields.io/badge/version-5.0.0-blue.svg)
 [![npm version](https://badge.fury.io/js/@doneisbetter%2Fsso.svg)](https://www.npmjs.com/package/@doneisbetter/sso)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
