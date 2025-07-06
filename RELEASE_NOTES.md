@@ -1,5 +1,15 @@
 # Release Notes
 
+## [v4.0.1] — 2025-07-06T08:48:03Z
+
+### Fixed
+- Aligned both local and production environments to use the same MongoDB database
+- Resolved "Invalid API key" error by ensuring consistent database configuration
+- Updated MongoDB URI to use a cloud-based and shared connection string
+
+### Note
+- A reminder to maintain consistency across environments: always ensure configurations are uniformly applied to avoid similar issues in the future.
+
 ## [v4.0.0] — 2025-07-06T08:29:46Z
 
 ### Added

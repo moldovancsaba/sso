@@ -35,6 +35,12 @@
 - Regular security reviews are essential
 - Maintain consistent TypeScript patterns across the codebase
 
+### Critical Learnings - Environment Configuration
+- ALWAYS maintain the same database across all environments unless explicitly requested otherwise
+- Avoid assumptions about environment separation - ask for clarification
+- Using different databases in development and production can lead to authentication failures
+- Document and verify environment configurations before deployment
+
 ### Development Standards
 - Unified TypeScript implementation improves code maintainability
 - Removing duplicate files reduces technical debt
