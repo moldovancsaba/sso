@@ -1,5 +1,18 @@
 # Development Roadmap
 
+## Q2 2025
+
+### Milestone: Authentication and API Standardization ✅
+- [x] Centralize database service for tenant and user operations
+- [x] Implement robust API key validation via database service
+- [x] Enhance middleware composition and type safety
+- [x] Standardize error handling across all endpoints
+- [x] Frontend login form with proper API key handling
+
+### Dependencies
+- Tenant API key environment variable configuration
+- Database service integration
+
 ## Q3 2025
 
 ### Milestone: Enhanced Security and Compliance

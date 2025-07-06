@@ -1,5 +1,20 @@
 # Release Notes
 
+## [v3.1.0] — 2025-07-06T00:02:29Z
+
+### Added
+- Default tenant document for API validation
+- JWT_SECRET configuration
+
+### Changed
+- Updated admin page to fetch users with API key
+
+### Fixed
+- Ensured token and user creation flow works correctly
+
+### Deployed
+- Successfully deployed the updated version
+
 ## [v3.0.5] — 2025-07-05T23:03:22Z
 
 ### Fixed

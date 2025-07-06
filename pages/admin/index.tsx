@@ -21,7 +21,11 @@ export default function AdminPage() {
 
   const fetchUsers = async () => {
     try {
-      const response = await fetch('/api/users');
+      const response = await fetch('/api/users', {
+        headers: {
+          'X-API-Key': process.env.NEXT_PUBLIC_DEFAULT_API_KEY!,
+        },
+      });
       if (!response.ok) {
         throw new Error('Failed to fetch users');
       }
