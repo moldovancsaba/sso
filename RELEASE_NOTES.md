@@ -1,5 +1,61 @@
 # Release Notes
 
+## [v5.0.0] — 2025-07-06T11:20:40Z
+
+### Major Changes
+- Complete overhaul of documentation system
+- New OAuth2 integration documentation
+- Updated API reference with OAuth2 endpoints
+- Enhanced technical specification
+
+### Documentation
+- Restructured all core documentation files:
+  - README.md - Updated features and quick start
+  - ARCHITECTURE.md - Complete system overview
+  - LEARNINGS.md - Enhanced with recent experiences
+  - ROADMAP.md - Updated milestones and plans
+  - TASKLIST.md - Current and upcoming tasks
+
+### Public Documentation
+- Enhanced overview.md with current features
+- Updated technical-spec.md with actual architecture
+- Expanded api-reference.md with OAuth2 endpoints
+- Improved integration guides
+
+### Technical
+- Version bump to 5.0.0
+- Removed deprecated documentation
+- Updated all timestamps to ISO 8601
+- Synchronized version numbers
+
+### Enhanced
+- OAuth2 implementation details
+- NextAuth.js integration guide
+- Environment configuration
+- Security best practices
+- Deployment guidelines
+
+## [v4.1.2] — 2025-07-06T11:09:57Z
+
+### Documentation
+- Comprehensive update of all documentation files
+- README.md restructured for clarity and current features
+- ARCHITECTURE.md updated with complete system overview
+- LEARNINGS.md expanded with recent experiences
+- ROADMAP.md aligned with current progress and future plans
+
+### Technical
+- Removed deprecated and duplicate documentation
+- Unified documentation structure and format
+- Updated all timestamps to ISO 8601 standard
+- Synchronized version numbers across all files
+
+### Enhanced
+- Documentation for OAuth2 implementation
+- Environment configuration guidelines
+- Security best practices
+- Integration guides
+
 ## [v4.1.1] — 2025-07-06T09:04:56Z
 
 ### Added

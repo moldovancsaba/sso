@@ -1,6 +1,8 @@
 # SSO API Reference
 
-## Authentication
+Last Updated: 2025-07-06T11:17:21Z
+
+## Direct Authentication
 
 ### Create Authentication Token
 ```http
@@ -16,7 +18,7 @@ X-API-Key: your_tenant_api_key
 #### Response
 ```json
 {
-  "token": "string"  // JWT token valid for 10 minutes
+  "token": "string"  // JWT token valid for configured duration
 }
 ```
 
@@ -37,6 +39,119 @@ Authorization: Bearer your_api_key
 }
 ```
 
+## OAuth2 Endpoints
+
+### Authorization Request
+```http
+GET /api/oauth/authorize
+Content-Type: application/json
+
+Query Parameters:
+- client_id: string
+- redirect_uri: string
+- response_type: string (code)
+- scope: string
+- state: string
+```
+
+#### Response
+Redirects to the specified `redirect_uri` with:
+```
+code: string (authorization code)
+state: string (same as request)
+```
+
+### Token Exchange
+```http
+POST /api/oauth/token
+Content-Type: application/x-www-form-urlencoded
+Authorization: Basic base64(client_id:client_secret)
+
+Body Parameters:
+- grant_type: string (authorization_code)
+- code: string
+- redirect_uri: string
+```
+
+#### Response
+```json
+{
+  "access_token": "string",
+  "token_type": "Bearer",
+  "expires_in": 3600,
+  "refresh_token": "string"
+}
+```
+
+### Token Validation
+```http
+POST /api/oauth/introspect
+Content-Type: application/json
+Authorization: Bearer client_credentials
+
+{
+  "token": "string"  // Access token to validate
+}
+```
+
+#### Response
+```json
+{
+  "active": true,
+  "scope": "string",
+  "client_id": "string",
+  "exp": 1625097600
+}
+```
+
+## OAuth Client Management
+
+### Create OAuth Client
+```http
+POST /api/clients
+Content-Type: application/json
+X-API-Key: your_tenant_api_key
+
+{
+  "name": "string",
+  "redirect_uris": ["string"],
+  "allowed_scopes": ["string"]
+}
+```
+
+#### Response
+```json
+{
+  "client_id": "string",
+  "client_secret": "string",
+  "name": "string",
+  "redirect_uris": ["string"],
+  "allowed_scopes": ["string"],
+  "created_at": "2025-07-06T11:17:21Z"
+}
+```
+
+### List OAuth Clients
+```http
+GET /api/clients
+X-API-Key: your_tenant_api_key
+```
+
+#### Response
+```json
+[
+  {
+    "client_id": "string",
+    "name": "string",
+    "redirect_uris": ["string"],
+    "allowed_scopes": ["string"],
+    "created_at": "2025-07-06T11:17:21Z"
+  }
+]
+```
+
+## User Management
+
 ### List Users
 ```http
 GET /api/users
@@ -49,8 +164,8 @@ X-API-Key: your_tenant_api_key
   {
     "id": "string",
     "identifier": "string",
-    "createdAt": "string",
-    "lastLoginAt": "string"
+    "created_at": "2025-07-06T11:17:21Z",
+    "last_login_at": "2025-07-06T11:17:21Z"
   }
 ]
 ```
@@ -78,7 +193,7 @@ Retry-After: 30
 
 {
   "error": "Rate limit exceeded",
-  "retryAfter": 30
+  "retry_after": 30
 }
 ```
 
@@ -91,6 +206,7 @@ All API requests are logged with the following information:
 - Client IP
 - User agent
 - Tenant ID (if available)
+- OAuth client ID (if applicable)
 - Response status code
 - Response time (ms)
 - Error details (if any)
@@ -101,8 +217,8 @@ All API requests are logged with the following information:
 |------|-------------|
 | 200  | Success |
 | 400  | Bad Request - Invalid parameters |
-| 401  | Unauthorized - Missing or invalid API key |
-| 403  | Forbidden - IP not whitelisted or insufficient permissions |
+| 401  | Unauthorized - Missing or invalid credentials |
+| 403  | Forbidden - Insufficient permissions |
 | 429  | Too Many Requests - Rate limit exceeded |
 | 500  | Internal Server Error |
 
@@ -111,17 +227,25 @@ All API requests are logged with the following information:
 All error responses follow this format:
 ```json
 {
-  "error": "Error description"
+  "error": "Error description",
+  "error_description": "Detailed error message",
+  "error_uri": "https://docs.example.com/errors/specific-error"
 }
 ```
 
-## Tenant Configuration
+## Configuration
 
-Your tenant configuration includes:
+### Tenant Configuration
 - API key(s)
 - IP whitelist
 - Rate limit settings
 - Allowed redirect domains
 - Token expiry time
+
+### OAuth Configuration
+- Client credentials
+- Allowed redirect URIs
+- Authorized scopes
+- Token lifetimes
 
 Contact support to modify these settings.
