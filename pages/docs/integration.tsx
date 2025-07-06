@@ -8,89 +8,111 @@ export default function Integration() {
           <div className="bg-white rounded-lg shadow">
             <div className="px-4 py-5 sm:p-6">
               <h1 className="text-3xl font-bold text-gray-900 mb-8">Integration Guide</h1>
-              
               <div className="prose max-w-none">
                 <h2>Quick Start</h2>
                 <p>Follow these steps to integrate SSO into your application:</p>
-                
-                <h3>1. Install the Client Library</h3>
+                <h3>Installation</h3>
                 <pre className="bg-gray-100 p-4 rounded-md">
-                  npm install @doneisbetter/sso-client
+                  npm install @doneisbetter/sso
+                  
+                  import { createToken, validateToken } from '@doneisbetter/sso';
+                  
+                  // Create a token
+                  const token = await createToken('user-identifier');
+                  
+                  // Validate a token
+                  const isValid = await validateToken(token);
                 </pre>
-
-                <h3>2. Initialize the Client</h3>
-                <pre className="bg-gray-100 p-4 rounded-md">
-                  {`import { SSOClient } from '@doneisbetter/sso-client';
-
-const sso = new SSOClient({
-  apiKey: 'your-api-key'
-});`}
+                <h3>NextAuth.js Integration</h3>
+                <p>Learn how to set up the SSO service with NextAuth.js using OAuth:</p>
+                <pre className='bg-gray-100 p-4 rounded-md'>
+                  import NextAuth from 'next-auth';
+                  import { OAuth2Provider } from 'next-auth/providers';
+                  
+                  export default NextAuth({
+                    providers: [
+                      OAuth2Provider({
+                        id: 'sso',
+                        name: 'SSO',
+                        type: 'oauth',
+                        clientId: process.env.SSO_CLIENT_ID,
+                        clientSecret: process.env.SSO_CLIENT_SECRET,
+                        authorization: {
+                          url: 'https://sso.doneisbetter.com/api/oauth/authorize',
+                          params: { response_type: 'code' }
+                        },
+                        token: 'https://sso.doneisbetter.com/api/oauth/token',
+                        userinfo: {
+                          url: 'https://sso.doneisbetter.com/api/auth/validate',
+                          async request({ tokens }) {
+                            return {
+                              id: tokens.sub,
+                              identifier: tokens.identifier
+                            };
+                          }
+                        }
+                      })
+                    ]
+                  });
                 </pre>
-
-                <h3>3. Implement Authentication</h3>
-                <pre className="bg-gray-100 p-4 rounded-md">
-                  {`// React example
-import { useSSOAuth } from '@doneisbetter/sso-client/react';
-
-function LoginButton() {
-  const { login } = useSSOAuth();
-
-  const handleLogin = async () => {
-    try {
-      const token = await login();
-      // Store token and handle successful login
-    } catch (error) {
-      // Handle error
-    }
-  };
-
-  return <button onClick={handleLogin}>Log In</button>;
-}`}
-                </pre>
-
-                <h2>API Reference</h2>
-                <h3>Authentication Endpoints</h3>
-                
-                <h4>POST /api/auth/create</h4>
-                <p>Create a new authentication token.</p>
-                <pre className="bg-gray-100 p-4 rounded-md">
-                  {`// Request
-POST /api/auth/create
-Content-Type: application/json
-
-{
-  "identifier": "user-identifier"
-}
-
-// Response
-{
-  "token": "jwt-token"
-}`}
-                </pre>
-
-                <h4>POST /api/auth/validate</h4>
-                <p>Validate an existing token.</p>
-                <pre className="bg-gray-100 p-4 rounded-md">
-                  {`// Request
-POST /api/auth/validate
-Authorization: Bearer your-token
-
-// Response
-{
-  "valid": true,
-  "user": {
-    "identifier": "user-identifier"
-  }
-}`}
-                </pre>
-
-                <h2>Security Considerations</h2>
+                <h2>OAuth Endpoints</h2>
+                <p>Details on the OAuth endpoints provided by the SSO service:</p>
+                <h3>Authorization Endpoint</h3>
+                <p>URL: /api/oauth/authorize</p>
+                <p>Method: GET / POST</p>
+                <p>Parameters:</p>
                 <ul>
-                  <li>Always use HTTPS in production</li>
-                  <li>Store tokens securely (e.g., in HttpOnly cookies)</li>
-                  <li>Implement proper token validation on your server</li>
-                  <li>Monitor and audit authentication attempts</li>
+                  <li>client_id: Your OAuth client ID</li>
+                  <li>redirect_uri: Your callback URL</li>
+                  <li>response_type: Must be "code"</li>
+                  <li>state: (Optional) State parameter for security</li>
                 </ul>
+                <h3>Token Endpoint</h3>
+                <p>URL: /api/oauth/token</p>
+                <pre className='bg-gray-100 p-4 rounded-md'>
+                  method: POST
+                  grant_type: Must be "authorization_code"
+                  code: The authorization code
+                  client_id: Your OAuth client ID
+                  client_secret: Your OAuth client secret
+                  redirect_uri: Must match the authorization redirect URI
+                </pre>
+                <h2>API Reference</h2>
+                <p>Endpoints to manage OAuth clients and tokens:</p>
+                <h3>Token Management Endpoints</h3>
+                <h4>Create Token</h4>
+                <p>POST /api/auth/create</p>
+                <p>Create a new authentication token.</p>
+                <pre className='bg-gray-100 p-4 rounded-md'>
+                  /api/auth/create
+                  {
+                    "identifier": "user-identifier"
+                  }
+                </pre>
+                <h4>Validate Token</h4>
+                <p>POST /api/auth/validate</p>
+                <pre className='bg-gray-100 p-4 rounded-md'>
+                  {
+                    "valid": true,
+                    "user": {
+                      "identifier": "user-identifier"
+                    }
+                  }
+                </pre>
+                <h2>Security Considerations</h2>
+                <p>Ensure best practices for security:</p>
+                <ul>
+                  <li>Use HTTPS in production</li>
+                  <li>Validate all tokens on your server</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Layout>
+  );
+}
               </div>
             </div>
           </div>
