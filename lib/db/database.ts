@@ -1,4 +1,4 @@
-import { MongoClient, Db } from 'mongodb';
+import { MongoClient, Db, ObjectId } from 'mongodb';
 import { TenantDocument } from '../types/tenant';
 import { User } from '../types/user';
 import { OAuthClient } from '../types/oauth';
