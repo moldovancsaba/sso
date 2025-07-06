@@ -52,7 +52,7 @@ export default NextAuth({
     })
   ]
 });`
-                    ]
+                    
                   });
                 </pre>
                 <h2>OAuth Endpoints</h2>
