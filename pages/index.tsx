@@ -27,6 +27,7 @@ export default function Home() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'X-API-Key': process.env.NEXT_PUBLIC_DEFAULT_API_KEY!,
         },
         body: JSON.stringify({ identifier }),
       });
