@@ -57,6 +57,10 @@
 ### Deployment
 - Use versioning strategies to track deployment results
 - Ensure environment parity in development and production
+- Implement robust environment variable management
+- Separate sensitive and public configurations
+- Use .env.production for version-controlled defaults
+- Keep sensitive variables in deployment platform
 
 ## Continuing Education
 - Attend workshops on security best practices

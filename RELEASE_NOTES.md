@@ -1,5 +1,28 @@
 # Release Notes
 
+## [v4.0.0] — 2025-07-06T08:29:46Z
+
+### Added
+- Comprehensive environment configuration system
+  - Development (.env) and production (.env.production) environment separation
+  - Secure handling of sensitive variables
+  - Public configuration version control
+
+### Changed
+- Enhanced authentication flow with proper API key handling
+- Improved environment variable management
+- Updated documentation with environment setup guidelines
+
+### Security
+- Protected sensitive credentials from version control
+- Implemented proper environment variable separation
+- Enhanced API key security in frontend requests
+
+### Technical
+- Added production-ready environment configuration
+- Improved local development setup
+- Enhanced deployment documentation
+
 ## [v3.1.0] — 2025-07-06T00:02:29Z
 
 ### Added
