@@ -12,6 +12,7 @@ export default function Layout({ children }: LayoutProps) {
 const navItems = [
     { href: '/docs', label: 'Docs' },
     { href: '/admin', label: 'Admin' },
+    { href: '/admin/oauth-clients', label: 'OAuth Clients' },
   ];
 
   return (

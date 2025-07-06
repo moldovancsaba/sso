@@ -67,6 +67,45 @@ export class Database {
     return tenant;
   }
 
+// OAuth operations
+  public async createOAuthClient(name: string, redirectUris: string[]): Promise<OAuthClient> {
+    if (!this.db) throw new Error('Database not initialized');
+
+    const clientId = crypto.randomBytes(16).toString('hex');
+    const clientSecret = crypto.randomBytes(32).toString('hex');
+    const now = new Date().toISOString();
+
+    const client: OAuthClient = {
+      id: new ObjectId().toString(),
+      name,
+      clientId,
+      clientSecret,
+      redirectUris,
+      createdAt: now,
+      updatedAt: now
+    };
+
+    await this.db.collection('oauth_clients').insertOne(client);
+    return client;
+  }
+
+  public async validateOAuthClient(clientId: string, clientSecret?: string): Promise<OAuthClient | null> {
+    if (!this.db) throw new Error('Database not initialized');
+
+    const query: any = { clientId };
+    if (clientSecret) {
+      query.clientSecret = clientSecret;
+    }
+
+    return this.db.collection('oauth_clients').findOne(query);
+  }
+
+  public async listOAuthClients(): Promise<OAuthClient[]> {
+    if (!this.db) throw new Error('Database not initialized');
+
+    return this.db.collection('oauth_clients').find({}).toArray();
+  }
+
   // User operations
   public async findUser(identifier: string): Promise<User | null> {
     if (!this.db) throw new Error('Database not initialized');

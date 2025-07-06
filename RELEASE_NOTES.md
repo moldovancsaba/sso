@@ -1,5 +1,23 @@
 # Release Notes
 
+## [v4.1.0] — 2025-07-06T08:59:19Z
+
+### Added
+- OAuth2 support for NextAuth.js integration
+  - Authorization Code grant flow
+  - OAuth client management interface
+  - Secure client credentials handling
+- New /admin/oauth-clients page for managing OAuth applications
+- OAuth2-compatible endpoints:
+  - /api/oauth/authorize for authorization
+  - /api/oauth/token for token exchange
+  - /api/oauth/clients for client management
+
+### Enhanced
+- Navigation menu to include OAuth Clients section
+- Database schema to support OAuth clients
+- Documentation to cover OAuth integration
+
 ## [v4.0.1] — 2025-07-06T08:48:03Z
 
 ### Fixed
