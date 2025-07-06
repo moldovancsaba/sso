@@ -15,7 +15,8 @@ export default function Integration() {
                 <pre className="bg-gray-100 p-4 rounded-md">
                   npm install @doneisbetter/sso
                   
-                  import { createToken, validateToken } from '@doneisbetter/sso';
+// Example placeholders
+// import { createToken, validateToken } from '@doneisbetter/sso';
                   
                   // Create a token
                   const token = await createToken('user-identifier');
