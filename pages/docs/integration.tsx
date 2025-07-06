@@ -113,11 +113,3 @@ export default function Integration() {
     </Layout>
   );
 }
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </Layout>
-  );
-}
