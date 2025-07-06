@@ -1,10 +1,16 @@
 {
   "name": "@doneisbetter/sso",
-  "version": "4.1.0",
+  "version": "4.1.1",
   "description": "A secure, privacy-focused SSO solution with ephemeral token handling",
   "author": "Csaba Moldovan",
   "license": "MIT",
-  "keywords": ["sso", "authentication", "security", "jwt", "privacy"],
+  "keywords": [
+    "sso",
+    "authentication",
+    "security",
+    "jwt",
+    "privacy"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/moldovancsaba/sso.git"
