@@ -15,14 +15,11 @@ export default function Integration() {
                 <pre className="bg-gray-100 p-4 rounded-md">
                   npm install @doneisbetter/sso
                   
-// Example placeholders
-// import { createToken, validateToken } from '@doneisbetter/sso';
-                  
-                  // Create a token
-                  const token = await createToken('user-identifier');
+// Create a token
+                  const token = "example-token";
                   
                   // Validate a token
-                  const isValid = await validateToken(token);
+                  const isValid = token === "example-token";
                 </pre>
                 <h3>NextAuth.js Integration</h3>
                 <p>Learn how to set up the SSO service with NextAuth.js using OAuth:</p>
