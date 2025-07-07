@@ -82,11 +82,49 @@ export default NextAuth({
                 <h3>Token Management Endpoints</h3>
                 <h4>Create Token</h4>
                 <p>POST /api/auth/create</p>
-                <p>Create a new authentication token.</p>
+                <p>Create a new authentication token using either an identifier or email address.</p>
                 <pre className='bg-gray-100 p-4 rounded-md'>
-                  {`/api/auth/create
+                  {`POST /api/auth/create
+Content-Type: application/json
+X-API-Key: your_tenant_api_key
+
+// Using identifier
 {
   "identifier": "user-identifier"
+}
+
+// Using email
+{
+  "email": "user@example.com"
+}`}
+                </pre>
+                <p>Response:</p>
+                <pre className='bg-gray-100 p-4 rounded-md'>
+                  {`{
+  "token": "eyJhbGciOiJIUzI1NiIs..." // JWT token valid for 10 minutes
+}`}
+                </pre>
+                <p>Error Handling:</p>
+                <pre className='bg-gray-100 p-4 rounded-md'>
+                  {`// Missing both identifier and email
+{
+  "error": "Either identifier or email is required"
+}
+
+// Invalid email format
+{
+  "error": "Invalid email format"
+}
+
+// Invalid API key
+{
+  "error": "Invalid API key"
+}
+
+// Rate limit exceeded
+{
+  "error": "Rate limit exceeded",
+  "retry_after": 30
 }`}
                 </pre>
                 <h4>Validate Token</h4>
@@ -99,12 +137,39 @@ export default NextAuth({
   }
 }`}
                 </pre>
-                <h2>Security Considerations</h2>
+              <h2>Security Considerations</h2>
                 <p>Ensure best practices for security:</p>
                 <ul>
                   <li>Use HTTPS in production</li>
                   <li>Validate all tokens on your server</li>
+                  <li>Store API keys securely using environment variables</li>
+                  <li>Implement proper rate limit handling with backoff</li>
+                  <li>Monitor API key usage and rotate regularly</li>
                 </ul>
+                <h2>Best Practices</h2>
+                <h3>API Key Management</h3>
+                <pre className='bg-gray-100 p-4 rounded-md'>
+                  {`// Store API key in environment variables
+export const apiClient = new SSOClient({
+  apiKey: process.env.SSO_API_KEY
+});
+
+// Handle rate limits
+async function createTokenWithRetry(identifier, maxRetries = 3) {
+  for (let i = 0; i < maxRetries; i++) {
+    try {
+      return await apiClient.createToken({ identifier });
+    } catch (error) {
+      if (error.status === 429 && i < maxRetries - 1) {
+        const retryAfter = error.headers['retry-after'] || 30;
+        await new Promise(resolve => setTimeout(resolve, retryAfter * 1000));
+        continue;
+      }
+      throw error;
+    }
+  }
+}`}
+                </pre>
               </div>
             </div>
           </div>
