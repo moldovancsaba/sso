@@ -6,11 +6,13 @@ import { requestLogger } from '../../../lib/middleware/requestLogger';
 import jwt from 'jsonwebtoken';
 import { authCodes } from './authorize';
 import { TokenResponse } from '../../../lib/types/oauth';
+import { validateTenant } from '../../../lib/middleware/tenantAuth';
 
 const JWT_SECRET = process.env.JWT_SECRET!;
 const TOKEN_EXPIRY = 10 * 60; // 10 minutes in seconds
 
 const handler = composeMiddleware(
+  validateTenant,
   rateLimit,
   requestLogger
 )(async (req: NextApiRequest, res: NextApiResponse) => {

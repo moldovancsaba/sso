@@ -4,11 +4,13 @@ import { composeMiddleware } from '../../../lib/middleware/compose';
 import { rateLimit } from '../../../lib/middleware/rateLimit';
 import { requestLogger } from '../../../lib/middleware/requestLogger';
 import crypto from 'crypto';
+import { validateTenant } from '../../../lib/middleware/tenantAuth';
 
 // Store authorization codes temporarily (should use Redis in production)
 const authCodes = new Map<string, { clientId: string, redirectUri: string, identifier: string }>();
 
 const handler = composeMiddleware(
+  validateTenant,
   rateLimit,
   requestLogger
 )(async (req: NextApiRequest, res: NextApiResponse) => {
