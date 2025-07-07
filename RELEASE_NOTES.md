@@ -1,5 +1,33 @@
 # Release Notes
 
+## [v5.2.0] — 2025-07-07T10:15:00Z
+
+### Added
+- Dynamic URL handling system:
+  - Automatic URL detection in development
+  - Request-based URL resolution
+  - Environment-aware routing configuration
+  - Zero-config local development setup
+
+### Enhanced
+- SSO base URL configuration:
+  - Simplified development setup
+  - Improved production deployment
+  - Consistent authentication behavior
+  - Automatic environment detection
+
+### Documentation
+- Updated environment variable documentation
+- Enhanced architecture documentation
+- Added URL handling insights
+- Updated task completion status
+
+### Technical
+- Improved request-based URL detection
+- Enhanced environment configuration
+- Updated deployment guidelines
+- Streamlined local development
+
 ## [v5.1.1] — 2025-07-07T10:01:41Z
 
 ### Fixed

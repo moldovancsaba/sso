@@ -16,6 +16,11 @@ const handler = composeMiddleware(
   rateLimit,
   requestLogger
 )(async (req: NextApiRequest, res: NextApiResponse) => {
+  console.log('OAuth token request:', {
+    method: req.method,
+    headers: req.headers,
+    body: req.body,
+  });
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -90,7 +95,10 @@ const handler = composeMiddleware(
     return res.status(200).json(tokenResponse);
   } catch (error) {
     console.error('OAuth token error:', error);
-    return res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ 
+      error: 'Internal server error',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 });
 

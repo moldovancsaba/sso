@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import Head from 'next/head';
 import Layout from '../components/Layout';
+import { signIn, useSession } from 'next-auth/react';
 
 export default function Home() {
   const [loginMethod, setLoginMethod] = useState('anonymous'); // 'anonymous' or 'email'
@@ -11,7 +12,62 @@ export default function Home() {
   const [acceptedGtc, setAcceptedGtc] = useState(false);
   const [acceptedPrivacy, setAcceptedPrivacy] = useState(false);
 
-  const handleLogin = async (e: React.FormEvent) => {
+const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (loginMethod === 'anonymous' && !identifier) {
+      setError('Identifier is required');
+      return;
+    }
+
+    if (loginMethod === 'email' && !email) {
+      setError('Email is required');
+      return;
+    }
+
+    if (loginMethod === 'email' && !email.includes('@')) {
+      setError('Invalid email format');
+      return;
+    }
+    
+    if (!acceptedGtc || !acceptedPrivacy) {
+      setError('Please accept both GTC and Privacy Policy to continue');
+      return;
+    }
+
+    try {
+      // Try OAuth flow first
+      const result = await signIn('sso', {
+        identifier: loginMethod === 'anonymous' ? identifier : email,
+        redirect: false,
+      });
+
+      if (result?.error) {
+        // If OAuth fails, fallback to direct token creation
+        const res = await fetch('/api/auth/create', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-API-Key': process.env.NEXT_PUBLIC_DEFAULT_API_KEY!,
+          },
+          body: JSON.stringify(loginMethod === 'anonymous' ? { identifier } : { email }),
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          throw new Error(data.error || 'Failed to login');
+        }
+
+        setToken(data.token);
+        setError('');
+      } else {
+        // OAuth success
+        setError('');
+      }
+    } catch (err) {
+      setError(err.message);
+    }
     e.preventDefault();
     
     if (loginMethod === 'anonymous' && !identifier) {

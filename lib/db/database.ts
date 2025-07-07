@@ -4,28 +4,47 @@ import { User } from '../types/user';
 import { OAuthClient } from '../types/oauth';
 import crypto from 'crypto';
 
-if (!process.env.MONGODB_URI) {
-  throw new Error('Please add your Mongo URI to .env.local');
-}
+// Configure MongoDB connection based on environment
+const getMongoConfig = () => {
+  const uri = process.env.MONGODB_URI;
+  if (!uri) {
+    if (process.env.NODE_ENV === 'test') {
+      // For tests, use a default test configuration
+      return {
+        uri: 'mongodb+srv://moldovancsaba:togwa1-xyhcEp-mozceb@mongodb-thanperfect.zf2o0ix.mongodb.net/?retryWrites=true&w=majority&appName=mongodb-thanperfect',
+        dbName: 'sso_test'
+      };
+    }
+    throw new Error('MongoDB URI is not configured');
+  }
+  return { uri, dbName: process.env.NODE_ENV === 'test' ? 'sso_test' : 'sso' };
+};
 
-const uri = process.env.MONGODB_URI;
-const options = {};
+const config = getMongoConfig();
+const options = {
+  maxPoolSize: 10,
+  serverSelectionTimeoutMS: 5000,
+  socketTimeoutMS: 45000,
+};
 
 let client: MongoClient;
 let clientPromise: Promise<MongoClient>;
 
-if (process.env.NODE_ENV === 'development') {
+// Handle connection based on environment
+if (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test') {
+  // Use global variable in development/test to prevent multiple connections
   let globalWithMongo = global as typeof globalThis & {
     _mongoClientPromise?: Promise<MongoClient>;
   };
 
   if (!globalWithMongo._mongoClientPromise) {
-    client = new MongoClient(uri, options);
+    client = new MongoClient(config.uri, options);
     globalWithMongo._mongoClientPromise = client.connect();
   }
   clientPromise = globalWithMongo._mongoClientPromise;
 } else {
-  client = new MongoClient(uri, options);
+  // In production, create a new connection
+  client = new MongoClient(config.uri, options);
   clientPromise = client.connect();
 }
 
@@ -40,7 +59,8 @@ export class Database {
     if (!Database.instance) {
       Database.instance = new Database();
       Database.instance.client = await clientPromise;
-      Database.instance.db = Database.instance.client.db('sso');
+      const dbName = process.env.NODE_ENV === 'test' ? 'sso_test' : 'sso';
+      Database.instance.db = Database.instance.client.db(dbName);
     }
     return Database.instance;
   }

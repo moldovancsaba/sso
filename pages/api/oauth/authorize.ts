@@ -18,6 +18,10 @@ const handler = composeMiddleware(
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
+  if (!req.headers['x-api-key']) {
+    return res.status(401).json({ error: 'API key required' });
+  }
+
   const {
     client_id,
     redirect_uri,

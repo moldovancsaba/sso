@@ -1,10 +1,15 @@
 {
   "compilerOptions": {
+    "types": ["jest", "node"],
     "lib": [
       "dom",
       "dom.iterable",
       "esnext"
     ],
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["*"]
+    },
     "allowJs": true,
     "skipLibCheck": true,
     "strict": false,

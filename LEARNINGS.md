@@ -1,5 +1,19 @@
 # Development Learnings
 
+## URL Handling in SSO Systems
+
+### Dynamic URL Configuration
+- Auto-detection simplifies local development
+- Request-based URLs improve flexibility
+- Environment-aware routing enhances reliability
+- Zero-config setup reduces deployment errors
+
+### SSO Integration Insights
+- Dynamic URLs support multiple deployment scenarios
+- Environment detection improves developer experience
+- Request-based resolution handles varied client setups
+- Configuration inheritance follows clear hierarchy
+
 Last Updated: 2025-07-06T11:09:57Z
 
 ## Backend
