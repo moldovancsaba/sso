@@ -4,8 +4,6 @@ export interface TenantConfig {
   id: string;
   name: string;
   domain: string;
-  createdAt: string;
-  updatedAt: string;
   settings: {
     allowedRedirectDomains: string[];
     tokenExpiryMinutes: number;
@@ -21,6 +19,8 @@ export interface TenantConfig {
     createdAt: string;
     lastUsed: string;
   }[];
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface TenantAuthLog {
@@ -34,11 +34,9 @@ export interface TenantAuthLog {
 }
 
 export interface TenantDocument {
-  _id: ObjectId;
+  _id?: ObjectId;
   name: string;
   domain: string;
-  createdAt: string;
-  updatedAt: string;
   settings: {
     allowedRedirectDomains: string[];
     tokenExpiryMinutes: number;
@@ -54,4 +52,6 @@ export interface TenantDocument {
     createdAt: string;
     lastUsed: string;
   }[];
+  createdAt: string;
+  updatedAt: string;
 }

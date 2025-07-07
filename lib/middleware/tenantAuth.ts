@@ -31,45 +31,12 @@ export async function validateTenant(
       id: tenantDoc._id.toString(),
       name: tenantDoc.name,
       domain: tenantDoc.domain,
+      settings: tenantDoc.settings,
+      apiKeys: tenantDoc.apiKeys,
       createdAt: tenantDoc.createdAt,
-      updatedAt: tenantDoc.updatedAt,
-      settings: {
-        allowedRedirectDomains: tenantDoc.settings?.allowedRedirectDomains || [],
-        tokenExpiryMinutes: tenantDoc.settings?.tokenExpiryMinutes || 60,
-        ipWhitelist: tenantDoc.settings?.ipWhitelist || [],
-        rateLimit: {
-          requestsPerMinute: tenantDoc.settings?.rateLimit?.requestsPerMinute || 100,
-          burstSize: tenantDoc.settings?.rateLimit?.burstSize || 10
-        }
-      },
-      apiKeys: tenantDoc.apiKeys || []
+      updatedAt: tenantDoc.updatedAt
     };
 
-    // Validate IP whitelist
-    if (tenant.settings.ipWhitelist.length > 0 && !tenant.settings.ipWhitelist.includes(clientIp)) {
-      return res.status(403).json({ error: 'IP not whitelisted' });
-    }
-
-    // Check rate limit
-    const now = Date.now();
-    const rateKey = `${tenant.id}:${now - (now % 60000)}`; // Key for current minute
-    
-    if (!rateLimitStore[rateKey]) {
-      rateLimitStore[rateKey] = { count: 0, resetTime: now + 60000 };
-    }
-
-    if (rateLimitStore[rateKey].count >= tenant.settings.rateLimit.requestsPerMinute) {
-      return res.status(429).json({ error: 'Rate limit exceeded' });
-    }
-
-    rateLimitStore[rateKey].count++;
-
-    // Clean up expired rate limit entries
-    Object.keys(rateLimitStore).forEach(key => {
-      if (rateLimitStore[key].resetTime < now) {
-        delete rateLimitStore[key];
-      }
-    });
 
     // Add tenant to request for use in route handlers
     (req as any).tenant = tenant;

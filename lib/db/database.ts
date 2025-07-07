@@ -55,15 +55,20 @@ export class Database {
 
     if (tenant) {
       // Update last used timestamp
+      const now = new Date().toISOString();
       await this.db.collection('tenants').updateOne(
         { 'apiKeys.key': apiKey },
         {
           $set: {
-            'apiKeys.$.lastUsed': new Date().toISOString(),
-            updatedAt: new Date().toISOString()
+            'apiKeys.$.lastUsed': now,
+            updatedAt: now
           }
         }
       );
+      
+      // Update the tenant object with new timestamps
+      tenant.apiKeys.find(k => k.key === apiKey).lastUsed = now;
+      tenant.updatedAt = now;
     }
 
     return tenant;

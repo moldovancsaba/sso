@@ -1,5 +1,16 @@
 # Changelog
 
+## [v5.1.1] - 2025-07-07T10:01:41Z
+### Fixed
+- Internal server error during authentication
+- API key validation against database structure
+- Type definitions for tenant data model
+
+### Changed
+- Updated API reference and integration guide
+- Enhanced error handling in authentication flow
+- Improved documentation for API key usage
+
 ## [v3.0.0] - 2025-07-05T22:09:47Z
 ### Changed
 - Major UI upgrade to mobile-first design

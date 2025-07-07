@@ -1,6 +1,6 @@
 # SSO API Reference
 
-Last Updated: 2025-07-06T11:17:21Z
+Last Updated: 2025-07-07T10:01:41Z
 
 ## Direct Authentication
 
@@ -11,16 +11,23 @@ Content-Type: application/json
 X-API-Key: your_tenant_api_key
 
 {
-  "identifier": "string"  // User's unique identifier
+  "identifier": "string",  // User's unique identifier (required if email not provided)
+  "email": "string"       // User's email address (required if identifier not provided)
 }
 ```
 
 #### Response
 ```json
 {
-  "token": "string"  // JWT token valid for configured duration
+  "token": "string"  // JWT token valid for configured duration (default 10 minutes)
 }
 ```
+
+#### Notes
+- At least one of `identifier` or `email` must be provided
+- If an email is provided, it must be a valid email format
+- The token contains the user's ID and identifier/email
+- Tokens are signed with JWT_SECRET and expire after the configured duration
 
 ### Validate API Key
 ```http

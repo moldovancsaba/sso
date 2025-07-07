@@ -39,18 +39,31 @@ This guide explains how to integrate our SSO solution into your application.
 
 1. Create a token for a user:
 ```javascript
-async function createAuthToken(identifier) {
+async function createAuthToken(options) {
+  // Validate input
+  if (!options.identifier && !options.email) {
+    throw new Error('Either identifier or email is required');
+  }
+
+  if (options.email && !options.email.includes('@')) {
+    throw new Error('Invalid email format');
+  }
+
   const response = await fetch('https://sso.doneisbetter.com/api/auth/create', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'X-API-Key': 'your_tenant_api_key'
+      'X-API-Key': process.env.SSO_API_KEY
     },
-    body: JSON.stringify({ identifier })
+    body: JSON.stringify({
+      identifier: options.identifier,
+      email: options.email
+    })
   });
 
   if (!response.ok) {
-    throw new Error('Authentication failed');
+    const error = await response.json();
+    throw new Error(error.error || 'Authentication failed');
   }
 
   const { token } = await response.json();
@@ -60,7 +73,7 @@ async function createAuthToken(identifier) {
 
 2. Handle rate limits:
 ```javascript
-async function makeAuthRequest(identifier) {
+async function makeAuthRequest(options) {
   try {
     const response = await fetch('https://sso.doneisbetter.com/api/auth/create', {
       method: 'POST',
@@ -68,7 +81,10 @@ async function makeAuthRequest(identifier) {
         'Content-Type': 'application/json',
         'X-API-Key': 'your_tenant_api_key'
       },
-      body: JSON.stringify({ identifier })
+      body: JSON.stringify({
+        identifier: options.identifier,
+        email: options.email
+      })
     });
 
     // Check rate limit headers

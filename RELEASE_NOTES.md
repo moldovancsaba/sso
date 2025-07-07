@@ -1,5 +1,22 @@
 # Release Notes
 
+## [v5.1.1] — 2025-07-07T10:01:41Z
+
+### Fixed
+- Resolved internal server error during authentication by fixing tenant type definitions
+- Updated API key validation to match actual database structure
+- Enhanced error handling in tenant validation middleware
+
+### Documentation
+- Updated API reference with latest changes and timestamp
+- Enhanced integration guide with improved error handling
+- Added detailed examples for email-based authentication
+
+### Technical
+- Fixed tenant document structure type definitions
+- Improved API key validation flow
+- Enhanced error messages and logging
+
 ## [v5.1.0] — 2025-07-06T20:25:16Z
 
 ### Added
