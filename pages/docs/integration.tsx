@@ -10,18 +10,22 @@ export default function Integration() {
               <h1 className="text-3xl font-bold text-gray-900 mb-8">Integration Guide</h1>
               <div className="prose max-w-none">
 <h2>Quick Start</h2>
-                <p className="text-sm text-gray-500">Version 6.0.0 | Last Updated: 2024-01-24T15:30:45.123Z</p>
+                <p className="text-sm text-gray-500">Version 7.0.1 | Last Updated: 2025-07-07T16:00:00.000Z</p>
                 <p>Follow these steps to integrate SSO into your application:</p>
                 <h3>Installation</h3>
-                <pre className="bg-gray-100 p-4 rounded-md">
-                  npm install @doneisbetter/sso
-                  
-// Create a token
-                  const token = "example-token";
-                  
-                  // Validate a token
-                  const isValid = token === "example-token";
-                </pre>
+                <pre className="bg-gray-100 p-4 rounded-md">{`
+# Install the package
+npm install @doneisbetter/sso
+
+# Import types and utilities
+import { Database, OAuthClient } from '@doneisbetter/sso';
+
+# TypeScript example
+async function setupOAuthClient(): Promise<OAuthClient> {
+  const db = await Database.getInstance();
+  return db.createOAuthClient('My App', ['http://localhost:3000/callback']);
+}
+`}</pre>
                 <h3>NextAuth.js Integration</h3>
                 <p>Learn how to set up the SSO service with NextAuth.js using OAuth. The system now supports dynamic port handling in development and automatic environment detection:</p>
                 <pre className='bg-gray-100 p-4 rounded-md'>
@@ -150,10 +154,30 @@ X-API-Key: your_tenant_api_key
                 <h2>Environment Configuration</h2>
                 <p>The SSO service now features:</p>
                 <ul>
+                  <li>Standardized TypeScript module system</li>
+                  <li>Enhanced build system reliability</li>
                   <li>Dynamic port synchronization for consistent OAuth redirects</li>
                   <li>Automatic environment detection (development/production)</li>
                   <li>Streamlined OAuth client setup with environment awareness</li>
                 </ul>
+                <h2>TypeScript Integration</h2>
+                <p>All components are fully typed and support TypeScript out of the box:</p>
+                <pre className='bg-gray-100 p-4 rounded-md'>
+                  {`import { Database, TenantDocument, OAuthClient } from '@doneisbetter/sso';
+
+interface AppConfig {
+  tenant: TenantDocument;
+  oauthClient: OAuthClient;
+}
+
+async function initializeApp(): Promise<AppConfig> {
+  const db = await Database.getInstance();
+  const tenant = await db.validateApiKey(process.env.SSO_API_KEY);
+  const oauthClient = await db.createOAuthClient('My App', ['http://localhost:3000/callback']);
+  
+  return { tenant, oauthClient };
+}`}
+                </pre>
                 <h2>Best Practices</h2>
                 <h3>API Key Management</h3>
                 <pre className='bg-gray-100 p-4 rounded-md'>

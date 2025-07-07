@@ -1,6 +1,6 @@
 {
   "name": "@doneisbetter/sso",
-  "version": "6.0.0",
+  "version": "8.0.0",
   "description": "A secure, privacy-focused SSO solution with ephemeral token handling",
   "author": "Csaba Moldovan",
   "license": "MIT",
@@ -19,13 +19,27 @@
   "deployment": {
     "vercel": "https://vercel.com/narimato/sso"
   },
+  "main": "dist/lib/index.js",
+  "types": "dist/lib/index.d.ts",
+  "files": [
+    "dist",
+    "lib"
+  ],
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "npm run build:lib && next build",
+    "build:lib": "tsc --project tsconfig.lib.json",
     "start": "next start",
     "test": "jest --config=jest.config.js",
     "prepublishOnly": "npm run build",
-    "setup:test-tenant": "node scripts/setup-test-tenant.js"
+    "setup:test-tenant": "ts-node scripts/setup-test-tenant.ts",
+    "setup:dev-oauth": "ts-node scripts/setup-dev-oauth-client.ts",
+    "update:dev-oauth": "ts-node scripts/update-dev-oauth-client.ts"
+  },
+  "peerDependencies": {
+    "next": "^14.0.0",
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0"
   },
   "dependencies": {
     "@types/jsonwebtoken": "^9.0.10",
