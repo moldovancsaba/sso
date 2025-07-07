@@ -1,6 +1,7 @@
 # SSO API Reference
 
-Last Updated: 2025-07-07T10:01:41Z
+Last Updated: 2024-01-24T15:30:45.123Z
+Version: 6.0.0
 
 ## Direct Authentication
 

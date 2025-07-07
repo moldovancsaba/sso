@@ -7,20 +7,16 @@ import { IncomingMessage } from 'http';
  * @throws Error if the configuration is invalid
  */
 export function getBaseUrl(req: IncomingMessage): string {
+  // In production, use the request's protocol and host
   if (process.env.NODE_ENV === 'production') {
-    const ssoBaseUrl = process.env.SSO_BASE_URL;
+    const protocol = req.headers['x-forwarded-proto'] || 'https';
+    const host = req.headers.host;
     
-    if (!ssoBaseUrl) {
-      throw new Error('SSO_BASE_URL is required in production');
+    if (!host) {
+      throw new Error('Invalid host configuration');
     }
-
-    try {
-      new URL(ssoBaseUrl);
-    } catch {
-      throw new Error('Invalid SSO_BASE_URL format');
-    }
-
-    return ssoBaseUrl;
+    
+    return `${protocol}://${host}`;
   }
 
   // Development environment
@@ -29,7 +25,10 @@ export function getBaseUrl(req: IncomingMessage): string {
     throw new Error('Invalid host configuration');
   }
 
-  return `http://${host}`;
+  // Ensure we use the port from the request or default to 3000
+  const [hostname, port] = host.split(':');
+  const developmentPort = port || '3000';
+  return `http://${hostname}:${developmentPort}`;
 }
 
 /**

@@ -1,28 +1,26 @@
 import { NextAuthOptions } from 'next-auth';
-import { default as AuthHandler } from 'next-auth/next';
+import NextAuth from 'next-auth/next';
+import { getBaseUrl } from '../../../src/utils/url-config';
 import { OAuthConfig } from 'next-auth/providers';
 
-/**
- * NextAuth configuration with dynamic host detection for SSO integration.
- * Uses environment-based configuration for OAuth endpoints.
- */
-export const authOptions: NextAuthOptions = {
+const handler = (req: any, res: any) => {
+  // Get the correct base URL for the current environment
+  const baseUrl = getBaseUrl(req);
+  
+  // Set NEXTAUTH_URL dynamically based on the request
+  process.env.NEXTAUTH_URL = baseUrl;
+
+  const options: NextAuthOptions = {
   providers: [
 {
       id: 'sso',
       name: 'SSO',
       type: 'oauth',
-      authorization: {
-        url: `${process.env.SSO_BASE_URL}/api/auth/custom-authorize`,
-      },
-      token: {
-        url: `${process.env.SSO_BASE_URL}/api/oauth/token`,
-      },
-      userinfo: {
-        url: `${process.env.SSO_BASE_URL}/api/auth/validate`,
-      },
-      clientId: process.env.SSO_CLIENT_ID,
-      clientSecret: process.env.SSO_CLIENT_SECRET,
+      authorization: `${baseUrl}/api/auth/custom-authorize?scope=openid+profile+email`,
+      token: `${baseUrl}/api/oauth/token`,
+      userinfo: `${baseUrl}/api/auth/validate`,
+      clientId: process.env.OAUTH_CLIENT_ID || 'local_development_client',
+      clientSecret: process.env.OAUTH_CLIENT_SECRET || 'local_development_secret',
       profile(profile: any) {
         return {
           id: profile.sub,
@@ -37,9 +35,16 @@ export const authOptions: NextAuthOptions = {
     strategy: 'jwt',
   },
   secret: process.env.NEXTAUTH_SECRET,
+  
+  // Ensure callbacks use the correct URL
+  callbacks: {
+    redirect({ url, baseUrl }) {
+      return url.startsWith(baseUrl) ? url : baseUrl;
+    },
+  },
 };
 
-/**
- * Export the NextAuth handler with our configuration
- */
-export default AuthHandler(authOptions);
+  return NextAuth(req, res, options);
+};
+
+export default handler;

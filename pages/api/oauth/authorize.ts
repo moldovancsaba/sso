@@ -51,11 +51,12 @@ const handler = composeMiddleware(
     }
 
     if (req.method === 'GET') {
-      // Show login form
+// Show login form with identifier
       return res.status(200).json({
         client_name: client.name,
         redirect_uri,
-        state
+        state,
+        message: 'Please provide identifier to continue'
       });
     }
 

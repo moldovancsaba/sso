@@ -1,5 +1,53 @@
 # Release Notes
 
+## [v7.0.0] — 2025-07-07T16:00:00.000Z
+
+### Major Changes
+- Fixed critical TypeScript module import/export consistency issue
+- Enhanced build system reliability with stricter type checking
+- Completed OAuth development environment synchronization
+- Improved development workflow with proper module handling
+
+### Technical
+- Standardized TypeScript module patterns across codebase
+- Enhanced build pipeline with improved error detection
+- Completed OAuth environment configuration automation
+- Updated development documentation with TypeScript best practices
+
+### Documentation
+- Comprehensive update of all core documentation
+- Enhanced TypeScript integration guidelines
+- Updated build system documentation
+- Improved OAuth development setup guide
+
+## [v6.0.0]
+
+### Major Changes
+- Fixed critical OAuth port mismatch issue affecting development environment
+- Enhanced dynamic URL handling across authentication flow
+- Improved development environment configuration
+
+### Added
+- Development OAuth client auto-configuration
+- Dynamic port detection and synchronization
+- Automatic environment-aware URL resolution
+
+### Fixed
+- OAuth callback URL port mismatch in development
+- Hardcoded production URLs in development environment
+- Inconsistent port usage across OAuth flow
+
+### Technical
+- Centralized URL configuration management
+- Enhanced environment-aware routing
+- Improved OAuth client database management
+- Added development environment setup scripts
+
+### Documentation
+- Updated OAuth integration guidelines
+- Enhanced local development setup instructions
+- Improved troubleshooting documentation
+
 ## [v5.2.0] — 2025-07-07T10:15:00Z
 
 ### Added

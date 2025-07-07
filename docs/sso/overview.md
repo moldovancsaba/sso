@@ -1,6 +1,7 @@
 # SSO Overview
 
-Last Updated: 2025-07-06T11:17:21Z
+Last Updated: 2024-01-24T15:30:45.123Z
+Version: 6.0.0
 
 ## Introduction
 Our SSO solution provides secure, privacy-focused authentication across multiple applications and services, featuring OAuth2 support, NextAuth.js integration, and comprehensive security measures.
@@ -11,6 +12,7 @@ Our SSO solution provides secure, privacy-focused authentication across multiple
 - NextAuth.js integration
 - Secure token management
 - Rate limiting and request logging
+- Dynamic port handling for development
 - Mobile-first, responsive design
 - Comprehensive documentation
 
@@ -45,6 +47,8 @@ Our SSO solution provides secure, privacy-focused authentication across multiple
    - Authorization Code flow
    - NextAuth.js support
    - Custom client management
+   - Dynamic port synchronization
+   - Automatic environment detection
 
 3. Admin Interface
    - OAuth client management

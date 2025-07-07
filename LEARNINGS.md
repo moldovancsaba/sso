@@ -1,5 +1,44 @@
 # Development Learnings
 
+## OAuth Development Environment Configuration (2025-07-07T15:36:49Z)
+
+### Critical Findings
+- OAuth callback URLs must use consistent ports throughout the authentication flow
+- Development environment requires special handling for dynamic ports
+- Hardcoded URLs in any part of the OAuth flow can break the entire authentication process
+
+### Best Practices
+- Always use dynamic URL resolution in development environment
+- Maintain a single source of truth for environment-specific URLs
+- Implement proper environment detection and configuration inheritance
+- Use automated scripts to manage OAuth client configuration
+
+### Technical Solutions
+- Centralize URL configuration management
+- Implement request-based dynamic port detection
+- Use environment-aware routing throughout the application
+- Ensure OAuth client database entries match the development environment
+
+## TypeScript Module System (2025-07-07T16:00:00.000Z)
+
+### Critical Findings
+- Module import/export consistency is crucial for build reliability
+- Mixed module patterns can cause subtle runtime issues
+- Build system configuration must align with TypeScript settings
+- Development environment needs consistent module resolution
+
+### Best Practices
+- Use consistent import/export patterns across the codebase
+- Implement strict type checking in build pipeline
+- Maintain clear module boundaries
+- Document module architecture decisions
+
+### Technical Solutions
+- Standardized module import/export syntax
+- Enhanced build error detection
+- Improved TypeScript configuration
+- Automated module pattern validation
+
 ## URL Handling in SSO Systems
 
 ### Dynamic URL Configuration

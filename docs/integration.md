@@ -5,6 +5,9 @@
 - [NextAuth.js Integration](#nextauthjs-integration)
 - [OAuth2 Integration](#oauth2-integration)
 - [API Reference](#api-reference)
+- Dynamic port synchronization ensures consistent OAuth redirects
+- Automatic environment detection simplifies development setup
+- OAuth client setup is streamlined with environment configuration
 
 ## Direct Integration
 
@@ -44,7 +47,7 @@ const isValid = await validateToken(token);
    - Visit https://sso.doneisbetter.com/admin/oauth-clients
    - Click "Create New Client"
    - Enter your application name
-   - Add your redirect URI (e.g., http://localhost:3000/api/auth/callback/sso)
+- Add your redirect URI using the dynamic port (e.g., `http://localhost:<dynamic-port>/api/auth/callback/sso`)
 
 2. Configure NextAuth.js:
 

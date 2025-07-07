@@ -1,6 +1,7 @@
 # SSO Technical Specification
 
-Last Updated: 2025-07-06T11:17:21Z
+Last Updated: 2024-01-24T15:30:45.123Z
+Version: 6.0.0
 
 ## Architecture Overview
 
@@ -60,6 +61,7 @@ Client -> Authorization Request -> User Consent -> Authorization Code -> Access 
 - Vercel for hosting
 - Continuous deployment
 - Environment-based configuration
+- Dynamic port handling for development
 - MongoDB Atlas for database
 
 ## Security Architecture
@@ -112,6 +114,8 @@ Client -> Authorization Request -> User Consent -> Authorization Code -> Access 
 - NextAuth.js compatibility
 - Custom claims support
 - Token introspection
+- Dynamic port synchronization
+- Automatic environment detection
 
 ### Admin Features
 - OAuth client management

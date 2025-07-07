@@ -9,7 +9,8 @@ export default function Integration() {
             <div className="px-4 py-5 sm:p-6">
               <h1 className="text-3xl font-bold text-gray-900 mb-8">Integration Guide</h1>
               <div className="prose max-w-none">
-                <h2>Quick Start</h2>
+<h2>Quick Start</h2>
+                <p className="text-sm text-gray-500">Version 6.0.0 | Last Updated: 2024-01-24T15:30:45.123Z</p>
                 <p>Follow these steps to integrate SSO into your application:</p>
                 <h3>Installation</h3>
                 <pre className="bg-gray-100 p-4 rounded-md">
@@ -22,7 +23,7 @@ export default function Integration() {
                   const isValid = token === "example-token";
                 </pre>
                 <h3>NextAuth.js Integration</h3>
-                <p>Learn how to set up the SSO service with NextAuth.js using OAuth:</p>
+                <p>Learn how to set up the SSO service with NextAuth.js using OAuth. The system now supports dynamic port handling in development and automatic environment detection:</p>
                 <pre className='bg-gray-100 p-4 rounded-md'>
                   {`import NextAuth from 'next-auth';
 import { OAuth2Provider } from 'next-auth/providers';
@@ -63,7 +64,7 @@ export default NextAuth({
                 <p>Parameters:</p>
                 <ul>
                   <li>client_id: Your OAuth client ID</li>
-                  <li>redirect_uri: Your callback URL</li>
+                  <li>redirect_uri: Your callback URL (supports dynamic ports in development, e.g., http://localhost:&lt;dynamic-port&gt;/callback)</li>
                   <li>response_type: Must be "code"</li>
                   <li>state: (Optional) State parameter for security</li>
                 </ul>
@@ -145,6 +146,13 @@ X-API-Key: your_tenant_api_key
                   <li>Store API keys securely using environment variables</li>
                   <li>Implement proper rate limit handling with backoff</li>
                   <li>Monitor API key usage and rotate regularly</li>
+                </ul>
+                <h2>Environment Configuration</h2>
+                <p>The SSO service now features:</p>
+                <ul>
+                  <li>Dynamic port synchronization for consistent OAuth redirects</li>
+                  <li>Automatic environment detection (development/production)</li>
+                  <li>Streamlined OAuth client setup with environment awareness</li>
                 </ul>
                 <h2>Best Practices</h2>
                 <h3>API Key Management</h3>

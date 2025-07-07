@@ -83,18 +83,19 @@ SSO (Single Sign-On) is a secure authentication system designed with privacy-fir
 
 ## Current Implementation
 
-### Version: 5.2.0
+### Version: 7.0.0
+- Standardized TypeScript module system
+- Enhanced build pipeline reliability
 - Full OAuth2 support
 - NextAuth.js integration
 - Rate limiting
 - Request logging
 - Environment configuration
 - Comprehensive documentation
-- Dynamic URL handling
-  - Auto-detection in development
-  - Configurable in production
-  - Request-based URL resolution
-  - Environment-aware routing
+- Fully dynamic URL handling
+  - Auto-detection and synchronization in development
+  - Automatic port handling across OAuth flows
+  - Centralized and environment-aware configuration management
 
 ### Security Measures
 - JWT-based authentication

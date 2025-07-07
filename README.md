@@ -1,6 +1,6 @@
 # @doneisbetter/sso
 
-![Version](https://img.shields.io/badge/version-5.2.0-blue.svg)
+![Version](https://img.shields.io/badge/version-7.0.0-blue.svg)
 [![npm version](https://badge.fury.io/js/@doneisbetter%2Fsso.svg)](https://www.npmjs.com/package/@doneisbetter/sso)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
@@ -9,9 +9,9 @@ A secure, privacy-focused SSO solution with ephemeral token handling and OAuth2 
 ## Features
 
 - 🔐 Secure token-based authentication
-- 🚀 OAuth2 support with NextAuth.js integration
+- 🚀 Enhanced TypeScript module system
 - 📱 Mobile-first responsive design
-- ⚡ Easy deployment with Vercel
+- ⚡ Reliable build pipeline
 - 🔄 MongoDB integration
 - 🛡️ Rate limiting and request logging
 - 📖 Comprehensive documentation
@@ -53,16 +53,24 @@ npm run dev
 
 ### SSO Base URL Configuration
 
-The `SSO_BASE_URL` environment variable configuration has been simplified:
+The system now features a fully dynamic URL handling system:
 
-- In development: The URL is automatically detected from the incoming request, eliminating the need for manual configuration
-- In production: Set `SSO_BASE_URL` to your hosted SSO service URL (e.g., https://sso.doneisbetter.com)
+- In development:
+  - URLs are automatically detected from incoming requests
+  - Port numbers are synchronized across the OAuth flow
+  - OAuth client configuration is automatically managed
+  - Zero manual configuration required
 
-This dynamic configuration ensures:
+- In production:
+  - Set `SSO_BASE_URL` to your hosted SSO service URL (e.g., https://sso.doneisbetter.com)
+  - OAuth client configuration is managed through the admin interface
+
+This enhanced configuration ensures:
+- Automatic environment detection and configuration
+- Consistent port usage throughout the authentication flow
 - Zero-configuration setup for local development
-- Automatic URL detection based on the client's request
-- Consistent authentication behavior across all environments
-- Proper routing in production deployments
+- Proper routing in all environments
+- Reliable OAuth callback handling
 
 ```env
 # Required
