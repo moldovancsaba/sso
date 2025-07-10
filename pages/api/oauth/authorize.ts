@@ -123,7 +123,7 @@ const handler = composeMiddleware(
 
       // Send the redirect response
       res.setHeader('Cache-Control', 'no-store');
-      res.status(302).json({ redirectUrl: redirectUrl.toString() });
+      res.redirect(302, redirectUrl.toString());
       return;
     } catch (authError) {
       console.error('Error generating authorization code:', authError);

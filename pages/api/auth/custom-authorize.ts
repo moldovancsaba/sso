@@ -61,9 +61,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(response.status).json(normalizeError(data));
     }
 
-    // If we got a redirect URL, use it
-    if (data.redirect) {
-      return res.redirect(data.redirect);
+    // If we got a redirectUrl, use it
+    if (data.redirectUrl) {
+      return res.redirect(302, data.redirectUrl);
     }
 
     // Otherwise, return the data (e.g., login form data)
