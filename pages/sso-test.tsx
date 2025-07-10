@@ -45,8 +45,12 @@ setMessage(`Authenticated as ${session.user?.email || 'User'}`);
       const result = await signIn('sso', {
         identifier,
         callbackUrl: window.location.origin + '/sso-test',
-        redirect: true
+        redirect: false
       });
+
+      if (result?.url) {
+        window.location.href = result.url;
+      }
 
       if (result?.error) {
         setMessage(`Error: ${result.error}`);
