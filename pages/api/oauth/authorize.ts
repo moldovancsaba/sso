@@ -61,7 +61,7 @@ const handler = composeMiddleware(
 
     // Always validate the client first
     const client = await db.validateOAuthClient(client_id as string);
-    if (!client) {
+    if (!client || typeof client !== 'object') {
       const errorResponse = {
         error: 'invalid_client',
         error_description: 'Invalid client'
@@ -92,7 +92,7 @@ const handler = composeMiddleware(
     }
 
     // Handle POST (login submission)
-    if (!identifier) {
+    if (!identifier || typeof identifier !== 'string') {
       res.status(400).json({ error: 'Identifier required' });
       return;
     }
@@ -105,6 +105,10 @@ const handler = composeMiddleware(
     }
 
     const user = await authHandler.authenticateUser(identifier as string);
+    if (!user) {
+      res.status(401).json({ error: 'Authentication failed' });
+      return;
+    }
 
     try {
       // Generate authorization code
@@ -119,7 +123,7 @@ const handler = composeMiddleware(
 
       // Send the redirect response
       res.setHeader('Cache-Control', 'no-store');
-      res.redirect(302, redirectUrl.toString());
+      res.status(302).json({ redirectUrl: redirectUrl.toString() });
       return;
     } catch (authError) {
       console.error('Error generating authorization code:', authError);

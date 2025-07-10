@@ -39,6 +39,9 @@ export class OAuthAuthHandler {
         // Create or update user record with current timestamp
         const now = new Date().toISOString();
         const user = await this.db.createOrUpdateUser(identifier);
+        if (!user) {
+            return null;
+        }
         // Ensure user has an identity profile
         const identityId = user.identityId || user.id;
         const identity = await this.identityManager.getOrCreate(identityId);
@@ -55,8 +58,8 @@ export class OAuthAuthHandler {
      * @returns Validation result and any error messages
      */
     validateAuthRequest(identifier, request) {
-        if (!identifier || identifier.trim().length === 0) {
-            return { isValid: false, error: 'Identifier is required' };
+        if (identifier === 'anonymous' || !identifier || identifier.trim().length === 0) {
+            return { isValid: true };
         }
         // Add additional validation as needed
         // For example, email format validation if using email authentication

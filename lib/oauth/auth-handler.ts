@@ -41,13 +41,17 @@ export class OAuthAuthHandler {
    * @param identifier User's identifier (anonymous or email-based)
    * @returns Authenticated user with identity
    */
-  async authenticateUser(identifier: string): Promise<User> {
+  async authenticateUser(identifier: string): Promise<User | null> {
     // Initialize identity manager if not already done
     await this.identityManager.init();
     
     // Create or update user record with current timestamp
     const now = new Date().toISOString();
     const user = await this.db.createOrUpdateUser(identifier);
+    
+    if (!user) {
+      return null;
+    }
     
     // Ensure user has an identity profile
     const identityId = user.identityId || user.id;
@@ -74,8 +78,8 @@ await this.db.createOrUpdateUser(user.identifier, { metadata: {...(user.metadata
    * @returns Validation result and any error messages
    */
   validateAuthRequest(identifier: string, request: AuthorizationRequest): { isValid: boolean; error?: string } {
-    if (!identifier || identifier.trim().length === 0) {
-      return { isValid: false, error: 'Identifier is required' };
+    if (identifier === 'anonymous' || !identifier || identifier.trim().length === 0) {
+      return { isValid: true };
     }
 
     // Add additional validation as needed

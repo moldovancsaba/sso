@@ -53,7 +53,12 @@ const handler = (req: any, res: any) => {
   
   // Ensure callbacks use the correct URL
   callbacks: {
-    async signIn({ user }) {
+    async signIn({ user, account, profile }) {
+      // Handle identifier-based authentication
+      const customProfile = profile as { identifier?: string };
+      if (account?.provider === 'sso' && customProfile?.identifier) {
+        user.id = customProfile.identifier;
+      }
       // Create or retrieve identity during sign in
       const identityManager = new IdentityManager();
       await identityManager.init();

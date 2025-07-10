@@ -32,7 +32,7 @@ export declare class OAuthAuthHandler {
      * @param identifier User's identifier (anonymous or email-based)
      * @returns Authenticated user with identity
      */
-    authenticateUser(identifier: string): Promise<User>;
+    authenticateUser(identifier: string): Promise<User | null>;
     /**
      * Validates the authentication request parameters
      * @param identifier User's provided identifier
