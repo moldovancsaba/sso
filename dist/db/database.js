@@ -113,6 +113,24 @@ export class Database {
         const clients = await this.db.collection('oauth_clients').find({}).toArray();
         return clients.map(client => (Object.assign(Object.assign({}, client), { id: client._id.toString() })));
     }
+    // Update user data
+    async updateUser(id, update) {
+        if (!this.db)
+            throw new Error('Database not initialized');
+        const result = await this.db.collection('users').findOneAndUpdate({ _id: new ObjectId(id) }, { $set: update }, { returnDocument: 'after' });
+        return result.value ? {
+            id: result.value._id.toString(),
+            identifier: result.value.identifier,
+            email: result.value.email,
+            emailVerified: result.value.emailVerified,
+            identityId: result.value.identityId,
+            profile: result.value.profile,
+            metadata: result.value.metadata,
+            createdAt: result.value.createdAt,
+            lastLoginAt: result.value.lastLoginAt,
+            updatedAt: result.value.updatedAt || result.value.createdAt
+        } : null;
+    }
     // OAuth operations
     async updateOAuthClient(id, update) {
         if (!this.db)

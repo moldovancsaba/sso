@@ -1,5 +1,11 @@
 import Layout from '../../components/Layout';
 
+/**
+ * Integration Guide for SSO - Documents setup and usage of the SSO system
+ * 
+ * @version 9.0.0
+ * @lastUpdated 2025-07-10T18:58:25Z
+ */
 export default function Integration() {
   return (
     <Layout>
@@ -10,7 +16,7 @@ export default function Integration() {
               <h1 className="text-3xl font-bold text-gray-900 mb-8">Integration Guide</h1>
               <div className="prose max-w-none">
 <h2>Quick Start</h2>
-                <p className="text-sm text-gray-500">Version 7.0.1 | Last Updated: 2025-07-07T16:00:00.000Z</p>
+<p className="text-sm text-gray-500">Version 9.0.0 | Last Updated: 2025-07-10T18:58:25.000Z</p>
                 <p>Follow these steps to integrate SSO into your application:</p>
                 <h3>Installation</h3>
                 <pre className="bg-gray-100 p-4 rounded-md">{`

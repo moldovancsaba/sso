@@ -13,6 +13,7 @@ const navItems = [
     { href: '/docs', label: 'Docs' },
     { href: '/admin', label: 'Admin' },
     { href: '/admin/oauth-clients', label: 'OAuth Clients' },
+    { href: '/sso-test', label: 'SSO Test' },
   ];
 
   return (

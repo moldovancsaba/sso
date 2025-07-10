@@ -26,7 +26,12 @@ const handler = (req: any, res: any) => {
       id: 'sso',
       name: 'SSO',
       type: 'oauth',
-      authorization: `${baseUrl}/api/auth/custom-authorize?scope=openid+profile+email`,
+      authorization: {
+        url: `${baseUrl}/api/auth/custom-authorize`,
+        params: {
+          scope: 'openid profile email'
+        }
+      },
       token: `${baseUrl}/api/oauth/token`,
       userinfo: `${baseUrl}/api/auth/validate`,
       clientId: process.env.OAUTH_CLIENT_ID || 'local_development_client',

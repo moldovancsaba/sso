@@ -6,7 +6,7 @@ export interface User {
   identifier: string;
   email?: string;
   emailVerified?: boolean;
-  identityId?: string;  // Reference to Identity document
+  identityId?: string;
   profile?: {
     name?: string;
     givenName?: string;

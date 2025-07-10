@@ -9,7 +9,7 @@ export default function PrivacyPolicy() {
             <div className="px-4 py-5 sm:p-6 prose max-w-none">
               <h1>Privacy Policy</h1>
               
-              <p className="text-sm text-gray-500">Last updated: 2025-07-05</p>
+              <p className="text-sm text-gray-500">Version: 9.0.0 | Last Updated: 2025-07-10T18:58:25Z</p>
 
               <h2>1. Introduction</h2>
               <p>

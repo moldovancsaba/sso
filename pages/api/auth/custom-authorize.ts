@@ -10,6 +10,7 @@ function normalizeError(error: any) {
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { client_id, redirect_uri, response_type, state } = req.query;
+  const identifier = req.method === 'POST' ? req.body.identifier : req.query.identifier;
   
   // Get the base URL for the current environment
   const baseUrl = getBaseUrl(req);
@@ -20,6 +21,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   authUrl.searchParams.set('redirect_uri', redirect_uri as string);
   authUrl.searchParams.set('response_type', response_type as string);
   authUrl.searchParams.set('state', state as string);
+  authUrl.searchParams.set('identifier', (identifier || 'anonymous') as string);
 
   // Set the API key in the headers instead of URL parameters
   const headers = new Headers();
@@ -39,7 +41,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const response = await fetch(authUrl.toString(), {
       headers,
       // Add proper request configuration
-      method: 'GET',
+      method: req.method === 'POST' ? 'POST' : 'GET',
+      body: req.method === 'POST' ? JSON.stringify({ identifier }) : undefined,
       redirect: 'follow',
     });
 

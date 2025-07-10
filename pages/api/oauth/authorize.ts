@@ -6,6 +6,7 @@ import { requestLogger } from '../../../lib/middleware/requestLogger';
 import { validateTenant } from '../../../lib/middleware/tenantAuth';
 import { OAuthService } from '../../../lib/oauth/service';
 import { AuthorizationRequest, OAuthError } from '../../../lib/oauth/types';
+import { OAuthAuthHandler } from '../../../lib/oauth/auth-handler';
 
 const handler = composeMiddleware(
   validateTenant,
@@ -46,6 +47,7 @@ const handler = composeMiddleware(
   try {
     const db = await Database.getInstance();
     const oauth = new OAuthService(db);
+    const authHandler = new OAuthAuthHandler(db);
 
     const request: AuthorizationRequest = {
       clientId: client_id as string,
@@ -83,16 +85,9 @@ const handler = composeMiddleware(
     await oauth.validateAuthorizationRequest(request);
 
     if (req.method === 'GET') {
-      // Show login form with identifier
-      res.status(200).json({
-        client_name: client!.name,
-        redirect_uri,
-        state,
-        scope,
-        code_challenge,
-        code_challenge_method,
-        message: 'Please provide identifier to continue'
-      });
+      // Display login form data
+      const loginFormData = await authHandler.getLoginFormData(client.name, redirect_uri as string, state as string);
+      res.status(200).json(loginFormData);
       return;
     }
 
@@ -102,9 +97,18 @@ const handler = composeMiddleware(
       return;
     }
 
+    // Authenticate the user
+    const { isValid, error: validationError } = authHandler.validateAuthRequest(identifier as string, request);
+    if (!isValid) {
+      res.status(400).json({ error: validationError });
+      return;
+    }
+
+    const user = await authHandler.authenticateUser(identifier as string);
+
     try {
       // Generate authorization code
-      const code = await oauth.createAuthorizationCode(request, undefined, identifier as string);
+      const code = await oauth.createAuthorizationCode(request, user.id, identifier as string);
 
       // Return redirect URL with code
       const redirectUrl = new URL(redirect_uri as string);
