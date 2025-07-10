@@ -40,6 +40,10 @@ SSO (Single Sign-On) is a secure authentication system designed with privacy-fir
 - **Admin UI**: OAuth client management
 - **Documentation**: Integrated docs system
 
+## Data Models
+- User -> Identity (1:1 relationship)
+- Identity stores profile customization (gametag, emoji, color)
+
 ## Security Architecture
 
 ### Authentication Workflow
@@ -83,11 +87,15 @@ SSO (Single Sign-On) is a secure authentication system designed with privacy-fir
 
 ## Current Implementation
 
-### Version: 7.0.0
+### Version: 8.1.0
 - Standardized TypeScript module system
 - Enhanced build pipeline reliability
 - Full OAuth2 support
 - NextAuth.js integration
+- Winston logger integration for centralized logging
+- Express middleware support for enhanced request handling
+- Prometheus metrics collection for monitoring
+- Improved TypeScript type safety in JWT operations
 - Rate limiting
 - Request logging
 - Environment configuration

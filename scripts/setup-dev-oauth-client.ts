@@ -1,5 +1,5 @@
 require('dotenv').config({ path: '.env.local' });
-import { Database } from '../lib/db/database';
+import { Database } from '../lib/db/database.js';
 
 async function setupDevOAuthClient() {
   try {
@@ -15,7 +15,7 @@ async function setupDevOAuthClient() {
     // Create new client with predefined ID and secret
     const client = await db.createOAuthClient(
       'Local Development Client',
-      ['http://localhost:3000/api/auth/callback/sso']
+['http://localhost/api/auth/callback/sso', 'https://localhost/api/auth/callback/sso']
     );
 
     console.log('Created development OAuth client:', client);

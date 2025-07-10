@@ -20,7 +20,12 @@ X-API-Key: your_tenant_api_key
 #### Response
 ```json
 {
-  "token": "string"  // JWT token valid for configured duration (default 10 minutes)
+  "token": "string",  // JWT token valid for configured duration (default 10 minutes)
+  "identity": {
+    "gametag": "string",
+    "emoji": "string",
+    "color": "string"
+  }
 }
 ```
 
@@ -87,7 +92,12 @@ Body Parameters:
   "access_token": "string",
   "token_type": "Bearer",
   "expires_in": 3600,
-  "refresh_token": "string"
+  "refresh_token": "string",
+  "identity": {
+    "gametag": "string",
+    "emoji": "string",
+    "color": "string"
+  }
 }
 ```
 

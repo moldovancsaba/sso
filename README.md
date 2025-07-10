@@ -1,6 +1,6 @@
 # @doneisbetter/sso
 
-![Version](https://img.shields.io/badge/version-7.0.0-blue.svg)
+![Version](https://img.shields.io/badge/version-9.0.0-blue.svg)
 [![npm version](https://badge.fury.io/js/@doneisbetter%2Fsso.svg)](https://www.npmjs.com/package/@doneisbetter/sso)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
@@ -40,6 +40,12 @@ npm run dev
 - [API Reference](/docs/sso/api-reference.md) - API endpoints and usage
 - [OAuth2 Guide](/docs/sso/oauth2-guide.md) - OAuth2 integration with NextAuth.js
 - [Architecture Overview](/ARCHITECTURE.md) - System design and components
+
+## Identity Profiles
+Each user automatically receives a customizable identity profile with:
+- Unique gametag
+- Custom emoji (from predefined set)
+- Theme color (from design system)
 
 ## Project Documentation
 

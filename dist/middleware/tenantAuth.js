@@ -16,7 +16,7 @@ export async function validateTenant(req, res, next) {
         }
         // Map MongoDB document to TenantConfig
         const tenant = {
-            id: tenantDoc._id.toString(),
+            id: tenantDoc._id ? tenantDoc._id.toString() : '',
             name: tenantDoc.name,
             domain: tenantDoc.domain,
             settings: tenantDoc.settings,

@@ -1,0 +1,1 @@
+{"version":3,"file":"02_add_oauth_collections.d.ts","sourceRoot":"","sources":["../../../lib/db/migrations/02_add_oauth_collections.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,EAAE,EAAE,MAAM,SAAS,CAAC;AAE7B,wBAAsB,EAAE,CAAC,EAAE,EAAE,EAAE,GAAG,OAAO,CAAC,IAAI,CAAC,CAiK9C;AAED,wBAAsB,IAAI,CAAC,EAAE,EAAE,EAAE,GAAG,OAAO,CAAC,IAAI,CAAC,CAgBhD"}

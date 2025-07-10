@@ -47,15 +47,20 @@ const handler = composeMiddleware(
     // Validate environment first
     validateEnvironment();
 
-    const { identifier } = req.body;
+    const { identifier, email, emoji, color } = req.body;
+    const userIdentifier = identifier || email;
 
-    if (!identifier) {
-      return res.status(400).json({ error: 'Identifier is required' });
+    if (!userIdentifier) {
+      return res.status(400).json({ error: 'Identifier or email is required' });
     }
 
     try {
       const db = await Database.getInstance();
-      const user = await db.createOrUpdateUser(identifier);
+      const user = await db.createOrUpdateUser(userIdentifier, {
+        email: email || undefined,
+        emoji: emoji || undefined,
+        color: color || undefined
+      });
 
       const token = jwt.sign(
         { 

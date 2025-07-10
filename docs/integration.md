@@ -47,7 +47,11 @@ const isValid = await validateToken(token);
    - Visit https://sso.doneisbetter.com/admin/oauth-clients
    - Click "Create New Client"
    - Enter your application name
-- Add your redirect URI using the dynamic port (e.g., `http://localhost:<dynamic-port>/api/auth/callback/sso`)
+   - For development environments:
+     - Add `http://localhost/api/auth/callback/sso` as redirect URI
+     - The system automatically handles any development port
+   - For production:
+     - Add your specific callback URL (e.g., `https://your-app.com/api/auth/callback/sso`)
 
 2. Configure NextAuth.js:
 

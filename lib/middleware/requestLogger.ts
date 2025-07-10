@@ -28,7 +28,7 @@ export async function requestLogger(
   let error: string | undefined;
 
   // Override res.end to capture the status code and log the request
-  const newEnd = function (chunk: any, encoding?: BufferEncoding | (() => void), callback?: () => void) {
+  const newEnd = function (this: any, chunk?: any, encoding?: BufferEncoding | (() => void), callback?: () => void) {
     const responseTime = Date.now() - startTime;
     statusCode = res.statusCode;
 
@@ -65,7 +65,16 @@ export async function requestLogger(
     }
 
     // Call the original end method
-    return originalEnd.call(res, chunk, encoding, callback);
+    // Handle different function signatures
+    if (!chunk) {
+      return originalEnd.call(res, null, 'utf8', callback);
+    } else if (typeof encoding === 'function') {
+      return originalEnd.call(res, chunk, 'utf8', encoding);
+    } else if (typeof encoding === 'string') {
+      return originalEnd.call(res, chunk, encoding, callback);
+    } else {
+      return originalEnd.call(res, chunk, 'utf8', callback);
+    }
   };
 
   // Override the end method

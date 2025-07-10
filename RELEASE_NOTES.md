@@ -1,5 +1,47 @@
 # Release Notes
 
+## [v9.0.0] — 2025-07-10T15:32:45Z
+
+### Major Changes
+- Flexible OAuth redirect URI handling for development environments
+- Enhanced error handling in OAuth flows with proper error propagation
+- Improved development environment port synchronization
+- Centralized logging with Winston integration
+- Prometheus metrics for system monitoring
+
+### Added
+- Port-agnostic OAuth callback handling for localhost development
+- Centralized logging system with Winston
+- Express middleware support
+- Prometheus metrics collection
+- Improved TypeScript type safety in JWT operations
+- OAuth-compliant error responses with proper redirects
+
+### Enhanced
+- OAuth authorization endpoint error handling
+- Development environment configuration
+- Environment-aware OAuth client setup
+- Build system reliability
+- API response consistency
+
+### Technical
+- Improved OAuth2 error handling with spec-compliant responses
+- Enhanced localhost development support with dynamic ports
+- Standardized logging interface with Winston
+- Metrics collection for monitoring
+- Type-safe JWT operations
+
+## [8.1.0] - 2024-03-21T10:00:00.000Z
+### Added
+- Winston logger integration
+- Express middleware support
+- Prometheus metrics collection
+- Improved TypeScript type safety in JWT operations
+
+### Fixed
+- Build errors in TypeScript compilation
+- JWT service type mismatches
+
 ## [v7.0.0] — 2025-07-07T16:00:00.000Z
 
 ### Major Changes

@@ -7,8 +7,72 @@ export interface OAuthClient {
   clientId: string;
   clientSecret: string;
   redirectUris: string[];
+  // Additional OIDC fields
+  applicationType?: 'web' | 'native' | 'service';
+  clientUri?: string;
+  logoUri?: string;
+  contacts?: string[];
+  policyUri?: string;
+  tosUri?: string;
+  jwksUri?: string;
+  jwks?: any;
+  subjectType?: 'public' | 'pairwise';
+  sectorIdentifierUri?: string;
+  grantTypes?: string[];
+  responseTypes?: string[];
+  defaultAcrValues?: string[];
+  initiateLoginUri?: string;
+  requestUris?: string[];
+  postLogoutRedirectUris?: string[];
+  defaultMaxAge?: number;
+  requireAuthTime?: boolean;
+  // Token configuration
+  accessTokenTTL?: number;
+  refreshTokenTTL?: number;
+  idTokenTTL?: number;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface OAuthToken {
+  userId: string;
+  clientId: string;
+  accessToken: string;
+  refreshToken?: string;
+  tokenType: 'Bearer';
+  scope?: string;
+  expiresAt: string;
+  createdAt: string;
+}
+
+export interface OAuthCode {
+  code: string;
+  userId: string;
+  clientId: string;
+  scope?: string;
+  expiresAt: string;
+  createdAt: string;
+  usedAt?: string;
+}
+
+export interface OAuthConsent {
+  userId: string;
+  clientId: string;
+  scope: string;
+  createdAt: string;
+  expiresAt?: string;
+}
+
+export interface AuditLog {
+  eventType: string;
+  timestamp: string;
+  actorType: 'user' | 'client' | 'system';
+  actorId: string;
+  targetType?: string;
+  targetId?: string;
+  details?: Record<string, any>;
+  ip?: string;
+  userAgent?: string;
 }
 
 export interface TokenResponse {

@@ -41,7 +41,19 @@ export async function requestLogger(req, res, next) {
             encoding = undefined;
         }
         // Call the original end method
-        return originalEnd.call(res, chunk, encoding, callback);
+        // Handle different function signatures
+        if (!chunk) {
+            return originalEnd.call(res, null, 'utf8', callback);
+        }
+        else if (typeof encoding === 'function') {
+            return originalEnd.call(res, chunk, 'utf8', encoding);
+        }
+        else if (typeof encoding === 'string') {
+            return originalEnd.call(res, chunk, encoding, callback);
+        }
+        else {
+            return originalEnd.call(res, chunk, 'utf8', callback);
+        }
     };
     // Override the end method
     res.end = newEnd;
