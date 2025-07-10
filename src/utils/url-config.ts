@@ -39,5 +39,5 @@ export function getBaseUrl(req: IncomingMessage): string {
  */
 export function getCallbackUrl(req: IncomingMessage): string {
   const baseUrl = getBaseUrl(req);
-  return `${baseUrl}/api/auth/callback`;
+  return `${baseUrl}/api/auth/callback/sso`;
 }

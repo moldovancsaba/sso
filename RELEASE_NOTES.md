@@ -1,5 +1,42 @@
 # Release Notes
 
+## [v9.1.2] — 2025-07-07T17:00:00.000Z
+
+### Added
+- Complete authentication flow implementation
+- Login form for unauthenticated state
+- Enhanced authenticated state handling
+- Robust logout functionality
+
+### Technical
+- Verified redirect consistency to /hello-world
+- Enhanced state management for auth flow
+- Improved user experience
+- Updated documentation
+
+## [v9.1.1] — 2025-07-07T16:45:00.000Z
+
+### Fixed
+- Resolved SSO test page redirect issue
+- Enhanced user flow reliability
+- Improved error handling for edge cases
+
+### Technical
+- Updated redirect logic in SSO test page
+- Verified OAuth flow integrity
+- Enhanced error logging
+
+## [v9.1.0] — 2025-07-07T16:30:00.000Z
+
+### Added
+- Enhanced OAuth handler implementation
+- Improved SSO test page functionality
+- Updated user authentication flow
+
+### Technical
+- Optimized OAuth token handling
+- Enhanced SSO test page user experience
+- Improved authentication reliability
 ## [v9.0.0] — 2025-07-10T15:32:45Z
 
 ### Major Changes

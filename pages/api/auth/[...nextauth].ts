@@ -87,7 +87,10 @@ const handler = (req: any, res: any) => {
     },
     
     redirect({ url, baseUrl }) {
-      return url.startsWith(baseUrl) ? url : baseUrl;
+      // Allow both relative and absolute URLs that start with the base URL
+      if (url.startsWith('/')) return `${baseUrl}${url}`;
+      if (url.startsWith(baseUrl)) return url;
+      return baseUrl;
     },
   },
 };

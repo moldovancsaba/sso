@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import Layout from '../components/Layout';
 import { signIn, useSession } from 'next-auth/react';
@@ -15,6 +15,43 @@ export default function Home() {
   const [acceptedGtc, setAcceptedGtc] = useState(false);
   const [acceptedPrivacy, setAcceptedPrivacy] = useState(false);
   const [selectedEmojiIdx, setSelectedEmojiIdx] = useState<number | null>(null);
+  const [message, setMessage] = useState('');
+  const { data: session, status } = useSession();
+
+  const handleAuthenticationError = (error: any) => {
+    console.error('Authentication error:', {
+      message: error?.message,
+      stack: error?.stack,
+      code: error?.code || 'UNKNOWN_CODE',
+    });
+
+    if (error?.message) {
+      setError(error.message);
+    } else {
+      setError('An unexpected error occurred');
+    }
+
+    // Clear partial session state
+    setIdentifier('');
+    setEmail('');
+    setToken('');
+  };
+
+  useEffect(() => {
+    switch (status) {
+      case 'loading':
+        setMessage('Loading session...');
+        break;
+      case 'authenticated':
+        setMessage('Hello World');
+        break;
+      case 'unauthenticated':
+        setMessage('Please sign in to continue');
+        break;
+      default:
+        setMessage('');
+    }
+  }, [status, session]);
 
 const handleStepOne = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,6 +77,7 @@ const handleStepOne = async (e: React.FormEvent) => {
     }
 
     setError('');
+    setMessage('');
     setCurrentStep(2);
   };
 
@@ -92,7 +130,7 @@ const handleStepTwo = async (e: React.FormEvent) => {
         setError('');
       }
     } catch (err) {
-      setError(err.message);
+      handleAuthenticationError(err);
     }
   };
 
@@ -234,6 +272,9 @@ const handleStepTwo = async (e: React.FormEvent) => {
 
             {error && (
               <div className="mt-4 text-sm text-red-600">{error}</div>
+            )}
+            {message && !error && (
+              <div className="mt-4 text-sm text-indigo-600">{message}</div>
             )}
 
             {token && (
