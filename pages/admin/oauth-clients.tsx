@@ -7,6 +7,7 @@ export default function OAuthClientsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [newClient, setNewClient] = useState({ name: '', redirectUris: '' });
+  const [editState, setEditState] = useState(null);
 
   useEffect(() => {
     fetchClients();
@@ -54,6 +55,35 @@ export default function OAuthClientsPage() {
       fetchClients();
     } catch (err) {
       setError('Error creating OAuth client');
+    }
+  };
+
+  const handleUpdateClient = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!editState) return;
+
+    try {
+      const response = await fetch(`/api/oauth/clients/${editState.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-API-Key': process.env.NEXT_PUBLIC_DEFAULT_API_KEY!,
+        },
+        body: JSON.stringify({
+          name: editState.name,
+          redirectUris: editState.redirectUris.split(',').map(uri => uri.trim())
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update client');
+      }
+
+      setEditState(null);
+      fetchClients();
+    } catch (err) {
+      setError('Error updating OAuth client');
     }
   };
 
