@@ -14,6 +14,7 @@ export declare class Database {
     createOAuthClient(name: string, redirectUris: string[]): Promise<OAuthClient>;
     validateOAuthClient(clientId: string, clientSecret?: string): Promise<OAuthClient | null>;
     listOAuthClients(): Promise<OAuthClient[]>;
+    updateOAuthClient(id: string, update: Partial<OAuthClient>): Promise<OAuthClient | null>;
     findUser(identifierOrEmail: string): Promise<User | null>;
     createOrUpdateUser(identifier: string, options?: {
         email?: string;

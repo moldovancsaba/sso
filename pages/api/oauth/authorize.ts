@@ -11,13 +11,15 @@ const handler = composeMiddleware(
   validateTenant,
   rateLimit,
   requestLogger
-)(async (req: NextApiRequest, res: NextApiResponse) => {
+)(async (req: NextApiRequest, res: NextApiResponse): Promise<void> => {
   if (req.method !== 'GET' && req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
+    res.status(405).json({ error: 'Method not allowed' });
+    return;
   }
 
   if (!req.headers['x-api-key']) {
-    return res.status(401).json({ error: 'API key required' });
+    res.status(401).json({ error: 'API key required' });
+    return;
   }
 
   const {
@@ -32,11 +34,13 @@ const handler = composeMiddleware(
   } = req.method === 'GET' ? req.query : req.body;
 
   if (!client_id || !redirect_uri || !response_type) {
-    return res.status(400).json({ error: 'Missing required parameters' });
+    res.status(400).json({ error: 'Missing required parameters' });
+    return;
   }
 
   if (response_type !== 'code') {
-    return res.status(400).json({ error: 'Unsupported response type' });
+    res.status(400).json({ error: 'Unsupported response type' });
+    return;
   }
 
   try {
@@ -68,9 +72,11 @@ const handler = composeMiddleware(
         if (state) {
           errorUrl.searchParams.set('state', state as string);
         }
-        return res.status(302).json({ redirect: errorUrl.toString() });
+        res.redirect(302, errorUrl.toString());
+        return;
       }
-      return res.status(400).json(errorResponse);
+      res.status(400).json(errorResponse);
+      return;
     }
 
     // Validate the request parameters
@@ -78,7 +84,7 @@ const handler = composeMiddleware(
 
     if (req.method === 'GET') {
       // Show login form with identifier
-      return res.status(200).json({
+      res.status(200).json({
         client_name: client!.name,
         redirect_uri,
         state,
@@ -87,11 +93,13 @@ const handler = composeMiddleware(
         code_challenge_method,
         message: 'Please provide identifier to continue'
       });
+      return;
     }
 
     // Handle POST (login submission)
     if (!identifier) {
-      return res.status(400).json({ error: 'Identifier required' });
+      res.status(400).json({ error: 'Identifier required' });
+      return;
     }
 
     try {
@@ -107,17 +115,27 @@ const handler = composeMiddleware(
 
       // Send the redirect response
       res.setHeader('Cache-Control', 'no-store');
-      return res.status(200).json({ redirect: redirectUrl.toString() });
+      res.redirect(302, redirectUrl.toString());
+      return;
     } catch (authError) {
       console.error('Error generating authorization code:', authError);
-      // Redirect back to client with error
-      const errorUrl = new URL(redirect_uri as string);
-      errorUrl.searchParams.set('error', 'server_error');
-      errorUrl.searchParams.set('error_description', 'Failed to generate authorization code');
-      if (state) {
-        errorUrl.searchParams.set('state', state as string);
+      const errorResponse = {
+        error: 'server_error',
+        error_description: 'Failed to generate authorization code'
+      };
+      if (redirect_uri) {
+        const errorUrl = new URL(redirect_uri as string);
+        Object.entries(errorResponse).forEach(([key, value]) => {
+          errorUrl.searchParams.set(key, value);
+        });
+        if (state) {
+          errorUrl.searchParams.set('state', state as string);
+        }
+        res.redirect(302, errorUrl.toString());
+        return;
       }
-      return res.status(302).json({ redirect: errorUrl.toString() });
+      res.status(500).json(errorResponse);
+      return;
     }
   } catch (error) {
     console.error('OAuth authorization error:', error);
@@ -139,9 +157,11 @@ const handler = composeMiddleware(
       if (state) {
         errorUrl.searchParams.set('state', state as string);
       }
-      return res.status(302).json({ redirect: errorUrl.toString() });
+      res.redirect(302, errorUrl.toString());
+      return;
     }
-    return res.status(error instanceof OAuthError ? 400 : 500).json(errorResponse);
+    res.status(error instanceof OAuthError ? 400 : 500).json(errorResponse);
+    return;
   }
 });
 

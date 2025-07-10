@@ -23,14 +23,17 @@ export function composeMiddleware(...middlewares: MiddlewareFunction[]) {
           await chain[index++](next);
         } else {
           await handler(req, res);
+          return undefined;
         }
       };
 
       try {
         await next();
+        return undefined;
       } catch (error) {
         console.error('Middleware chain error:', error);
         res.status(500).json({ error: 'Internal server error' });
+                return undefined;
       }
     };
   };

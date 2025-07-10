@@ -142,6 +142,24 @@ export class Database {
     return clients.map(client => ({ ...client, id: client._id.toString() }));
   }
 
+  // OAuth operations
+  public async updateOAuthClient(id: string, update: Partial<OAuthClient>): Promise<OAuthClient | null> {
+    if (!this.db) throw new Error('Database not initialized');
+
+    const result = await this.db.collection<OAuthClient>('oauth_clients').findOneAndUpdate(
+      { _id: new ObjectId(id) },
+      {
+        $set: {
+          ...update,
+          updatedAt: new Date().toISOString()
+        }
+      },
+      { returnDocument: 'after' }
+    );
+
+    return result.value ? { ...result.value, id: result.value._id.toString() } : null;
+  }
+
   // User operations
   public async findUser(identifierOrEmail: string): Promise<User | null> {
     if (!this.db) throw new Error('Database not initialized');

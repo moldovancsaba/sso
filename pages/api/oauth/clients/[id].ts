@@ -1,6 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { Database } from '../../../../lib/db/database';
-import { validateRequest } from '../../../../lib/middleware/requestValidator';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'PUT') {
