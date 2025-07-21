@@ -1,83 +1,21 @@
 {
-  "name": "@doneisbetter/sso",
-  "version": "9.2.0",
-  "description": "A secure, privacy-focused SSO solution with ephemeral token handling",
-  "author": "Csaba Moldovan",
-  "license": "MIT",
-  "keywords": [
-    "sso",
-    "authentication",
-    "security",
-    "jwt",
-    "privacy"
-  ],
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/moldovancsaba/sso.git"
-  },
-  "homepage": "https://sso.doneisbetter.com",
-  "deployment": {
-    "vercel": "https://vercel.com/narimato/sso"
-  },
-  "main": "dist/lib/index.js",
-  "types": "dist/lib/index.d.ts",
-  "files": [
-    "dist",
-    "lib"
-  ],
+  "name": "session-spa",
+  "version": "2.0.0",
+  "description": "",
+  "main": "index.js",
   "scripts": {
     "dev": "next dev",
-    "build": "npm run build:lib && next build",
-    "build:lib": "tsc --project tsconfig.lib.json",
-    "start": "next start",
-    "test": "jest --config=jest.config.js",
-    "prepublishOnly": "npm run build",
-    "setup:test-tenant": "ts-node scripts/setup-test-tenant.ts",
-    "setup:dev-oauth": "ts-node scripts/setup-dev-oauth-client.ts",
-    "update:dev-oauth": "ts-node scripts/update-dev-oauth-client.ts"
+    "build": "next build",
+    "start": "next start"
   },
-  "peerDependencies": {
-    "next": "^14.0.0",
-    "react": "^18.0.0",
-    "react-dom": "^18.0.0"
-  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
   "dependencies": {
-    "@types/express": "^4.17.21",
-    "@types/jsonwebtoken": "^9.0.10",
-    "@types/winston": "^2.4.4",
-    "dotenv": "^17.0.1",
-    "express": "^4.18.2",
-    "jsonwebtoken": "^9.0.2",
-    "mongoose": "^7.8.7",
-    "next": "^14.0.0",
-    "next-auth": "^4.24.11",
-    "next-connect": "^1.0.0",
-    "prom-client": "^15.1.0",
-    "react": "^18.0.0",
-    "react-dom": "^18.0.0",
-    "winston": "^3.11.0"
-  },
-  "devDependencies": {
-    "@babel/core": "^7.28.0",
-    "@babel/preset-env": "^7.28.0",
-    "@babel/preset-react": "^7.27.1",
-    "@babel/preset-typescript": "^7.27.1",
-    "@testing-library/jest-dom": "^6.6.3",
-    "@testing-library/react": "^16.3.0",
-    "@testing-library/user-event": "^14.6.1",
-    "@types/jest": "^30.0.0",
-    "@types/node-fetch": "^2.6.12",
-    "@types/react": "19.1.8",
-    "autoprefixer": "^10.4.19",
-    "babel-jest": "^30.0.4",
-    "identity-obj-proxy": "^3.0.0",
-    "jest": "^30.0.4",
-    "jest-environment-jsdom": "^30.0.4",
-    "jsdom": "^26.1.0",
-    "node-fetch": "^2.7.0",
-    "node-mocks-http": "^1.17.2",
-    "tailwindcss": "^3.4.17",
-    "ts-jest": "^29.4.0",
-    "typescript": "5.8.3"
+    "mongodb": "^6.1.0",
+    "next": "^15.4.2",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
   }
 }

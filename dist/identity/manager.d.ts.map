@@ -1,1 +1,0 @@
-{"version":3,"file":"manager.d.ts","sourceRoot":"","sources":["../../lib/identity/manager.ts"],"names":[],"mappings":"AACA,OAAO,EAAE,QAAQ,EAAE,MAAM,mBAAmB,CAAC;AAE7C,qBAAa,eAAe;IAC1B,OAAO,CAAC,EAAE,CAAyB;;IAMtB,IAAI,IAAI,OAAO,CAAC,IAAI,CAAC;IAIlC;;OAEG;IACG,QAAQ,IAAI,OAAO,CAAC,QAAQ,CAAC;IAsBnC;;OAEG;IACG,WAAW,CAAC,MAAM,EAAE,MAAM,GAAG,OAAO,CAAC,QAAQ,CAAC;CAuBrD"}
