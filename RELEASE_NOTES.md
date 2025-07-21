@@ -1,4 +1,33 @@
-# Release Notes [![Version Badge](https://img.shields.io/badge/version-2.0.0-blue)](RELEASE_NOTES.md)
+# Release Notes [![Version Badge](https://img.shields.io/badge/version-3.0.0-blue)](RELEASE_NOTES.md)
+
+## [v3.0.0] — 2025-07-21T22:30:28Z
+
+### Major Changes
+- Upgraded all dependencies to their latest stable versions
+- Fixed deprecated package warnings
+- Removed legacy dependencies
+- Improved build system configuration
+
+### Technical Updates
+- Added lru-cache for better memory management
+- Updated glob to version 10
+- Updated rimraf to version 5
+- Updated eslint to version 9
+- Added package overrides for transitive dependencies
+- Optimized Next.js configuration for Pages Router
+- Added .npmrc for better dependency management
+
+### Removed
+- Deprecated inflight package
+- Legacy glob versions
+- Outdated eslint configuration
+
+### Technical Details
+- Configured proper versioning for all dependencies
+- Enhanced build system stability
+- Improved development environment setup
+- Better memory management with lru-cache
+- Stricter npm configuration
 
 ## [v2.0.0] — 2025-07-21T13:12:00.000Z
 
