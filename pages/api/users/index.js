@@ -1,7 +1,5 @@
 import { MongoClient } from 'mongodb';
-
-const MONGODB_URI = 'mongodb+srv://moldovancsaba:togwa1-xyhcEp-mozceb@mongodb-thanperfect.zf2o0ix.mongodb.net/?retryWrites=true&w=majority&appName=mongodb-thanperfect';
-const MONGODB_DB = 'session-spa';
+import { MONGODB_URI, MONGODB_DB } from '../../../lib/config';
 
 export default async function handler(req, res) {
   const { method } = req;

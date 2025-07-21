@@ -1,0 +1,44 @@
+{
+  "name": "@doneisbetter/sso-client",
+  "version": "1.0.0",
+  "description": "DoneIsBetter SSO Client for seamless authentication integration",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsup src/index.ts --format cjs,esm --dts",
+    "clean": "rm -rf dist",
+    "dev": "tsup src/index.ts --format cjs,esm --dts --watch",
+    "lint": "eslint src --ext .ts,.tsx",
+    "prepare": "npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/moldovancsaba/sso.git"
+  },
+  "keywords": [
+    "sso",
+    "authentication",
+    "session",
+    "doneisbetter"
+  ],
+  "author": "DoneIsBetter",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/moldovancsaba/sso/issues"
+  },
+  "homepage": "https://sso.doneisbetter.com",
+  "devDependencies": {
+    "@types/node": "^20.5.0",
+    "eslint": "^8.47.0",
+    "tsup": "^7.2.0",
+    "typescript": "^5.1.6"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
