@@ -10,11 +10,12 @@
     "README.md"
   ],
   "scripts": {
-    "build": "tsup src/index.ts --format cjs,esm --dts",
+    "build": "tsup src/index.ts --format cjs,esm --dts --sourcemap",
     "clean": "rm -rf dist",
     "dev": "tsup src/index.ts --format cjs,esm --dts --watch",
     "lint": "eslint src --ext .ts,.tsx",
-    "prepare": "npm run build"
+    "prepare": "npm run build",
+    "prepublishOnly": "npm run lint && npm run build"
   },
   "repository": {
     "type": "git",
@@ -32,13 +33,32 @@
     "url": "https://github.com/moldovancsaba/sso/issues"
   },
   "homepage": "https://sso.doneisbetter.com",
+  "peerDependencies": {
+    "react": ">=16.8.0",
+    "react-dom": ">=16.8.0"
+  },
   "devDependencies": {
     "@types/node": "^20.5.0",
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "@typescript-eslint/eslint-plugin": "^8.38.0",
+    "@typescript-eslint/parser": "^8.38.0",
     "eslint": "^8.47.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
     "tsup": "^7.2.0",
     "typescript": "^5.1.6"
   },
+  "sideEffects": false,
+  "engines": {
+    "node": ">=16.0.0"
+  },
   "publishConfig": {
-    "access": "public"
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "overrides": {
+    "glob": "^10.0.0",
+    "inflight": "^2.0.0"
   }
 }

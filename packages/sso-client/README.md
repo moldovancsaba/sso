@@ -1,6 +1,15 @@
 # @doneisbetter/sso-client
 
+[![Version](https://img.shields.io/badge/version-3.3.0-blue.svg)](https://www.npmjs.com/package/@doneisbetter/sso-client)
+
 A TypeScript/JavaScript client for DoneIsBetter SSO integration.
+
+## Dependencies
+
+- Node.js >= 14.0.0
+- TypeScript >= 4.5.0
+- axios ^1.6.0
+- jsonwebtoken ^9.0.0
 
 ## Installation
 
