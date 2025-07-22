@@ -1,6 +1,10 @@
-# Task List [![Version Badge](https://img.shields.io/badge/version-2.0.0-blue)](RELEASE_NOTES.md)
+# Task List [![Version Badge](https://img.shields.io/badge/version-3.3.0-blue)](RELEASE_NOTES.md)
 
 ## Completed Tasks
+- [x] Dependency Updates (2025-07-22)
+  - [x] Updated all major dependencies to latest versions
+  - [x] Added TypeScript support
+  - [x] Updated client library dependencies
 - [x] User Management System
   - [x] Rename users functionality
   - [x] Toggle admin rights

@@ -1,6 +1,24 @@
-# Release Notes [![Version Badge](https://img.shields.io/badge/version-3.0.0-blue)](RELEASE_NOTES.md)
+# Release Notes [![Version Badge](https://img.shields.io/badge/version-3.3.0-blue)](RELEASE_NOTES.md)
 
-## [v3.0.0] — 2025-07-21T22:30:28Z
+## [v3.3.0] — 2025-07-22T08:03:17Z
+
+### Updated Dependencies
+- Upgraded Next.js to ^15.4.2
+- Upgraded React to ^19.1.0
+- Upgraded MongoDB to ^6.3.0
+- Added TypeScript >= 4.5.0 requirement
+- Updated Node.js requirement to >= 14.0.0
+- Updated all client dependencies:
+  - axios ^1.6.0
+  - jsonwebtoken ^9.0.0
+
+### Technical Updates
+- Enhanced build system stability
+- Improved development environment setup
+- Updated package overrides for better dependency management
+- Optimized session handling and validation
+
+## [v3.0.0]
 
 ### Major Changes
 - Upgraded all dependencies to their latest stable versions

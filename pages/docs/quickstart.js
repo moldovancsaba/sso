@@ -3,48 +3,48 @@ import styles from '../../styles/docs.module.css';
 
 export default function Quickstart() {
   return (
-    \u003cDocsLayout\u003e
-      \u003cdiv className={styles.container}\u003e
-        \u003cheader className={styles.header}\u003e
-          \u003ch1\u003eQuick Start Guide\u003c/h1\u003e
-        \u003c/header\u003e
-        \u003cmain className={styles.main}\u003e
-          \u003csection className={styles.section}\u003e
-            \u003ch2\u003e1. Installation\u003c/h2\u003e
-            \u003cp\u003e
+    <DocsLayout>
+      <div className={styles.container}>
+        <header className={styles.header}>
+          <h1>Quick Start Guide</h1>
+        </header>
+        <main className={styles.main}>
+          <section className={styles.section}>
+            <h2>1. Installation</h2>
+            <p>
               Install the SSO client library using npm or yarn:
-            \u003c/p\u003e
-            \u003cdiv className={styles.codeBlock}\u003e
-              \u003cpre\u003e
+            </p>
+            <div className={styles.codeBlock}>
+              <pre>
                 {`npm install @doneisbetter/sso-client
 
 # or using yarn
 yarn add @doneisbetter/sso-client`}
-              \u003c/pre\u003e
-            \u003c/div\u003e
-          \u003c/section\u003e
+              </pre>
+            </div>
+          </section>
 
-          \u003csection className={styles.section}\u003e
-            \u003ch2\u003e2. Initialize the Client\u003c/h2\u003e
-            \u003cp\u003e
+          <section className={styles.section}>
+            <h2>2. Initialize the Client</h2>
+            <p>
               Create an instance of the SSO client:
-            \u003c/p\u003e
-            \u003cdiv className={styles.codeBlock}\u003e
-              \u003cpre\u003e
+            </p>
+            <div className={styles.codeBlock}>
+              <pre>
                 {`import { SSOClient } from '@doneisbetter/sso-client';
 
 const sso = new SSOClient('https://sso.doneisbetter.com');`}
-              \u003c/pre\u003e
-            \u003c/div\u003e
-          \u003c/section\u003e
+              </pre>
+            </div>
+          </section>
 
-          \u003csection className={styles.section}\u003e
-            \u003ch2\u003e3. Implement Authentication\u003c/h2\u003e
-            \u003cp\u003e
+          <section className={styles.section}>
+            <h2>3. Implement Authentication</h2>
+            <p>
               Add login functionality to your application:
-            \u003c/p\u003e
-            \u003cdiv className={styles.codeBlock}\u003e
-              \u003cpre\u003e
+            </p>
+            <div className={styles.codeBlock}>
+              <pre>
                 {`// Register/login a user
 const response = await sso.register({
   username: 'user@example.com'
@@ -58,17 +58,17 @@ if (session.isValid) {
 
 // Logout
 await sso.logout();`}
-              \u003c/pre\u003e
-            \u003c/div\u003e
-          \u003c/section\u003e
+              </pre>
+            </div>
+          </section>
 
-          \u003csection className={styles.section}\u003e
-            \u003ch2\u003e4. Handle Errors\u003c/h2\u003e
-            \u003cp\u003e
+          <section className={styles.section}>
+            <h2>4. Handle Errors</h2>
+            <p>
               Implement proper error handling:
-            \u003c/p\u003e
-            \u003cdiv className={styles.codeBlock}\u003e
-              \u003cpre\u003e
+            </p>
+            <div className={styles.codeBlock}>
+              <pre>
                 {`try {
   const session = await sso.validateSession();
   if (session.isValid) {
@@ -81,24 +81,24 @@ await sso.logout();`}
     // Handle other errors
   }
 }`}
-              \u003c/pre\u003e
-            \u003c/div\u003e
-          \u003c/section\u003e
+              </pre>
+            </div>
+          </section>
 
-          \u003csection className={styles.section}\u003e
-            \u003ch2\u003e5. Next Steps\u003c/h2\u003e
-            \u003cp\u003e
+          <section className={styles.section}>
+            <h2>5. Next Steps</h2>
+            <p>
               For more detailed information, check out these guides:
-            \u003c/p\u003e
-            \u003cul\u003e
-              \u003cli\u003e\u003ca href="/docs/api"\u003eAPI Reference\u003c/a\u003e\u003c/li\u003e
-              \u003cli\u003e\u003ca href="/docs/error-handling"\u003eError Handling Guide\u003c/a\u003e\u003c/li\u003e
-              \u003cli\u003e\u003ca href="/docs/session-management"\u003eSession Management\u003c/a\u003e\u003c/li\u003e
-              \u003cli\u003e\u003ca href="/docs/security/best-practices"\u003eSecurity Best Practices\u003c/a\u003e\u003c/li\u003e
-            \u003c/ul\u003e
-          \u003c/section\u003e
-        \u003c/main\u003e
-      \u003c/div\u003e
-    \u003c/DocsLayout\u003e
+            </p>
+            <ul>
+              <li><a href="/docs/api">API Reference</a></li>
+              <li><a href="/docs/error-handling">Error Handling Guide</a></li>
+              <li><a href="/docs/session-management">Session Management</a></li>
+              <li><a href="/docs/security/best-practices">Security Best Practices</a></li>
+            </ul>
+          </section>
+        </main>
+      </div>
+    </DocsLayout>
   );
 }

@@ -3,28 +3,28 @@ import styles from '../../../styles/docs.module.css';
 
 export default function VanillaExample() {
   return (
-    \u003cDocsLayout\u003e
-      \u003cdiv className={styles.container}\u003e
-        \u003cheader className={styles.header}\u003e
-          \u003ch1\u003eVanilla JavaScript Integration Example\u003c/h1\u003e
-        \u003c/header\u003e
-        \u003cmain className={styles.main}\u003e
-          \u003csection className={styles.section}\u003e
-            \u003ch2\u003eInstallation\u003c/h2\u003e
-            \u003cdiv className={styles.codeBlock}\u003e
-              \u003cpre\u003e
+    <DocsLayout>
+      <div className={styles.container}>
+        <header className={styles.header}>
+          <h1>Vanilla JavaScript Integration Example</h1>
+        </header>
+        <main className={styles.main}>
+          <section className={styles.section}>
+            <h2>Installation</h2>
+            <div className={styles.codeBlock}>
+              <pre>
                 {`npm install @doneisbetter/sso-client
 
 // Or via CDN
 <script src="https://cdn.doneisbetter.com/sso-client/v1.0.0/index.min.js"></script>`}
-              \u003c/pre\u003e
-            \u003c/div\u003e
-          \u003c/section\u003e
+              </pre>
+            </div>
+          </section>
 
-          \u003csection className={styles.section}\u003e
-            \u003ch2\u003eInitialization\u003c/h2\u003e
-            \u003cdiv className={styles.codeBlock}\u003e
-              \u003cpre\u003e
+          <section className={styles.section}>
+            <h2>Initialization</h2>
+            <div className={styles.codeBlock}>
+              <pre>
                 {`// Initialize the SSO client
 const sso = new SSOClient('https://sso.doneisbetter.com');
 
@@ -44,14 +44,14 @@ async function checkSession() {
 }
 
 document.addEventListener('DOMContentLoaded', checkSession);`}
-              \u003c/pre\u003e
-            \u003c/div\u003e
-          \u003c/section\u003e
+              </pre>
+            </div>
+          </section>
 
-          \u003csection className={styles.section}\u003e
-            \u003ch2\u003eComplete Example\u003c/h2\u003e
-            \u003cdiv className={styles.codeBlock}\u003e
-              \u003cpre\u003e
+          <section className={styles.section}>
+            <h2>Complete Example</h2>
+            <div className={styles.codeBlock}>
+              <pre>
                 {`<!DOCTYPE html>
 <html>
 <head>
@@ -124,11 +124,11 @@ document.addEventListener('DOMContentLoaded', checkSession);`}
   </script>
 </body>
 </html>`}
-              \u003c/pre\u003e
-            \u003c/div\u003e
-          \u003c/section\u003e
-        \u003c/main\u003e
-      \u003c/div\u003e
-    \u003c/DocsLayout\u003e
+              </pre>
+            </div>
+          </section>
+        </main>
+      </div>
+    </DocsLayout>
   );
 }

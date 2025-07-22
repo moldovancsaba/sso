@@ -3,25 +3,25 @@ import styles from '../../../styles/docs.module.css';
 
 export default function ReactExample() {
   return (
-    \u003cDocsLayout\u003e
-      \u003cdiv className={styles.container}\u003e
-        \u003cheader className={styles.header}\u003e
-          \u003ch1\u003eReact Integration Example\u003c/h1\u003e
-        \u003c/header\u003e
-        \u003cmain className={styles.main}\u003e
-          \u003csection className={styles.section}\u003e
-            \u003ch2\u003eInstallation\u003c/h2\u003e
-            \u003cdiv className={styles.codeBlock}\u003e
-              \u003cpre\u003e
+    <DocsLayout>
+      <div className={styles.container}>
+        <header className={styles.header}>
+          <h1>React Integration Example</h1>
+        </header>
+        <main className={styles.main}>
+          <section className={styles.section}>
+            <h2>Installation</h2>
+            <div className={styles.codeBlock}>
+              <pre>
                 {`npm install @doneisbetter/sso-client`}
-              \u003c/pre\u003e
-            \u003c/div\u003e
-          \u003c/section\u003e
+              </pre>
+            </div>
+          </section>
 
-          \u003csection className={styles.section}\u003e
-            \u003ch2\u003eAuthContext Setup\u003c/h2\u003e
-            \u003cdiv className={styles.codeBlock}\u003e
-              \u003cpre\u003e
+          <section className={styles.section}>
+            <h2>AuthContext Setup</h2>
+            <div className={styles.codeBlock}>
+              <pre>
                 {`// src/contexts/AuthContext.js
 import { createContext, useContext, useState, useEffect } from 'react';
 import { SSOClient } from '@doneisbetter/sso-client';
@@ -61,21 +61,21 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    \u003cAuthContext.Provider value={{ user, loading, login, logout }}\u003e
+    <AuthContext.Provider value={{ user, loading, login, logout }}>
       {children}
-    \u003c/AuthContext.Provider\u003e
+    </AuthContext.Provider>
   );
 }
 
 export const useAuth = () => useContext(AuthContext);`}
-              \u003c/pre\u003e
-            \u003c/div\u003e
-          \u003c/section\u003e
+              </pre>
+            </div>
+          </section>
 
-          \u003csection className={styles.section}\u003e
-            \u003ch2\u003eUsage Example\u003c/h2\u003e
-            \u003cdiv className={styles.codeBlock}\u003e
-              \u003cpre\u003e
+          <section className={styles.section}>
+            <h2>Usage Example</h2>
+            <div className={styles.codeBlock}>
+              <pre>
                 {`// src/App.js
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 
@@ -90,7 +90,7 @@ function LoginButton() {
     }
   };
 
-  return \u003cbutton onClick={handleLogin}\u003eSign In\u003c/button\u003e;
+  return <button onClick={handleLogin}>Sign In</button>;
 }
 
 function UserProfile() {
@@ -99,26 +99,26 @@ function UserProfile() {
   if (!user) return null;
 
   return (
-    \u003cdiv\u003e
-      \u003ch2\u003eWelcome, {user.username}\u003c/h2\u003e
-      \u003cbutton onClick={logout}\u003eSign Out\u003c/button\u003e
-    \u003c/div\u003e
+    <div>
+      <h2>Welcome, {user.username}</h2>
+      <button onClick={logout}>Sign Out</button>
+    </div>
   );
 }
 
 export default function App() {
   return (
-    \u003cAuthProvider\u003e
-      \u003cLoginButton /\u003e
-      \u003cUserProfile /\u003e
-    \u003c/AuthProvider\u003e
+    <AuthProvider>
+      <LoginButton />
+      <UserProfile />
+    </AuthProvider>
   );
 }`}
-              \u003c/pre\u003e
-            \u003c/div\u003e
-          \u003c/section\u003e
-        \u003c/main\u003e
-      \u003c/div\u003e
-    \u003c/DocsLayout\u003e
+              </pre>
+            </div>
+          </section>
+        </main>
+      </div>
+    </DocsLayout>
   );
 }

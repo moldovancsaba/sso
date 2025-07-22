@@ -1,12 +1,17 @@
 # Architecture Documentation
 
-## Current Status [![Version Badge](https://img.shields.io/badge/version-2.0.0-blue)](RELEASE_NOTES.md)
+## Current Status [![Version Badge](https://img.shields.io/badge/version-3.3.0-blue)](RELEASE_NOTES.md)
 
 ### Technology Stack
-- Next.js 15.4.2
-- React 19.1.0
-- MongoDB
-- Node.js
+- Next.js ^15.4.2
+- React ^19.1.0
+- MongoDB ^6.3.0
+- Node.js >= 14.0.0
+- TypeScript >= 4.5.0
+
+### Client Dependencies
+- axios ^1.6.0
+- jsonwebtoken ^9.0.0
 
 ### System Components
 #### Frontend
