@@ -1,3 +1,18 @@
+# Task List
+
+## Completed Tasks
+
+### [2025-07-23T10:00:00.000Z] Remove Nested Client Package
+- ✓ Removed packages/sso-client directory
+- ✓ Updated documentation to remove client references
+- ✓ Incremented version to 3.4.0
+- ✓ Deployed to production
+- ✓ Verified deployment success
+
+## Active Tasks
+
+## Upcoming Tasks
+
 # Task List [![Version Badge](https://img.shields.io/badge/version-3.3.0-blue)](RELEASE_NOTES.md)
 
 ## Completed Tasks

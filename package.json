@@ -1,5 +1,5 @@
 {
-  "name": "session-spa",
+  "name": "@doneisbetter/sso",
   "version": "3.4.0",
   "description": "Single Sign-On service for DoneIsBetter platform",
   "main": "index.js",
