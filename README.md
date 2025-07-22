@@ -14,68 +14,19 @@ A secure, easy-to-integrate Single Sign-On (SSO) service for web applications.
 
 ## Quick Start
 
-### 1. Install the Client Library
+### Authentication API
+
+The authentication API provides endpoints for user authentication and session management:
 
 ```bash
-npm install @doneisbetter/sso-client
-# or
-yarn add @doneisbetter/sso-client
-```
+# Authenticate user
+POST /api/auth/login
 
-### 2. Initialize the SSO Client
+# Validate session
+GET /api/auth/validate
 
-```javascript
-import { SSOClient } from '@doneisbetter/sso-client';
-
-const sso = new SSOClient('https://your-sso-server.com');
-```
-
-### 3. Implement Authentication
-
-```javascript
-// Check authentication status
-async function checkAuth() {
-  const session = await sso.validateSession();
-  
-  if (session.isValid) {
-    // User is authenticated
-    const { username, permissions } = session.user;
-    console.log(`Authenticated as: ${username}`);
-    console.log('Permissions:', permissions);
-  } else {
-    // Redirect to login
-    sso.redirectToLogin();
-  }
-}
-
-// Handle logout
-async function handleLogout() {
-  try {
-    await sso.signOut();
-    window.location.href = '/login';
-  } catch (error) {
-    console.error('Logout failed:', error);
-  }
-}
-```
-
-### 4. Enable Session Monitoring
-
-```javascript
-// Monitor session status
-const cleanup = sso.enableSessionMonitoring({
-  interval: 60000, // Check every minute
-  onInvalidSession: () => {
-    alert('Session expired. Please log in again.');
-    sso.redirectToLogin();
-  },
-  onError: (error) => {
-    console.error('Session check failed:', error);
-  }
-});
-
-// Clean up when component unmounts
-cleanup();
+# Logout user
+POST /api/auth/logout
 ```
 
 ## Documentation
@@ -86,19 +37,6 @@ cleanup();
 - [Examples](./docs/examples.md)
 
 ## Configuration
-
-### Client Options
-
-```javascript
-const sso = new SSOClient('https://your-sso-server.com', {
-  loginPath: '/auth/login',            // Custom login path
-  logoutPath: '/api/auth/logout',      // Custom logout endpoint
-  validatePath: '/api/auth/validate',  // Custom validation endpoint
-  headers: {                          // Additional headers
-    'X-Custom-Header': 'value'
-  }
-});
-```
 
 ### Environment Variables
 
@@ -122,17 +60,16 @@ ALLOWED_ORIGINS=https://app1.com,https://app2.com
 
 ## Error Handling
 
-The SSO client provides detailed error information:
+The API provides detailed error responses:
 
-```javascript
-try {
-  const session = await sso.validateSession();
-  // Handle successful validation
-} catch (error) {
-  if (error.code === 'SESSION_EXPIRED') {
-    // Handle expired session
-  } else if (error.code === 'NETWORK_ERROR') {
-    // Handle network issues
+```json
+{
+  "error": {
+    "code": "SESSION_EXPIRED",
+    "message": "Your session has expired",
+    "details": {
+      "expiredAt": "2025-07-23T10:00:00.000Z"
+    }
   }
 }
 ```
@@ -161,7 +98,7 @@ MIT License - see [LICENSE](LICENSE) for details
 A Single Page Application for managing user sessions and permissions.
 
 ## Version
-[![Version Badge](https://img.shields.io/badge/version-3.3.0-blue)](RELEASE_NOTES.md)
+[![Version Badge](https://img.shields.io/badge/version-3.4.0-blue)](RELEASE_NOTES.md)
 
 ## Dependencies
 - Next.js ^15.4.2

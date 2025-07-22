@@ -1,4 +1,4 @@
-# Roadmap [![Version Badge](https://img.shields.io/badge/version-2.0.0-blue)](RELEASE_NOTES.md)
+# Roadmap [![Version Badge](https://img.shields.io/badge/version-3.4.0-blue)](RELEASE_NOTES.md)
 
 ## Version 3.0.0 (Q3 2025)
 

@@ -1,5 +1,16 @@
-# Release Notes [![Version Badge](https://img.shields.io/badge/version-3.3.0-blue)](RELEASE_NOTES.md)
+# Release Notes [![Version Badge](https://img.shields.io/badge/version-3.4.0-blue)](RELEASE_NOTES.md)
 
+## [v3.4.0] — 2025-07-23T10:00:00.000Z
+
+### Removed
+- Removed nested client package (@doneisbetter/sso-client)
+- Removed client-related documentation and examples
+- Simplified project structure
+
+### Modified
+- Updated documentation to focus on server-side implementation
+- Streamlined API documentation
+- Simplified configuration options
 ## [v3.3.0] — 2025-07-22T08:03:17Z
 
 ### Updated Dependencies
