@@ -16,7 +16,7 @@
   "license": "ISC",
   "type": "module",
   "engines": {
-    "node": ">=20.x"
+    "node": ">=20.0.0"
   },
   "dependencies": {
     "mongodb": "^6.3.0",
