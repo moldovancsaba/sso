@@ -1,7 +1,9 @@
 import { MongoClient } from 'mongodb';
 import { config } from '../../../lib/config.js';
+import { withSession } from '../../../lib/middleware/session.js';
 
-export default async function handler(req, res) {
+// Also expose this endpoint as /api/auth/validate for consistency
+async function handler(req, res) {
   // Set CORS headers based on the origin
   const origin = req.headers.origin;
   if (config.cors.allowedOrigins.includes(origin)) {
@@ -80,3 +82,5 @@ export default async function handler(req, res) {
     });
   }
 }
+
+export default withSession(handler);

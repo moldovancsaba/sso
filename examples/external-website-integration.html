@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>External Website SSO Integration Example</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .status { padding: 15px; margin: 20px 0; border-radius: 5px; }
+        .success { background-color: #d4edda; border: 1px solid #c3e6cb; color: #155724; }
+        .error { background-color: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; }
+        .info { background-color: #cce7ff; border: 1px solid #99d3ff; color: #004085; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+        .user-info { background: #f8f9fa; padding: 15px; border-radius: 5px; margin: 10px 0; }
+        pre { background: #f8f9fa; padding: 15px; border-radius: 5px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>SSO Integration Example</h1>
+        <p>This page demonstrates how to integrate with the Universal SSO service from an external website.</p>
+        
+        <div id="status" class="status info">
+            <strong>Status:</strong> <span id="statusText">Checking authentication...</span>
+        </div>
+
+        <div id="authButtons" style="display: none;">
+            <button onclick="login()">Login via SSO</button>
+            <button onclick="register()">Register via SSO</button>
+        </div>
+
+        <div id="userInfo" style="display: none;">
+            <h3>Welcome!</h3>
+            <div class="user-info">
+                <p><strong>User ID:</strong> <span id="userId"></span></p>
+                <p><strong>Username:</strong> <span id="username"></span></p>
+                <p><strong>Permissions:</strong> <span id="permissions"></span></p>
+                <p><strong>Session Expires:</strong> <span id="sessionExpiry"></span></p>
+            </div>
+            <button onclick="logout()">Logout</button>
+            <button onclick="checkSession()">Refresh Session Status</button>
+        </div>
+
+        <h3>Integration Code Example</h3>
+        <pre><code id="codeExample">// Loading example code...</code></pre>
+
+        <div id="logs">
+            <h3>API Logs</h3>
+            <div id="logContainer" style="height: 200px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; background: #f8f9fa;"></div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration - Update this to point to your SSO service
+        const SSO_SERVER_URL = 'http://localhost:3000'; // Change this to your SSO server URL
+        
+        // Initialize SSO Client
+        class SSOClient {
+            constructor(config) {
+                this.serverUrl = config.serverUrl.replace(/\/$/, '');
+                this.paths = {
+                    login: config.paths?.login || '/api/auth/login',
+                    logout: config.paths?.logout || '/api/auth/logout',
+                    validate: config.paths?.validate || '/api/auth/validate'
+                };
+            }
+
+            async request(path, options = {}) {
+                const url = `${this.serverUrl}${path}`;
+                this.log(`Making request to: ${url}`);
+                
+                const response = await fetch(url, {
+                    ...options,
+                    credentials: 'include', // Important for cross-origin sessions
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...options.headers
+                    }
+                });
+
+                const data = await response.json();
+                this.log(`Response (${response.status}):`, data);
+                
+                if (!response.ok) {
+                    throw new Error(data.message || `HTTP ${response.status}`);
+                }
+                
+                return data;
+            }
+
+            async validateSession() {
+                return this.request(this.paths.validate);
+            }
+
+            async login(username, password) {
+                return this.request(this.paths.login, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        username,
+                        password,
+                        returnUrl: window.location.href
+                    })
+                });
+            }
+
+            async logout() {
+                return this.request(this.paths.logout, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        returnUrl: window.location.href
+                    })
+                });
+            }
+
+            redirectToLogin(returnUrl) {
+                const loginUrl = new URL(this.serverUrl + this.paths.login);
+                if (returnUrl) {
+                    loginUrl.searchParams.set('returnUrl', returnUrl);
+                }
+                window.location.href = loginUrl.toString();
+            }
+
+            log(message, data = null) {
+                const logContainer = document.getElementById('logContainer');
+                const timestamp = new Date().toLocaleTimeString();
+                const logEntry = document.createElement('div');
+                logEntry.innerHTML = `<strong>[${timestamp}]</strong> ${message}`;
+                if (data) {
+                    logEntry.innerHTML += `<br><pre style="margin: 5px 0; font-size: 12px;">${JSON.stringify(data, null, 2)}</pre>`;
+                }
+                logContainer.appendChild(logEntry);
+                logContainer.scrollTop = logContainer.scrollHeight;
+            }
+        }
+
+        // Initialize SSO client
+        const sso = new SSOClient({
+            serverUrl: SSO_SERVER_URL
+        });
+
+        // UI Functions
+        function updateStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('status');
+            const statusText = document.getElementById('statusText');
+            statusText.textContent = message;
+            statusDiv.className = `status ${type}`;
+        }
+
+        function showAuthButtons() {
+            document.getElementById('authButtons').style.display = 'block';
+            document.getElementById('userInfo').style.display = 'none';
+        }
+
+        function showUserInfo(sessionData) {
+            document.getElementById('authButtons').style.display = 'none';
+            document.getElementById('userInfo').style.display = 'block';
+            
+            document.getElementById('userId').textContent = sessionData.user.id;
+            document.getElementById('username').textContent = sessionData.user.username;
+            document.getElementById('permissions').textContent = JSON.stringify(sessionData.user.permissions);
+            document.getElementById('sessionExpiry').textContent = new Date(sessionData.session.expiresAt).toLocaleString();
+        }
+
+        // Authentication Functions
+        async function checkSession() {
+            try {
+                updateStatus('Checking session...', 'info');
+                const sessionData = await sso.validateSession();
+                
+                if (sessionData.isValid) {
+                    updateStatus('Authenticated successfully', 'success');
+                    showUserInfo(sessionData);
+                } else {
+                    updateStatus('Not authenticated', 'info');
+                    showAuthButtons();
+                }
+            } catch (error) {
+                sso.log('Session validation failed:', error);
+                updateStatus('Not authenticated (session check failed)', 'info');
+                showAuthButtons();
+            }
+        }
+
+        async function login() {
+            const username = prompt('Enter username:');
+            if (!username) return;
+
+            try {
+                updateStatus('Logging in...', 'info');
+                const result = await sso.login(username, 'demo-password');
+                updateStatus('Login successful!', 'success');
+                showUserInfo(result);
+            } catch (error) {
+                updateStatus(`Login failed: ${error.message}`, 'error');
+                sso.log('Login error:', error);
+            }
+        }
+
+        async function register() {
+            alert('Registration works the same as login - just enter a new username!');
+            login();
+        }
+
+        async function logout() {
+            try {
+                updateStatus('Logging out...', 'info');
+                await sso.logout();
+                updateStatus('Logged out successfully', 'success');
+                showAuthButtons();
+            } catch (error) {
+                updateStatus(`Logout failed: ${error.message}`, 'error');
+                sso.log('Logout error:', error);
+            }
+        }
+
+        // Show integration code
+        function showIntegrationCode() {
+            const code = `// 1. Include SSO Client in your website
+import { SSOClient } from '@moldovancsaba/universal-sso';
+
+// 2. Initialize the client
+const sso = new SSOClient({
+    serverUrl: '${SSO_SERVER_URL}' // Your SSO server URL
+});
+
+// 3. Check authentication status
+async function checkAuth() {
+    try {
+        const session = await sso.validateSession();
+        if (session.isValid) {
+            console.log('User is authenticated:', session.user);
+            return session.user;
+        } else {
+            console.log('User not authenticated');
+            return null;
+        }
+    } catch (error) {
+        console.error('Auth check failed:', error);
+        return null;
+    }
+}
+
+// 4. Login/logout functions
+async function loginUser(username, password) {
+    try {
+        const result = await sso.login(username, password);
+        console.log('Login successful:', result);
+        return result.user;
+    } catch (error) {
+        console.error('Login failed:', error);
+        throw error;
+    }
+}
+
+async function logoutUser() {
+    try {
+        await sso.logout();
+        console.log('Logout successful');
+    } catch (error) {
+        console.error('Logout failed:', error);
+    }
+}
+
+// 5. Redirect to SSO login page (alternative method)
+function redirectToSSO() {
+    sso.redirectToLogin(window.location.href);
+}
+
+// 6. Monitor session status
+const stopMonitoring = sso.enableSessionMonitoring({
+    interval: 30000, // Check every 30 seconds
+    onInvalidSession: () => {
+        alert('Session expired. Please log in again.');
+        redirectToSSO();
+    },
+    onError: (error) => {
+        console.error('Session monitoring error:', error);
+    }
+});`;
+
+            document.getElementById('codeExample').textContent = code;
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            checkSession();
+            showIntegrationCode();
+        });
+    </script>
+</body>
+</html>
