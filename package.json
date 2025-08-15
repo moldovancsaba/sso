@@ -1,18 +1,20 @@
 {
-  "name": "universal-sso",
-  "version": "1.0.0",
+  "name": "@moldovancsaba/universal-sso",
+  "version": "4.0.0",
   "description": "A universal Single Sign-On (SSO) service that can be integrated into any project",
   "main": "src/index.ts",
   "type": "module",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
+    "start": "next start -p $PORT",
     "lint": "next lint",
     "type-check": "tsc --noEmit",
+    "test": "jest",
     "validate-config": "node -e \"import('./lib/config.js').then(c => c.validateConfig())\"",
     "test-connection": "node scripts/test-connection.js",
-    "setup": "cp .env.example .env && echo 'Please edit .env with your configuration'"
+    "setup": "cp .env.example .env && echo 'Please edit .env with your configuration'",
+    "vercel-build": "next build"
   },
   "keywords": [
     "sso",
@@ -24,7 +26,7 @@
     "oauth",
     "session-management"
   ],
-  "author": "SSO Team",
+  "author": "Moldovan Csaba",
   "license": "MIT",
   "dependencies": {
     "bcryptjs": "^2.4.3",
@@ -53,10 +55,37 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourusername/universal-sso.git"
+    "url": "https://github.com/moldovancsaba/sso.git"
   },
   "bugs": {
-    "url": "https://github.com/yourusername/universal-sso/issues"
+    "url": "https://github.com/moldovancsaba/sso/issues"
   },
-  "homepage": "https://github.com/yourusername/universal-sso#readme"
+  "homepage": "https://github.com/moldovancsaba/sso#readme",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.6.1",
+    "express-rate-limit": "^7.0.0",
+    "helmet": "^7.0.0",
+    "jsonwebtoken": "^9.0.0",
+    "mongodb": "^6.0.0",
+    "next": "^14.0.0",
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/jsonwebtoken": "^9.0.0",
+    "@types/node": "^20.0.0",
+    "@types/react": "^18.0.0",
+    "eslint": "^8.0.0",
+    "eslint-config-next": "^14.0.0",
+    "jest": "^29.0.0",
+    "typescript": "^5.0.0"
+  }
 }
