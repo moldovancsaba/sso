@@ -68,3 +68,5 @@ coverage/
 
 # ESLint cache
 .eslintcache
+# Disallow tests (MVP policy)
+tests/
