@@ -1,53 +1,17 @@
-# Learnings [![Version Badge](https://img.shields.io/badge/version-2.0.0-blue)](RELEASE_NOTES.md)
+# LEARNINGS (v4.1.0)
 
-## Version 2.0.0 Insights
+Last updated: 2025-09-11T13:57:38.000Z
 
-### Development Challenges
-- Managing real-time state updates in React
-- Implementing secure permission system
-- Handling session-based authentication in Next.js
-- Coordinating MongoDB operations with API routes
+Backend:
+- MessMass cookie session pattern adapts cleanly to Pages Router with minimal dependencies
+- Implementing cookie parse/serialize inline avoids extra deps (keeps ESM simple)
+- ISO 8601 UTC timestamps with milliseconds across DB/doc flows improves traceability
 
-### Technical Solutions
-- Utilized React hooks for efficient state management
-- Implemented granular permission checks
-- Leveraged Next.js API routes for serverless backend
-- Designed flexible MongoDB schema
+Process:
+- Version bump + docs sync should be automated to prevent drift
+- Removing legacy endpoints sharply reduces ambiguity for integrators
 
-### Best Practices Identified
-1. State Management
-   - Use React hooks for local state
-   - Implement real-time updates
-   - Maintain clear state hierarchy
-
-2. Security
-   - Implement role-based access
-   - Log all critical operations
-   - Prevent self-permission modifications
-
-3. User Experience
-   - Provide immediate feedback
-   - Handle errors gracefully
-   - Maintain consistent UI
-
-### Process Improvements
-- Standardized API response format
-- Implemented consistent error handling
-- Added comprehensive activity logging
-- Created detailed documentation
-
-### Future Considerations
-1. Technical Improvements
-   - Add comprehensive testing
-   - Implement caching strategy
-   - Optimize database queries
-
-2. Security Enhancements
-   - Add rate limiting
-   - Implement audit logging
-   - Enhance session security
-
-3. Feature Development
-   - Consider GraphQL implementation
-   - Plan WebSocket integration
-   - Design analytics system
+Security:
+- Strict CORS per domain is essential for public SSO services
+- Avoid embedding secrets in source (deprecated duplicate routes were neutralized)
+- Admin-bypass for resource passwords must be server-side only

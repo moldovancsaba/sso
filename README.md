@@ -1,275 +1,61 @@
-# Universal SSO Service
+# SSO Service — DB-backed Admin Auth & Resource Passwords
 
-A configurable Single Sign-On (SSO) service that can be integrated into any project. This service provides authentication, session management, and user validation across multiple applications.
+Version: 4.1.0
+Last updated: 2025-09-11T13:57:38.000Z
+
+A production-ready authentication backend for sso.doneisbetter.com using:
+- Admin login via email + 32-hex token (cookie-based sessions)
+- Resource-specific passwords with usage tracking and admin-bypass
+- MongoDB Atlas storage and strict CORS
 
 ## Features
-
-- 🔐 **Universal Authentication**: Works with any project/domain
-- ⚙️ **Fully Configurable**: Environment-based configuration
-- 🔧 **Multiple Auth Methods**: Session-based and JWT support
-- 🛡️ **Security Built-in**: CORS, rate limiting, CSRF protection
-- 📦 **Easy Integration**: Simple client library included
-- 🔄 **Session Management**: Automatic session validation and monitoring
-- 📊 **MongoDB Backend**: Scalable user and session storage
-
-## Quick Start
-
-### 1. Installation
-
-```bash
-git clone <repository-url>
-cd universal-sso
-npm install
-```
-
-### 2. Configuration
-
-```bash
-npm run setup
-# Edit .env file with your settings
-# IMPORTANT: Never commit .env files to version control
-```
-
-Required environment variables:
-```env
-MONGODB_URI=your_mongodb_connection_string
-MONGODB_DB=your_database_name
-SESSION_SECRET=your_secure_session_secret
-ALLOWED_ORIGINS=http://localhost:3000,https://yourdomain.com
-```
-
-### 3. Start the Service
-
-```bash
-npm run dev
-```
-
-## Integration Guide
-
-### Client-Side Integration
-
-Install the SSO client in your project:
-
-```bash
-npm install path/to/universal-sso/src
-```
-
-#### Basic Usage
-
-```javascript
-import { SSOClient } from 'universal-sso';
-
-// Initialize the client
-const sso = new SSOClient({
-  serverUrl: 'http://localhost:3000'
-});
-
-// Check if user is authenticated
-try {
-  const session = await sso.validateSession();
-  if (session.isValid) {
-    console.log('User authenticated:', session.user);
-  } else {
-    sso.redirectToLogin();
-  }
-} catch (error) {
-  console.error('Authentication error:', error);
-}
-```
-
-#### Advanced Configuration
-
-```javascript
-const sso = new SSOClient({
-  serverUrl: 'https://your-sso-service.com',
-  paths: {
-    login: '/custom/login',
-    logout: '/custom/logout',
-    validate: '/custom/validate'
-  },
-  headers: {
-    'X-API-Key': 'your-api-key'
-  }
-});
-
-// Enable session monitoring
-const stopMonitoring = sso.enableSessionMonitoring({
-  interval: 30000, // Check every 30 seconds
-  onInvalidSession: () => {
-    alert('Session expired. Please log in again.');
-    sso.redirectToLogin();
-  },
-  onError: (error) => {
-    console.error('Session monitoring error:', error);
-  }
-});
-```
+- Admin authentication (HttpOnly cookie)
+- Admin users CRUD (roles: admin, super-admin)
+- Resource password generation/validation (MD5-style 32-hex token)
+- Shareable link helper (server provides token; consumers build final URLs)
+- CORS per SSO_ALLOWED_ORIGINS
 
 ## API Endpoints
+- POST /api/admin/login — body: { email, password }
+- DELETE /api/admin/login — clears cookie session
+- GET /api/admin/users — list users (admin)
+- POST /api/admin/users — create user (super-admin)
+- GET/PATCH/DELETE /api/admin/users/[id] — manage user
+- POST /api/resource-passwords — { resourceId, resourceType, regenerate? } -> token + shareableLink
+- PUT /api/resource-passwords — { resourceId, resourceType, password } -> validate
+- GET /api/sso/validate — returns admin session info if valid
 
-### Authentication Endpoints
+Deprecated/Removed:
+- /api/auth/login, /api/auth/logout, /api/users/register, /api/users/logout, /api/users/[userId]
 
-#### `GET /api/auth/validate`
-Validates the current session.
+## Quick Start
+1) Configure environment (.env or Vercel env):
+- MONGODB_URI, MONGODB_DB
+- ADMIN_SESSION_COOKIE=admin-session
+- SSO_ADMIN_ALIAS_EMAIL=sso@doneisbetter.com
+- SSO_ALLOWED_ORIGINS=https://sso.doneisbetter.com,https://doneisbetter.com
+- SSO_BASE_URL=https://sso.doneisbetter.com
 
-**Response:**
-```json
-{
-  "isValid": true,
-  "user": {
-    "id": "user123",
-    "username": "john@example.com",
-    "permissions": ["read", "write"]
-  },
-  "session": {
-    "expiresAt": "2024-01-01T12:00:00Z"
-  }
-}
-```
+2) Install deps and run dev:
+- npm install
+- npm run dev
 
-#### `POST /api/auth/logout`
-Destroys the current session.
-
-**Response:**
-```json
-{
-  "success": true,
-  "message": "Logged out successfully"
-}
-```
-
-### User Management
-
-#### `GET /api/users`
-Returns all users (admin endpoint).
-
-#### `GET /api/users/[userId]`
-Returns specific user information.
-
-## Configuration Reference
-
-### Database Configuration
-
-```env
-MONGODB_URI=your_mongodb_connection_string      # MongoDB connection string (local or Atlas)
-MONGODB_DB=sso_database                         # Database name
-USERS_COLLECTION=users                          # Users collection name
-SESSIONS_COLLECTION=sessions                    # Sessions collection name
-```
-
-### CORS Configuration
-
-```env
-ALLOWED_ORIGINS=http://localhost:3000,https://app.com  # Comma-separated origins
-CORS_CREDENTIALS=true                                   # Allow credentials
-```
-
-### Session Configuration
-
-```env
-SESSION_SECRET=your-secret-key                  # Session encryption key
-SESSION_MAX_AGE=86400000                        # Session lifetime (24h)
-SESSION_SAME_SITE=lax                          # SameSite attribute
-```
-
-### Security Settings
-
-```env
-BCRYPT_ROUNDS=12                               # Password hashing rounds
-RATE_LIMIT_MAX=100                             # Max requests per window
-RATE_LIMIT_WINDOW=900000                       # Rate limit window (15min)
-CSRF_PROTECTION=true                           # Enable CSRF protection
-```
-
-## Development
-
-### Project Structure
-
-```
-sso/
-├── src/                    # Client library source
-│   ├── client.ts           # Main SSO client class
-│   ├── types.ts            # TypeScript definitions
-│   ├── constants.ts        # Constants and defaults
-│   └── index.ts            # Main export file
-├── pages/                  # Next.js API routes
-│   └── api/
-│       ├── auth/           # Authentication endpoints
-│       └── users/          # User management endpoints
-├── lib/
-│   └── config.js           # Configuration management
-├── .env.example            # Environment template
-└── package.json
-```
-
-### Scripts
-
-```bash
-npm run dev              # Start development server
-npm run build            # Build for production
-npm run start            # Start production server
-npm run lint             # Run linting
-npm run type-check       # Type checking
-npm run validate-config  # Validate configuration
-npm run test-connection  # Test MongoDB connection
-```
+3) Create first super-admin user:
+- Call POST /api/admin/users with an authenticated super-admin (seed via DB insert if first-time)
 
 ## Deployment
+- Hosting: Vercel
+- Database: MongoDB Atlas
+- Domain: sso.doneisbetter.com
+- Set all env vars in Vercel Project Settings
 
-### Environment Setup
-
-1. Copy `.env.example` to `.env` (for local development only)
-2. Configure all required environment variables
-3. Ensure MongoDB is accessible
-4. Set `NODE_ENV=production`
-
-### Vercel Deployment
-
-Set environment variables in Vercel dashboard:
-- Go to Project Settings → Environment Variables
-- Add all required variables from `.env.example`
-- Never commit actual `.env` files to your repository
-
-### Production Considerations
-
-- Use strong `SESSION_SECRET` and `JWT_SECRET` (generate with: `openssl rand -base64 32`)
-- Configure `TRUSTED_PROXIES` if behind a proxy
-- Set appropriate `ALLOWED_ORIGINS` for your domains
-- Enable HTTPS in production
-- Store all secrets in environment variables, never in code
-- Use Vercel environment variables for deployment
-- Consider using Redis for session storage at scale
-
-## Security
-
-- All passwords are hashed with bcrypt
-- Sessions are secured with HTTP-only cookies
-- CORS is configurable per environment
-- Rate limiting prevents abuse
-- CSRF protection is enabled by default
-- Supports trusted proxy configurations
+## Security Notes
+- Tokens are random 32-hex strings by convention (not password hashes), per team policy
+- ISO 8601 timestamps with milliseconds in UTC across DB and docs
+- CORS strict to production domains
+- No tests included (MVP policy)
 
 ## Troubleshooting
-
-### Common Issues
-
-**"Configuration error"**
-- Check that all required environment variables are set
-- Run `npm run validate-config` to verify configuration
-
-**"CORS error"**
-- Ensure your domain is in `ALLOWED_ORIGINS`
-- Check that `CORS_CREDENTIALS` is set correctly
-
-**"Database connection failed"**
-- Verify `MONGODB_URI` is correct and accessible
-- Check MongoDB server is running
-
-**"Session validation failed"**
-- Check session hasn't expired
-- Verify cookies are being sent with requests
-- Ensure `SESSION_SECRET` hasn't changed
-
-## License
-
-MIT License - see LICENSE file for details.
+- 401 from /api/sso/validate → no admin cookie; login via POST /api/admin/login
+- CORS errors → verify SSO_ALLOWED_ORIGINS matches caller origin exactly
+- MongoDB timeouts → check MONGODB_URI and network allowlist

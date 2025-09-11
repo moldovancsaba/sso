@@ -1,76 +1,37 @@
-# Architecture Documentation
+# Architecture — SSO (v4.1.0)
 
-## Current Status [![Version Badge](https://img.shields.io/badge/version-3.4.0-blue)](RELEASE_NOTES.md)
+Last updated: 2025-09-11T13:57:38.000Z
 
-### Technology Stack
-- Next.js ^15.4.2
-- React ^19.1.0
-- MongoDB ^6.3.0
-- Node.js >= 14.0.0
-- TypeScript >= 4.5.0
+## Stack
+- Next.js (Pages Router)
+- Node.js >= 18, ESM modules
+- MongoDB Atlas
 
-### System Components
-#### Frontend
-- Next.js React Framework
-- Client-side state management with React hooks
-- Responsive design with CSS
-- Admin dashboard interface
+## Components
+1) Admin Authentication (DB-backed)
+- Collection: users { email, name, role: 'admin'|'super-admin', password, createdAt, updatedAt }
+- Session: HttpOnly cookie 'admin-session' (base64 JSON: token, expiresAt, userId, role)
+- Endpoints:
+  - POST /api/admin/login — login with email + 32-hex token (MD5-style)
+  - DELETE /api/admin/login — logout (clear cookie)
+  - GET/POST /api/admin/users — list/create users (super-admin to create)
+  - GET/PATCH/DELETE /api/admin/users/[id] — manage user (update name/role/password, delete)
 
-#### Backend
-- Next.js API Routes
-- MongoDB for data persistence
-- Session-based authentication
-- Activity logging system
+2) Resource Passwords (page-specific analogue)
+- Collection: resourcePasswords { resourceId, resourceType, password, createdAt, expiresAt?, usageCount, lastUsedAt? }
+- Endpoints:
+  - POST /api/resource-passwords — generate/retrieve password + shareable link
+  - PUT /api/resource-passwords — validate password (admin-session bypass)
 
-### Database Schema
-#### Users Collection
-```javascript
-{
-  _id: ObjectId,
-  username: String,
-  permissions: {
-    isAdmin: Boolean,
-    canViewUsers: Boolean,
-    canManageUsers: Boolean
-  },
-  activityLog: [{
-    action: String,
-    timestamp: Date,
-    details: Mixed
-  }],
-  createdAt: Date,
-  lastLogin: Date
-}
-```
+3) Validation
+- GET /api/sso/validate — validates admin cookie session and returns sanitized user info
 
-### API Routes
-#### Authentication
-- POST /api/users/register
-  - Creates new user or returns existing
-  - Sets up session
-  - Returns user data
+## Design Choices
+- Plaintext-like random tokens (32-hex) per team convention (not password hashes)
+- ISO 8601 UTC timestamps with milliseconds across DB and docs
+- No breadcrumbs (Navigation Design Policy)
 
-#### User Management
-- GET /api/users
-  - Lists all users (admin only)
-  - Returns user data without sensitive info
-
-- PUT /api/users/[userId]
-  - Updates user properties
-  - Handles username changes
-  - Manages admin rights
-
-- DELETE /api/users/[userId]
-  - Removes user from system
-  - Logs deletion activity
-
-### Security Features
-- Admin-only route protection
-- Activity logging for all operations
-- Session-based authentication
-- Prevention of self-permission modification
-
-### State Management
-- React hooks for local state
-- Session storage for auth state
-- Real-time updates for user management
+## Security
+- All admin routes require a valid admin-session cookie
+- CORS controlled by SSO_ALLOWED_ORIGINS
+- Duplicate/insecure endpoints removed; legacy username flows deprecated

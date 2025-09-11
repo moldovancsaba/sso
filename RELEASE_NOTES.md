@@ -1,4 +1,33 @@
-# Release Notes [![Version Badge](https://img.shields.io/badge/version-3.4.0-blue)](RELEASE_NOTES.md)
+# Release Notes [![Version Badge](https://img.shields.io/badge/version-4.1.0-blue)](RELEASE_NOTES.md)
+
+## [v4.1.0] — 2025-09-11T13:57:38.000Z
+
+### Changed
+- Version bump to align with commit protocol; no functional changes since v4.0.1
+
+## [v4.0.1] — 2025-09-11T13:35:02.000Z
+
+### Added
+- DB-backed admin authentication with HttpOnly cookie session (admin-session)
+- New admin endpoints:
+  - POST /api/admin/login (email + token)
+  - DELETE /api/admin/login (logout)
+  - GET/POST /api/admin/users (list/create)
+  - GET/PATCH/DELETE /api/admin/users/[id] (manage)
+- Resource password service with admin-session bypass and usage tracking:
+  - POST /api/resource-passwords (generate/retrieve + shareable link)
+  - PUT /api/resource-passwords (validate password)
+- CORS helper and deployment guidance for sso.doneisbetter.com
+
+### Changed
+- /api/sso/validate now validates admin cookie sessions
+- Secured /api/users to admin-only
+
+### Removed
+- Deprecated username-based endpoints: /api/auth/login, /api/auth/logout, /api/users/register, /api/users/logout, /api/users/[userId]
+- Duplicate/insecure routes removed or deprecated with 410 Gone
+
+---
 
 ## [v3.4.0] — 2025-07-23T10:00:00.000Z
 
