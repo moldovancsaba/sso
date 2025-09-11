@@ -1,4 +1,15 @@
-# Release Notes [![Version Badge](https://img.shields.io/badge/version-4.1.0-blue)](RELEASE_NOTES.md)
+# Release Notes [![Version Badge](https://img.shields.io/badge/version-4.2.0-blue)](RELEASE_NOTES.md)
+
+## [v4.2.0] — 2025-09-11T14:28:29.000Z
+
+### Added
+- Admin login UI at /admin (email + 32‑hex token) with session display and logout
+- Homepage updated to link to Admin Login and show current admin session state
+
+### Changed
+- Removed legacy username sign-in UI from homepage
+
+---
 
 ## [v4.1.0] — 2025-09-11T13:57:38.000Z
 

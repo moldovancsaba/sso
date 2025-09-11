@@ -1,6 +1,6 @@
-# TASKLIST (v4.1.0)
+# TASKLIST (v4.2.0)
 
-Last updated: 2025-09-11T13:57:38.000Z
+Last updated: 2025-09-11T14:28:29.000Z
 
 Active:
 1) Refactor to DB-backed admin auth and resource passwords
