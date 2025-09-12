@@ -7,6 +7,8 @@ export default function AdminLoginPage() {
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
   const [admin, setAdmin] = useState(null)
+  const [lastStatus, setLastStatus] = useState(null)
+  const [lastBody, setLastBody] = useState('')
 
   async function checkSession() {
     try {
@@ -18,12 +20,15 @@ export default function AdminLoginPage() {
           setMessage('Admin session active')
         } else {
           setAdmin(null)
+          setMessage('No active admin session')
         }
       } else {
         setAdmin(null)
+        setMessage(`Session check failed (${res.status})`)
       }
-    } catch {
+    } catch (e) {
       setAdmin(null)
+      setMessage(`Session check error: ${e?.message || 'unknown'}`)
     }
   }
 
@@ -39,6 +44,8 @@ export default function AdminLoginPage() {
     }
     setLoading(true)
     setMessage('')
+    setLastStatus(null)
+    setLastBody('')
     try {
       const res = await fetch('/api/admin/login', {
         method: 'POST',
@@ -46,15 +53,27 @@ export default function AdminLoginPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: email.trim().toLowerCase(), password: password.trim() })
       })
-      const data = await res.json()
-      if (!res.ok) {
-        throw new Error(data?.error || 'Login failed')
+
+      setLastStatus(res.status)
+      let data
+      try {
+        data = await res.json()
+      } catch {
+        const text = await res.text()
+        setLastBody(text?.slice(0, 300) || '')
+        if (!res.ok) throw new Error(`Login failed (${res.status})`)
       }
+      if (data) setLastBody(JSON.stringify(data).slice(0, 300))
+
+      if (!res.ok) {
+        throw new Error(data?.error || data?.message || `Login failed (${res.status})`)
+      }
+
       await checkSession()
       setMessage('Login successful')
       setPassword('')
     } catch (err) {
-      setMessage(err.message)
+      setMessage(err.message || 'Login error')
     } finally {
       setLoading(false)
     }
@@ -63,8 +82,11 @@ export default function AdminLoginPage() {
   async function handleLogout() {
     setLoading(true)
     setMessage('')
+    setLastStatus(null)
+    setLastBody('')
     try {
       const res = await fetch('/api/admin/login', { method: 'DELETE', credentials: 'include' })
+      setLastStatus(res.status)
       if (!res.ok) throw new Error('Logout failed')
       setAdmin(null)
       setMessage('Logged out')
@@ -103,9 +125,16 @@ export default function AdminLoginPage() {
           </form>
         )}
 
-        {message ? (
-          <div style={{ marginTop: 12, fontSize: 13, opacity: 0.9 }}>{message}</div>
-        ) : null}
+        {/* Visible status / error details */}
+        <div style={{ marginTop: 12, fontSize: 13, opacity: 0.9 }}>
+          {message && <div style={{ marginBottom: 6 }}>{message}</div>}
+          {lastStatus !== null && (
+            <div style={{ marginTop: 6, opacity: 0.85 }}>HTTP Status: {lastStatus}</div>
+          )}
+          {lastBody && (
+            <pre style={{ marginTop: 6, maxHeight: 180, overflow: 'auto', background: '#0b1021', padding: 8, borderRadius: 6, border: '1px solid #22284a' }}>{lastBody}</pre>
+          )}
+        </div>
 
         <div style={{ marginTop: 16, fontSize: 13, opacity: 0.8 }}>
           <Link href="/">← Back to Home</Link>
