@@ -15,11 +15,9 @@ export default async function handler(req, res) {
     const db = await getDb()
     const col = db.collection('users')
 
-    // Only allow when there are no users in the system
-    const count = await col.estimatedDocumentCount()
-    if (count > 0) {
-      return res.status(403).json({ error: 'Already initialized' })
-    }
+    // Allow bootstrap if there is no existing super-admin.
+    // This supports legacy collections with other schemas/documents.
+    const hasAdmin = await col.findOne({ role: 'super-admin' })
 
     const body = await parseBody(req)
     const email = (body?.email || '').toLowerCase().trim()
@@ -31,6 +29,17 @@ export default async function handler(req, res) {
     }
     if (!/^[a-f0-9]{32}$/.test(password)) {
       return res.status(400).json({ error: 'Password must be a 32-hex token' })
+    }
+
+    if (hasAdmin) {
+      // If a super-admin already exists, do not allow creating another via bootstrap
+      return res.status(403).json({ error: 'Already initialized' })
+    }
+
+    // If user with this email already exists, prevent duplicate
+    const existingUser = await col.findOne({ email })
+    if (existingUser) {
+      return res.status(409).json({ error: 'User with this email already exists' })
     }
 
     const now = new Date().toISOString()
