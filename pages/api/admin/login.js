@@ -4,7 +4,7 @@
  * WHY: Enable multiple admin users while keeping a simple cookie session model (HttpOnly).
  */
 import crypto from 'crypto'
-import { findUserByEmail } from '../../../lib/users.mjs'
+import { findUserByEmail, ensureUserUuid } from '../../../lib/users.mjs'
 import { setAdminSessionCookie, clearAdminSessionCookie } from '../../../lib/auth.mjs'
 
 export default async function handler(req, res) {
@@ -36,6 +36,9 @@ export default async function handler(req, res) {
         return res.status(401).json({ error: 'Invalid credentials' })
       }
 
+      // Ensure the user has a stable UUID identifier used across the system
+      user = await ensureUserUuid(user)
+
       // Build session token (7 days)
       const token = crypto.randomBytes(32).toString('hex')
       const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
@@ -43,7 +46,7 @@ export default async function handler(req, res) {
       const tokenData = {
         token,
         expiresAt: expiresAt.toISOString(),
-        userId: user?._id?.toString() || 'admin',
+        userId: user?.id || 'admin',
         role: (user?.role || 'super-admin'),
       }
 

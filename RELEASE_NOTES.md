@@ -1,4 +1,24 @@
-# Release Notes [![Version Badge](https://img.shields.io/badge/version-4.2.0-blue)](RELEASE_NOTES.md)
+# Release Notes [![Version Badge](https://img.shields.io/badge/version-4.3.0-blue)](RELEASE_NOTES.md)
+
+## [v4.3.0] — 2025-09-14T08:25:57.000Z
+
+### Added
+- UUIDs as the primary identifier for admin users (with backfill for legacy users)
+- Sparse-unique index on users.id for fast UUID lookups
+- Organizations (UUID) admin endpoints:
+  - GET/POST /api/admin/orgs
+  - GET/PATCH/DELETE /api/admin/orgs/[id]
+- Organization Users (UUID) admin endpoints:
+  - GET/POST /api/admin/orgs/[orgId]/users
+  - GET/PATCH/DELETE /api/admin/orgs/[orgId]/users/[id]
+- tools/backfill-user-uuids.mjs utility
+
+### Changed
+- Admin session tokens now carry userId as UUID
+- Admin users CRUD responses prefer UUID id (fallback to legacy _id only if needed)
+- RBAC clarified: super-admin full access; admin read-only for org/org-user routes unless permissioned
+
+---
 
 ## [v4.2.0] — 2025-09-11T14:28:29.000Z
 

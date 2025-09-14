@@ -103,6 +103,65 @@ Returns:
 
 ## REST API Endpoints
 
+### Admin — Organizations (UUID)
+
+GET /api/admin/orgs
+- Lists organizations
+- Response example:
+```json
+{
+  "success": true,
+  "organizations": [
+    { "id": "d9e0b6d9-7b8a-4d1f-9a3a-6e3e9f5a1c2b", "name": "Acme Inc", "slug": "acme-inc", "domains": ["acme.com"], "status": "active", "plan": "pro", "createdAt": "2025-09-14T08:00:00.000Z", "updatedAt": "2025-09-14T08:00:00.000Z" }
+  ]
+}
+```
+
+POST /api/admin/orgs
+- Create organization (super-admin required)
+- Request:
+```json
+{ "name": "Acme Inc", "slug": "acme-inc", "domains": ["acme.com","app.acme.com"], "status": "active", "plan": "pro" }
+```
+- Response:
+```json
+{ "success": true, "organization": { "id": "<uuid>", "name": "Acme Inc", "slug": "acme-inc", "domains": ["acme.com","app.acme.com"], "status": "active", "plan": "pro", "createdAt": "2025-09-14T08:00:00.000Z", "updatedAt": "2025-09-14T08:00:00.000Z" } }
+```
+
+GET /api/admin/orgs/{id}
+- Get organization by UUID
+
+PATCH /api/admin/orgs/{id}
+- Update organization fields
+
+DELETE /api/admin/orgs/{id}
+- Delete organization (super-admin required)
+
+### Admin — Organization Users (UUID)
+
+GET /api/admin/orgs/{orgId}/users
+- Lists org users for an org (UUID-based orgId)
+
+POST /api/admin/orgs/{orgId}/users
+- Create org user (super-admin or admin with manage-org-users)
+- Request:
+```json
+{ "email": "user@acme.com", "name": "User Name", "role": "member", "status": "active" }
+```
+- Response:
+```json
+{ "success": true, "user": { "id": "<uuid>", "email": "user@acme.com", "name": "User Name", "role": "member", "status": "active", "createdAt": "2025-09-14T08:00:00.000Z", "updatedAt": "2025-09-14T08:00:00.000Z" }, "password": "<32-hex>" }
+```
+
+GET /api/admin/orgs/{orgId}/users/{id}
+- Get org user by UUID
+
+PATCH /api/admin/orgs/{orgId}/users/{id}
+- Update org user fields; if password is provided as empty string, a new 32-hex token is generated and returned as password
+
+DELETE /api/admin/orgs/{orgId}/users/{id}
+- Delete org user (super-admin or admin with manage-org-users)
+
 ### Session Validation
 
 ```http

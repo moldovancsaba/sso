@@ -16,7 +16,7 @@ export default async function handler(req, res) {
       const users = await listUsers()
       // Sanitize IDs for client
       const result = users.map(u => ({
-        id: u._id?.toString(),
+        id: u.id || u._id?.toString(),
         email: u.email,
         name: u.name,
         role: u.role,
@@ -48,7 +48,7 @@ export default async function handler(req, res) {
       return res.status(201).json({
         success: true,
         user: {
-          id: user._id?.toString(),
+          id: user.id || user._id?.toString(),
           email: user.email,
           name: user.name,
           role: user.role,

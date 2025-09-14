@@ -1,7 +1,7 @@
 # SSO Service — DB-backed Admin Auth & Resource Passwords
 
-Version: 4.2.0
-Last updated: 2025-09-11T14:28:29.000Z
+Version: 4.3.0
+Last updated: 2025-09-14T08:25:57.000Z
 
 A production-ready authentication backend for sso.doneisbetter.com using:
 - Admin login via email + 32-hex token (cookie-based sessions)
@@ -10,7 +10,7 @@ A production-ready authentication backend for sso.doneisbetter.com using:
 
 ## Features
 - Admin authentication (HttpOnly cookie)
-- Admin users CRUD (roles: admin, super-admin)
+- Admin users CRUD (roles: admin, super-admin) — UUID identifiers for users
 - Resource password generation/validation (MD5-style 32-hex token)
 - Shareable link helper (server provides token; consumers build final URLs)
 - CORS per SSO_ALLOWED_ORIGINS
@@ -21,6 +21,10 @@ A production-ready authentication backend for sso.doneisbetter.com using:
 - GET /api/admin/users — list users (admin)
 - POST /api/admin/users — create user (super-admin)
 - GET/PATCH/DELETE /api/admin/users/[id] — manage user
+- GET/POST /api/admin/orgs — list/create organizations (UUID)
+- GET/PATCH/DELETE /api/admin/orgs/[id] — manage organization
+- GET/POST /api/admin/orgs/[orgId]/users — list/create org users (UUID)
+- GET/PATCH/DELETE /api/admin/orgs/[orgId]/users/[id] — manage org user
 - POST /api/resource-passwords — { resourceId, resourceType, regenerate? } -> token + shareableLink
 - PUT /api/resource-passwords — { resourceId, resourceType, password } -> validate
 - GET /api/sso/validate — returns admin session info if valid

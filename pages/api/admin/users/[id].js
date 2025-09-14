@@ -20,7 +20,7 @@ export default async function handler(req, res) {
     return res.status(200).json({
       success: true,
       user: {
-        id: user._id?.toString(),
+        id: user.id || user._id?.toString(),
         email: user.email,
         name: user.name,
         role: user.role,
@@ -57,7 +57,7 @@ export default async function handler(req, res) {
       const out = {
         success: true,
         user: {
-          id: user._id?.toString(),
+          id: user.id || user._id?.toString(),
           email: user.email,
           name: user.name,
           role: user.role,

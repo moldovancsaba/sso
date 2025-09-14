@@ -1,6 +1,6 @@
-# ROADMAP (v4.2.0)
+# ROADMAP (v4.3.0)
 
-Last updated: 2025-09-11T14:28:29.000Z
+Last updated: 2025-09-14T08:25:57.000Z
 
 ## Milestone: Harden admin & password services (Q4 2025)
 - Priority: High
@@ -15,3 +15,15 @@ Planned:
 - Add rate limiting on sensitive endpoints
 - Structured error telemetry (privacy-safe)
 - Background cleanup for expired resource passwords
+
+## Milestone: Multi-tenant Organizations & Org Users (Q4 2025)
+- Priority: High
+- Dependencies: MongoDB Atlas, Existing Admin Auth
+- Logged: 2025-09-13 18:31 CET
+
+Planned:
+- Data model and indexes for organizations and orgUsers
+- Admin endpoints: /api/admin/orgs, /api/admin/orgs/[id], /api/admin/orgs/[orgId]/users, /api/admin/orgs/[orgId]/users/[id]
+- RBAC extension: manage-orgs, manage-org-users
+- Documentation updates (README, ARCHITECTURE, API Reference)
+- CORS/domain strategy per organization (future enhancement)
