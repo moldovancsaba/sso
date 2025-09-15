@@ -1,6 +1,6 @@
-# LEARNINGS (v4.3.0)
+# LEARNINGS (v4.4.0)
 
-Last updated: 2025-09-14T08:25:57.000Z
+Last updated: 2025-09-15T17:36:07.000Z
 
 Backend:
 - MessMass cookie session pattern adapts cleanly to Pages Router with minimal dependencies
@@ -15,3 +15,6 @@ Security:
 - Strict CORS per domain is essential for public SSO services
 - Avoid embedding secrets in source (deprecated duplicate routes were neutralized)
 - Admin-bypass for resource passwords must be server-side only
+
+Backend (Stability):
+- Avoid import-time DB client instantiation in serverless environments; lazily create the Mongo client inside getDb() to prevent function cold-start crashes and “Empty reply from server”.

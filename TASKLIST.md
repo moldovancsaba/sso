@@ -1,6 +1,6 @@
-# TASKLIST (v4.3.0)
+# TASKLIST (v4.4.0)
 
-Last updated: 2025-09-14T08:25:57.000Z
+Last updated: 2025-09-15T17:36:07.000Z
 
 Active:
 1) Refactor to DB-backed admin auth and resource passwords
@@ -42,6 +42,10 @@ Active:
 10) Backfill UUIDs for existing users in production (one-time)
    - Owner: Platform
    - Expected Delivery: 2025-09-13T18:30:00.000Z
+   - Priority: P1
+11) Redeploy v4.4.0 and validate admin login in production (login/validate/logout)
+   - Owner: Platform
+   - Expected Delivery: 2025-09-15T18:00:00.000Z
    - Priority: P1
 
 Completed:

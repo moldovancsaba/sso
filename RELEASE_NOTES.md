@@ -1,4 +1,15 @@
-# Release Notes [![Version Badge](https://img.shields.io/badge/version-4.3.0-blue)](RELEASE_NOTES.md)
+# Release Notes [![Version Badge](https://img.shields.io/badge/version-4.4.0-blue)](RELEASE_NOTES.md)
+
+## [v4.4.0] — 2025-09-15T17:36:07.000Z
+
+### Changed
+- MongoDB client initialization is now lazy in serverless functions to prevent import-time crashes (avoids “Empty reply from server”).
+- Admin login/validate endpoints return stable HTTP errors if database env is missing.
+
+### Documentation
+- Synchronized versions across README, ARCHITECTURE, ROADMAP, TASKLIST, LEARNINGS.
+
+---
 
 ## [v4.3.0] — 2025-09-14T08:25:57.000Z
 
