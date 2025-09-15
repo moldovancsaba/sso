@@ -31,6 +31,13 @@ export default async function handler(req, res) {
       }
     })
   } catch (error) {
+    const msg = (error && (error.message || error.toString())) || ''
+    if (msg.includes('MONGODB_URI is required')) {
+      return res.status(503).json({ isValid: false, message: 'Service unavailable: database not configured' })
+    }
+    if (msg.includes('MongoServerSelectionError') || msg.toLowerCase().includes('server selection')) {
+      return res.status(503).json({ isValid: false, message: 'Service unavailable: database unreachable' })
+    }
     console.error('SSO validation error:', error)
     return res.status(500).json({
       isValid: false,

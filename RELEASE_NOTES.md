@@ -1,4 +1,15 @@
-# Release Notes [![Version Badge](https://img.shields.io/badge/version-4.4.0-blue)](RELEASE_NOTES.md)
+# Release Notes [![Version Badge](https://img.shields.io/badge/version-4.5.0-blue)](RELEASE_NOTES.md)
+
+## [v4.5.0] — 2025-09-15T18:25:45.000Z
+
+### Changed
+- MongoDB client now uses fast-fail timeouts (serverSelection/connect/socket) to surface 503 quickly when DB is unreachable.
+- Admin login and session validation now map DB config/availability issues to 503 with clear messages.
+
+### Documentation
+- Version sync across README, ARCHITECTURE, ROADMAP, TASKLIST, LEARNINGS.
+
+---
 
 ## [v4.4.0] — 2025-09-15T17:36:07.000Z
 

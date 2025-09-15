@@ -1,7 +1,7 @@
 # SSO Service — DB-backed Admin Auth & Resource Passwords
 
-Version: 4.4.0
-Last updated: 2025-09-15T17:36:07.000Z
+Version: 4.5.0
+Last updated: 2025-09-15T18:25:45.000Z
 
 A production-ready authentication backend for sso.doneisbetter.com using:
 - Admin login via email + 32-hex token (cookie-based sessions)

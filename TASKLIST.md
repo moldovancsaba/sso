@@ -1,6 +1,6 @@
-# TASKLIST (v4.4.0)
+# TASKLIST (v4.5.0)
 
-Last updated: 2025-09-15T17:36:07.000Z
+Last updated: 2025-09-15T18:25:45.000Z
 
 Active:
 1) Refactor to DB-backed admin auth and resource passwords
@@ -46,6 +46,10 @@ Active:
 11) Redeploy v4.4.0 and validate admin login in production (login/validate/logout)
    - Owner: Platform
    - Expected Delivery: 2025-09-15T18:00:00.000Z
+   - Priority: P1
+12) Add fast-fail MongoDB client timeouts + 503 mapping; bump to v4.5.0 and redeploy
+   - Owner: Platform
+   - Expected Delivery: 2025-09-15T18:25:45.000Z
    - Priority: P1
 
 Completed:

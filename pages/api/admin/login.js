@@ -57,6 +57,14 @@ export default async function handler(req, res) {
 
       return res.status(200).json({ success: true, token: signedToken, message: 'Login successful' })
     } catch (error) {
+      // Be explicit about DB configuration/availability to avoid ambiguous timeouts
+      const msg = (error && (error.message || error.toString())) || ''
+      if (msg.includes('MONGODB_URI is required')) {
+        return res.status(503).json({ error: 'Service unavailable: database not configured' })
+      }
+      if (msg.includes('MongoServerSelectionError') || msg.toLowerCase().includes('server selection')) {
+        return res.status(503).json({ error: 'Service unavailable: database unreachable' })
+      }
       console.error('Admin login error:', error)
       return res.status(500).json({ error: 'Internal server error' })
     }

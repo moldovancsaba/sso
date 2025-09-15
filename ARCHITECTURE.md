@@ -1,6 +1,6 @@
-# Architecture — SSO (v4.4.0)
+# Architecture — SSO (v4.5.0)
 
-Last updated: 2025-09-15T17:36:07.000Z
+Last updated: 2025-09-15T18:25:45.000Z
 
 ## Stack
 - Next.js (Pages Router)

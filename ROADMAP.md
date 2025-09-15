@@ -1,6 +1,6 @@
-# ROADMAP (v4.4.0)
+# ROADMAP (v4.5.0)
 
-Last updated: 2025-09-15T17:36:07.000Z
+Last updated: 2025-09-15T18:25:45.000Z
 
 ## Milestone: Harden admin & password services (Q4 2025)
 - Priority: High
