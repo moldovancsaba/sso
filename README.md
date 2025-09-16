@@ -1,7 +1,7 @@
 # SSO Service — DB-backed Admin Auth & Resource Passwords
 
-Version: 4.5.0
-Last updated: 2025-09-15T18:25:45.000Z
+Version: 4.6.0
+Last updated: 2025-09-16T18:14:33.000Z
 
 A production-ready authentication backend for sso.doneisbetter.com using:
 - Admin login via email + 32-hex token (cookie-based sessions)
@@ -58,6 +58,16 @@ Deprecated/Removed:
 - ISO 8601 timestamps with milliseconds in UTC across DB and docs
 - CORS strict to production domains
 - No tests included (MVP policy)
+
+## Magic Link (one-time admin access)
+- Generate a one-time URL for a specific admin email (expires default in 15 minutes):
+  - Set env locally (do not print secrets):
+    - MONGODB_URI, ADMIN_MAGIC_SECRET, SSO_BASE_URL
+    - NEW_MAGIC_EMAIL (e.g., nimdasuper@doneisbetter.com)
+  - Run:
+    - node scripts/generate-magic-link.mjs
+  - Output JSON contains { url, expiresAt }. Open the URL to get redirected to /admin with a valid session.
+- To restrict magic links, set ADMIN_MAGIC_ALLOWED_EMAILS to a comma-separated list of allowed emails.
 
 ## Troubleshooting
 - 401 from /api/sso/validate → no admin cookie; login via POST /api/admin/login

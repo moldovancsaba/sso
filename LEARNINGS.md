@@ -1,6 +1,6 @@
-# LEARNINGS (v4.5.0)
+# LEARNINGS (v4.6.0)
 
-Last updated: 2025-09-15T18:25:45.000Z
+Last updated: 2025-09-16T18:14:33.000Z
 
 Backend:
 - MessMass cookie session pattern adapts cleanly to Pages Router with minimal dependencies

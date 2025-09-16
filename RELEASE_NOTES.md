@@ -1,4 +1,17 @@
-# Release Notes [![Version Badge](https://img.shields.io/badge/version-4.5.0-blue)](RELEASE_NOTES.md)
+# Release Notes [![Version Badge](https://img.shields.io/badge/version-4.6.0-blue)](RELEASE_NOTES.md)
+
+## [v4.6.0] — 2025-09-16T18:14:33.000Z
+
+### Added
+- Secure, single-use, time-limited admin magic link flow:
+  - GET /api/admin/magic-link?t=... consumes a signed token, sets session cookie, redirects to /admin
+  - scripts/generate-magic-link.mjs to generate one-time URLs
+  - ADMIN_MAGIC_SECRET signing key; optional ADMIN_MAGIC_ALLOWED_EMAILS allowlist
+
+### Changed
+- Documentation updated with Magic Link usage
+
+---
 
 ## [v4.5.0] — 2025-09-15T18:25:45.000Z
 
