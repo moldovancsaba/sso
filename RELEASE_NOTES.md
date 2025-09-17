@@ -1,4 +1,17 @@
-# Release Notes [![Version Badge](https://img.shields.io/badge/version-4.6.0-blue)](RELEASE_NOTES.md)
+# Release Notes [![Version Badge](https://img.shields.io/badge/version-4.7.0-blue)](RELEASE_NOTES.md)
+
+## [v4.7.0] — 2025-09-17T11:43:02.000Z
+
+### Added
+- Development-only passwordless admin login:
+  - NEXT_PUBLIC_ADMIN_DEV_BYPASS (client) + ADMIN_DEV_BYPASS (server) gates
+  - POST/DELETE /api/admin/dev-login creates/clears session without password when enabled (non-production only)
+- UI shows email-only form and warning banner when dev bypass is active
+
+### Security
+- Dev bypass is blocked in production regardless of flags; route returns 403
+
+---
 
 ## [v4.6.0] — 2025-09-16T18:14:33.000Z
 

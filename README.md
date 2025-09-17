@@ -1,7 +1,7 @@
 # SSO Service — DB-backed Admin Auth & Resource Passwords
 
-Version: 4.6.0
-Last updated: 2025-09-16T18:14:33.000Z
+Version: 4.7.0
+Last updated: 2025-09-17T11:43:02.000Z
 
 A production-ready authentication backend for sso.doneisbetter.com using:
 - Admin login via email + 32-hex token (cookie-based sessions)
@@ -58,6 +58,15 @@ Deprecated/Removed:
 - ISO 8601 timestamps with milliseconds in UTC across DB and docs
 - CORS strict to production domains
 - No tests included (MVP policy)
+
+## Dev Bypass (no password in development)
+- To speed up local/dev work, enable passwordless admin login:
+  - Server: ADMIN_DEV_BYPASS=true
+  - Client: NEXT_PUBLIC_ADMIN_DEV_BYPASS=true
+- Then, on /admin, you’ll see an email-only form. Submitting it will create a session via /api/admin/dev-login.
+- Notes:
+  - Dev bypass is hard-disabled in production, even if misconfigured.
+  - A matching user will be created automatically if missing (role defaults to super-admin).
 
 ## Magic Link (one-time admin access)
 - Generate a one-time URL for a specific admin email (expires default in 15 minutes):

@@ -8,4 +8,5 @@
 [2025-09-15T17:36:07.000Z] Plan: Bump to v4.4.0, sync docs, push to main, trigger Vercel deploy, then validate admin login via curl (login/validate/logout). Ensure MONGODB_URI is set in Vercel env if needed. Source: AI
 [2025-09-15T18:25:45.000Z] Plan: Add fast-fail Mongo client timeouts and explicit 503 mapping for DB issues; bump to v4.5.0; redeploy and re-validate production admin login. Source: AI
 [2025-09-16T18:14:33.000Z] Plan: Implement secure one-time admin magic link endpoint and generator; bump to v4.6.0; deploy and provide master URL to access /admin. Source: AI
+[2025-09-17T11:43:02.000Z] Plan: Add development-only passwordless admin login (gated by env, disabled in production), update UI and docs, bump to v4.7.0. Source: AI
 
