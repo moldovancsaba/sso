@@ -1,0 +1,24 @@
+name: Enforce single-branch (main only)
+
+on:
+  push:
+    branches:
+      - '**'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  enforce:
+    if: ${{ github.ref != 'refs/heads/main' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete non-main branch on push
+        env:
+          BRANCH: ${{ github.ref_name }}
+          REPO: ${{ github.repository }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Deleting branch $BRANCH on $REPO"
+          gh api -X DELETE "repos/$REPO/git/refs/heads/$BRANCH"
