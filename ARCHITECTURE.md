@@ -1,4 +1,4 @@
-# Architecture — SSO (v4.8.0)
+# Architecture — SSO (v5.0.0)
 
 Last updated: 2025-09-17T11:43:02.000Z
 

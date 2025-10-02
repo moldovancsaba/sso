@@ -70,3 +70,6 @@ coverage/
 .eslintcache
 # Disallow tests (MVP policy)
 tests/
+
+# RSA keys for JWT signing (DO NOT COMMIT)
+keys/
