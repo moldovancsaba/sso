@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/router'
 import Link from 'next/link'
 
 export default function AdminLoginPage() {
+  const router = useRouter()
+  const { redirect } = router.query
   const [email, setEmail] = useState('sso@doneisbetter.com')
   const [password, setPassword] = useState('') // 32-hex admin token
   const isDevBypass = process.env.NEXT_PUBLIC_ADMIN_DEV_BYPASS === 'true'
@@ -33,9 +36,32 @@ export default function AdminLoginPage() {
     }
   }
 
+  // WHAT: Validate redirect URL to prevent open redirect attacks
+  // WHY: Only allow redirects to *.doneisbetter.com subdomains and localhost (dev)
+  const isValidRedirectUrl = (url) => {
+    try {
+      const parsed = new URL(url)
+      // Allow localhost for development
+      if (parsed.hostname === 'localhost' || parsed.hostname === '127.0.0.1') {
+        return true
+      }
+      // Allow *.doneisbetter.com subdomains
+      if (parsed.hostname.endsWith('.doneisbetter.com') || parsed.hostname === 'doneisbetter.com') {
+        return true
+      }
+      return false
+    } catch {
+      return false
+    }
+  }
+
   useEffect(() => {
     checkSession()
-  }, [])
+    // WHAT: If user is already authenticated and redirect is present, redirect immediately
+    if (admin && redirect && isValidRedirectUrl(decodeURIComponent(redirect))) {
+      window.location.href = decodeURIComponent(redirect)
+    }
+  }, [admin, redirect])
 
   async function handleLogin(e) {
     e.preventDefault()
@@ -77,6 +103,14 @@ export default function AdminLoginPage() {
       await checkSession()
       setMessage('Login successful')
       setPassword('')
+      
+      // WHAT: If redirect parameter is present and valid, redirect back to origin app
+      // WHY: This completes the subdomain SSO flow
+      if (redirect && isValidRedirectUrl(decodeURIComponent(redirect))) {
+        setTimeout(() => {
+          window.location.href = decodeURIComponent(redirect)
+        }, 500) // Small delay to show success message
+      }
     } catch (err) {
       setMessage(err.message || 'Login error')
     } finally {
@@ -107,6 +141,14 @@ export default function AdminLoginPage() {
       <div style={{ width: '100%', maxWidth: 480, background: '#12172b', border: '1px solid #22284a', borderRadius: 12, padding: '1.5rem', color: '#e6e8f2' }}>
         <h1 style={{ margin: 0, fontSize: '1.5rem' }}>Admin Login</h1>
         <p style={{ marginTop: '0.25rem', opacity: 0.8 }}>Use your admin email and 32‑hex token.</p>
+        
+        {redirect && isValidRedirectUrl(decodeURIComponent(redirect)) && (
+          <div style={{ marginTop: '1rem', padding: '0.75rem', background: '#1e3a5f', border: '1px solid #2e5a8f', borderRadius: 8 }}>
+            <div style={{ fontSize: '0.875rem', marginBottom: '0.25rem', opacity: 0.9 }}>🔗 Redirect to:</div>
+            <div style={{ fontSize: '0.875rem', fontWeight: 'bold' }}>{new URL(decodeURIComponent(redirect)).hostname}</div>
+            <div style={{ fontSize: '0.75rem', marginTop: '0.25rem', opacity: 0.7 }}>You will be redirected after login</div>
+          </div>
+        )}
 
         {admin ? (
           <div style={{ marginTop: '1rem', padding: '0.75rem', background: '#0e1733', border: '1px solid #24306b', borderRadius: 8 }}>
