@@ -1,6 +1,6 @@
 # SSO Service — Production-Ready Authentication with Security Hardening
 
-Version: 4.8.0
+Version: 5.0.0
 Last updated: 2025-10-02T11:54:33.000Z
 
 A production-ready authentication backend for sso.doneisbetter.com with Phase 1 security hardening:
@@ -68,7 +68,7 @@ Deprecated/Removed:
 - Set all env vars in Vercel Project Settings
 
 ## Security Notes
-- **Phase 1 Hardening Complete** (v4.8.0):
+- **Phase 1 Hardening Complete** (v5.0.0):
   - ✅ Server-side session revocation
   - ✅ Rate limiting (5 login attempts per 15 minutes)
   - ✅ CSRF protection (double-submit cookie)
