@@ -36,57 +36,8 @@ export default function LoginPage() {
     setMounted(true)
   }, [])
 
-  // Check if user is already logged in
-  // WHY: Prevent logged-in users from accessing login page, redirect to destination
-  useEffect(() => {
-    // IMPORTANT: Don't run until component is fully mounted and router is ready
-    // WHY: Prevents hydration errors from redirecting during SSR
-    if (!mounted || !router.isReady || redirectAttempted) {
-      return
-    }
-    
-    // WHAT: Mark that we're checking to prevent re-runs
-    setRedirectAttempted(true)
-    
-    const checkSession = async () => {
-      console.log('[Login] Checking session, redirect param:', redirect)
-      
-      try {
-        const res = await fetch('/api/public/validate', {
-          credentials: 'include'
-        })
-        
-        if (res.ok) {
-          const data = await res.json()
-          if (data?.isValid) {
-            console.log('[Login] User is logged in')
-            
-            if (redirect) {
-              const decodedRedirect = decodeURIComponent(redirect)
-              console.log('[Login] Redirecting to:', decodedRedirect)
-              const isValid = isValidRedirectUrl(decodedRedirect)
-              
-              if (isValid) {
-                window.location.href = decodedRedirect
-                return
-              }
-            }
-            
-            console.log('[Login] No valid redirect, going to /demo')
-            router.push('/demo')
-          } else {
-            console.log('[Login] User not logged in, showing form')
-          }
-        }
-      } catch (err) {
-        console.error('[Login] Session check error:', err)
-      }
-    }
-    
-    checkSession()
-  // CRITICAL: Only run once when mounted and router is ready
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mounted, router.isReady])
+  // REMOVED: Automatic session check was interfering with form submission
+  // Users who are already logged in can just manually go to /demo
 
   // WHAT: Validate redirect URL to prevent open redirect attacks
   // WHY: Only allow redirects to *.doneisbetter.com subdomains and localhost (dev)

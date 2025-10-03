@@ -30,31 +30,8 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false)
   const [serverError, setServerError] = useState('')
 
-  // Check if user is already logged in
-  // WHY: Prevent logged-in users from accessing registration page, redirect to destination
-  useEffect(() => {
-    const checkSession = async () => {
-      try {
-        const res = await fetch('/api/public/validate', {
-          credentials: 'include'
-        })
-        if (res.ok) {
-          const data = await res.json()
-          if (data?.isValid) {
-            // User already logged in, redirect to requested page or demo
-            if (redirect && isValidRedirectUrl(decodeURIComponent(redirect))) {
-              window.location.href = decodeURIComponent(redirect)
-            } else {
-              router.push('/demo')
-            }
-          }
-        }
-      } catch (err) {
-        console.error('[Register] Session check error:', err)
-      }
-    }
-    checkSession()
-  }, [router, redirect])
+  // REMOVED: Automatic session check was interfering with form submission
+  // Users who are already logged in can just manually go to /demo
 
   // WHAT: Validate redirect URL to prevent open redirect attacks
   // WHY: Only allow redirects to *.doneisbetter.com subdomains and localhost (dev)
