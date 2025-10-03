@@ -12,6 +12,12 @@ export default function Home() {
   // WHY: Check if user is already authenticated and redirect if needed
   // This enables subdomain SSO flow: app redirects to SSO, SSO checks session, redirects back
   useEffect(() => {
+    // WHAT: Fallback timeout to prevent infinite loading
+    // WHY: If fetch hangs or errors silently, show UI after 3 seconds
+    const timeout = setTimeout(() => {
+      setLoading(false);
+    }, 3000);
+
     (async () => {
       try {
         const res = await fetch('/api/sso/validate', { credentials: 'include' });
@@ -24,15 +30,26 @@ export default function Home() {
               // WHY: Validate redirect URL to prevent open redirect vulnerability
               const redirectUrl = decodeURIComponent(redirect);
               if (isValidRedirectUrl(redirectUrl)) {
+                clearTimeout(timeout);
                 window.location.href = redirectUrl;
                 return;
               }
             }
           }
         }
-      } catch {}
-      setLoading(false);
+        // WHAT: Always set loading to false, even if validation fails
+        // WHY: Prevents infinite loading state; shows login UI
+        clearTimeout(timeout);
+        setLoading(false);
+      } catch (err) {
+        // WHAT: Log errors for debugging but continue to show UI
+        console.error('[SSO] Session check error:', err);
+        clearTimeout(timeout);
+        setLoading(false);
+      }
     })();
+
+    return () => clearTimeout(timeout);
   }, [redirect]);
 
   // WHAT: Validate redirect URL to prevent open redirect attacks
