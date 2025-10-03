@@ -11,6 +11,12 @@ import Head from 'next/head'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 
+// Make page server-rendered to ensure query params are available
+export async function getServerSideProps(context) {
+  // Just return empty props - we only need this to force server rendering
+  return { props: {} }
+}
+
 export default function LoginPage() {
   const router = useRouter()
   const { redirect } = router.query
