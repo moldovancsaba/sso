@@ -21,10 +21,25 @@ export default function LoginPage() {
   const [errors, setErrors] = useState({})
   const [loading, setLoading] = useState(false)
   const [serverError, setServerError] = useState('')
+  const [mounted, setMounted] = useState(false)
+  
+  // WHAT: Track when component is mounted
+  // WHY: Prevent redirects during SSR/hydration to avoid React errors
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   // Check if user is already logged in
   // WHY: Prevent logged-in users from accessing login page, redirect to destination
   useEffect(() => {
+    // IMPORTANT: Don't run until component is fully mounted and router is ready
+    // WHY: Prevents hydration errors from redirecting during SSR
+    if (!mounted || !router.isReady) {
+      if (!mounted) console.log('[Login] Not mounted yet, waiting...')
+      if (!router.isReady) console.log('[Login] Router not ready yet, waiting...')
+      return
+    }
+    
     const checkSession = async () => {
       try {
         const res = await fetch('/api/public/validate', {
@@ -35,6 +50,7 @@ export default function LoginPage() {
           if (data?.isValid) {
             // User already logged in, redirect to requested page or demo
             console.log('[Login] Already logged in, redirect param:', redirect)
+            console.log('[Login] Full query:', router.query)
             if (redirect) {
               const decodedRedirect = decodeURIComponent(redirect)
               console.log('[Login] Decoded redirect:', decodedRedirect)
@@ -44,6 +60,8 @@ export default function LoginPage() {
                 console.log('[Login] Redirecting to:', decodedRedirect)
                 window.location.href = decodedRedirect
                 return
+              } else {
+                console.error('[Login] Redirect URL failed validation:', decodedRedirect)
               }
             }
             console.log('[Login] No valid redirect, going to /demo')
@@ -55,7 +73,7 @@ export default function LoginPage() {
       }
     }
     checkSession()
-  }, [router, redirect])
+  }, [router, redirect, router.isReady, mounted])
 
   // WHAT: Validate redirect URL to prevent open redirect attacks
   // WHY: Only allow redirects to *.doneisbetter.com subdomains and localhost (dev)
@@ -135,6 +153,7 @@ export default function LoginPage() {
       if (res.ok) {
         // Login successful, redirect to requested page or demo
         console.log('[Login] Login successful, redirect param:', redirect)
+        console.log('[Login] Full query:', router.query)
         if (redirect) {
           const decodedRedirect = decodeURIComponent(redirect)
           console.log('[Login] Decoded redirect:', decodedRedirect)
@@ -142,8 +161,13 @@ export default function LoginPage() {
           console.log('[Login] Is valid redirect URL:', isValid)
           if (isValid) {
             console.log('[Login] Redirecting to:', decodedRedirect)
-            window.location.href = decodedRedirect
+            // Use a small delay to ensure cookie is set
+            setTimeout(() => {
+              window.location.href = decodedRedirect
+            }, 100)
             return
+          } else {
+            console.error('[Login] Redirect URL failed validation:', decodedRedirect)
           }
         }
         console.log('[Login] No valid redirect, going to /demo')
