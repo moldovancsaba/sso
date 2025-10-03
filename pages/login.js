@@ -386,7 +386,7 @@ export default function LoginPage() {
             color: '#666'
           }}>
             Don't have an account?{' '}
-            <Link href="/register" style={{
+            <Link href={redirect ? `/register?redirect=${encodeURIComponent(redirect)}` : '/register'} style={{
               color: '#667eea',
               textDecoration: 'none',
               fontWeight: '600'
