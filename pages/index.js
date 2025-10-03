@@ -5,11 +5,11 @@ import styles from '../styles/home.module.css';
 
 export default function Home() {
   const router = useRouter();
-  const [admin, setAdmin] = useState(null);
+  const [user, setUser] = useState(null); // Can be public user or admin
   const [loading, setLoading] = useState(true);
   const { redirect } = router.query;
 
-  // WHY: Check if user is already authenticated and redirect if needed
+  // WHY: Check if user is already authenticated (public or admin) and redirect if needed
   // This enables subdomain SSO flow: app redirects to SSO, SSO checks session, redirects back
   useEffect(() => {
     // WHAT: Fallback timeout to prevent infinite loading
@@ -20,20 +20,28 @@ export default function Home() {
 
     (async () => {
       try {
-        const res = await fetch('/api/sso/validate', { credentials: 'include' });
-        if (res.ok) {
-          const data = await res.json();
-          if (data?.isValid) {
-            setAdmin(data.user);
-            // WHAT: If user is authenticated and redirect URL is provided, redirect back to origin
-            if (redirect) {
-              // WHY: Validate redirect URL to prevent open redirect vulnerability
-              const redirectUrl = decodeURIComponent(redirect);
-              if (isValidRedirectUrl(redirectUrl)) {
-                clearTimeout(timeout);
-                window.location.href = redirectUrl;
-                return;
-              }
+        // WHAT: Check for public user session first (most common)
+        // WHY: Public users use 'user-session' cookie
+        let res = await fetch('/api/public/validate', { credentials: 'include' });
+        let data = await res.json();
+        
+        // WHAT: If no public session, check for admin session
+        // WHY: Admin users use 'admin-session' cookie (legacy system)
+        if (!data?.isValid) {
+          res = await fetch('/api/sso/validate', { credentials: 'include' });
+          data = await res.json();
+        }
+        
+        if (data?.isValid) {
+          setUser(data.user);
+          // WHAT: If user is authenticated and redirect URL is provided, redirect back to origin
+          if (redirect) {
+            // WHY: Validate redirect URL to prevent open redirect vulnerability
+            const redirectUrl = decodeURIComponent(redirect);
+            if (isValidRedirectUrl(redirectUrl)) {
+              clearTimeout(timeout);
+              window.location.href = redirectUrl;
+              return;
             }
           }
         }
@@ -101,40 +109,54 @@ export default function Home() {
         </div>
       </header>
 
+      {/* Public User Authentication Section */}
       <section style={{ marginTop: '2rem' }}>
-        {admin ? (
+        <div className={styles.apiCard}>
+          <h2>🌟 Public Access</h2>
+          <p>Anyone can create an account and experience our SSO service.</p>
+          <div className={styles.apiLinks}>
+            <Link href="/register" className={styles.primaryButton}>Create Account</Link>
+            <Link href="/login" className={styles.secondaryButton}>Sign In</Link>
+          </div>
+          <p style={{ marginTop: '1rem', fontSize: '14px', color: '#666' }}>
+            Try the demo - create an account and see SSO in action!
+          </p>
+        </div>
+      </section>
+
+      {/* Current Session Section */}
+      {user && (
+        <section style={{ marginTop: '2rem' }}>
           <div className={styles.apiCard}>
-            <h2>👤 Admin Session</h2>
-            <p>Logged in as <strong>{admin.email}</strong> ({admin.role})</p>
+            <h2>👤 Active Session</h2>
+            <p>Logged in as <strong>{user.email}</strong> ({user.role})</p>
             <div className={styles.apiLinks}>
-              <Link href="/admin" className={styles.primaryButton}>Go to Admin</Link>
+              {user.role === 'admin' && (
+                <Link href="/admin" className={styles.primaryButton}>Go to Admin</Link>
+              )}
+              {user.role === 'user' && (
+                <Link href="/demo" className={styles.primaryButton}>Go to Demo</Link>
+              )}
               {redirect && isValidRedirectUrl(decodeURIComponent(redirect)) && (
                 <a href={decodeURIComponent(redirect)} className={styles.secondaryButton}>Return to Application</a>
               )}
             </div>
           </div>
-        ) : (
+        </section>
+      )}
+
+      {/* Admin Access Section (only shown if not logged in) */}
+      {!user && (
+        <section style={{ marginTop: '2rem' }}>
           <div className={styles.apiCard}>
-            <h2>👤 {redirect ? 'Authentication Required' : 'Admin Access'}</h2>
-            {redirect && isValidRedirectUrl(decodeURIComponent(redirect)) ? (
-              <>
-                <p>You need to log in to access <strong>{new URL(decodeURIComponent(redirect)).hostname}</strong></p>
-                <p>Please use your admin credentials (email + 32-hex token) to continue.</p>
-              </>
-            ) : (
-              <p>Admins can log in using email + token (32‑hex). Use the button below to access the admin login page.</p>
-            )}
+            <h2>👤 Admin Access</h2>
+            <p>Admins can log in using email + token (32‑hex). Use the button below to access the admin login page.</p>
             <div className={styles.apiLinks}>
-              <Link 
-                href={redirect ? `/admin?redirect=${encodeURIComponent(redirect)}` : '/admin'} 
-                className={styles.primaryButton}
-              >
-                {redirect ? 'Login to Continue' : 'Admin Login'}
-              </Link>
+              <Link href="/admin" className={styles.primaryButton}>Admin Login</Link>
             </div>
           </div>
-        )}
-      </section>
+        </section>
+      )}
     </div>
   );
 }

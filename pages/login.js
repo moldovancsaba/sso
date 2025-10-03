@@ -1,0 +1,338 @@
+/**
+ * Public User Login Page
+ * 
+ * WHY: Provides a login interface for public users to access their accounts
+ * WHAT: Beautiful form with email and password fields, link to registration
+ * HOW: Calls POST /api/public/login, handles authentication, sets session cookie, redirects
+ */
+
+import { useState, useEffect } from 'react'
+import Head from 'next/head'
+import Link from 'next/link'
+import { useRouter } from 'next/router'
+
+export default function LoginPage() {
+  const router = useRouter()
+  const [formData, setFormData] = useState({
+    email: '',
+    password: ''
+  })
+  const [errors, setErrors] = useState({})
+  const [loading, setLoading] = useState(false)
+  const [serverError, setServerError] = useState('')
+
+  // Check if user is already logged in
+  // WHY: Prevent logged-in users from accessing login page
+  useEffect(() => {
+    const checkSession = async () => {
+      try {
+        const res = await fetch('/api/public/validate', {
+          credentials: 'include'
+        })
+        if (res.ok) {
+          const data = await res.json()
+          if (data?.isValid) {
+            // User already logged in, redirect to demo page
+            router.push('/demo')
+          }
+        }
+      } catch (err) {
+        console.error('[Login] Session check error:', err)
+      }
+    }
+    checkSession()
+  }, [router])
+
+  // Handle input changes
+  const handleChange = (e) => {
+    const { name, value } = e.target
+    setFormData(prev => ({ ...prev, [name]: value }))
+    // Clear error for this field when user starts typing
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: '' }))
+    }
+    setServerError('')
+  }
+
+  // Client-side validation
+  // WHY: Provide immediate feedback before sending request to server
+  const validate = () => {
+    const newErrors = {}
+
+    // Email validation
+    if (!formData.email) {
+      newErrors.email = 'Email is required'
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = 'Please enter a valid email address'
+    }
+
+    // Password validation
+    if (!formData.password) {
+      newErrors.password = 'Password is required'
+    }
+
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
+
+  // Handle form submission
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    
+    if (!validate()) {
+      return
+    }
+
+    setLoading(true)
+    setServerError('')
+
+    try {
+      const res = await fetch('/api/public/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          email: formData.email.toLowerCase().trim(),
+          password: formData.password
+        })
+      })
+
+      const data = await res.json()
+
+      if (res.ok) {
+        // Login successful, redirect to demo page
+        router.push('/demo')
+      } else {
+        // Handle server errors
+        if (res.status === 401) {
+          setServerError('Invalid email or password')
+        } else if (res.status === 403) {
+          setServerError('Your account has been disabled. Please contact support.')
+        } else {
+          setServerError(data.message || 'Login failed. Please try again.')
+        }
+      }
+    } catch (err) {
+      console.error('[Login] Login error:', err)
+      setServerError('An unexpected error occurred. Please try again.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <>
+      <Head>
+        <title>Login - SSO Service</title>
+        <meta name="description" content="Sign in to your SSO account" />
+      </Head>
+
+      <div style={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        padding: '20px'
+      }}>
+        <div style={{
+          background: 'white',
+          borderRadius: '16px',
+          boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
+          padding: '48px',
+          maxWidth: '440px',
+          width: '100%'
+        }}>
+          {/* Logo */}
+          <div style={{
+            textAlign: 'center',
+            marginBottom: '32px'
+          }}>
+            <h1 style={{
+              fontSize: '32px',
+              fontWeight: 'bold',
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              marginBottom: '8px'
+            }}>
+              Welcome Back
+            </h1>
+            <p style={{
+              color: '#666',
+              fontSize: '14px'
+            }}>
+              Sign in to your account
+            </p>
+          </div>
+
+          {/* Server Error */}
+          {serverError && (
+            <div style={{
+              background: '#fee',
+              border: '1px solid #fcc',
+              borderRadius: '8px',
+              padding: '12px 16px',
+              marginBottom: '24px',
+              color: '#c33',
+              fontSize: '14px'
+            }}>
+              {serverError}
+            </div>
+          )}
+
+          {/* Login Form */}
+          <form onSubmit={handleSubmit}>
+            {/* Email Field */}
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{
+                display: 'block',
+                marginBottom: '8px',
+                fontSize: '14px',
+                fontWeight: '600',
+                color: '#333'
+              }}>
+                Email Address
+              </label>
+              <input
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                placeholder="Enter your email"
+                disabled={loading}
+                autoComplete="email"
+                style={{
+                  width: '100%',
+                  padding: '12px 16px',
+                  fontSize: '14px',
+                  border: errors.email ? '2px solid #f44' : '2px solid #e0e0e0',
+                  borderRadius: '8px',
+                  outline: 'none',
+                  transition: 'border-color 0.2s',
+                  boxSizing: 'border-box'
+                }}
+                onFocus={(e) => e.target.style.borderColor = '#667eea'}
+                onBlur={(e) => e.target.style.borderColor = errors.email ? '#f44' : '#e0e0e0'}
+              />
+              {errors.email && (
+                <p style={{
+                  marginTop: '6px',
+                  fontSize: '13px',
+                  color: '#f44'
+                }}>
+                  {errors.email}
+                </p>
+              )}
+            </div>
+
+            {/* Password Field */}
+            <div style={{ marginBottom: '28px' }}>
+              <label style={{
+                display: 'block',
+                marginBottom: '8px',
+                fontSize: '14px',
+                fontWeight: '600',
+                color: '#333'
+              }}>
+                Password
+              </label>
+              <input
+                type="password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                placeholder="Enter your password"
+                disabled={loading}
+                autoComplete="current-password"
+                style={{
+                  width: '100%',
+                  padding: '12px 16px',
+                  fontSize: '14px',
+                  border: errors.password ? '2px solid #f44' : '2px solid #e0e0e0',
+                  borderRadius: '8px',
+                  outline: 'none',
+                  transition: 'border-color 0.2s',
+                  boxSizing: 'border-box'
+                }}
+                onFocus={(e) => e.target.style.borderColor = '#667eea'}
+                onBlur={(e) => e.target.style.borderColor = errors.password ? '#f44' : '#e0e0e0'}
+              />
+              {errors.password && (
+                <p style={{
+                  marginTop: '6px',
+                  fontSize: '13px',
+                  color: '#f44'
+                }}>
+                  {errors.password}
+                </p>
+              )}
+            </div>
+
+            {/* Submit Button */}
+            <button
+              type="submit"
+              disabled={loading}
+              style={{
+                width: '100%',
+                padding: '14px',
+                fontSize: '16px',
+                fontWeight: '600',
+                color: 'white',
+                background: loading ? '#999' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                border: 'none',
+                borderRadius: '8px',
+                cursor: loading ? 'not-allowed' : 'pointer',
+                transition: 'transform 0.1s, box-shadow 0.2s',
+                boxShadow: '0 4px 12px rgba(102, 126, 234, 0.4)'
+              }}
+              onMouseEnter={(e) => {
+                if (!loading) {
+                  e.target.style.transform = 'translateY(-2px)'
+                  e.target.style.boxShadow = '0 6px 20px rgba(102, 126, 234, 0.6)'
+                }
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.transform = 'translateY(0)'
+                e.target.style.boxShadow = '0 4px 12px rgba(102, 126, 234, 0.4)'
+              }}
+            >
+              {loading ? 'Signing in...' : 'Sign In'}
+            </button>
+          </form>
+
+          {/* Register Link */}
+          <div style={{
+            marginTop: '24px',
+            textAlign: 'center',
+            fontSize: '14px',
+            color: '#666'
+          }}>
+            Don't have an account?{' '}
+            <Link href="/register" style={{
+              color: '#667eea',
+              textDecoration: 'none',
+              fontWeight: '600'
+            }}>
+              Create one
+            </Link>
+          </div>
+
+          {/* Back to Home */}
+          <div style={{
+            marginTop: '16px',
+            textAlign: 'center'
+          }}>
+            <Link href="/" style={{
+              fontSize: '13px',
+              color: '#999',
+              textDecoration: 'none'
+            }}>
+              ← Back to home
+            </Link>
+          </div>
+        </div>
+      </div>
+    </>
+  )
+}
