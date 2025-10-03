@@ -13,6 +13,7 @@ import { useRouter } from 'next/router'
 
 export default function RegisterPage() {
   const router = useRouter()
+  const { redirect } = router.query
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -24,7 +25,7 @@ export default function RegisterPage() {
   const [serverError, setServerError] = useState('')
 
   // Check if user is already logged in
-  // WHY: Prevent logged-in users from accessing registration page
+  // WHY: Prevent logged-in users from accessing registration page, redirect to destination
   useEffect(() => {
     const checkSession = async () => {
       try {
@@ -34,8 +35,12 @@ export default function RegisterPage() {
         if (res.ok) {
           const data = await res.json()
           if (data?.isValid) {
-            // User already logged in, redirect to demo page
-            router.push('/demo')
+            // User already logged in, redirect to requested page or demo
+            if (redirect && isValidRedirectUrl(decodeURIComponent(redirect))) {
+              window.location.href = decodeURIComponent(redirect)
+            } else {
+              router.push('/demo')
+            }
           }
         }
       } catch (err) {
@@ -43,7 +48,26 @@ export default function RegisterPage() {
       }
     }
     checkSession()
-  }, [router])
+  }, [router, redirect])
+
+  // WHAT: Validate redirect URL to prevent open redirect attacks
+  // WHY: Only allow redirects to *.doneisbetter.com subdomains and localhost (dev)
+  const isValidRedirectUrl = (url) => {
+    try {
+      const parsed = new URL(url)
+      // Allow localhost for development
+      if (parsed.hostname === 'localhost' || parsed.hostname === '127.0.0.1') {
+        return true
+      }
+      // Allow *.doneisbetter.com subdomains
+      if (parsed.hostname.endsWith('.doneisbetter.com') || parsed.hostname === 'doneisbetter.com') {
+        return true
+      }
+      return false
+    } catch {
+      return false
+    }
+  }
 
   // Handle input changes
   const handleChange = (e) => {
@@ -119,8 +143,12 @@ export default function RegisterPage() {
       const data = await res.json()
 
       if (res.ok) {
-        // Registration successful, redirect to demo page
-        router.push('/demo')
+        // Registration successful, redirect to requested page or demo
+        if (redirect && isValidRedirectUrl(decodeURIComponent(redirect))) {
+          window.location.href = decodeURIComponent(redirect)
+        } else {
+          router.push('/demo')
+        }
       } else {
         // Handle server errors
         if (res.status === 409) {
