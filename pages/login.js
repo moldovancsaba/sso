@@ -34,11 +34,20 @@ export default function LoginPage() {
           const data = await res.json()
           if (data?.isValid) {
             // User already logged in, redirect to requested page or demo
-            if (redirect && isValidRedirectUrl(decodeURIComponent(redirect))) {
-              window.location.href = decodeURIComponent(redirect)
-            } else {
-              router.push('/demo')
+            console.log('[Login] Already logged in, redirect param:', redirect)
+            if (redirect) {
+              const decodedRedirect = decodeURIComponent(redirect)
+              console.log('[Login] Decoded redirect:', decodedRedirect)
+              const isValid = isValidRedirectUrl(decodedRedirect)
+              console.log('[Login] Is valid redirect URL:', isValid)
+              if (isValid) {
+                console.log('[Login] Redirecting to:', decodedRedirect)
+                window.location.href = decodedRedirect
+                return
+              }
             }
+            console.log('[Login] No valid redirect, going to /demo')
+            router.push('/demo')
           }
         }
       } catch (err) {
@@ -125,11 +134,20 @@ export default function LoginPage() {
 
       if (res.ok) {
         // Login successful, redirect to requested page or demo
-        if (redirect && isValidRedirectUrl(decodeURIComponent(redirect))) {
-          window.location.href = decodeURIComponent(redirect)
-        } else {
-          router.push('/demo')
+        console.log('[Login] Login successful, redirect param:', redirect)
+        if (redirect) {
+          const decodedRedirect = decodeURIComponent(redirect)
+          console.log('[Login] Decoded redirect:', decodedRedirect)
+          const isValid = isValidRedirectUrl(decodedRedirect)
+          console.log('[Login] Is valid redirect URL:', isValid)
+          if (isValid) {
+            console.log('[Login] Redirecting to:', decodedRedirect)
+            window.location.href = decodedRedirect
+            return
+          }
         }
+        console.log('[Login] No valid redirect, going to /demo')
+        router.push('/demo')
       } else {
         // Handle server errors
         if (res.status === 401) {
@@ -190,7 +208,7 @@ export default function LoginPage() {
               color: '#666',
               fontSize: '14px'
             }}>
-              Sign in to your account
+              {redirect ? `Logging in to access ${new URL(decodeURIComponent(redirect)).hostname}` : 'Sign in to your account'}
             </p>
           </div>
 
