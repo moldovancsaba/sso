@@ -93,13 +93,18 @@ export default function LoginPage() {
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault()
+    console.log('[Login] Form submitted')
     
     if (!validate()) {
+      console.log('[Login] Validation failed')
       return
     }
 
     setLoading(true)
     setServerError('')
+    
+    console.log('[Login] Starting fetch to /api/public/login')
+    console.log('[Login] Email:', formData.email)
 
     try {
       const res = await fetch('/api/public/login', {
@@ -111,6 +116,8 @@ export default function LoginPage() {
           password: formData.password
         })
       })
+      
+      console.log('[Login] Fetch completed, status:', res.status)
 
       const data = await res.json()
 
