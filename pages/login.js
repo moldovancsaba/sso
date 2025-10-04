@@ -107,7 +107,11 @@ export default function LoginPage() {
     console.log('[Login] Email:', formData.email)
 
     try {
-      const res = await fetch('/api/public/login', {
+      // WHAT: Use absolute URL to see if relative URL is the issue
+      const url = `${window.location.origin}/api/public/login`
+      console.log('[Login] Full URL:', url)
+      
+      const res = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
