@@ -1,10 +1,11 @@
 # SSO Service — Production-Ready Authentication with Security Hardening
 
-Version: 5.0.0
-Last updated: 2025-10-02T11:54:33.000Z
+Version: 5.1.0
+Last updated: 2025-10-04T06:17:10.000Z
 
 A production-ready authentication backend for sso.doneisbetter.com with Phase 1 security hardening:
 - Admin login via email + 32-hex token (cookie-based sessions with server-side validation)
+- Public user authentication with email/password (bcrypt hashed, cookie-based sessions)
 - Subdomain SSO support (*.doneisbetter.com)
 - Rate limiting, CSRF protection, and structured audit logging
 - Server-side session management with MongoDB
@@ -18,6 +19,11 @@ A production-ready authentication backend for sso.doneisbetter.com with Phase 1 
   - CSRF protection (double-submit cookie + HMAC)
   - Structured audit logging with Winston
   - Subdomain SSO support (*.doneisbetter.com)
+- **Public User Authentication**:
+  - Registration with email/password (bcrypt hashed with 12 rounds)
+  - Login/logout with HttpOnly session cookies
+  - Session validation for cross-domain SSO
+  - Beautiful UI with register, login, and demo pages
 - Admin authentication (HttpOnly cookie with Domain attribute)
 - Admin users CRUD (roles: admin, super-admin) — UUID identifiers for users
 - Resource password generation/validation (MD5-style 32-hex token)
@@ -25,6 +31,14 @@ A production-ready authentication backend for sso.doneisbetter.com with Phase 1 
 - CORS per SSO_ALLOWED_ORIGINS
 
 ## API Endpoints
+
+**Public User Authentication:**
+- POST /api/public/register — body: { email, password, name }
+- POST /api/public/login — body: { email, password }
+- POST /api/public/logout — clears user session cookie
+- GET /api/public/validate — returns user session info if valid
+
+**Admin Authentication:**
 - POST /api/admin/login — body: { email, password }
 - DELETE /api/admin/login — clears cookie session
 - GET /api/admin/users — list users (admin)
