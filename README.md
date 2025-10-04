@@ -113,7 +113,24 @@ Deprecated/Removed:
   - Output JSON contains { url, expiresAt }. Open the URL to get redirected to /admin with a valid session.
 - To restrict magic links, set ADMIN_MAGIC_ALLOWED_EMAILS to a comma-separated list of allowed emails.
 
+## Integrating Your App with SSO
+
+**Want to add SSO authentication to your application?**
+
+See the complete integration guide: [docs/SSO_INTEGRATION_GUIDE.md](docs/SSO_INTEGRATION_GUIDE.md)
+
+The guide includes:
+- ✅ Step-by-step integration instructions with code examples
+- ✅ Environment variable setup (avoid common pitfalls!)
+- ✅ Common issues and solutions (500 errors, login failures, etc.)
+- ✅ Testing checklist and debug endpoints
+- ✅ Architecture diagram and authentication flow
+- ✅ Lessons learned from real-world integrations
+
+**Successfully integrated:** launchmass.doneisbetter.com
+
 ## Troubleshooting
 - 401 from /api/sso/validate → no admin cookie; login via POST /api/admin/login
 - CORS errors → verify SSO_ALLOWED_ORIGINS matches caller origin exactly
 - MongoDB timeouts → check MONGODB_URI and network allowlist
+- **Integration issues?** See [docs/SSO_INTEGRATION_GUIDE.md](docs/SSO_INTEGRATION_GUIDE.md) for detailed troubleshooting
