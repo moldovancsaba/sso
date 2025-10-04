@@ -90,10 +90,10 @@ export default function LoginPage() {
     return Object.keys(newErrors).length === 0
   }
 
-  // Handle form submission
+  // Handle form submission - CHANGED: Now works as button click handler, not form submit
   const handleSubmit = async (e) => {
-    e.preventDefault()
-    console.log('[Login] Form submitted')
+    // e.preventDefault() not needed for button type="button"
+    console.log('[Login] Button clicked')
     
     if (!validate()) {
       console.log('[Login] Validation failed')
@@ -207,7 +207,13 @@ export default function LoginPage() {
               color: '#666',
               fontSize: '14px'
             }}>
-              {redirect ? `Logging in to access ${new URL(decodeURIComponent(redirect)).hostname}` : 'Sign in to your account'}
+              {redirect ? (() => {
+                try {
+                  return `Logging in to access ${new URL(decodeURIComponent(redirect)).hostname}`
+                } catch {
+                  return 'Sign in to your account'
+                }
+              })() : 'Sign in to your account'}
             </p>
           </div>
 
@@ -226,8 +232,8 @@ export default function LoginPage() {
             </div>
           )}
 
-          {/* Login Form */}
-          <form onSubmit={handleSubmit}>
+          {/* Login Form - CHANGED: Removed form wrapper to test if form submission is causing fetch to fail */}
+          <div>
             {/* Email Field */}
             <div style={{ marginBottom: '20px' }}>
               <label style={{
@@ -314,9 +320,10 @@ export default function LoginPage() {
               )}
             </div>
 
-            {/* Submit Button */}
+            {/* Submit Button - CHANGED: Changed to button type and added onClick handler */}
             <button
-              type="submit"
+              type="button"
+              onClick={handleSubmit}
               disabled={loading}
               style={{
                 width: '100%',
@@ -344,7 +351,7 @@ export default function LoginPage() {
             >
               {loading ? 'Signing in...' : 'Sign In'}
             </button>
-          </form>
+          </div>
 
           {/* Register Link */}
           <div style={{

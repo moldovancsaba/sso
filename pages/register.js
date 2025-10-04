@@ -100,9 +100,9 @@ export default function RegisterPage() {
     return Object.keys(newErrors).length === 0
   }
 
-  // Handle form submission
+  // Handle form submission - CHANGED: Now works as button click handler, not form submit
   const handleSubmit = async (e) => {
-    e.preventDefault()
+    // e.preventDefault() not needed for button type="button"
     
     if (!validate()) {
       return
@@ -209,8 +209,8 @@ export default function RegisterPage() {
             </div>
           )}
 
-          {/* Registration Form */}
-          <form onSubmit={handleSubmit}>
+          {/* Registration Form - CHANGED: Removed form wrapper to test if form submission is causing fetch to fail */}
+          <div>
             {/* Name Field */}
             <div style={{ marginBottom: '20px' }}>
               <label style={{
@@ -379,9 +379,10 @@ export default function RegisterPage() {
               )}
             </div>
 
-            {/* Submit Button */}
+            {/* Submit Button - CHANGED: Changed to button type and added onClick handler */}
             <button
-              type="submit"
+              type="button"
+              onClick={handleSubmit}
               disabled={loading}
               style={{
                 width: '100%',
@@ -409,7 +410,7 @@ export default function RegisterPage() {
             >
               {loading ? 'Creating Account...' : 'Create Account'}
             </button>
-          </form>
+          </div>
 
           {/* Login Link */}
           <div style={{
