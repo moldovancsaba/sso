@@ -7,6 +7,8 @@ export default function Quickstart() {
       <div className={styles.container}>
         <header className={styles.header}>
           <h1>Quick Start Guide</h1>
+          <p className={styles.version}>Version: 5.1.0</p>
+          <p className={styles.lastUpdated}>Last updated: 2025-10-04T06:52:00.000Z</p>
         </header>
         <main className={styles.main}>
           <section className={styles.section}>

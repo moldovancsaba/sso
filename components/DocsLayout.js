@@ -57,10 +57,15 @@ export default function DocsLayout({ children }) {
           </Link>
           <select 
             className={styles.versionSelect}
-            defaultValue="v1.0.0"
+            defaultValue="v5.1.0"
           >
+            <option value="v5.1.0">v5.1.0</option>
+            <option value="v5.0.0">v5.0.0</option>
             <option value="v1.0.0">v1.0.0</option>
           </select>
+          <div className={styles.lastUpdated}>
+            <small>Updated: 2025-10-04</small>
+          </div>
         </div>
 
         <div className={styles.sidebarContent}>
