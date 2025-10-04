@@ -15,52 +15,90 @@ export default function ApiDocs() {
           <section className={styles.section}>
             <h2>Getting Started</h2>
             <p>
-              The DoneIsBetter SSO API enables seamless authentication integration
-              for your applications. This reference provides detailed information about
-              all available endpoints, authentication flows, and integration patterns.
+              The DoneIsBetter SSO API provides cookie-based authentication for *.doneisbetter.com subdomains.
+              This reference shows the actual working endpoints used in production (launchmass integration).
+            </p>
+            <p>
+              <strong>⚠️ Critical:</strong> Use <code>printf</code> (NOT <code>echo</code>) for environment variables to avoid trailing newlines!
             </p>
 
             <div className={styles.codeBlock}>
               <pre>
-                {`// Initialize the SSO client
-const sso = new SSOClient('https://sso.doneisbetter.com');
-
-// Check authentication status
-const session = await sso.validateSession();
-if (session.isValid) {
-  console.log('User:', session.user);
+                {`// Server-side validation (Next.js getServerSideProps)
+export async function getServerSideProps(context) {
+  const resp = await fetch(
+    \`\${process.env.SSO_SERVER_URL}/api/public/validate\`,
+    {
+      headers: { cookie: context.req.headers.cookie || '' },
+      cache: 'no-store',
+    }
+  );
+  const { isValid, user } = await resp.json();
+  // Redirect if not valid...
 }`}
               </pre>
             </div>
           </section>
 
           <section className={styles.section}>
-            <h2>Authentication</h2>
+            <h2>Public User Authentication (Cookie-Based)</h2>
             <h3>Endpoints</h3>
             <div className={styles.endpoint}>
-              <h4>POST /api/users/register</h4>
-              <p>Register or authenticate a user.</p>
+              <h4>POST /api/public/register</h4>
+              <p>Register a new public user. Sets <code>user-session</code> cookie with <code>Domain=.doneisbetter.com</code></p>
               <div className={styles.codeBlock}>
                 <pre>
                   {`// Request
-POST https://sso.doneisbetter.com/api/users/register
+POST https://sso.doneisbetter.com/api/public/register
 Content-Type: application/json
 
 {
-  "username": "user@example.com"
+  "email": "user@example.com",
+  "password": "your-password",
+  "name": "User Name"
 }
 
-// Response
+// Response (200 OK)
 {
+  "success": true,
   "message": "User registered successfully",
   "user": {
-    "id": "user_id",
-    "username": "user@example.com",
-    "permissions": {
-      "isAdmin": false,
-      "canViewUsers": false,
-      "canManageUsers": false
-    }
+    "id": "uuid-here",
+    "email": "user@example.com",
+    "name": "User Name",
+    "role": "user",
+    "status": "active"
+  }
+}
+
+// Cookie Set
+Set-Cookie: user-session=token; Domain=.doneisbetter.com; HttpOnly; Secure`}
+                </pre>
+              </div>
+            </div>
+
+            <div className={styles.endpoint}>
+              <h4>POST /api/public/login</h4>
+              <p>Login existing user. Sets session cookie.</p>
+              <div className={styles.codeBlock}>
+                <pre>
+                  {`// Request
+POST https://sso.doneisbetter.com/api/public/login
+Content-Type: application/json
+
+{
+  "email": "user@example.com",
+  "password": "your-password"
+}
+
+// Response (200 OK)
+{
+  "success": true,
+  "message": "Login successful",
+  "user": {
+    "id": "uuid-here",
+    "email": "user@example.com",
+    "name": "User Name"
   }
 }`}
                 </pre>
@@ -68,45 +106,52 @@ Content-Type: application/json
             </div>
 
             <div className={styles.endpoint}>
-              <h4>GET /api/sso/validate</h4>
-              <p>Validate current session status.</p>
+              <h4>GET /api/public/validate</h4>
+              <p>Validate public user session. Forward cookies from your app to this endpoint.</p>
               <div className={styles.codeBlock}>
                 <pre>
-                  {`// Request
-GET https://sso.doneisbetter.com/api/sso/validate
+                  {`// Request (from your server-side code)
+GET https://sso.doneisbetter.com/api/public/validate
+Cookie: user-session=token-here
 
-// Response
+// Response (Valid Session)
 {
   "isValid": true,
   "user": {
-    "id": "user_id",
-    "username": "user@example.com",
-    "permissions": {
-      "isAdmin": false,
-      "canViewUsers": false,
-      "canManageUsers": false
-    }
-  },
-  "session": {
-    "expiresAt": "2025-07-21T16:43:47Z"
+    "id": "uuid-here",
+    "email": "user@example.com",
+    "name": "User Name",
+    "role": "user",
+    "status": "active"
   }
+}
+
+// Response (Invalid Session)
+{
+  "isValid": false,
+  "message": "No active session found"
 }`}
                 </pre>
               </div>
             </div>
 
             <div className={styles.endpoint}>
-              <h4>POST /api/users/logout</h4>
-              <p>End the current session.</p>
+              <h4>POST /api/public/logout</h4>
+              <p>End the current session. Clears the user-session cookie.</p>
               <div className={styles.codeBlock}>
                 <pre>
                   {`// Request
-POST https://sso.doneisbetter.com/api/users/logout
+POST https://sso.doneisbetter.com/api/public/logout
+Cookie: user-session=token-here
 
-// Response
+// Response (200 OK)
 {
+  "success": true,
   "message": "Logged out successfully"
-}`}
+}
+
+// Cookie Cleared
+Set-Cookie: user-session=; Max-Age=0`}
                 </pre>
               </div>
             </div>
