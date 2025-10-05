@@ -136,6 +136,13 @@ export default function AdminLoginPage() {
               </label>
             )}
             <button type="submit" disabled={loading} style={{ padding: '0.65rem 0.75rem', background: '#4054d6', color: 'white', border: 0, borderRadius: 6, cursor: 'pointer' }}>{loading ? 'Signing in…' : (isDevBypass ? 'Dev Sign In' : 'Sign In')}</button>
+            {!isDevBypass && (
+              <div style={{ textAlign: 'center', marginTop: 4 }}>
+                <Link href="/admin/forgot-password" style={{ fontSize: 12, color: '#8b9dc3', textDecoration: 'none' }}>
+                  Forgot password?
+                </Link>
+              </div>
+            )}
           </form>
         )}
 
