@@ -351,6 +351,20 @@ export default function LoginPage() {
             >
               {loading ? 'Signing in...' : 'Sign In'}
             </button>
+
+            {/* Forgot Password Link */}
+            <div style={{
+              marginTop: '12px',
+              textAlign: 'center'
+            }}>
+              <Link href="/forgot-password" style={{
+                fontSize: '13px',
+                color: '#667eea',
+                textDecoration: 'none'
+              }}>
+                Forgot password?
+              </Link>
+            </div>
           </div>
 
           {/* Register Link */}
