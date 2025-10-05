@@ -1,0 +1,45 @@
+{
+  "name": "@doneisbetter/sso-client",
+  "version": "5.1.0",
+  "description": "DoneIsBetter SSO Client for cookie-based authentication integration (*.doneisbetter.com subdomains)",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsup src/index.ts --format cjs,esm --dts",
+    "clean": "rm -rf dist",
+    "dev": "tsup src/index.ts --format cjs,esm --dts --watch",
+    "prepublishOnly": "npm run clean && npm run build"
+  },
+  "keywords": [
+    "sso",
+    "authentication",
+    "session",
+    "doneisbetter",
+    "cookie",
+    "subdomain"
+  ],
+  "author": "DoneIsBetter <moldovancsaba@gmail.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/moldovancsaba/sso.git",
+    "directory": "client"
+  },
+  "bugs": {
+    "url": "https://github.com/moldovancsaba/sso/issues"
+  },
+  "homepage": "https://sso.doneisbetter.com",
+  "devDependencies": {
+    "@types/node": "^20.5.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.0.0"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
