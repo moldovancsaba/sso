@@ -39,8 +39,14 @@ export default function AdminLoginPage() {
 
   async function handleLogin(e) {
     e.preventDefault()
-    if (!email.trim() || !password.trim()) {
-      setMessage('Please enter email and token')
+    // In dev bypass mode, only email is required
+    if (!email.trim()) {
+      setMessage('Please enter email')
+      return
+    }
+    // In normal mode, both email and password are required
+    if (!isDevBypass && !password.trim()) {
+      setMessage('Please enter password')
       return
     }
     setLoading(true)
