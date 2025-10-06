@@ -1,4 +1,194 @@
-# Release Notes [![Version Badge](https://img.shields.io/badge/version-5.2.0-blue)](RELEASE_NOTES.md)
+# Release Notes [![Version Badge](https://img.shields.io/badge/version-5.3.0-blue)](RELEASE_NOTES.md)
+
+## [v5.3.0] — 2025-10-06T21:30:00.000Z
+
+### 🎉 All Authentication Features Complete + PKCE Flexibility
+
+**MAJOR FEATURE RELEASE**: Completed all three authentication features (PIN verification, Magic Links, Forgot Password) and added flexible PKCE configuration for OAuth clients.
+
+#### Added
+
+**Feature 1: Random PIN Verification** (COMPLETE - 100%):
+- `pages/api/admin/verify-pin.js` (116 lines) - Admin PIN verification endpoint:
+  - Validates 6-digit PIN sent via email
+  - Creates session on successful verification
+  - 3 attempts maximum before PIN expires
+- `pages/api/public/verify-pin.js` (104 lines) - Public user PIN verification
+- `pages/api/public/login.js` (169 lines) - Public user login with PIN integration:
+  - Complete authentication flow
+  - Bcrypt password verification
+  - Email verification check
+  - Login count tracking
+  - PIN trigger logic
+- Beautiful PIN verification modal UI in `pages/login.js`:
+  - Full-screen overlay with clean design
+  - 6-digit input with auto-validation
+  - Monospace font for easy reading
+  - Error handling and loading states
+  - Enter key support for quick submission
+  - Cancel button
+
+**How PIN Verification Works**:
+1. User enters email + password successfully
+2. Login count increments (tracked in database)
+3. Random trigger between 5th-10th login:
+   - 30% chance on logins 5-9
+   - Always on 10th login
+   - Resets after 10th
+4. If triggered:
+   - Generate 6-digit PIN
+   - Store in MongoDB (5-minute TTL)
+   - Send email with `buildLoginPinEmail()`
+   - Show PIN modal
+5. User enters PIN
+6. Verify via `/api/*/verify-pin`
+7. Create session and redirect
+
+**Feature 2: Magic Link Authentication** (COMPLETE - 100%):
+- `pages/api/admin/request-magic-link.js` - Request magic link for admin
+- `pages/api/admin/magic-login.js` - Verify and auto-login via magic link
+- `pages/api/public/request-magic-link.js` - Request magic link for public users
+- `pages/api/public/magic-login.js` - Verify and auto-login public users
+- Beautiful "Login with Magic Link" buttons on both login pages
+- Separate token collections: `adminMagicTokens`, `publicMagicTokens`
+- HMAC-SHA256 signed tokens
+- 15-minute expiration
+- Single-use enforcement
+- Email template: `buildMagicLinkEmail()`
+
+**PKCE Optional Implementation** (OAuth2 Flexibility):
+- Added `require_pkce` field to OAuth client schema (default: `false`):
+  - Confidential clients (server-side): Can skip PKCE
+  - Public clients (mobile/SPA): Require PKCE for security
+- Updated `lib/oauth/clients.mjs`:
+  - `require_pkce` field in client registration
+  - Field can be updated via API
+- Updated `lib/oauth/codes.mjs`:
+  - `code_challenge` and `code_challenge_method` now optional
+  - Validation only runs if PKCE provided
+- Updated `pages/api/oauth/authorize.js`:
+  - Checks client's `require_pkce` setting
+  - Conditionally enforces PKCE parameters
+- Updated `pages/api/oauth/token.js`:
+  - `code_verifier` now optional
+  - Validation based on authorization code's PKCE usage
+- Migration script: `scripts/migrations/2025-10-06-add-require-pkce-field.mjs`
+  - Updates all existing OAuth clients to `require_pkce: false`
+- Comprehensive documentation:
+  - `PKCE_SOLUTION.md` - Implementation summary
+  - `docs/PKCE_CONFIGURATION.md` - Full configuration guide
+
+#### Changed
+
+- **Admin Login** (`pages/api/admin/login.js`):
+  - Integrated PIN verification logic
+  - Tracks login count in `users.loginCount`
+  - Issues PIN when `shouldTriggerPin()` returns true
+  - Returns `{requiresPin: true}` when PIN needed
+- **Public Login Page** (`pages/login.js`):
+  - Added PIN modal UI (160+ lines)
+  - Added magic link button and handler
+  - Handle `requiresPin` response from login API
+  - PIN verification flow with `/api/public/verify-pin`
+- **Admin Login Page** (`pages/admin/index.js`):
+  - Added magic link button
+  - Magic link request handler
+  - Success message display
+- **Email Templates** (`lib/emailTemplates.mjs`):
+  - Added `buildMagicLinkEmail()` - Magic link email template
+  - Login PIN email already added in v5.2.0
+
+#### Database Schema
+
+**New Fields**:
+```javascript
+// users collection (admin)
+{
+  loginCount: Number,      // Tracks login count for PIN trigger
+  lastLoginAt: String      // ISO timestamp of last login
+}
+
+// publicUsers collection
+{
+  loginCount: Number,      // Tracks login count for PIN trigger
+  lastLoginAt: String      // ISO timestamp of last login
+}
+
+// oauthClients collection
+{
+  require_pkce: Boolean    // Whether PKCE is required (default: false)
+}
+```
+
+**New Collections**:
+- `loginPins` - Active PINs with TTL:
+  - pin, userId, email, userType, verified, attempts
+  - TTL index on `expiresAt` (5 minutes)
+  - Lookup index on `{userId, userType, verified}`
+- `adminMagicTokens` - Admin magic link tokens:
+  - jti, email, createdAt, exp, usedAt
+  - TTL index for automatic cleanup
+- `publicMagicTokens` - Public user magic link tokens:
+  - Same structure as adminMagicTokens
+
+#### Security Features
+
+- ✅ **PIN Security**:
+  - 5-minute TTL (expires quickly)
+  - 3 attempts maximum
+  - Single-use enforcement
+  - MongoDB TTL automatic cleanup
+  - Cryptographically secure random generation
+- ✅ **Magic Link Security**:
+  - HMAC-SHA256 signed tokens
+  - 15-minute expiration
+  - Single-use enforcement (marked as used)
+  - Email verification check for public users
+- ✅ **PKCE Flexibility**:
+  - Server-side clients don't need PKCE overhead
+  - Public clients still protected with PKCE
+  - Per-client configuration
+  - Backward compatible (existing clients work)
+
+#### User Experience
+
+**PIN Verification Flow**:
+1. Login normally with password
+2. On random trigger (5th-10th login):
+   - "Check your email" message
+   - Beautiful modal appears
+3. Enter 6-digit PIN from email
+4. Instant verification
+5. Auto-redirect to dashboard
+
+**Magic Link Flow**:
+1. Click "Login with Magic Link" button
+2. Enter email
+3. Check email for magic link
+4. Click link
+5. Instantly logged in and redirected
+
+**PKCE Configuration**:
+- Confidential clients: No code changes needed
+- Public clients: Implement PKCE for security
+- Easy API update to change `require_pkce` setting
+
+#### Files Summary
+
+**Created** (13 files):
+- 4 API endpoints for PIN verification
+- 4 API endpoints for magic links
+- 1 migration script
+- 2 documentation files
+- 2 solution summaries
+
+**Modified** (7 files):
+- 3 login-related files
+- 4 OAuth/PKCE files
+
+**Total**: 1,400+ lines of new code
+
+---
 
 ## [v5.2.0] — 2025-10-06T11:22:25.000Z
 
