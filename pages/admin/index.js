@@ -10,6 +10,8 @@ export default function AdminLoginPage() {
   const [admin, setAdmin] = useState(null)
   const [lastStatus, setLastStatus] = useState(null)
   const [lastBody, setLastBody] = useState('')
+  const [magicLinkSent, setMagicLinkSent] = useState(false)
+  const [magicLinkLoading, setMagicLinkLoading] = useState(false)
 
   async function checkSession() {
     try {
@@ -90,6 +92,45 @@ export default function AdminLoginPage() {
     }
   }
 
+  async function handleMagicLink() {
+    // Validate email
+    if (!email.trim()) {
+      setMessage('Please enter email for magic link')
+      return
+    }
+
+    setMagicLinkLoading(true)
+    setMessage('')
+    setMagicLinkSent(false)
+    setLastStatus(null)
+    setLastBody('')
+
+    try {
+      const res = await fetch('/api/admin/request-magic-link', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email.trim().toLowerCase() })
+      })
+
+      setLastStatus(res.status)
+      const data = await res.json()
+      setLastBody(JSON.stringify(data).slice(0, 300))
+
+      if (res.ok) {
+        setMagicLinkSent(true)
+        setMessage('Magic link sent! Check your email.')
+        setEmail('')
+        setPassword('')
+      } else {
+        setMessage(data.message || 'Failed to send magic link')
+      }
+    } catch (err) {
+      setMessage(err.message || 'Magic link error')
+    } finally {
+      setMagicLinkLoading(false)
+    }
+  }
+
   async function handleLogout() {
     setLoading(true)
     setMessage('')
@@ -136,14 +177,62 @@ export default function AdminLoginPage() {
               </label>
             )}
             <button type="submit" disabled={loading} style={{ padding: '0.65rem 0.75rem', background: '#4054d6', color: 'white', border: 0, borderRadius: 6, cursor: 'pointer' }}>{loading ? 'Signing in…' : (isDevBypass ? 'Dev Sign In' : 'Sign In')}</button>
+            
             {!isDevBypass && (
-              <div style={{ textAlign: 'center', marginTop: 4 }}>
-                <Link href="/admin/forgot-password" style={{ fontSize: 12, color: '#8b9dc3', textDecoration: 'none' }}>
-                  Forgot password?
-                </Link>
-              </div>
+              <>
+                {/* Divider */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
+                  <div style={{ flex: 1, height: 1, background: '#22284a' }} />
+                  <span style={{ fontSize: 11, color: '#8b9dc3', opacity: 0.7 }}>OR</span>
+                  <div style={{ flex: 1, height: 1, background: '#22284a' }} />
+                </div>
+
+                {/* Magic Link Button */}
+                <button
+                  type="button"
+                  onClick={handleMagicLink}
+                  disabled={magicLinkLoading || loading}
+                  style={{
+                    width: '100%',
+                    padding: '0.65rem 0.75rem',
+                    background: 'transparent',
+                    color: '#8b9dc3',
+                    border: '1px solid #4054d6',
+                    borderRadius: 6,
+                    cursor: (magicLinkLoading || loading) ? 'not-allowed' : 'pointer',
+                    transition: 'all 0.2s',
+                    opacity: (magicLinkLoading || loading) ? 0.5 : 1
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!magicLinkLoading && !loading) {
+                      e.target.style.background = '#1a2140'
+                      e.target.style.color = '#a0b0d6'
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.background = 'transparent'
+                    e.target.style.color = '#8b9dc3'
+                  }}
+                >
+                  {magicLinkLoading ? '✉️ Sending...' : '🔗 Login with Magic Link'}
+                </button>
+
+                {/* Forgot Password Link */}
+                <div style={{ textAlign: 'center', marginTop: 8 }}>
+                  <Link href="/admin/forgot-password" style={{ fontSize: 12, color: '#8b9dc3', textDecoration: 'none' }}>
+                    Forgot password?
+                  </Link>
+                </div>
+              </>
             )}
           </form>
+        )}
+
+        {/* Magic Link Success */}
+        {magicLinkSent && (
+          <div style={{ marginTop: 12, padding: 12, background: '#0e3a1f', border: '1px solid #1e7d47', borderRadius: 8, color: '#81c784', fontSize: 13 }}>
+            🔗 Magic link sent! Check your email and click the link to sign in instantly.
+          </div>
         )}
 
         {/* Visible status / error details */}

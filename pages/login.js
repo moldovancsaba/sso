@@ -29,6 +29,8 @@ export default function LoginPage() {
   const [serverError, setServerError] = useState('')
   const [mounted, setMounted] = useState(false)
   const [redirectAttempted, setRedirectAttempted] = useState(false)
+  const [magicLinkSent, setMagicLinkSent] = useState(false)
+  const [magicLinkLoading, setMagicLinkLoading] = useState(false)
   
   // WHAT: Track when component is mounted
   // WHY: Prevent redirects during SSR/hydration to avoid React errors
@@ -88,6 +90,47 @@ export default function LoginPage() {
 
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
+  }
+
+  // Handle magic link request
+  const handleMagicLink = async () => {
+    // Validate email only
+    if (!formData.email) {
+      setErrors({ email: 'Email is required for magic link' })
+      return
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      setErrors({ email: 'Please enter a valid email address' })
+      return
+    }
+
+    setMagicLinkLoading(true)
+    setServerError('')
+    setMagicLinkSent(false)
+
+    try {
+      const res = await fetch('/api/public/request-magic-link', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: formData.email.toLowerCase().trim()
+        })
+      })
+
+      const data = await res.json()
+
+      if (res.ok) {
+        setMagicLinkSent(true)
+        setFormData({ email: '', password: '' })
+      } else {
+        setServerError(data.message || 'Failed to send magic link. Please try again.')
+      }
+    } catch (err) {
+      console.error('[Login] Magic link error:', err)
+      setServerError('An unexpected error occurred. Please try again.')
+    } finally {
+      setMagicLinkLoading(false)
+    }
   }
 
   // Handle form submission - CHANGED: Now works as button click handler, not form submit
@@ -216,6 +259,21 @@ export default function LoginPage() {
               })() : 'Sign in to your account'}
             </p>
           </div>
+
+          {/* Magic Link Success */}
+          {magicLinkSent && (
+            <div style={{
+              background: '#e8f5e9',
+              border: '1px solid #81c784',
+              borderRadius: '8px',
+              padding: '12px 16px',
+              marginBottom: '24px',
+              color: '#2e7d32',
+              fontSize: '14px'
+            }}>
+              🔗 Magic link sent! Check your email and click the link to sign in instantly.
+            </div>
+          )}
 
           {/* Server Error */}
           {serverError && (
@@ -352,9 +410,54 @@ export default function LoginPage() {
               {loading ? 'Signing in...' : 'Sign In'}
             </button>
 
+            {/* Divider */}
+            <div style={{
+              marginTop: '24px',
+              marginBottom: '24px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px'
+            }}>
+              <div style={{ flex: 1, height: '1px', background: '#e0e0e0' }} />
+              <span style={{ fontSize: '12px', color: '#999', fontWeight: '500' }}>OR</span>
+              <div style={{ flex: 1, height: '1px', background: '#e0e0e0' }} />
+            </div>
+
+            {/* Magic Link Button */}
+            <button
+              type="button"
+              onClick={handleMagicLink}
+              disabled={magicLinkLoading || loading}
+              style={{
+                width: '100%',
+                padding: '14px',
+                fontSize: '16px',
+                fontWeight: '600',
+                color: '#667eea',
+                background: 'white',
+                border: '2px solid #667eea',
+                borderRadius: '8px',
+                cursor: (magicLinkLoading || loading) ? 'not-allowed' : 'pointer',
+                transition: 'all 0.2s',
+                opacity: (magicLinkLoading || loading) ? 0.6 : 1
+              }}
+              onMouseEnter={(e) => {
+                if (!magicLinkLoading && !loading) {
+                  e.target.style.background = '#f5f7ff'
+                  e.target.style.transform = 'translateY(-1px)'
+                }
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.background = 'white'
+                e.target.style.transform = 'translateY(0)'
+              }}
+            >
+              {magicLinkLoading ? '✉️ Sending...' : '🔗 Login with Magic Link'}
+            </button>
+
             {/* Forgot Password Link */}
             <div style={{
-              marginTop: '12px',
+              marginTop: '16px',
               textAlign: 'center'
             }}>
               <Link href="/forgot-password" style={{
