@@ -31,6 +31,10 @@ export default function LoginPage() {
   const [redirectAttempted, setRedirectAttempted] = useState(false)
   const [magicLinkSent, setMagicLinkSent] = useState(false)
   const [magicLinkLoading, setMagicLinkLoading] = useState(false)
+  const [pinRequired, setPinRequired] = useState(false)
+  const [pin, setPin] = useState('')
+  const [pinLoading, setPinLoading] = useState(false)
+  const [pinError, setPinError] = useState('')
   
   // WHAT: Track when component is mounted
   // WHY: Prevent redirects during SSR/hydration to avoid React errors
@@ -133,6 +137,53 @@ export default function LoginPage() {
     }
   }
 
+  // Handle PIN verification
+  const handlePinVerify = async () => {
+    if (!pin || pin.length !== 6) {
+      setPinError('Please enter a 6-digit PIN')
+      return
+    }
+
+    setPinLoading(true)
+    setPinError('')
+
+    try {
+      const res = await fetch('/api/public/verify-pin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          email: formData.email.toLowerCase().trim(),
+          pin: pin.trim(),
+        })
+      })
+
+      const data = await res.json()
+
+      if (res.ok) {
+        // PIN verified successfully - redirect
+        console.log('[Login] PIN verified, redirecting')
+        if (redirect) {
+          const decodedRedirect = decodeURIComponent(redirect)
+          if (isValidRedirectUrl(decodedRedirect)) {
+            setTimeout(() => {
+              window.location.href = decodedRedirect
+            }, 100)
+            return
+          }
+        }
+        router.push('/demo')
+      } else {
+        setPinError(data.error || 'Invalid PIN')
+      }
+    } catch (err) {
+      console.error('[Login] PIN verification error:', err)
+      setPinError('An unexpected error occurred')
+    } finally {
+      setPinLoading(false)
+    }
+  }
+
   // Handle form submission - CHANGED: Now works as button click handler, not form submit
   const handleSubmit = async (e) => {
     // e.preventDefault() not needed for button type="button"
@@ -169,6 +220,15 @@ export default function LoginPage() {
       const data = await res.json()
 
       if (res.ok) {
+        // Check if PIN is required
+        if (data.requiresPin) {
+          console.log('[Login] PIN required')
+          setPinRequired(true)
+          setServerError('')
+          setLoading(false)
+          return
+        }
+
         // Login successful, redirect to requested page or demo
         console.log('[Login] Login successful, redirect param:', redirect)
         console.log('[Login] Full query:', router.query)
@@ -501,6 +561,166 @@ export default function LoginPage() {
             </Link>
           </div>
         </div>
+
+        {/* PIN Verification Modal */}
+        {pinRequired && (
+          <div style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0, 0, 0, 0.7)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '20px',
+            zIndex: 1000
+          }}>
+            <div style={{
+              background: 'white',
+              borderRadius: '16px',
+              padding: '32px',
+              maxWidth: '420px',
+              width: '100%',
+              boxShadow: '0 20px 60px rgba(0,0,0,0.5)'
+            }}>
+              <h2 style={{
+                margin: 0,
+                marginBottom: '8px',
+                fontSize: '24px',
+                fontWeight: 'bold',
+                color: '#333'
+              }}>
+                🔒 Verify Your Identity
+              </h2>
+              <p style={{
+                margin: 0,
+                marginBottom: '24px',
+                fontSize: '14px',
+                color: '#666'
+              }}>
+                We've sent a 6-digit PIN to your email for additional security.
+              </p>
+
+              {/* PIN Error */}
+              {pinError && (
+                <div style={{
+                  background: '#fee',
+                  border: '1px solid #fcc',
+                  borderRadius: '8px',
+                  padding: '12px 16px',
+                  marginBottom: '20px',
+                  color: '#c33',
+                  fontSize: '14px'
+                }}>
+                  {pinError}
+                </div>
+              )}
+
+              {/* PIN Input */}
+              <div style={{ marginBottom: '20px' }}>
+                <label style={{
+                  display: 'block',
+                  marginBottom: '8px',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  color: '#333'
+                }}>
+                  Enter PIN
+                </label>
+                <input
+                  type="text"
+                  value={pin}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/\D/g, '').slice(0, 6)
+                    setPin(value)
+                    setPinError('')
+                  }}
+                  placeholder="123456"
+                  maxLength={6}
+                  disabled={pinLoading}
+                  autoFocus
+                  style={{
+                    width: '100%',
+                    padding: '12px 16px',
+                    fontSize: '20px',
+                    letterSpacing: '0.3em',
+                    textAlign: 'center',
+                    border: pinError ? '2px solid #f44' : '2px solid #e0e0e0',
+                    borderRadius: '8px',
+                    outline: 'none',
+                    transition: 'border-color 0.2s',
+                    boxSizing: 'border-box',
+                    fontFamily: 'monospace'
+                  }}
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter' && pin.length === 6) {
+                      handlePinVerify()
+                    }
+                  }}
+                />
+              </div>
+
+              {/* Verify Button */}
+              <button
+                type="button"
+                onClick={handlePinVerify}
+                disabled={pinLoading || pin.length !== 6}
+                style={{
+                  width: '100%',
+                  padding: '14px',
+                  fontSize: '16px',
+                  fontWeight: '600',
+                  color: 'white',
+                  background: (pinLoading || pin.length !== 6) ? '#999' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  border: 'none',
+                  borderRadius: '8px',
+                  cursor: (pinLoading || pin.length !== 6) ? 'not-allowed' : 'pointer',
+                  transition: 'transform 0.1s, box-shadow 0.2s',
+                  boxShadow: '0 4px 12px rgba(102, 126, 234, 0.4)',
+                  marginBottom: '12px'
+                }}
+                onMouseEnter={(e) => {
+                  if (!pinLoading && pin.length === 6) {
+                    e.target.style.transform = 'translateY(-2px)'
+                    e.target.style.boxShadow = '0 6px 20px rgba(102, 126, 234, 0.6)'
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.transform = 'translateY(0)'
+                  e.target.style.boxShadow = '0 4px 12px rgba(102, 126, 234, 0.4)'
+                }}
+              >
+                {pinLoading ? 'Verifying...' : 'Verify PIN'}
+              </button>
+
+              {/* Cancel Button */}
+              <button
+                type="button"
+                onClick={() => {
+                  setPinRequired(false)
+                  setPin('')
+                  setPinError('')
+                }}
+                disabled={pinLoading}
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  color: '#666',
+                  background: 'white',
+                  border: '1px solid #ddd',
+                  borderRadius: '8px',
+                  cursor: pinLoading ? 'not-allowed' : 'pointer'
+                }}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </>
   )

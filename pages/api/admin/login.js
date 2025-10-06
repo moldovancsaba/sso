@@ -9,6 +9,10 @@ import { createSession, revokeSession } from '../../../lib/sessions.mjs'
 import { logLoginSuccess, logLoginFailure, logLogout } from '../../../lib/logger.mjs'
 import { loginRateLimiter } from '../../../lib/middleware/rateLimit.mjs'
 import { ensureCsrfToken, validateCsrf } from '../../../lib/middleware/csrf.mjs'
+import { shouldTriggerPin, issuePin, ensurePinIndexes } from '../../../lib/loginPin.mjs'
+import { sendEmail } from '../../../lib/email.mjs'
+import { buildLoginPinEmail } from '../../../lib/emailTemplates.mjs'
+import { getDb } from '../../../lib/db.mjs'
 
 /**
  * getClientMetadata
@@ -71,6 +75,58 @@ export default async function handler(req, res) {
       // Ensure the user has a stable UUID identifier used across the system
       user = await ensureUserUuid(user)
 
+      // WHAT: Increment login count and check if PIN should be triggered
+      // WHY: Random PIN verification (5th-10th login) for additional security
+      const db = await getDb()
+      const loginCount = (user.loginCount || 0) + 1
+      
+      // Update login count
+      await db.collection('users').updateOne(
+        { id: user.id },
+        { 
+          $set: { loginCount, lastLoginAt: new Date().toISOString() }
+        }
+      )
+
+      // Check if PIN should be triggered
+      if (shouldTriggerPin(loginCount)) {
+        // Issue PIN and send email
+        await ensurePinIndexes() // Ensure indexes exist
+        const { pin } = await issuePin({
+          userId: user.id,
+          email: user.email,
+          userType: 'admin',
+        })
+
+        // Send PIN email
+        const emailContent = buildLoginPinEmail({
+          userType: 'admin',
+          email: user.email,
+          pin,
+        })
+
+        await sendEmail({
+          to: user.email,
+          subject: emailContent.subject,
+          text: emailContent.text,
+        })
+
+        logLoginSuccess(user.id, user.email, user.role, { 
+          ...metadata, 
+          pinRequired: true,
+          loginCount,
+        })
+
+        // Return special response indicating PIN is required
+        return res.status(200).json({
+          success: false, // Login not complete yet
+          requiresPin: true,
+          message: 'Please check your email for a verification PIN',
+          email: user.email, // Send back for PIN verification
+        })
+      }
+
+      // No PIN required - proceed with normal login
       // Create server-side session in MongoDB
       const { token, sessionId, expiresAt } = await createSession(
         user.id,
