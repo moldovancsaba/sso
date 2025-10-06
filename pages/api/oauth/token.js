@@ -15,7 +15,7 @@
  * - redirect_uri: Must match the one used in /authorize
  * - client_id: OAuth client ID
  * - client_secret: OAuth client secret
- * - code_verifier: PKCE code verifier
+ * - code_verifier: PKCE code verifier (required only if PKCE was used during authorization)
  * 
  * Request Body (refresh_token):
  * - grant_type: "refresh_token"
@@ -125,12 +125,9 @@ async function handleAuthorizationCodeGrant(req, res) {
     })
   }
 
-  if (!code_verifier) {
-    return res.status(400).json({
-      error: 'invalid_request',
-      error_description: 'code_verifier is required (PKCE)',
-    })
-  }
+  // WHAT: code_verifier is now optional
+  // WHY: It's only required if the authorization code was created with PKCE
+  // The validateAndConsumeCode function will check if PKCE is required
 
   // Authenticate client
   const client = await verifyClient(client_id, client_secret)

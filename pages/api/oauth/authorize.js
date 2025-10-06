@@ -13,7 +13,7 @@
  * - redirect_uri: Where to send the user after authorization
  * - scope: Space-separated list of scopes
  * - state: CSRF protection token from client
- * - code_challenge: PKCE code challenge
+ * - code_challenge: PKCE code challenge (optional for confidential clients)
  * - code_challenge_method: PKCE method (S256 or plain)
  */
 
@@ -65,16 +65,7 @@ export default async function handler(req, res) {
       return respondWithError(res, redirect_uri, state, 'invalid_request', 'state is required for CSRF protection')
     }
 
-    // PKCE is required
-    if (!code_challenge) {
-      return respondWithError(res, redirect_uri, state, 'invalid_request', 'code_challenge is required (PKCE)')
-    }
-
-    if (!['S256', 'plain'].includes(code_challenge_method)) {
-      return respondWithError(res, redirect_uri, state, 'invalid_request', 'code_challenge_method must be S256 or plain')
-    }
-
-    // Validate client
+    // Validate client first to check PKCE requirement
     const client = await getClient(client_id)
     if (!client) {
       logger.warn('Authorization request: client not found', { client_id })
@@ -84,6 +75,27 @@ export default async function handler(req, res) {
     if (client.status !== 'active') {
       logger.warn('Authorization request: client suspended', { client_id, status: client.status })
       return respondWithError(res, redirect_uri, state, 'unauthorized_client', 'Client is suspended')
+    }
+
+    // WHAT: Check if PKCE is required for this client
+    // WHY: Confidential clients (server-side) may not need PKCE if they use client_secret
+    if (client.require_pkce) {
+      if (!code_challenge) {
+        return respondWithError(res, redirect_uri, state, 'invalid_request', 'code_challenge is required (PKCE) for this client')
+      }
+      if (!['S256', 'plain'].includes(code_challenge_method)) {
+        return respondWithError(res, redirect_uri, state, 'invalid_request', 'code_challenge_method must be S256 or plain')
+      }
+    } else {
+      // PKCE is optional, but if provided, validate the method
+      if (code_challenge && !['S256', 'plain'].includes(code_challenge_method)) {
+        return respondWithError(res, redirect_uri, state, 'invalid_request', 'code_challenge_method must be S256 or plain')
+      }
+      logger.info('PKCE not required for this client', {
+        client_id,
+        client_name: client.name,
+        has_code_challenge: !!code_challenge,
+      })
     }
 
     // Validate redirect_uri
