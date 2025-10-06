@@ -1,10 +1,10 @@
 # SSO Service — Production-Ready Authentication with Advanced Security
 
-Version: 5.2.0
-Last updated: 2025-10-06T11:22:25.000Z
+Version: 5.3.0
+Last updated: 2025-10-06T21:30:00.000Z
 
 A production-ready authentication backend for sso.doneisbetter.com with comprehensive security and user-friendly authentication options:
-- **Multiple authentication methods**: Password, Forgot Password, Magic Links (coming soon), PIN verification (coming soon)
+- **Multiple authentication methods**: Password, Forgot Password, Magic Links, Random PIN verification
 - Admin login via email + 32-hex token (cookie-based sessions with server-side validation)
 - Public user authentication with bcrypt-hashed passwords
 - Email infrastructure (Nodemailer + Resend) for password recovery
@@ -20,21 +20,23 @@ A production-ready authentication backend for sso.doneisbetter.com with comprehe
   - CSRF protection (double-submit cookie + HMAC)
   - Structured audit logging with Winston
   - Subdomain SSO support (*.doneisbetter.com)
-- **🔑 Authentication Options** (v5.2.0):
+- **🔑 Authentication Options** (v5.3.0):
   - Password-based login (admin + public users)
   - **Forgot password with email** (auto-generates secure passwords)
-  - Magic link authentication (admin only, extending to all users)
-  - PIN verification (random 2FA for enhanced security - in progress)
+  - **Magic link authentication** (passwordless login for admin + public users)
+  - **Random PIN verification** (6-digit PIN on 5th-10th login for enhanced security)
 - **📧 Email System** (v5.2.0):
   - Dual provider support (Nodemailer + Resend)
   - Password reset via email
   - Email verification
   - Forgot password flow
-- **OAuth2/OIDC** (v5.0.0):
-  - Authorization Code Flow with PKCE
+- **OAuth2/OIDC** (v5.3.0):
+  - Authorization Code Flow with **optional PKCE** (configurable per client)
   - JWT access tokens (RS256)
   - Refresh token rotation
   - OIDC discovery and JWKS endpoints
+  - Confidential clients (server-side) can skip PKCE
+  - Public clients (mobile/SPA) require PKCE
 - Admin authentication (HttpOnly cookie with Domain attribute)
 - Admin users CRUD (roles: admin, super-admin) — UUID identifiers
 - Public user registration and authentication
