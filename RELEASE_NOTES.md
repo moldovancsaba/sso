@@ -1,4 +1,145 @@
-# Release Notes [![Version Badge](https://img.shields.io/badge/version-5.0.0-blue)](RELEASE_NOTES.md)
+# Release Notes [![Version Badge](https://img.shields.io/badge/version-5.2.0-blue)](RELEASE_NOTES.md)
+
+## [v5.2.0] — 2025-10-06T11:22:25.000Z
+
+### 🎉 New Authentication Features: Forgot Password + Email System
+
+**FEATURE RELEASE**: Major enhancement to authentication system with email-based password recovery and foundation for additional auth methods.
+
+#### Added
+
+**Email Infrastructure** (3 library modules):
+- `lib/email.mjs` (323 lines) - Dual email provider system:
+  - Primary: Nodemailer (Google Workspace SMTP)
+  - Fallback: Resend
+  - Automatic retry and failover
+  - Comprehensive logging
+  - Email verification
+- `lib/emailTemplates.mjs` (300+ lines) - Email template system:
+  - Password reset emails
+  - Email verification
+  - **Forgot password emails** (NEW)
+  - Login PIN emails (foundation)
+  - Magic link emails (coming soon)
+  - Consistent formatting and security warnings
+- `lib/passwordGenerator.mjs` (71 lines) - Secure password generation:
+  - Admin: 32-hex tokens (crypto.randomBytes)
+  - Public/Org: 16-char strong passwords (mixed characters)
+  - Cryptographically secure random generation
+
+**Forgot Password Feature** (COMPLETE):
+- `pages/api/admin/forgot-password.js` - Admin forgot password endpoint:
+  - Generates new 32-hex password
+  - Updates database
+  - Sends password via email
+  - Security: Always returns success (prevents email enumeration)
+- `pages/api/public/forgot-password.js` - Public forgot password endpoint:
+  - Generates new strong password
+  - Uses bcrypt for hashing
+  - Sends password via email
+  - Same security measures as admin
+- `pages/admin/forgot-password.js` - Admin forgot password UI:
+  - Clean dark theme matching admin panel
+  - Email input with validation
+  - Success confirmation
+  - Security notes and warnings
+- `pages/forgot-password.js` - Public forgot password UI:
+  - Beautiful gradient design
+  - User-friendly messaging
+  - Clear instructions
+  - What happens next explanation
+- `lib/publicUsers.mjs` - Added `updatePublicUserPassword()` function
+
+**UI/UX Improvements**:
+- Added "Forgot password?" link to admin login page
+- Added "Forgot password?" link to public login page
+- Links only show when not in dev bypass mode
+- Consistent styling across all forgot password flows
+
+**PIN Verification Foundation** (40% complete):
+- `lib/loginPin.mjs` (171 lines) - PIN generation and validation:
+  - 6-digit random PINs
+  - 5-minute TTL
+  - 3 attempts maximum
+  - Random trigger logic (5th-10th login)
+  - MongoDB TTL indexes
+- PIN email template in `lib/emailTemplates.mjs`
+
+**Public User Authentication** (from v5.1.0 merge):
+- `lib/publicUsers.mjs` - Public user management
+- `lib/publicSessions.mjs` - Public user sessions
+- `pages/login.js` - Public login page
+- `pages/register.js` - Public registration page
+- `pages/demo.js` - Demo/dashboard page
+
+**MongoDB Collections** (new):
+- `publicUsers` - Public user accounts:
+  - Email, passwordHash (bcrypt), name, role, status
+  - UUID identifiers
+  - emailVerified, lastLoginAt timestamps
+- `publicSessions` - Public user sessions:
+  - Session tokens, user references
+  - TTL indexes for auto-cleanup
+- `loginPins` - PIN verification (foundation):
+  - PIN, userId, userType, verified, attempts
+  - TTL index for 5-minute expiry
+
+#### Changed
+- Updated `pages/admin/index.js`:
+  - Fixed dev bypass validation (only requires email)
+  - Added "Forgot password?" link
+- Updated `pages/login.js`:
+  - Added "Forgot password?" link
+  - Improved form handling
+
+#### Environment Variables (New)
+```bash
+# Email Configuration
+EMAIL_PROVIDER=nodemailer              # nodemailer | resend
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=465
+SMTP_SECURE=true
+SMTP_USER=notifications@yourdomain.com
+SMTP_PASS=your-app-password
+RESEND_API_KEY=re_your_api_key_here
+EMAIL_FROM=notifications@yourdomain.com
+EMAIL_FROM_NAME=SSO Service
+
+# Token Lifetimes
+PASSWORD_RESET_TOKEN_TTL=900          # 15 minutes
+EMAIL_VERIFICATION_TOKEN_TTL=86400     # 24 hours
+```
+
+#### Dependencies Added
+- `nodemailer@7.0.6` - Email sending (Google Workspace)
+- `resend@6.1.2` - Alternative email provider
+- `winston@3.18.3` - Structured logging
+
+#### Security Features
+- ✅ **Email Enumeration Protection**: Always returns success for forgot password
+- ✅ **Secure Password Generation**: Cryptographically secure random passwords
+- ✅ **Comprehensive Logging**: All auth events logged with timestamps
+- ✅ **Bcrypt Hashing**: Public user passwords hashed with 12 rounds
+- ✅ **Email Verification**: Foundation for email ownership verification
+
+#### User Experience
+- **Forgot Password Flow**:
+  1. User clicks "Forgot password?" link
+  2. Enters email address
+  3. Receives auto-generated secure password via email
+  4. Can log in immediately
+  5. Encouraged to change password after login
+- Clear security warnings in UI
+- Professional email templates
+- Consistent branding across all pages
+
+#### What's Next (In Progress)
+- **Feature 2**: Magic link authentication for all user types (~60% complete)
+- **Feature 1**: PIN verification with random 2FA (~40% complete)
+- Email verification complete flow
+- Password change UI
+
+---
 
 ## [v5.0.0] — 2025-10-03T09:15:22.000Z
 

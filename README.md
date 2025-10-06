@@ -1,27 +1,44 @@
-# SSO Service — Production-Ready Authentication with Security Hardening
+# SSO Service — Production-Ready Authentication with Advanced Security
 
-Version: 5.0.0
-Last updated: 2025-10-02T11:54:33.000Z
+Version: 5.2.0
+Last updated: 2025-10-06T11:22:25.000Z
 
-A production-ready authentication backend for sso.doneisbetter.com with Phase 1 security hardening:
+A production-ready authentication backend for sso.doneisbetter.com with comprehensive security and user-friendly authentication options:
+- **Multiple authentication methods**: Password, Forgot Password, Magic Links (coming soon), PIN verification (coming soon)
 - Admin login via email + 32-hex token (cookie-based sessions with server-side validation)
+- Public user authentication with bcrypt-hashed passwords
+- Email infrastructure (Nodemailer + Resend) for password recovery
+- OAuth2/OIDC authorization server for external applications
 - Subdomain SSO support (*.doneisbetter.com)
 - Rate limiting, CSRF protection, and structured audit logging
 - Server-side session management with MongoDB
-- Resource-specific passwords with usage tracking and admin-bypass
-- MongoDB Atlas storage and strict CORS
 
 ## Features
-- **🔒 Security Hardened** (Phase 1 Complete):
+- **🔒 Security Hardened**:
   - Server-side session management with revocation
   - Rate limiting (brute force protection)
   - CSRF protection (double-submit cookie + HMAC)
   - Structured audit logging with Winston
   - Subdomain SSO support (*.doneisbetter.com)
+- **🔑 Authentication Options** (v5.2.0):
+  - Password-based login (admin + public users)
+  - **Forgot password with email** (auto-generates secure passwords)
+  - Magic link authentication (admin only, extending to all users)
+  - PIN verification (random 2FA for enhanced security - in progress)
+- **📧 Email System** (v5.2.0):
+  - Dual provider support (Nodemailer + Resend)
+  - Password reset via email
+  - Email verification
+  - Forgot password flow
+- **OAuth2/OIDC** (v5.0.0):
+  - Authorization Code Flow with PKCE
+  - JWT access tokens (RS256)
+  - Refresh token rotation
+  - OIDC discovery and JWKS endpoints
 - Admin authentication (HttpOnly cookie with Domain attribute)
-- Admin users CRUD (roles: admin, super-admin) — UUID identifiers for users
+- Admin users CRUD (roles: admin, super-admin) — UUID identifiers
+- Public user registration and authentication
 - Resource password generation/validation (MD5-style 32-hex token)
-- Shareable link helper (server provides token; consumers build final URLs)
 - CORS per SSO_ALLOWED_ORIGINS
 
 ## API Endpoints
