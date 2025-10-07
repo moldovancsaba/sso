@@ -1,4 +1,73 @@
-# Release Notes [![Version Badge](https://img.shields.io/badge/version-5.3.0-blue)](RELEASE_NOTES.md)
+# Release Notes [![Version Badge](https://img.shields.io/badge/version-5.4.0-blue)](RELEASE_NOTES.md)
+
+## [v5.4.0] — 2025-01-13T23:45:00.000Z
+
+### 🔐 OAuth Flow Fix: Preserve Authorization Context During Admin Login
+
+**CRITICAL BUG FIX**: Fixed OAuth authorization flow breaking when users needed to log into SSO admin during client authorization.
+
+#### What Was Broken
+
+When an OAuth client initiated authorization:
+1. Client redirected to `/api/oauth/authorize?client_id=...&redirect_uri=...`
+2. SSO saw user wasn't authenticated
+3. Redirected to `/admin?oauth_request=[base64-encoded-request]`
+4. User logged into admin panel
+5. **BUG**: After login, page stayed on `/admin` without `oauth_request` parameter
+6. OAuth flow was lost - no way to continue authorization
+
+#### The Fix
+
+**Modified**: `pages/admin/index.js`
+- Added `useRouter` hook to access URL query parameters
+- Added `useEffect` hook that monitors both `admin` state and `oauth_request` parameter
+- When user is authenticated AND `oauth_request` exists:
+  - Display message: "Redirecting to complete OAuth authorization..."
+  - Redirect to `/api/oauth/authorize?oauth_request=[encoded-request]`
+  - Authorization endpoint reconstructs original request and continues flow
+
+#### Technical Details
+
+```javascript
+// WHAT: Check if there's an oauth_request parameter after login
+// WHY: When users are redirected to admin login during OAuth flow, 
+//      we need to continue the OAuth authorization after they log in
+useEffect(() => {
+  const oauthRequest = router.query.oauth_request
+  if (admin && oauthRequest) {
+    // User is now logged in and we have an OAuth request to complete
+    setMessage('Redirecting to complete OAuth authorization...')
+    // Redirect back to the OAuth authorize endpoint with the original request
+    window.location.href = `/api/oauth/authorize?oauth_request=${encodeURIComponent(oauthRequest)}`
+  }
+}, [admin, router.query.oauth_request])
+```
+
+#### Complete OAuth Flow (Now Fixed)
+
+1. Client: `GET /api/oauth/authorize?client_id=...&redirect_uri=...&scope=...`
+2. SSO: User not authenticated → `302 /admin?oauth_request=[base64]`
+3. User: Logs into admin panel
+4. **NEW**: Admin page detects `oauth_request` parameter
+5. **NEW**: Auto-redirects to `/api/oauth/authorize?oauth_request=[base64]`
+6. SSO: User now authenticated → Shows authorization consent page
+7. User: Approves authorization
+8. SSO: Generates authorization code → `302 [client_redirect_uri]?code=...&state=...`
+9. Client: Exchanges code for tokens via `/api/oauth/token`
+10. ✅ OAuth flow complete
+
+#### Impact
+
+- **Before**: OAuth authorization broken when admin login required
+- **After**: Seamless OAuth flow even when authentication needed
+- **Benefit**: External clients can now successfully integrate with SSO
+
+#### Files Modified
+
+- `pages/admin/index.js` (+15 lines) - OAuth redirect logic
+- `package.json` - Version bump to 5.4.0
+
+---
 
 ## [v5.3.0] — 2025-10-06T21:30:00.000Z
 

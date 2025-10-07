@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/router'
 
 export default function AdminLoginPage() {
+  const router = useRouter()
   const [email, setEmail] = useState('sso@doneisbetter.com')
   const [password, setPassword] = useState('') // 32-hex admin token
   const isDevBypass = process.env.NEXT_PUBLIC_ADMIN_DEV_BYPASS === 'true'
@@ -38,6 +40,19 @@ export default function AdminLoginPage() {
   useEffect(() => {
     checkSession()
   }, [])
+
+  // WHAT: Check if there's an oauth_request parameter after login
+  // WHY: When users are redirected to admin login during OAuth flow, 
+  //      we need to continue the OAuth authorization after they log in
+  useEffect(() => {
+    const oauthRequest = router.query.oauth_request
+    if (admin && oauthRequest) {
+      // User is now logged in and we have an OAuth request to complete
+      setMessage('Redirecting to complete OAuth authorization...')
+      // Redirect back to the OAuth authorize endpoint with the original request
+      window.location.href = `/api/oauth/authorize?oauth_request=${encodeURIComponent(oauthRequest)}`
+    }
+  }, [admin, router.query.oauth_request])
 
   async function handleLogin(e) {
     e.preventDefault()
