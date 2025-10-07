@@ -1,8 +1,76 @@
-# ROADMAP (v5.0.0)
+# ROADMAP (v5.4.0)
 
-Last updated: 2025-09-17T11:43:02.000Z
+Last updated: 2025-01-13T23:45:00.000Z
 
-## Milestone: Harden admin & password services (Q4 2025)
+## 🚧 IN PROGRESS: Multi-App Permission System (Q1 2025)
+- Priority: **CRITICAL**
+- Dependencies: SSO v5.4.0, Launchmass v1.8.0
+- Started: 2025-01-13
+- Target: 2025-01-20
+
+**Objective**: Implement centralized permission management across all apps (launchmass, messmass, cardmass, blockmass) with per-app role-based access control.
+
+### Phase 1: Database & API Foundation ✅ IN PROGRESS
+- ✅ Create `lib/appPermissions.mjs` - Permission management functions
+- ✅ Create `lib/appAccessLogs.mjs` - Audit logging functions
+- ✅ Create migration script: `scripts/migrations/2025-01-13-multi-app-permissions.mjs`
+- ✅ Design document: `docs/MULTI_APP_PERMISSIONS.md`
+- ⏳ Create SSO API endpoints:
+  - `GET /api/users/{userId}/apps/{clientId}/permissions`
+  - `PUT /api/admin/users/{userId}/apps/{clientId}/permissions`
+  - `DELETE /api/admin/users/{userId}/apps/{clientId}/permissions`
+  - `GET /api/admin/users` (enhanced with app access)
+- ⏳ Run migration on SSO database
+- ⏳ Test API endpoints
+
+### Phase 2: OAuth Flow Integration
+- ⏳ Update launchmass OAuth callback to check app permissions
+- ⏳ Create "Access Pending" page in launchmass
+- ⏳ Log all access attempts to `appAccessLogs`
+- ⏳ Update `upsertUserFromSso()` to sync permissions
+- ⏳ Email notifications for approval/denial
+
+### Phase 3: Launchmass Admin UI
+- ⏳ Create `/admin/users` page in launchmass
+- ⏳ Pending approvals section (priority view)
+- ⏳ Grant/deny access functionality
+- ⏳ Role management (user/admin/superadmin)
+- ⏳ User search and filtering
+
+### Phase 4: SSO Admin UI
+- ⏳ Enhance `/admin/users` page with app access overview
+- ⏳ User details modal showing cross-app access
+- ⏳ App permission editor
+- ⏳ SSO superadmin toggle
+- ⏳ Cross-app activity dashboard
+
+### Phase 5: Documentation & Testing
+- ⏳ Update `ARCHITECTURE.md`
+- ⏳ Update launchmass documentation
+- ⏳ End-to-end testing:
+  - New user registration
+  - Access request and pending state
+  - Admin approval with role selection
+  - Role changes
+  - Access revocation
+  - Auto-approval for trusted domains
+- ⏳ Security review
+- ⏳ Update `RELEASE_NOTES.md` for both SSO and launchmass
+
+**Success Criteria**:
+- ✅ User can register at SSO and request access to launchmass
+- ✅ Access request appears in launchmass admin pending queue
+- ✅ Admin can grant/deny access with role selection
+- ✅ User receives email notification of decision
+- ✅ Approved user can login and access launchmass
+- ✅ Denied user sees "Access Denied" message
+- ✅ SSO admin can view all users' app access across all apps
+- ✅ All permission changes logged in `appAccessLogs`
+- ✅ Organization-level auto-approval works for trusted domains
+
+---
+
+## Milestone: Harden admin & password services (Q1 2025)
 - Priority: High
 - Dependencies: MongoDB Atlas, Vercel
 
