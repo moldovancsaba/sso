@@ -128,11 +128,13 @@ export default async function handler(req, res) {
 
       // No PIN required - proceed with normal login
       // Create server-side session in MongoDB
+      // WHAT: Extended session timeout to 30 days for admin usability
+      // WHY: Admins need longer sessions for OAuth client management and testing
       const { token, sessionId, expiresAt } = await createSession(
         user.id,
         user.email,
         user.role,
-        7 * 24 * 60 * 60, // 7 days
+        30 * 24 * 60 * 60, // 30 days (was 7 days)
         metadata
       )
 
@@ -146,7 +148,7 @@ export default async function handler(req, res) {
       const signedToken = Buffer.from(JSON.stringify(tokenData)).toString('base64')
 
       // Set secure cookie
-      setAdminSessionCookie(res, signedToken, 7 * 24 * 60 * 60)
+      setAdminSessionCookie(res, signedToken, 30 * 24 * 60 * 60)
       
       // Log successful login
       logLoginSuccess(user.id, user.email, user.role, { ...metadata, sessionId })
