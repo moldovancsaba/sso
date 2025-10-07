@@ -17,6 +17,7 @@ export default function OAuthClientsPage() {
     allowed_scopes: 'openid profile email offline_access',
     homepage_uri: '',
     logo_uri: '',
+    require_pkce: false, // PKCE not required for confidential clients by default
   })
 
   useEffect(() => {
@@ -84,6 +85,7 @@ export default function OAuthClientsPage() {
         allowed_scopes: allowedScopes,
         homepage_uri: formData.homepage_uri.trim() || null,
         logo_uri: formData.logo_uri.trim() || null,
+        require_pkce: formData.require_pkce, // Include PKCE requirement setting
       }
 
       const res = await fetch('/api/admin/oauth-clients', {
@@ -111,6 +113,7 @@ export default function OAuthClientsPage() {
         allowed_scopes: 'openid profile email offline_access',
         homepage_uri: '',
         logo_uri: '',
+        require_pkce: false,
       })
 
       await loadClients()
@@ -288,6 +291,22 @@ export default function OAuthClientsPage() {
                 />
               </label>
 
+              <label style={{ display: 'flex', gap: 8, alignItems: 'center', cursor: 'pointer' }}>
+                <input
+                  type="checkbox"
+                  checked={formData.require_pkce}
+                  onChange={e => setFormData({ ...formData, require_pkce: e.target.checked })}
+                  style={{ width: 16, height: 16, cursor: 'pointer' }}
+                />
+                <span style={{ fontSize: 12, opacity: 0.8 }}>
+                  Require PKCE (Proof Key for Code Exchange)
+                  <br />
+                  <span style={{ fontSize: 11, opacity: 0.6 }}>
+                    Check this for public clients (mobile/SPA). Leave unchecked for confidential clients (server-side).
+                  </span>
+                </span>
+              </label>
+
               <div style={{ display: 'flex', gap: 8, marginTop: '0.5rem' }}>
                 <button type="submit" disabled={loading} style={{ padding: '0.65rem 0.75rem', background: '#4054d6', color: 'white', border: 0, borderRadius: 6, cursor: 'pointer' }}>
                   {loading ? 'Creating…' : 'Create Client'}
@@ -320,9 +339,12 @@ export default function OAuthClientsPage() {
                       {client.description && (
                         <p style={{ margin: '0 0 0.5rem 0', opacity: 0.8, fontSize: '0.875rem' }}>{client.description}</p>
                       )}
-                      <div style={{ display: 'flex', gap: 8, alignItems: 'center', fontSize: '0.875rem' }}>
+                      <div style={{ display: 'flex', gap: 8, alignItems: 'center', fontSize: '0.875rem', flexWrap: 'wrap' }}>
                         <span style={{ padding: '0.25rem 0.5rem', background: client.status === 'active' ? '#1e895a' : '#8a6d3b', borderRadius: 4 }}>
                           {client.status}
+                        </span>
+                        <span style={{ padding: '0.25rem 0.5rem', background: client.require_pkce ? '#4054d6' : '#666', borderRadius: 4 }}>
+                          {client.require_pkce ? 'PKCE Required' : 'PKCE Optional'}
                         </span>
                         {client.homepage_uri && (
                           <a href={client.homepage_uri} target="_blank" rel="noopener noreferrer" style={{ color: '#4da6ff' }}>
@@ -332,7 +354,13 @@ export default function OAuthClientsPage() {
                       </div>
                     </div>
                     {admin.role === 'super-admin' && (
-                      <div style={{ display: 'flex', gap: 8 }}>
+                      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                        <button onClick={() => alert('Edit feature coming soon')} style={{ padding: '0.25rem 0.5rem', background: '#24306b', color: 'white', border: 0, borderRadius: 6, cursor: 'pointer', fontSize: '0.875rem' }}>
+                          Edit
+                        </button>
+                        <button onClick={() => alert('Regenerate secret feature coming soon')} style={{ padding: '0.25rem 0.5rem', background: '#4054d6', color: 'white', border: 0, borderRadius: 6, cursor: 'pointer', fontSize: '0.875rem' }}>
+                          Regenerate Secret
+                        </button>
                         <button onClick={() => handleToggleStatus(client.client_id, client.status)} style={{ padding: '0.25rem 0.5rem', background: '#24306b', color: 'white', border: 0, borderRadius: 6, cursor: 'pointer', fontSize: '0.875rem' }}>
                           {client.status === 'active' ? 'Suspend' : 'Activate'}
                         </button>
