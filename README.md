@@ -1,7 +1,7 @@
 # SSO Service — Production-Ready Authentication with Advanced Security
 
-Version: 5.3.0
-Last updated: 2025-10-06T21:30:00.000Z
+Version: 5.4.0
+Last updated: 2025-01-13T23:45:00.000Z
 
 A production-ready authentication backend for sso.doneisbetter.com with comprehensive security and user-friendly authentication options:
 - **Multiple authentication methods**: Password, Forgot Password, Magic Links, Random PIN verification
