@@ -188,7 +188,6 @@ export default function AdminLoginPage() {
             
             {/* Magic Link and Forgot Password Options */}
             <>
-              <>
                 {/* Divider */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
                   <div style={{ flex: 1, height: 1, background: '#22284a' }} />
@@ -232,7 +231,7 @@ export default function AdminLoginPage() {
                     Forgot password?
                   </Link>
                 </div>
-              </>
+            </>
           </form>
         )}
 
