@@ -6,7 +6,7 @@
  * HOW: Joins users/publicUsers with appPermissions collection
  */
 
-import { validateAdminSession } from '../../../../lib/auth.mjs'
+import { getAdminUser } from '../../../../lib/auth.mjs'
 import { getUserAppPermissions } from '../../../../lib/appPermissions.mjs'
 import { getDb } from '../../../../lib/db.mjs'
 import logger from '../../../../lib/logger.mjs'
@@ -21,8 +21,8 @@ export default async function handler(req, res) {
   try {
     // WHAT: Validate admin session
     // WHY: Only authenticated admins can view user list
-    const session = await validateAdminSession(req)
-    if (!session?.isValid) {
+    const adminUser = await getAdminUser(req)
+    if (!adminUser) {
       return res.status(401).json({
         error: 'Unauthorized',
         message: 'Valid admin session required',
@@ -156,7 +156,7 @@ export default async function handler(req, res) {
     )
 
     logger.info('Admin users list with app access retrieved', {
-      adminId: session.user.id,
+      adminId: adminUser.id,
       total,
       page,
       limit,

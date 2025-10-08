@@ -7,7 +7,7 @@
  */
 
 import { getAppPermission } from '../../../../../../lib/appPermissions.mjs'
-import { validateAdminSession } from '../../../../../../lib/auth.mjs'
+import { getAdminUser } from '../../../../../../lib/auth.mjs'
 import logger from '../../../../../../lib/logger.mjs'
 
 export default async function handler(req, res) {
@@ -45,8 +45,8 @@ export default async function handler(req, res) {
 
     // Option 2: Admin session authentication (for admin UI)
     if (!isAuthorized) {
-      const session = await validateAdminSession(req)
-      if (!session?.isValid) {
+      const adminUser = await getAdminUser(req)
+      if (!adminUser) {
         return res.status(401).json({
           error: 'Unauthorized',
           message: 'Valid admin session or access token required',

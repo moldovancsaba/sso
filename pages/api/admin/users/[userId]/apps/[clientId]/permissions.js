@@ -8,7 +8,7 @@
 
 import { getAppPermission, updateAppPermission, deleteAppPermission } from '../../../../../../../lib/appPermissions.mjs'
 import { logPermissionChange } from '../../../../../../../lib/appAccessLogs.mjs'
-import { validateAdminSession } from '../../../../../../../lib/auth.mjs'
+import { getAdminUser } from '../../../../../../../lib/auth.mjs'
 import { getDb } from '../../../../../../../lib/db.mjs'
 import logger from '../../../../../../../lib/logger.mjs'
 
@@ -59,33 +59,33 @@ export default async function handler(req, res) {
 
     // WHAT: Validate admin session
     // WHY: Only authenticated admins can modify permissions
-    const session = await validateAdminSession(req)
-    if (!session?.isValid) {
+    const adminUser = await getAdminUser(req)
+    if (!adminUser) {
       return res.status(401).json({
         error: 'Unauthorized',
         message: 'Valid admin session required',
       })
     }
 
-    // WHAT: Get admin user details
-    // WHY: Need to check admin's authorization level
+    // WHAT: Get full admin user details from database
+    // WHY: Need to check isSsoSuperadmin flag
     const db = await getDb()
-    const adminUser = await db.collection('users').findOne({ id: session.user.id })
+    const fullAdminUser = await db.collection('users').findOne({ id: adminUser.id })
     
-    if (!adminUser) {
+    if (!fullAdminUser) {
       return res.status(401).json({
         error: 'Unauthorized',
-        message: 'Admin user not found',
+        message: 'Admin user not found in database',
       })
     }
 
     // WHAT: Check if admin is authorized to manage this app's permissions
     // WHY: Prevent unauthorized permission changes
-    const isAuthorized = await checkAdminAuthorization(adminUser, clientId)
+    const isAuthorized = await checkAdminAuthorization(fullAdminUser, clientId)
     if (!isAuthorized) {
       logger.warn('Unauthorized permission change attempt', {
-        adminId: adminUser.id,
-        adminEmail: adminUser.email,
+        adminId: fullAdminUser.id,
+        adminEmail: fullAdminUser.email,
         userId,
         clientId,
       })
@@ -150,7 +150,7 @@ export default async function handler(req, res) {
         hasAccess,
         status,
         role,
-        grantedBy: adminUser.id,
+        grantedBy: fullAdminUser.id,
       })
 
       // WHAT: Log permission change for audit trail
@@ -168,8 +168,8 @@ export default async function handler(req, res) {
         eventType,
         previousRole,
         newRole: role,
-        changedBy: adminUser.id,
-        message: `Permission ${eventType} by ${adminUser.email}`,
+        changedBy: fullAdminUser.id,
+        message: `Permission ${eventType} by ${fullAdminUser.email}`,
       })
 
       logger.info('Permission updated', {
@@ -179,8 +179,8 @@ export default async function handler(req, res) {
         hasAccess,
         role,
         status,
-        adminId: adminUser.id,
-        adminEmail: adminUser.email,
+        adminId: fullAdminUser.id,
+        adminEmail: fullAdminUser.email,
       })
 
       return res.status(200).json({
@@ -222,7 +222,7 @@ export default async function handler(req, res) {
         hasAccess: false,
         status: 'revoked',
         role: 'none',
-        grantedBy: adminUser.id,
+        grantedBy: fullAdminUser.id,
       })
 
       // WHAT: Log revocation for audit trail
@@ -234,16 +234,16 @@ export default async function handler(req, res) {
         eventType: 'access_revoked',
         previousRole: existingPermission.role,
         newRole: 'none',
-        changedBy: adminUser.id,
-        message: `Access revoked by ${adminUser.email}`,
+        changedBy: fullAdminUser.id,
+        message: `Access revoked by ${fullAdminUser.email}`,
       })
 
       logger.info('Permission revoked', {
         userId,
         clientId,
         appName,
-        adminId: adminUser.id,
-        adminEmail: adminUser.email,
+        adminId: fullAdminUser.id,
+        adminEmail: fullAdminUser.email,
       })
 
       return res.status(200).json({
