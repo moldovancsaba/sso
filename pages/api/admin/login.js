@@ -105,11 +105,16 @@ export default async function handler(req, res) {
           pin,
         })
 
-        await sendEmail({
-          to: user.email,
-          subject: emailContent.subject,
-          text: emailContent.text,
-        })
+        try {
+          await sendEmail({
+            to: user.email,
+            subject: emailContent.subject,
+            text: emailContent.text,
+          })
+        } catch (emailError) {
+          console.error('Failed to send PIN email:', emailError.message)
+          // Continue anyway - PIN is in database, user can retry
+        }
 
         logLoginSuccess(user.id, user.email, user.role, { 
           ...metadata, 
