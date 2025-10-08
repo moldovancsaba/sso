@@ -100,11 +100,21 @@ export default async function handler(req, res) {
         pin,
       })
 
-      await sendEmail({
-        to: user.email,
-        subject: emailContent.subject,
-        text: emailContent.text,
-      })
+      try {
+        await sendEmail({
+          to: user.email,
+          subject: emailContent.subject,
+          text: emailContent.text,
+        })
+      } catch (emailError) {
+        logger.error('Failed to send PIN email', {
+          event: 'pin_email_failed',
+          userId: user._id.toString(),
+          email: user.email,
+          error: emailError.message,
+        })
+        // Continue anyway - PIN is in database, user can retry
+      }
 
       logger.info('Public login PIN required', {
         event: 'public_login_pin_required',
