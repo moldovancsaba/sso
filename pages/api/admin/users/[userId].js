@@ -1,5 +1,5 @@
 /**
- * pages/api/admin/users/[id].js — Admin-only get/update/delete user
+ * pages/api/admin/users/[userId].js — Admin-only get/update/delete user
  * WHAT: Manage individual users; role updates limited to super-admins.
  * WHY: Fine-grained admin user management aligned with DB-backed sessions.
  */
@@ -11,11 +11,11 @@ export default async function handler(req, res) {
   const admin = await getAdminUser(req)
   if (!admin) return res.status(401).json({ error: 'Unauthorized' })
 
-  const { id } = req.query || {}
-  if (!id) return res.status(400).json({ error: 'Missing id' })
+  const { userId } = req.query || {}
+  if (!userId) return res.status(400).json({ error: 'Missing userId' })
 
   if (req.method === 'GET') {
-    const user = await findUserById(id)
+    const user = await findUserById(userId)
     if (!user) return res.status(404).json({ error: 'Not found' })
     return res.status(200).json({
       success: true,
@@ -41,17 +41,17 @@ export default async function handler(req, res) {
 
       let updated = null
       if (typeof name === 'string' || typeof role === 'string') {
-        updated = await updateUser(id, { name, role })
+        updated = await updateUser(userId, { name, role })
       }
 
       let newPassword = null
       if (password || password === '') {
         const token = password || generateMD5StylePassword()
-        updated = await updateUserPassword(id, token)
+        updated = await updateUserPassword(userId, token)
         newPassword = token
       }
 
-      const user = updated || (await findUserById(id))
+      const user = updated || (await findUserById(userId))
       if (!user) return res.status(404).json({ error: 'Not found' })
 
       const out = {
@@ -79,7 +79,7 @@ export default async function handler(req, res) {
       if (admin.role !== 'super-admin') {
         return res.status(403).json({ error: 'Forbidden' })
       }
-      const ok = await deleteUser(id)
+      const ok = await deleteUser(userId)
       if (!ok) return res.status(404).json({ error: 'Not found' })
       return res.status(200).json({ success: true, deleted: true })
     } catch (error) {

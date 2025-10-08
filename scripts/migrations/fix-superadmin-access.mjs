@@ -8,8 +8,8 @@
 
 import { MongoClient } from 'mongodb';
 
-const MONGODB_URI = process.env.MONGODB_URI || 'REDACTED_ROTATED_2026-08-14';
-const LAUNCHMASS_CLIENT_ID = '6e85956d-5d80-4dcc-afe0-6f53e5c58316';
+const MONGODB_URI = 'REDACTED_ROTATED_2026-08-14';
+const LAUNCHMASS_CLIENT_ID = '04dc2cc1-9fd3-4ffa-9813-450dca97af92';
 
 const SUPERADMIN_EMAILS = [
   'moldovancsaba@gmail.com',
@@ -23,7 +23,7 @@ async function fix() {
     await client.connect();
     console.log('✅ Connected to MongoDB');
     
-    const db = client.db('sso');
+    const db = client.db('sso_database');
     const publicUsers = db.collection('publicUsers');
     const users = db.collection('users');
     const appPermissions = db.collection('appPermissions');
