@@ -34,8 +34,9 @@ export default async function handler(req, res) {
 
     const emailLower = email.trim().toLowerCase()
 
-    // Find user
-    const user = await findPublicUserByEmail(emailLower)
+    // Find user WITH password hash for verification
+    const db = await getDb()
+    const user = await db.collection('publicUsers').findOne({ email: emailLower })
 
     if (!user) {
       logger.warn('Public login: user not found', {
