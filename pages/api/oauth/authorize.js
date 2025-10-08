@@ -18,6 +18,7 @@
  */
 
 import { getAdminUser } from '../../../lib/auth.mjs'
+import { getPublicUserFromRequest } from '../../../lib/publicSessions.mjs'
 import { getClient, validateRedirectUri, validateClientScopes } from '../../../lib/oauth/clients.mjs'
 import { validateScopes, ensureRequiredScopes } from '../../../lib/oauth/scopes.mjs'
 import { createAuthorizationCode } from '../../../lib/oauth/codes.mjs'
@@ -133,8 +134,21 @@ export default async function handler(req, res) {
       return respondWithError(res, redirect_uri, state, 'invalid_scope', 'One or more scopes not allowed for this client')
     }
 
-    // Check if user is authenticated
-    const user = await getAdminUser(req)
+    // WHAT: Check if user is authenticated (admin or public user)
+    // WHY: OAuth should work for both admin users and regular public users
+    // HOW: Check admin session first, then public session if admin not found
+    // NOTE: getAdminUser returns user object directly or null
+    let user = await getAdminUser(req)
+    let userType = 'admin'
+    
+    if (!user) {
+      // Try public user session
+      user = await getPublicUserFromRequest(req)
+      if (user) {
+        userType = 'public'
+      }
+    }
+    
     if (!user) {
       // User not authenticated - redirect to login with return URL
       logger.info('Authorization request: user not authenticated, redirecting to login', {
@@ -166,6 +180,13 @@ export default async function handler(req, res) {
     }
 
     // User is authenticated - check for existing consent
+    logger.info('Authorization request: user authenticated', {
+      client_id,
+      client_name: client.name,
+      user_id: user.id,
+      user_type: userType,
+    })
+
     const db = await getDb()
     const existingConsent = await db.collection('userConsents').findOne({
       user_id: user.id,
