@@ -10,39 +10,45 @@ Last updated: 2025-01-13T23:45:00.000Z
 
 **Objective**: Implement centralized permission management across all apps (launchmass, messmass, cardmass, blockmass) with per-app role-based access control.
 
-### Phase 1: Database & API Foundation ✅ IN PROGRESS
+### Phase 1: Database & API Foundation ✅ COMPLETE
 - ✅ Create `lib/appPermissions.mjs` - Permission management functions
 - ✅ Create `lib/appAccessLogs.mjs` - Audit logging functions
 - ✅ Create migration script: `scripts/migrations/2025-01-13-multi-app-permissions.mjs`
 - ✅ Design document: `docs/MULTI_APP_PERMISSIONS.md`
-- ⏳ Create SSO API endpoints:
+- ✅ Create SSO API endpoints:
   - `GET /api/users/{userId}/apps/{clientId}/permissions`
+  - `POST /api/users/{userId}/apps/{clientId}/request-access`
   - `PUT /api/admin/users/{userId}/apps/{clientId}/permissions`
   - `DELETE /api/admin/users/{userId}/apps/{clientId}/permissions`
-  - `GET /api/admin/users` (enhanced with app access)
-- ⏳ Run migration on SSO database
-- ⏳ Test API endpoints
+  - `GET /api/admin/users/list-with-apps`
+- ✅ Run migration on SSO database
+- ✅ Test API endpoints
+- Commits: cd986b5, cef8964
 
-### Phase 2: OAuth Flow Integration
-- ⏳ Update launchmass OAuth callback to check app permissions
-- ⏳ Create "Access Pending" page in launchmass
-- ⏳ Log all access attempts to `appAccessLogs`
-- ⏳ Update `upsertUserFromSso()` to sync permissions
-- ⏳ Email notifications for approval/denial
+### Phase 2: OAuth Flow Integration ✅ COMPLETE
+- ✅ Update launchmass OAuth callback to check app permissions
+- ✅ Create "Access Pending" page in launchmass
+- ✅ Log all access attempts to `appAccessLogs`
+- ✅ Update `upsertUserFromSso()` to sync permissions
+- ⏳ Email notifications for approval/denial (deferred to Phase 5)
+- Commits: launchmass 2a23c65
 
-### Phase 3: Launchmass Admin UI
-- ⏳ Create `/admin/users` page in launchmass
-- ⏳ Pending approvals section (priority view)
-- ⏳ Grant/deny access functionality
-- ⏳ Role management (user/admin/superadmin)
-- ⏳ User search and filtering
+### Phase 3: Launchmass Admin UI ✅ COMPLETE
+- ✅ Create `/admin/users` page in launchmass
+- ✅ Pending approvals section (filter by pending/active/all)
+- ✅ Grant/deny access functionality
+- ✅ Role management (user/admin/superadmin)
+- ✅ User search and filtering
+- ✅ Add navigation link to users page from main admin
+- Commits: launchmass dea74a2, 2aa0af3
 
-### Phase 4: SSO Admin UI
+### Phase 4: SSO Admin UI ⏳ IN PROGRESS
 - ⏳ Enhance `/admin/users` page with app access overview
 - ⏳ User details modal showing cross-app access
 - ⏳ App permission editor
 - ⏳ SSO superadmin toggle
 - ⏳ Cross-app activity dashboard
+- Target: 2025-01-14
 
 ### Phase 5: Documentation & Testing
 - ⏳ Update `ARCHITECTURE.md`

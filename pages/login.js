@@ -19,7 +19,7 @@ export async function getServerSideProps(context) {
 
 export default function LoginPage() {
   const router = useRouter()
-  const { redirect } = router.query
+  const { redirect, oauth_request } = router.query
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -227,6 +227,37 @@ export default function LoginPage() {
           setServerError('')
           setLoading(false)
           return
+        }
+
+        // WHAT: Check if this is an OAuth flow login
+        // WHY: OAuth clients need to continue to consent/authorization, not demo page
+        // HOW: Decode oauth_request and reconstruct the authorize URL with original params
+        if (oauth_request) {
+          console.log('[Login] OAuth flow detected, continuing authorization')
+          try {
+            // Decode the OAuth request
+            const decoded = JSON.parse(Buffer.from(oauth_request, 'base64url').toString())
+            // Reconstruct the authorize URL with original parameters
+            const params = new URLSearchParams({
+              response_type: decoded.response_type,
+              client_id: decoded.client_id,
+              redirect_uri: decoded.redirect_uri,
+              scope: decoded.scope,
+              state: decoded.state,
+            })
+            if (decoded.code_challenge) {
+              params.set('code_challenge', decoded.code_challenge)
+              params.set('code_challenge_method', decoded.code_challenge_method)
+            }
+            // Redirect back to authorize endpoint - now with valid session
+            setTimeout(() => {
+              window.location.href = `/api/oauth/authorize?${params.toString()}`
+            }, 100)
+            return
+          } catch (err) {
+            console.error('[Login] Failed to decode oauth_request:', err)
+            // Fall through to normal redirect logic
+          }
         }
 
         // Login successful, redirect to requested page or demo
