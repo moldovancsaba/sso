@@ -6,7 +6,6 @@ export default function AdminLoginPage() {
   const router = useRouter()
   const [email, setEmail] = useState('sso@doneisbetter.com')
   const [password, setPassword] = useState('') // 32-hex admin token
-  const isDevBypass = process.env.NEXT_PUBLIC_ADMIN_DEV_BYPASS === 'true'
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
   const [admin, setAdmin] = useState(null)
@@ -56,13 +55,11 @@ export default function AdminLoginPage() {
 
   async function handleLogin(e) {
     e.preventDefault()
-    // In dev bypass mode, only email is required
     if (!email.trim()) {
       setMessage('Please enter email')
       return
     }
-    // In normal mode, both email and password are required
-    if (!isDevBypass && !password.trim()) {
+    if (!password.trim()) {
       setMessage('Please enter password')
       return
     }
@@ -71,10 +68,8 @@ export default function AdminLoginPage() {
     setLastStatus(null)
     setLastBody('')
     try {
-      const endpoint = isDevBypass ? '/api/admin/dev-login' : '/api/admin/login'
-      const payload = isDevBypass
-        ? { email: email.trim().toLowerCase() }
-        : { email: email.trim().toLowerCase(), password: password.trim() }
+      const endpoint = '/api/admin/login'
+      const payload = { email: email.trim().toLowerCase(), password: password.trim() }
       const res = await fetch(endpoint, {
         method: 'POST',
         credentials: 'include',
@@ -185,15 +180,14 @@ export default function AdminLoginPage() {
               <span style={{ fontSize: 12, opacity: 0.8 }}>Email</span>
               <input value={email} onChange={e => setEmail(e.target.value)} type="email" placeholder="sso@doneisbetter.com" style={{ padding: '0.5rem 0.75rem', background: '#0b1021', color: '#e6e8f2', border: '1px solid #22284a', borderRadius: 6 }} />
             </label>
-            {!isDevBypass && (
-              <label style={{ display: 'grid', gap: 6 }}>
-                <span style={{ fontSize: 12, opacity: 0.8 }}>Admin Token (32‑hex)</span>
-                <input value={password} onChange={e => setPassword(e.target.value)} type="password" placeholder="e.g. 4f39c1..." style={{ padding: '0.5rem 0.75rem', background: '#0b1021', color: '#e6e8f2', border: '1px solid #22284a', borderRadius: 6 }} />
-              </label>
-            )}
-            <button type="submit" disabled={loading} style={{ padding: '0.65rem 0.75rem', background: '#4054d6', color: 'white', border: 0, borderRadius: 6, cursor: 'pointer' }}>{loading ? 'Signing in…' : (isDevBypass ? 'Dev Sign In' : 'Sign In')}</button>
+            <label style={{ display: 'grid', gap: 6 }}>
+              <span style={{ fontSize: 12, opacity: 0.8 }}>Admin Token (32‑hex)</span>
+              <input value={password} onChange={e => setPassword(e.target.value)} type="password" placeholder="e.g. 4f39c1..." style={{ padding: '0.5rem 0.75rem', background: '#0b1021', color: '#e6e8f2', border: '1px solid #22284a', borderRadius: 6 }} />
+            </label>
+            <button type="submit" disabled={loading} style={{ padding: '0.65rem 0.75rem', background: '#4054d6', color: 'white', border: 0, borderRadius: 6, cursor: 'pointer' }}>{loading ? 'Signing in…' : 'Sign In'}</button>
             
-            {!isDevBypass && (
+            {/* Magic Link and Forgot Password Options */}
+            <>
               <>
                 {/* Divider */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
@@ -239,7 +233,6 @@ export default function AdminLoginPage() {
                   </Link>
                 </div>
               </>
-            )}
           </form>
         )}
 
@@ -261,11 +254,6 @@ export default function AdminLoginPage() {
           )}
         </div>
 
-        {isDevBypass && (
-          <div style={{ marginTop: 12, padding: 8, border: '1px dashed #8a6d3b', borderRadius: 6, background: '#211a0b', color: '#e6e8f2' }}>
-            Dev bypass is enabled (no password). Do not use in production.
-          </div>
-        )}
         <div style={{ marginTop: 16, fontSize: 13, opacity: 0.8 }}>
           <Link href="/">← Back to Home</Link>
         </div>
