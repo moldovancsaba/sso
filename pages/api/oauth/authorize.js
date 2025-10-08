@@ -156,9 +156,11 @@ export default async function handler(req, res) {
         client_logo: client.logo_uri,
       }
 
-      // Encode and pass to login
+      // WHAT: Encode OAuth request and redirect to public login page
+      // WHY: Users need to register/login with email+password, not admin token
+      // HOW: Redirect to /login (public) instead of /admin (admin token form)
       const encodedRequest = Buffer.from(JSON.stringify(authRequest)).toString('base64url')
-      const loginUrl = `/admin?oauth_request=${encodedRequest}`
+      const loginUrl = `/login?oauth_request=${encodedRequest}`
 
       return res.redirect(302, loginUrl)
     }
