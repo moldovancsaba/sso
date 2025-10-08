@@ -58,8 +58,8 @@ export default async function handler(req, res) {
       return res.status(401).json({ error: 'Invalid email or password' })
     }
 
-    // Check if email is verified
-    if (!user.emailVerified) {
+    // Check if email is verified (treat undefined as verified for backward compatibility)
+    if (user.emailVerified === false) {
       logger.warn('Public login: email not verified', {
         event: 'public_login_unverified',
         userId: user._id.toString(),
