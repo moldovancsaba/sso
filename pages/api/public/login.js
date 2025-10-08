@@ -73,7 +73,6 @@ export default async function handler(req, res) {
 
     // WHAT: Increment login count and check if PIN should be triggered
     // WHY: Random PIN verification (5th-10th login) for additional security
-    const db = await getDb()
     const loginCount = (user.loginCount || 0) + 1
     
     // Update login count
