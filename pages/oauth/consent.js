@@ -42,7 +42,12 @@ export default function ConsentPage() {
       }
 
       try {
-        const decodedRequest = JSON.parse(Buffer.from(request, 'base64url').toString())
+        // WHAT: Decode base64url-encoded request
+        // WHY: Browser doesn't have Buffer API, must use atob with base64url conversion
+        // HOW: Convert base64url to base64, then decode with atob
+        const base64 = request.replace(/-/g, '+').replace(/_/g, '/')
+        const jsonString = atob(base64)
+        const decodedRequest = JSON.parse(jsonString)
         setAuthRequest(decodedRequest)
 
         // Fetch scope details
