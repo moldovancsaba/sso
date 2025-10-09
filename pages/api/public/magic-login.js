@@ -138,8 +138,10 @@ export default async function handler(req, res) {
       email: user.email,
     })
 
-    // Redirect to user dashboard/demo page
-    return res.redirect(302, '/demo')
+    // WHAT: Redirect to homepage after successful magic link login
+    // WHY: Users should see the main SSO page, not a test demo page
+    // TODO: Support redirect_uri parameter for OAuth flows
+    return res.redirect(302, '/')
 
   } catch (error) {
     logger.error('Public magic login error', {
