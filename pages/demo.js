@@ -441,7 +441,7 @@ export default function DemoPage({ user }) {
               <li>Bcrypt password hashing (12 salt rounds)</li>
               <li>SHA-256 session token hashing in database</li>
               <li>Server-side authentication guards (SSR)</li>
-              <li>7-day session lifetime with automatic cleanup</li>
+              <li>30-day session lifetime with automatic cleanup</li>
             </ul>
             
             <div style={{
@@ -465,20 +465,22 @@ export default function DemoPage({ user }) {
                 Back to Home
               </Link>
               
-              <Link href="/admin" style={{
-                display: 'inline-block',
-                padding: '12px 24px',
-                fontSize: '14px',
-                fontWeight: '600',
-                color: '#667eea',
-                background: 'white',
-                border: '2px solid #667eea',
-                borderRadius: '8px',
-                textDecoration: 'none',
-                transition: 'transform 0.1s'
-              }}>
-                Admin Login
-              </Link>
+              <button
+                onClick={handleLogout}
+                style={{
+                  padding: '12px 24px',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  color: '#e74c3c',
+                  background: 'white',
+                  border: '2px solid #e74c3c',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  transition: 'transform 0.1s'
+                }}
+              >
+                Logout
+              </button>
             </div>
           </div>
         </div>
