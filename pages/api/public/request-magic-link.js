@@ -130,18 +130,29 @@ export default async function handler(req, res) {
       magicLink,
     })
 
-    await sendEmail({
-      to: user.email,
-      subject: emailContent.subject,
-      text: emailContent.text,
-    })
+    try {
+      await sendEmail({
+        to: user.email,
+        subject: emailContent.subject,
+        text: emailContent.text,
+      })
 
-    logger.info('Public magic link sent', {
-      event: 'public_magic_link_sent',
-      userId: user._id.toString(),
-      email: user.email,
-      expiresAt,
-    })
+      logger.info('Public magic link sent', {
+        event: 'public_magic_link_sent',
+        userId: user._id.toString(),
+        email: user.email,
+        expiresAt,
+      })
+    } catch (emailError) {
+      logger.error('Failed to send magic link email', {
+        event: 'public_magic_link_email_failed',
+        userId: user._id.toString(),
+        email: user.email,
+        error: emailError.message,
+        stack: emailError.stack,
+      })
+      // Continue anyway - token is in database, user can retry
+    }
 
     return res.status(200).json({
       success: true,
