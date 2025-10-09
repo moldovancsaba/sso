@@ -17,17 +17,29 @@ export default function ConsentPage() {
 
   async function checkSessionAndLoadRequest() {
     try {
-      // Check if user is authenticated
+      // WHAT: Check if user is authenticated (public or admin)
+      // WHY: OAuth consent requires an authenticated user session
+      // HOW: Redirect to public login page, not admin (users shouldn't see admin)
       const res = await fetch('/api/sso/validate', { credentials: 'include' })
       if (!res.ok) {
-        // Not authenticated - redirect to login
-        router.push('/admin')
+        // Not authenticated - redirect to public login page with OAuth request preserved
+        const { request } = router.query
+        if (request) {
+          router.push(`/login?oauth_request=${encodeURIComponent(request)}`)
+        } else {
+          router.push('/login')
+        }
         return
       }
 
       const data = await res.json()
       if (!data?.isValid) {
-        router.push('/admin')
+        const { request } = router.query
+        if (request) {
+          router.push(`/login?oauth_request=${encodeURIComponent(request)}`)
+        } else {
+          router.push('/login')
+        }
         return
       }
 
@@ -186,8 +198,10 @@ export default function ConsentPage() {
       <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem', background: '#0b1021' }}>
         <div style={{ maxWidth: 480, background: '#12172b', border: '1px solid #22284a', borderRadius: 12, padding: '1.5rem', color: '#e6e8f2' }}>
           <h1 style={{ margin: 0, fontSize: '1.5rem', color: '#e74c3c' }}>Authorization Error</h1>
-          <p style={{ marginTop: '0.5rem' }}>{error || 'Invalid request'}</p>
-          <Link href="/admin" style={{ marginTop: '1rem', display: 'inline-block', color: '#4da6ff' }}>← Back to Admin</Link>
+          <p style={{ marginTop: '0.5rem' }}>{error || 'Invalid authorization request'}</p>
+          <p style={{ marginTop: '1rem', fontSize: '0.875rem', opacity: 0.8 }}>
+            This authorization link is invalid or has expired. Please return to the application you were trying to access and try again.
+          </p>
         </div>
       </div>
     )
