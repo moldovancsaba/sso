@@ -7,6 +7,16 @@
  * Usage: NEW_MAGIC_EMAIL=user@example.com node scripts/test-magic-link.mjs
  */
 
+// Load environment variables from .env.local
+import { config } from 'dotenv'
+import { resolve, dirname } from 'path'
+import { fileURLToPath } from 'url'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
+const envPath = resolve(__dirname, '../.env.local')
+config({ path: envPath })
+
 import { getDb } from '../lib/db.mjs'
 import { findPublicUserByEmail } from '../lib/publicUsers.mjs'
 import { sendEmail } from '../lib/email.mjs'
