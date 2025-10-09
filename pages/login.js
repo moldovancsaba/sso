@@ -235,8 +235,11 @@ export default function LoginPage() {
         if (oauth_request) {
           console.log('[Login] OAuth flow detected, continuing authorization')
           try {
-            // Decode the OAuth request
-            const decoded = JSON.parse(Buffer.from(oauth_request, 'base64url').toString())
+            // WHAT: Decode base64url in browser (Buffer doesn't exist in browser)
+            // WHY: Node.js Buffer API is not available in client-side JavaScript
+            // HOW: Convert base64url to base64, then use atob() to decode
+            const base64 = oauth_request.replace(/-/g, '+').replace(/_/g, '/')
+            const decoded = JSON.parse(decodeURIComponent(escape(atob(base64))))
             // Reconstruct the authorize URL with original parameters
             const params = new URLSearchParams({
               response_type: decoded.response_type,
