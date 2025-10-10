@@ -4,14 +4,30 @@ import styles from '../styles/home.module.css';
 
 export default function Home() {
   const [admin, setAdmin] = useState(null);
+  const [publicUser, setPublicUser] = useState(null);
 
   useEffect(() => {
+    // WHAT: Check both admin and public user sessions
+    // WHY: Homepage should recognize all logged-in users, not just admins
     (async () => {
       try {
-        const res = await fetch('/api/sso/validate', { credentials: 'include' });
-        if (res.ok) {
-          const data = await res.json();
-          if (data?.isValid) setAdmin(data.user);
+        // Check admin session
+        const adminRes = await fetch('/api/sso/validate', { credentials: 'include' });
+        if (adminRes.ok) {
+          const data = await adminRes.json();
+          if (data?.isValid) {
+            setAdmin(data.user);
+            return; // Admin logged in, don't check public
+          }
+        }
+        
+        // Check public user session
+        const publicRes = await fetch('/api/public/session', { credentials: 'include' });
+        if (publicRes.ok) {
+          const data = await publicRes.json();
+          if (data?.isValid) {
+            setPublicUser(data.user);
+          }
         }
       } catch {}
     })();
@@ -43,6 +59,15 @@ export default function Home() {
             <p>Logged in as <strong>{admin.email}</strong> ({admin.role})</p>
             <div className={styles.apiLinks}>
               <Link href="/admin" className={styles.primaryButton}>Go to Admin</Link>
+            </div>
+          </div>
+        ) : publicUser ? (
+          <div className={styles.apiCard}>
+            <h2>✅ Logged In</h2>
+            <p>Welcome, <strong>{publicUser.email}</strong>!</p>
+            <p style={{ fontSize: '14px', color: '#666', marginTop: '8px' }}>Your session is active and secure.</p>
+            <div className={styles.apiLinks}>
+              <Link href="/logout" className={styles.secondaryButton}>Logout</Link>
             </div>
           </div>
         ) : (
