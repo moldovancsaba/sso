@@ -126,13 +126,14 @@ export default function RegisterPage() {
       const data = await res.json()
 
       if (res.ok) {
-        // Registration successful, redirect to requested page or demo
+        // WHAT: Registration successful, redirect to requested page or homepage
+        // WHY: Demo page was for testing only, users should see main SSO page
         if (redirect && isValidRedirectUrl(decodeURIComponent(redirect))) {
           window.location.href = decodeURIComponent(redirect)
         } else {
-          router.push('/demo')
+          router.push('/')
         }
-      } else {
+      }
         // Handle server errors
         if (res.status === 409) {
           setErrors({ email: 'This email is already registered' })

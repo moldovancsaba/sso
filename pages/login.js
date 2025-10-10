@@ -172,7 +172,9 @@ export default function LoginPage() {
             return
           }
         }
-        router.push('/demo')
+        // WHAT: PIN verified, redirect to homepage or specified URL
+        // WHY: Demo page was for testing only
+        router.push('/')
       } else {
         setPinError(data.error || 'Invalid PIN')
       }
@@ -282,8 +284,10 @@ export default function LoginPage() {
             console.error('[Login] Redirect URL failed validation:', decodedRedirect)
           }
         }
-        console.log('[Login] No valid redirect, going to /demo')
-        router.push('/demo')
+        // WHAT: No redirect specified, go to homepage
+        // WHY: Demo page was for testing only, users should see main SSO page
+        console.log('[Login] No valid redirect, going to homepage')
+        router.push('/')
       } else {
         // Handle server errors
         if (res.status === 401) {
