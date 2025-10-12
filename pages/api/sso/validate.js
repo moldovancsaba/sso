@@ -1,6 +1,8 @@
-// Admin-session-based validation endpoint
-// WHAT: Validates an admin HttpOnly cookie session and returns sanitized user info
+// Session validation endpoint for both admin and public users
+// WHAT: Validates HttpOnly cookie session (admin OR public) and returns sanitized user info
+// WHY: OAuth flow needs to work for both admin and public users
 import { getAdminUser } from '../../../lib/auth.mjs'
+import { getPublicUserFromRequest } from '../../../lib/publicSessions.mjs'
 import { runCors } from '../../../lib/cors.mjs'
 
 export default async function handler(req, res) {
@@ -12,23 +14,41 @@ export default async function handler(req, res) {
   }
 
   try {
+    // WHAT: Check for admin session first, then public session
+    // WHY: OAuth should work for both user types
     const admin = await getAdminUser(req)
-    if (!admin) {
-      return res.status(401).json({
-        isValid: false,
-        message: 'No active admin session found'
+    if (admin) {
+      return res.status(200).json({
+        isValid: true,
+        userType: 'admin',
+        user: {
+          id: admin.id,
+          email: admin.email,
+          name: admin.name,
+          role: admin.role,
+          permissions: admin.permissions,
+        }
       })
     }
 
-    return res.status(200).json({
-      isValid: true,
-      user: {
-        id: admin.id,
-        email: admin.email,
-        name: admin.name,
-        role: admin.role,
-        permissions: admin.permissions,
-      }
+    // Check for public user session
+    const publicUser = await getPublicUserFromRequest(req)
+    if (publicUser) {
+      return res.status(200).json({
+        isValid: true,
+        userType: 'public',
+        user: {
+          id: publicUser.id,
+          email: publicUser.email,
+          name: publicUser.name,
+        }
+      })
+    }
+
+    // No session found
+    return res.status(401).json({
+      isValid: false,
+      message: 'No active session found'
     })
   } catch (error) {
     const msg = (error && (error.message || error.toString())) || ''
