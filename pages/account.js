@@ -263,11 +263,28 @@ export default function AccountPage({ initialUser }) {
       <div className={styles.container} style={{ paddingTop: '2rem', paddingBottom: '4rem' }}>
         <div style={{ maxWidth: '800px', margin: '0 auto' }}>
           {/* Header */}
-          <div style={{ marginBottom: '2rem' }}>
-            <h1 style={{ fontSize: '32px', fontWeight: 'bold', marginBottom: '8px' }}>My Account</h1>
-            <p style={{ color: '#666', fontSize: '14px' }}>Manage your SSO profile and connected services</p>
-            <Link href="/" style={{ fontSize: '13px', color: '#667eea', textDecoration: 'none' }}>
-              ← Back to home
+          <div style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
+            <div>
+              <h1 style={{ fontSize: '32px', fontWeight: 'bold', marginBottom: '8px' }}>My Account</h1>
+              <p style={{ color: '#666', fontSize: '14px' }}>Manage your SSO profile and connected services</p>
+              <Link href="/" style={{ fontSize: '13px', color: '#667eea', textDecoration: 'none' }}>
+                ← Back to home
+              </Link>
+            </div>
+            <Link
+              href="/logout"
+              style={{
+                padding: '10px 20px',
+                fontSize: '14px',
+                color: '#666',
+                background: 'white',
+                border: '1px solid #ddd',
+                borderRadius: '6px',
+                textDecoration: 'none',
+                display: 'inline-block'
+              }}
+            >
+              🚪 Logout
             </Link>
           </div>
 
