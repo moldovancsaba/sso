@@ -1,6 +1,6 @@
 # SSO Service — Production-Ready Authentication with Advanced Security
 
-Version: 5.4.0
+Version: 5.5.0
 Last updated: 2025-01-13T23:45:00.000Z
 
 A production-ready authentication backend for sso.doneisbetter.com with comprehensive security and user-friendly authentication options:
@@ -20,17 +20,17 @@ A production-ready authentication backend for sso.doneisbetter.com with comprehe
   - CSRF protection (double-submit cookie + HMAC)
   - Structured audit logging with Winston
   - Subdomain SSO support (*.doneisbetter.com)
-- **🔑 Authentication Options** (v5.3.0):
+- **🔑 Authentication Options** (v5.5.0):
   - Password-based login (admin + public users)
   - **Forgot password with email** (auto-generates secure passwords)
   - **Magic link authentication** (passwordless login for admin + public users)
   - **Random PIN verification** (6-digit PIN on 5th-10th login for enhanced security)
-- **📧 Email System** (v5.2.0):
+- **📧 Email System** (v5.5.0):
   - Dual provider support (Nodemailer + Resend)
   - Password reset via email
   - Email verification
   - Forgot password flow
-- **OAuth2/OIDC** (v5.3.0):
+- **OAuth2/OIDC** (v5.5.0):
   - Authorization Code Flow with **optional PKCE** (configurable per client)
   - JWT access tokens (RS256)
   - Refresh token rotation
@@ -43,19 +43,47 @@ A production-ready authentication backend for sso.doneisbetter.com with comprehe
 - Resource password generation/validation (MD5-style 32-hex token)
 - CORS per SSO_ALLOWED_ORIGINS
 
+## User Account Management (v5.5.0)
+- **Account Page**: `/account` — Comprehensive user dashboard
+  - View and edit profile (name, email)
+  - See connected services (OAuth apps)
+  - Change password securely
+  - Revoke access to individual services
+  - Delete account permanently
+- **Session Duration**: 30 days with sliding expiration (extends on each access)
+- **After Login**: Users are automatically redirected to `/account` page
+
 ## API Endpoints
+
+### Admin Endpoints
 - POST /api/admin/login — body: { email, password }
 - DELETE /api/admin/login — clears cookie session
-- GET /api/admin/users — list users (admin)
+- GET /api/admin/users — list admin users
 - POST /api/admin/users — create user (super-admin)
-- GET/PATCH/DELETE /api/admin/users/[id] — manage user
+- GET/PATCH/DELETE /api/admin/users/[id] — manage admin user
 - GET/POST /api/admin/orgs — list/create organizations (UUID)
 - GET/PATCH/DELETE /api/admin/orgs/[id] — manage organization
 - GET/POST /api/admin/orgs/[orgId]/users — list/create org users (UUID)
 - GET/PATCH/DELETE /api/admin/orgs/[orgId]/users/[id] — manage org user
+
+### Public User Endpoints (v5.5.0)
+- POST /api/public/register — Create new user account
+- POST /api/public/login — Authenticate user
+- POST /api/public/verify-pin — Verify PIN during login
+- POST /api/public/request-magic-link — Request passwordless login
+- GET /api/public/magic-login — Consume magic link token
+- POST /api/public/forgot-password — Request password reset
+- GET /api/public/session — Check session status
+- PATCH /api/public/profile — Update user profile
+- POST /api/public/change-password — Change password
+- DELETE /api/public/account — Delete user account
+- GET /api/public/authorizations — List connected OAuth services
+- DELETE /api/public/authorizations/[id] — Revoke service access
+
+### Resource & Validation
 - POST /api/resource-passwords — { resourceId, resourceType, regenerate? } -> token + shareableLink
 - PUT /api/resource-passwords — { resourceId, resourceType, password } -> validate
-- GET /api/sso/validate — returns admin session info if valid
+- GET /api/sso/validate — returns session info if valid
 
 Deprecated/Removed:
 - /api/auth/login, /api/auth/logout, /api/users/register, /api/users/logout, /api/users/[userId]
@@ -87,7 +115,7 @@ Deprecated/Removed:
 - Set all env vars in Vercel Project Settings
 
 ## Security Notes
-- **Phase 1 Hardening Complete** (v5.0.0):
+- **Phase 1 Hardening Complete** (v5.5.0):
   - ✅ Server-side session revocation
   - ✅ Rate limiting (5 login attempts per 15 minutes)
   - ✅ CSRF protection (double-submit cookie)

@@ -1,6 +1,104 @@
-# Release Notes [![Version Badge](https://img.shields.io/badge/version-5.4.0-blue)](RELEASE_NOTES.md)
+# Release Notes [![Version Badge](https://img.shields.io/badge/version-5.5.0-blue)](RELEASE_NOTES.md)
 
-## [v5.4.0] — 2025-01-13T23:45:00.000Z
+## [v5.5.0] — 2025-10-12T14:07:00.000Z
+
+### 🎯 User Account Management & Session Improvements
+
+**MAJOR FEATURE**: Comprehensive user account management page with profile editing, password management, OAuth service revocation, and account deletion.
+
+#### New Features
+
+**1. User Account Dashboard** (`/account`)
+- **Profile Management**: Edit name, view email (read-only)
+- **Connected Services**: View all OAuth apps with access to your account
+  - See grant date and scopes
+  - One-click revoke access for any service
+- **Security**: Change password with current password verification
+- **Account Deletion**: Permanently delete account with email confirmation
+  - Cascades deletion across all collections (sessions, tokens, authorizations)
+  - GDPR compliant
+
+**2. Sliding Sessions (30 Days)**
+- Session duration extended from 7 to 30 days
+- **Sliding expiration**: Session extends automatically on each access
+- Users stay logged in as long as they're active
+- Applies to both admin and public users
+
+**3. Automatic Redirect to Account Page**
+- After successful login, users are redirected to `/account` instead of homepage
+- Direct access to account management features
+- PIN verification also redirects to account page
+
+#### Critical Bug Fixes
+
+**Session Validation Fixed**
+- **Issue**: Users couldn't access `/account` page after login - redirected back to login
+- **Root Cause**: Sessions were created with MongoDB ObjectId (`user._id`) instead of UUID (`user.id`)
+- **Fix**: Login endpoint now:
+  1. Checks if user has UUID identifier
+  2. Automatically adds UUID to legacy users without one
+  3. Creates session with UUID instead of ObjectId
+  4. Works for both PIN and non-PIN flows
+- **Impact**: Account page now works correctly with server-side session validation
+
+**Account Page Server-Side Rendering**
+- Converted `/account` from client-side to server-side rendering (SSR)
+- Session validated before page loads (no flickering)
+- Automatic redirect to login if not authenticated
+- User data pre-loaded for instant display
+
+#### New API Endpoints
+
+**Account Management**:
+- `PATCH /api/public/profile` — Update user profile (name)
+- `POST /api/public/change-password` — Change password securely
+- `DELETE /api/public/account` — Delete account permanently
+- `GET /api/public/authorizations` — List OAuth authorizations
+- `DELETE /api/public/authorizations/[id]` — Revoke service access
+
+**Session Management**:
+- `GET /api/public/session` — Check session status
+
+#### Technical Improvements
+
+**UUID User Identifiers**
+- All public users now use UUID as primary identifier (`user.id`)
+- MongoDB `_id` retained for database compatibility
+- Automatic UUID backfill for legacy users on login
+- Session system uses UUID for user lookups
+
+**Session Architecture**
+- Sliding expiration updates `expiresAt` on each access
+- Sessions stored in MongoDB with TTL indexes
+- Cookie `maxAge` set to 30 days
+- Both admin and public sessions use sliding model
+
+**Homepage Improvements**
+- "My Account" button for logged-in users
+- Recognizes both admin and public sessions
+- Cleaner navigation flow
+
+#### Files Changed
+
+**New Files**:
+- `pages/account.js` — User account management dashboard
+- `pages/api/public/profile.js` — Profile update endpoint  
+- `pages/api/public/change-password.js` — Password change endpoint
+- `pages/api/public/account.js` — Account deletion endpoint
+- `pages/api/public/authorizations/index.js` — List authorizations
+- `pages/api/public/authorizations/[id].js` — Revoke authorization
+
+**Modified**:
+- `pages/api/public/login.js` — UUID identifier support
+- `lib/publicSessions.mjs` — Sliding session expiration
+- `lib/sessions.mjs` — Admin sliding sessions
+- `lib/auth.mjs` — Extended admin session to 30 days
+- `pages/index.js` — Added account page link
+- `pages/login.js` — Redirect to account page after login
+
+---
+
+## [v5.4.1] — 2025-01-13T23:45:00.000Z
 
 ### 🔐 OAuth Flow Fix: Preserve Authorization Context During Admin Login
 
@@ -69,7 +167,7 @@ useEffect(() => {
 
 ---
 
-## [v5.3.0] — 2025-10-06T21:30:00.000Z
+## [v5.5.0] — 2025-10-06T21:30:00.000Z
 
 ### 🎉 All Authentication Features Complete + PKCE Flexibility
 
@@ -165,7 +263,7 @@ useEffect(() => {
   - Success message display
 - **Email Templates** (`lib/emailTemplates.mjs`):
   - Added `buildMagicLinkEmail()` - Magic link email template
-  - Login PIN email already added in v5.2.0
+  - Login PIN email already added in v5.5.0
 
 #### Database Schema
 
@@ -259,7 +357,7 @@ useEffect(() => {
 
 ---
 
-## [v5.2.0] — 2025-10-06T11:22:25.000Z
+## [v5.5.0] — 2025-10-06T11:22:25.000Z
 
 ### 🎉 New Authentication Features: Forgot Password + Email System
 
@@ -324,7 +422,7 @@ useEffect(() => {
   - MongoDB TTL indexes
 - PIN email template in `lib/emailTemplates.mjs`
 
-**Public User Authentication** (from v5.1.0 merge):
+**Public User Authentication** (from v5.5.0 merge):
 - `lib/publicUsers.mjs` - Public user management
 - `lib/publicSessions.mjs` - Public user sessions
 - `pages/login.js` - Public login page
@@ -400,7 +498,7 @@ EMAIL_VERIFICATION_TOKEN_TTL=86400     # 24 hours
 
 ---
 
-## [v5.0.0] — 2025-10-03T09:15:22.000Z
+## [v5.5.0] — 2025-10-03T09:15:22.000Z
 
 ### 🚀 Phase 2: Complete OAuth2/OIDC Authorization Server Implementation
 
@@ -627,7 +725,7 @@ OAUTH2_CONSENT_TTL=31536000                 # 1 year
 
 ---
 
-## [v5.0.0] — 2025-10-02T11:54:33.000Z
+## [v5.5.0] — 2025-10-02T11:54:33.000Z
 
 ### 🔒 Phase 1: Critical Security Hardening
 
@@ -723,7 +821,7 @@ CSRF_SECRET=<generate with: openssl rand -base64 32>
 
 ---
 
-## [v5.0.0] — 2025-09-17T11:43:02.000Z
+## [v5.5.0] — 2025-09-17T11:43:02.000Z
 
 ### Added
 - Development-only passwordless admin login:
@@ -736,7 +834,7 @@ CSRF_SECRET=<generate with: openssl rand -base64 32>
 
 ---
 
-## [v5.0.0] — 2025-09-16T18:14:33.000Z
+## [v5.5.0] — 2025-09-16T18:14:33.000Z
 
 ### Added
 - Secure, single-use, time-limited admin magic link flow:
@@ -749,7 +847,7 @@ CSRF_SECRET=<generate with: openssl rand -base64 32>
 
 ---
 
-## [v5.0.0] — 2025-09-15T18:25:45.000Z
+## [v5.5.0] — 2025-09-15T18:25:45.000Z
 
 ### Changed
 - MongoDB client now uses fast-fail timeouts (serverSelection/connect/socket) to surface 503 quickly when DB is unreachable.
@@ -760,7 +858,7 @@ CSRF_SECRET=<generate with: openssl rand -base64 32>
 
 ---
 
-## [v5.0.0] — 2025-09-15T17:36:07.000Z
+## [v5.5.0] — 2025-09-15T17:36:07.000Z
 
 ### Changed
 - MongoDB client initialization is now lazy in serverless functions to prevent import-time crashes (avoids “Empty reply from server”).
@@ -771,7 +869,7 @@ CSRF_SECRET=<generate with: openssl rand -base64 32>
 
 ---
 
-## [v5.0.0] — 2025-09-14T08:25:57.000Z
+## [v5.5.0] — 2025-09-14T08:25:57.000Z
 
 ### Added
 - UUIDs as the primary identifier for admin users (with backfill for legacy users)
@@ -791,7 +889,7 @@ CSRF_SECRET=<generate with: openssl rand -base64 32>
 
 ---
 
-## [v5.0.0] — 2025-09-11T14:28:29.000Z
+## [v5.5.0] — 2025-09-11T14:28:29.000Z
 
 ### Added
 - Admin login UI at /admin (email + 32‑hex token) with session display and logout
@@ -802,12 +900,12 @@ CSRF_SECRET=<generate with: openssl rand -base64 32>
 
 ---
 
-## [v5.0.0] — 2025-09-11T13:57:38.000Z
+## [v5.5.0] — 2025-09-11T13:57:38.000Z
 
 ### Changed
-- Version bump to align with commit protocol; no functional changes since v5.0.0
+- Version bump to align with commit protocol; no functional changes since v5.5.0
 
-## [v5.0.0] — 2025-09-11T13:35:02.000Z
+## [v5.5.0] — 2025-09-11T13:35:02.000Z
 
 ### Added
 - DB-backed admin authentication with HttpOnly cookie session (admin-session)
@@ -831,7 +929,7 @@ CSRF_SECRET=<generate with: openssl rand -base64 32>
 
 ---
 
-## [v5.0.0] — 2025-07-23T10:00:00.000Z
+## [v5.5.0] — 2025-07-23T10:00:00.000Z
 
 ### Removed
 - Removed nested client package (@doneisbetter/sso-client)
@@ -842,7 +940,7 @@ CSRF_SECRET=<generate with: openssl rand -base64 32>
 - Updated documentation to focus on server-side implementation
 - Streamlined API documentation
 - Simplified configuration options
-## [v5.0.0] — 2025-07-22T08:03:17Z
+## [v5.5.0] — 2025-07-22T08:03:17Z
 
 ### Updated Dependencies
 - Upgraded Next.js to ^15.4.2
@@ -860,7 +958,7 @@ CSRF_SECRET=<generate with: openssl rand -base64 32>
 - Updated package overrides for better dependency management
 - Optimized session handling and validation
 
-## [v5.0.0]
+## [v5.5.0]
 
 ### Major Changes
 - Upgraded all dependencies to their latest stable versions
@@ -889,7 +987,7 @@ CSRF_SECRET=<generate with: openssl rand -base64 32>
 - Better memory management with lru-cache
 - Stricter npm configuration
 
-## [v5.0.0] — 2025-07-21T13:12:00.000Z
+## [v5.5.0] — 2025-07-21T13:12:00.000Z
 
 ### Added
 - User management features:
@@ -937,7 +1035,7 @@ CSRF_SECRET=<generate with: openssl rand -base64 32>
 - Added admin user management
 - Created API routes for user operations
 
-## [v5.0.0] — 2024-04-13T12:00:00.000Z
+## [v5.5.0] — 2024-04-13T12:00:00.000Z
 
 ### Added
 - Initial project setup
