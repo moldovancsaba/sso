@@ -336,9 +336,22 @@ export default function LoginPage({ initialRedirect, initialOAuthRequest }) {
             const authorizeUrl = `/api/oauth/authorize?${params.toString()}`
             console.log('[Login] Redirecting to:', authorizeUrl)
             
-            // WHAT: Redirect IMMEDIATELY to OAuth flow - no success message, no delay
-            // WHY: User should go straight back to LaunchMass for seamless experience
-            window.location.href = authorizeUrl
+            // WHAT: Verify session is set before redirect
+            // WHY: Need to debug why OAuth authorize sees no session
+            // HOW: Quick check to /api/sso/validate then redirect
+            setTimeout(async () => {
+              try {
+                const validateRes = await fetch('/api/sso/validate', {
+                  credentials: 'include'
+                })
+                const validateData = await validateRes.json()
+                console.log('[Login] Session validation before OAuth redirect:', validateRes.status, validateData)
+              } catch (err) {
+                console.error('[Login] Session validation error:', err)
+              }
+              console.log('[Login] Now redirecting to OAuth authorize...')
+              window.location.href = authorizeUrl
+            }, 150)
             return // Stop execution, don't set success state or show messages
           } catch (err) {
             console.error('[Login] Failed to decode oauth_request:', err)
