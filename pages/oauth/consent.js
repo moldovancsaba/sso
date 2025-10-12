@@ -2,8 +2,21 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 import Link from 'next/link'
 
-export default function ConsentPage() {
+// WHAT: Server-side render to ensure request param is immediately available
+// WHY: useRouter().query can be empty on first render, breaking OAuth flow
+export async function getServerSideProps(context) {
+  const { request } = context.query
+  return {
+    props: {
+      initialRequest: request || null,
+    },
+  }
+}
+
+export default function ConsentPage({ initialRequest }) {
   const router = useRouter()
+  // Use prop as primary source, fallback to router.query
+  const requestParam = initialRequest || router.query.request
   const [authRequest, setAuthRequest] = useState(null)
   const [scopeDetails, setScopeDetails] = useState([])
   const [user, setUser] = useState(null)
@@ -13,7 +26,7 @@ export default function ConsentPage() {
 
   useEffect(() => {
     checkSessionAndLoadRequest()
-  }, [router.query.request])
+  }, [requestParam])
 
   async function checkSessionAndLoadRequest() {
     try {
@@ -23,9 +36,8 @@ export default function ConsentPage() {
       const res = await fetch('/api/sso/validate', { credentials: 'include' })
       if (!res.ok) {
         // Not authenticated - redirect to public login page with OAuth request preserved
-        const { request } = router.query
-        if (request) {
-          router.push(`/login?oauth_request=${encodeURIComponent(request)}`)
+        if (requestParam) {
+          router.push(`/login?oauth_request=${encodeURIComponent(requestParam)}`)
         } else {
           router.push('/login')
         }
@@ -34,9 +46,8 @@ export default function ConsentPage() {
 
       const data = await res.json()
       if (!data?.isValid) {
-        const { request } = router.query
-        if (request) {
-          router.push(`/login?oauth_request=${encodeURIComponent(request)}`)
+        if (requestParam) {
+          router.push(`/login?oauth_request=${encodeURIComponent(requestParam)}`)
         } else {
           router.push('/login')
         }
@@ -46,8 +57,7 @@ export default function ConsentPage() {
       setUser(data.user)
 
       // Decode authorization request
-      const { request } = router.query
-      if (!request) {
+      if (!requestParam) {
         setError('Missing authorization request')
         setLoading(false)
         return
@@ -57,9 +67,10 @@ export default function ConsentPage() {
         // WHAT: Decode base64url-encoded request
         // WHY: Browser doesn't have Buffer API, must use atob with base64url conversion
         // HOW: Convert base64url to base64, then decode with atob
-        const base64 = request.replace(/-/g, '+').replace(/_/g, '/')
+        const base64 = requestParam.replace(/-/g, '+').replace(/_/g, '/')
         const jsonString = atob(base64)
         const decodedRequest = JSON.parse(jsonString)
+        console.log('[Consent] Decoded auth request:', decodedRequest)
         setAuthRequest(decodedRequest)
 
         // Fetch scope details
