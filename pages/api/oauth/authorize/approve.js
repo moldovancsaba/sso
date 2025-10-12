@@ -8,6 +8,7 @@
  */
 
 import { getAdminUser } from '../../../../lib/auth.mjs'
+import { getPublicUserFromRequest } from '../../../../lib/publicSessions.mjs'
 import { createAuthorizationCode } from '../../../../lib/oauth/codes.mjs'
 import logger from '../../../../lib/logger.mjs'
 import { runCors } from '../../../../lib/cors.mjs'
@@ -20,8 +21,13 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
-  // Authenticate user
-  const user = await getAdminUser(req)
+  // WHAT: Authenticate user (admin or public)
+  // WHY: OAuth should work for both user types
+  let user = await getAdminUser(req)
+  if (!user) {
+    user = await getPublicUserFromRequest(req)
+  }
+  
   if (!user) {
     return res.status(401).json({ error: 'Unauthorized' })
   }
@@ -35,8 +41,9 @@ export default async function handler(req, res) {
     code_challenge_method,
   } = req.body
 
-  // Validate required parameters
-  if (!client_id || !redirect_uri || !scope || !state || !code_challenge) {
+  // WHAT: Validate required parameters (code_challenge is optional)
+  // WHY: Confidential clients may not use PKCE if require_pkce is false
+  if (!client_id || !redirect_uri || !scope || !state) {
     return res.status(400).json({
       error: 'Missing required parameters',
     })
