@@ -162,22 +162,20 @@ export default function LoginPage() {
       const data = await res.json()
 
       if (res.ok && data.success) {
-        // PIN verified successfully - redirect
-        console.log('[Login] PIN verified successfully, redirecting')
+        // PIN verified successfully
+        console.log('[Login] PIN verified successfully')
         console.log('[Login] Session should now be active')
         
-        // Close the PIN modal and show success
+        // Close the PIN modal
         setPinRequired(false)
         setPin('')
         setPinError('')
-        setLoginSuccess(true)
         setPinLoading(false)
         
-        // Redirect after showing success
-        setTimeout(() => {
-          // Check if OAuth flow
-          if (oauth_request) {
-          console.log('[Login] OAuth flow detected after PIN, continuing authorization')
+        // WHAT: Check if OAuth flow - redirect IMMEDIATELY without delay or success message
+        // WHY: OAuth users need seamless flow back to LaunchMass
+        if (oauth_request) {
+          console.log('[Login] OAuth flow detected after PIN, redirecting immediately')
           try {
             const base64 = oauth_request.replace(/-/g, '+').replace(/_/g, '/')
             const decoded = JSON.parse(decodeURIComponent(escape(atob(base64))))
@@ -192,23 +190,30 @@ export default function LoginPage() {
               params.set('code_challenge', decoded.code_challenge)
               params.set('code_challenge_method', decoded.code_challenge_method)
             }
+            // Immediate redirect for OAuth flow
             window.location.href = `/api/oauth/authorize?${params.toString()}`
             return
           } catch (err) {
             console.error('[Login] Failed to decode oauth_request:', err)
+            // Fall through to normal flow
           }
         }
         
-        // Check for redirect parameter
-        if (redirect) {
-          const decodedRedirect = decodeURIComponent(redirect)
-          if (isValidRedirectUrl(decodedRedirect)) {
-            console.log('[Login] Redirecting to:', decodedRedirect)
-            window.location.href = decodedRedirect
-            return
-          }
-        }
+        // For non-OAuth flows, show success message briefly
+        setLoginSuccess(true)
         
+        // Redirect after showing success (only for non-OAuth flows)
+        setTimeout(() => {
+          // Check for redirect parameter
+          if (redirect) {
+            const decodedRedirect = decodeURIComponent(redirect)
+            if (isValidRedirectUrl(decodedRedirect)) {
+              console.log('[Login] Redirecting to:', decodedRedirect)
+              window.location.href = decodedRedirect
+              return
+            }
+          }
+          
           // WHAT: Redirect to account page after PIN verification
           // WHY: Users want to see their account dashboard after login
           console.log('[Login] PIN verified, going to account page')
@@ -270,11 +275,11 @@ export default function LoginPage() {
           return
         }
 
-        // WHAT: Check if this is an OAuth flow login
-        // WHY: OAuth clients need to continue to consent/authorization, not demo page
-        // HOW: Decode oauth_request and reconstruct the authorize URL with original params
+        // WHAT: Check if this is an OAuth flow login - REDIRECT IMMEDIATELY
+        // WHY: OAuth clients need seamless flow back to LaunchMass, no delays or account page visits
+        // HOW: Decode oauth_request and redirect instantly to authorization endpoint
         if (oauth_request) {
-          console.log('[Login] OAuth flow detected, continuing authorization')
+          console.log('[Login] OAuth flow detected, continuing authorization immediately')
           try {
             // WHAT: Decode base64url in browser (Buffer doesn't exist in browser)
             // WHY: Node.js Buffer API is not available in client-side JavaScript
@@ -293,18 +298,18 @@ export default function LoginPage() {
               params.set('code_challenge', decoded.code_challenge)
               params.set('code_challenge_method', decoded.code_challenge_method)
             }
-            // Redirect back to authorize endpoint - now with valid session
-            setTimeout(() => {
-              window.location.href = `/api/oauth/authorize?${params.toString()}`
-            }, 100)
-            return
+            // WHAT: Redirect IMMEDIATELY to OAuth flow - no success message, no delay
+            // WHY: User should go straight back to LaunchMass for seamless experience
+            console.log('[Login] Redirecting immediately to OAuth authorize endpoint')
+            window.location.href = `/api/oauth/authorize?${params.toString()}`
+            return // Stop execution, don't set success state or show messages
           } catch (err) {
             console.error('[Login] Failed to decode oauth_request:', err)
             // Fall through to normal redirect logic
           }
         }
 
-        // Login successful, redirect to requested page or homepage
+        // Login successful for non-OAuth flows
         console.log('[Login] Login successful, redirect param:', redirect)
         console.log('[Login] Full query:', router.query)
         console.log('[Login] Session cookie should now be set')
@@ -313,7 +318,7 @@ export default function LoginPage() {
         setLoginSuccess(true)
         setLoading(false)
         
-        // Redirect after showing success
+        // Redirect after showing success (only for non-OAuth flows)
         setTimeout(() => {
           if (redirect) {
             const decodedRedirect = decodeURIComponent(redirect)
