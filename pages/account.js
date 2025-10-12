@@ -12,10 +12,52 @@ import Link from 'next/link'
 import { useRouter } from 'next/router'
 import styles from '../styles/home.module.css'
 
-export default function AccountPage() {
+// WHAT: Server-side session validation before page renders
+// WHY: Ensure user is authenticated before showing account page
+export async function getServerSideProps(context) {
+  const { getPublicUserFromRequest } = await import('../lib/publicSessions.mjs')
+  
+  try {
+    const user = await getPublicUserFromRequest(context.req)
+    
+    if (!user) {
+      // Not logged in, redirect to login with return URL
+      return {
+        redirect: {
+          destination: '/login?redirect=' + encodeURIComponent('/account'),
+          permanent: false
+        }
+      }
+    }
+    
+    // Pass user data to page
+    return {
+      props: {
+        initialUser: {
+          id: user.id,
+          email: user.email,
+          name: user.name || '',
+          role: user.role || 'user',
+          status: user.status,
+          emailVerified: user.emailVerified !== false
+        }
+      }
+    }
+  } catch (error) {
+    console.error('Account page session check error:', error)
+    return {
+      redirect: {
+        destination: '/login',
+        permanent: false
+      }
+    }
+  }
+}
+
+export default function AccountPage({ initialUser }) {
   const router = useRouter()
-  const [user, setUser] = useState(null)
-  const [loading, setLoading] = useState(true)
+  const [user, setUser] = useState(initialUser)
+  const [loading, setLoading] = useState(false)
   const [authorizations, setAuthorizations] = useState([])
   const [authsLoading, setAuthsLoading] = useState(true)
   
@@ -39,28 +81,13 @@ export default function AccountPage() {
   const [deleteLoading, setDeleteLoading] = useState(false)
   const [deleteError, setDeleteError] = useState('')
 
-  // Check if user is logged in
+  // WHAT: Initialize profile data from server-provided user
+  // WHY: Server already validated session, no need to check again
   useEffect(() => {
-    (async () => {
-      try {
-        const res = await fetch('/api/public/session', { credentials: 'include' })
-        const data = await res.json()
-        
-        if (data.isValid && data.user) {
-          setUser(data.user)
-          setProfileData({ name: data.user.name || '' })
-        } else {
-          // Not logged in, redirect to login
-          router.push('/login?redirect=' + encodeURIComponent('/account'))
-        }
-      } catch (err) {
-        console.error('Failed to check session:', err)
-        router.push('/login')
-      } finally {
-        setLoading(false)
-      }
-    })()
-  }, [router])
+    if (initialUser) {
+      setProfileData({ name: initialUser.name || '' })
+    }
+  }, [initialUser])
 
   // Fetch user's OAuth authorizations
   useEffect(() => {
@@ -221,16 +248,9 @@ export default function AccountPage() {
     }
   }
 
-  if (loading) {
-    return (
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <p>Loading...</p>
-      </div>
-    )
-  }
-
+  // User is guaranteed to exist because of server-side validation
   if (!user) {
-    return null // Redirecting to login
+    return null
   }
 
   return (
