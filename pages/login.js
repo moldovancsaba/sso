@@ -11,15 +11,26 @@ import Head from 'next/head'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 
-// Make page server-rendered to ensure query params are available
+// WHAT: Make page server-rendered to ensure query params are available immediately
+// WHY: useRouter().query can be empty on first render, causing OAuth params to be lost
+// HOW: Extract query params in getServerSideProps and pass as props
 export async function getServerSideProps(context) {
-  // Just return empty props - we only need this to force server rendering
-  return { props: {} }
+  const { redirect, oauth_request } = context.query
+  
+  return {
+    props: {
+      initialRedirect: redirect || null,
+      initialOAuthRequest: oauth_request || null,
+    },
+  }
 }
 
-export default function LoginPage() {
+export default function LoginPage({ initialRedirect, initialOAuthRequest }) {
   const router = useRouter()
-  const { redirect, oauth_request } = router.query
+  // WHAT: Use props as primary source, fallback to router.query
+  // WHY: Props from getServerSideProps are reliable, router.query can be empty initially
+  const redirect = initialRedirect || router.query.redirect
+  const oauth_request = initialOAuthRequest || router.query.oauth_request
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -37,10 +48,16 @@ export default function LoginPage() {
   const [pinError, setPinError] = useState('')
   const [loginSuccess, setLoginSuccess] = useState(false)
   
-  // WHAT: Track when component is mounted
-  // WHY: Prevent redirects during SSR/hydration to avoid React errors
+  // WHAT: Track when component is mounted and log OAuth params
+  // WHY: Prevent redirects during SSR/hydration to avoid React errors, debug OAuth flow
   useEffect(() => {
     setMounted(true)
+    if (oauth_request) {
+      console.log('[Login] Page loaded with oauth_request:', oauth_request)
+    }
+    if (redirect) {
+      console.log('[Login] Page loaded with redirect:', redirect)
+    }
   }, [])
 
   // REMOVED: Automatic session check was interfering with form submission
