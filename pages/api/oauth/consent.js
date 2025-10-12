@@ -7,6 +7,7 @@
  */
 
 import { getAdminUser } from '../../../lib/auth.mjs'
+import { getPublicUserFromRequest } from '../../../lib/publicSessions.mjs'
 import { getDb } from '../../../lib/db.mjs'
 import logger from '../../../lib/logger.mjs'
 import { runCors } from '../../../lib/cors.mjs'
@@ -19,8 +20,13 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
-  // Authenticate user
-  const user = await getAdminUser(req)
+  // WHAT: Authenticate user (admin or public)
+  // WHY: OAuth consent should work for both user types
+  let user = await getAdminUser(req)
+  if (!user) {
+    user = await getPublicUserFromRequest(req)
+  }
+  
   if (!user) {
     return res.status(401).json({ error: 'Unauthorized' })
   }
