@@ -176,9 +176,12 @@ export default function LoginPage() {
         // WHY: OAuth users need seamless flow back to LaunchMass
         if (oauth_request) {
           console.log('[Login] OAuth flow detected after PIN, redirecting immediately')
+          console.log('[Login] oauth_request:', oauth_request)
           try {
             const base64 = oauth_request.replace(/-/g, '+').replace(/_/g, '/')
             const decoded = JSON.parse(decodeURIComponent(escape(atob(base64))))
+            console.log('[Login] Decoded OAuth request after PIN:', decoded)
+            
             const params = new URLSearchParams({
               response_type: decoded.response_type,
               client_id: decoded.client_id,
@@ -186,15 +189,23 @@ export default function LoginPage() {
               scope: decoded.scope,
               state: decoded.state,
             })
+            
+            // WHAT: Only add code_challenge if it exists
+            // WHY: LaunchMass might send code_challenge_method without code_challenge
             if (decoded.code_challenge) {
               params.set('code_challenge', decoded.code_challenge)
-              params.set('code_challenge_method', decoded.code_challenge_method)
+              params.set('code_challenge_method', decoded.code_challenge_method || 'S256')
             }
+            
+            const authorizeUrl = `/api/oauth/authorize?${params.toString()}`
+            console.log('[Login] After PIN, redirecting to:', authorizeUrl)
+            
             // Immediate redirect for OAuth flow
-            window.location.href = `/api/oauth/authorize?${params.toString()}`
+            window.location.href = authorizeUrl
             return
           } catch (err) {
-            console.error('[Login] Failed to decode oauth_request:', err)
+            console.error('[Login] Failed to decode oauth_request after PIN:', err)
+            console.error('[Login] Error details:', err.message, err.stack)
             // Fall through to normal flow
           }
         }
@@ -280,12 +291,15 @@ export default function LoginPage() {
         // HOW: Decode oauth_request and redirect instantly to authorization endpoint
         if (oauth_request) {
           console.log('[Login] OAuth flow detected, continuing authorization immediately')
+          console.log('[Login] oauth_request:', oauth_request)
           try {
             // WHAT: Decode base64url in browser (Buffer doesn't exist in browser)
             // WHY: Node.js Buffer API is not available in client-side JavaScript
             // HOW: Convert base64url to base64, then use atob() to decode
             const base64 = oauth_request.replace(/-/g, '+').replace(/_/g, '/')
             const decoded = JSON.parse(decodeURIComponent(escape(atob(base64))))
+            console.log('[Login] Decoded OAuth request:', decoded)
+            
             // Reconstruct the authorize URL with original parameters
             const params = new URLSearchParams({
               response_type: decoded.response_type,
@@ -294,17 +308,24 @@ export default function LoginPage() {
               scope: decoded.scope,
               state: decoded.state,
             })
+            
+            // WHAT: Only add code_challenge if it exists
+            // WHY: LaunchMass might send code_challenge_method without code_challenge
             if (decoded.code_challenge) {
               params.set('code_challenge', decoded.code_challenge)
-              params.set('code_challenge_method', decoded.code_challenge_method)
+              params.set('code_challenge_method', decoded.code_challenge_method || 'S256')
             }
+            
+            const authorizeUrl = `/api/oauth/authorize?${params.toString()}`
+            console.log('[Login] Redirecting to:', authorizeUrl)
+            
             // WHAT: Redirect IMMEDIATELY to OAuth flow - no success message, no delay
             // WHY: User should go straight back to LaunchMass for seamless experience
-            console.log('[Login] Redirecting immediately to OAuth authorize endpoint')
-            window.location.href = `/api/oauth/authorize?${params.toString()}`
+            window.location.href = authorizeUrl
             return // Stop execution, don't set success state or show messages
           } catch (err) {
             console.error('[Login] Failed to decode oauth_request:', err)
+            console.error('[Login] Error details:', err.message, err.stack)
             // Fall through to normal redirect logic
           }
         }
