@@ -209,10 +209,10 @@ export default function LoginPage() {
           }
         }
         
-          // WHAT: Use window.location.href for full page reload to ensure session cookie is loaded
-          // WHY: router.push() doesn't always refresh session state properly
-          console.log('[Login] PIN verified, reloading homepage to show logged-in state')
-          window.location.href = '/'
+          // WHAT: Redirect to account page after PIN verification
+          // WHY: Users want to see their account dashboard after login
+          console.log('[Login] PIN verified, going to account page')
+          window.location.href = '/account'
         }, 800) // Give user time to see success message
       } else {
         setPinError(data.error || 'Invalid PIN')
@@ -329,10 +329,10 @@ export default function LoginPage() {
               console.error('[Login] Redirect URL failed validation:', decodedRedirect)
             }
           }
-          // WHAT: Use window.location.href for full page reload to ensure session cookie is loaded
-          // WHY: router.push() doesn't always refresh session state properly  
-          console.log('[Login] No valid redirect, reloading homepage to show logged-in state')
-          window.location.href = '/'
+          // WHAT: Redirect to account page after successful login
+          // WHY: Users want to see their account dashboard, not homepage  
+          console.log('[Login] No valid redirect, going to account page')
+          window.location.href = '/account'
         }, 800) // Give user time to see success message
       } else {
         // Handle server errors
