@@ -17,8 +17,7 @@
  * - code_challenge_method: PKCE method (S256 or plain)
  */
 
-import { getAdminUser } from '../../../lib/auth.mjs'
-import { getPublicUserFromRequest } from '../../../lib/publicSessions.mjs'
+import { getAuthenticatedUser } from '../../../lib/unifiedAuth.mjs'
 import { getClient, validateRedirectUri, validateClientScopes } from '../../../lib/oauth/clients.mjs'
 import { validateScopes, ensureRequiredScopes } from '../../../lib/oauth/scopes.mjs'
 import { createAuthorizationCode } from '../../../lib/oauth/codes.mjs'
@@ -136,20 +135,10 @@ export default async function handler(req, res) {
 
     // WHAT: Check if user is authenticated (admin or public user)
     // WHY: OAuth should work for both admin users and regular public users
-    // HOW: Check admin session first, then public session if admin not found
-    // NOTE: getAdminUser returns user object directly or null
-    let user = await getAdminUser(req)
-    let userType = 'admin'
+    // HOW: Use unified auth helper that checks both session types
+    const auth = await getAuthenticatedUser(req)
     
-    if (!user) {
-      // Try public user session
-      user = await getPublicUserFromRequest(req)
-      if (user) {
-        userType = 'public'
-      }
-    }
-    
-    if (!user) {
+    if (!auth) {
       // User not authenticated - redirect to login with return URL
       logger.info('Authorization request: user not authenticated, redirecting to login', {
         client_id,
@@ -180,6 +169,7 @@ export default async function handler(req, res) {
     }
 
     // User is authenticated - check for existing consent
+    const { user, userType } = auth
     logger.info('Authorization request: user authenticated', {
       client_id,
       client_name: client.name,
