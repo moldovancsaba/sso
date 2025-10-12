@@ -53,8 +53,10 @@ export default function LogoutPage() {
           }
         }
         
-        // Default redirect to SSO homepage
-        router.push('/')
+        // WHAT: Use window.location.href to force full page reload
+        // WHY: router.push() doesn't reload, so homepage won't re-check session
+        // HOW: Full reload triggers session check on homepage mount
+        window.location.href = '/'
       } catch (err) {
         console.error('[Logout] Logout error:', err)
         setStatus('Logout failed. Redirecting...')
@@ -64,7 +66,7 @@ export default function LogoutPage() {
           if (redirect && isValidRedirectUrl(decodeURIComponent(redirect))) {
             window.location.href = decodeURIComponent(redirect)
           } else {
-            router.push('/')
+            window.location.href = '/'
           }
         }, 1000)
       }
