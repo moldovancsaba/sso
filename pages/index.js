@@ -67,6 +67,7 @@ export default function Home() {
             <p>Welcome, <strong>{publicUser.email}</strong>!</p>
             <p style={{ fontSize: '14px', color: '#666', marginTop: '8px' }}>Your session is active and secure.</p>
             <div className={styles.apiLinks}>
+              <Link href="/account" className={styles.primaryButton}>My Account</Link>
               <Link href="/logout" className={styles.secondaryButton}>Logout</Link>
             </div>
           </div>
