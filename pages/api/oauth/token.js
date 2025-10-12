@@ -72,12 +72,14 @@ export default async function handler(req, res) {
   } catch (error) {
     logger.error('Token endpoint error', {
       error: error.message,
+      stack: error.stack,
       grant_type,
+      body: req.body,
     })
 
     return res.status(500).json({
       error: 'server_error',
-      error_description: 'An internal error occurred',
+      error_description: error.message || 'An internal error occurred',
     })
   }
 }
@@ -95,6 +97,14 @@ async function handleAuthorizationCodeGrant(req, res) {
     client_secret,
     code_verifier,
   } = req.body
+  
+  logger.info('Token exchange request', {
+    client_id,
+    has_code: !!code,
+    has_redirect_uri: !!redirect_uri,
+    has_client_secret: !!client_secret,
+    has_code_verifier: !!code_verifier,
+  })
 
   // Validate required parameters
   if (!code) {
