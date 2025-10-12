@@ -133,7 +133,7 @@ export default function RegisterPage() {
         } else {
           router.push('/')
         }
-      }
+      } else {
         // Handle server errors
         if (res.status === 409) {
           setErrors({ email: 'This email is already registered' })

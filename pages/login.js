@@ -35,6 +35,7 @@ export default function LoginPage() {
   const [pin, setPin] = useState('')
   const [pinLoading, setPinLoading] = useState(false)
   const [pinError, setPinError] = useState('')
+  const [loginSuccess, setLoginSuccess] = useState(false)
   
   // WHAT: Track when component is mounted
   // WHY: Prevent redirects during SSR/hydration to avoid React errors
@@ -160,21 +161,59 @@ export default function LoginPage() {
 
       const data = await res.json()
 
-      if (res.ok) {
+      if (res.ok && data.success) {
         // PIN verified successfully - redirect
-        console.log('[Login] PIN verified, redirecting')
+        console.log('[Login] PIN verified successfully, redirecting')
+        console.log('[Login] Session should now be active')
+        
+        // Close the PIN modal and show success
+        setPinRequired(false)
+        setPin('')
+        setPinError('')
+        setLoginSuccess(true)
+        setPinLoading(false)
+        
+        // Redirect after showing success
+        setTimeout(() => {
+          // Check if OAuth flow
+          if (oauth_request) {
+          console.log('[Login] OAuth flow detected after PIN, continuing authorization')
+          try {
+            const base64 = oauth_request.replace(/-/g, '+').replace(/_/g, '/')
+            const decoded = JSON.parse(decodeURIComponent(escape(atob(base64))))
+            const params = new URLSearchParams({
+              response_type: decoded.response_type,
+              client_id: decoded.client_id,
+              redirect_uri: decoded.redirect_uri,
+              scope: decoded.scope,
+              state: decoded.state,
+            })
+            if (decoded.code_challenge) {
+              params.set('code_challenge', decoded.code_challenge)
+              params.set('code_challenge_method', decoded.code_challenge_method)
+            }
+            window.location.href = `/api/oauth/authorize?${params.toString()}`
+            return
+          } catch (err) {
+            console.error('[Login] Failed to decode oauth_request:', err)
+          }
+        }
+        
+        // Check for redirect parameter
         if (redirect) {
           const decodedRedirect = decodeURIComponent(redirect)
           if (isValidRedirectUrl(decodedRedirect)) {
-            setTimeout(() => {
-              window.location.href = decodedRedirect
-            }, 100)
+            console.log('[Login] Redirecting to:', decodedRedirect)
+            window.location.href = decodedRedirect
             return
           }
         }
-        // WHAT: PIN verified, redirect to homepage or specified URL
-        // WHY: Demo page was for testing only
-        router.push('/')
+        
+          // WHAT: Use window.location.href for full page reload to ensure session cookie is loaded
+          // WHY: router.push() doesn't always refresh session state properly
+          console.log('[Login] PIN verified, reloading homepage to show logged-in state')
+          window.location.href = '/'
+        }, 800) // Give user time to see success message
       } else {
         setPinError(data.error || 'Invalid PIN')
       }
@@ -265,29 +304,36 @@ export default function LoginPage() {
           }
         }
 
-        // Login successful, redirect to requested page or demo
+        // Login successful, redirect to requested page or homepage
         console.log('[Login] Login successful, redirect param:', redirect)
         console.log('[Login] Full query:', router.query)
-        if (redirect) {
-          const decodedRedirect = decodeURIComponent(redirect)
-          console.log('[Login] Decoded redirect:', decodedRedirect)
-          const isValid = isValidRedirectUrl(decodedRedirect)
-          console.log('[Login] Is valid redirect URL:', isValid)
-          if (isValid) {
-            console.log('[Login] Redirecting to:', decodedRedirect)
-            // Use a small delay to ensure cookie is set
-            setTimeout(() => {
+        console.log('[Login] Session cookie should now be set')
+        
+        // Show success message briefly
+        setLoginSuccess(true)
+        setLoading(false)
+        
+        // Redirect after showing success
+        setTimeout(() => {
+          if (redirect) {
+            const decodedRedirect = decodeURIComponent(redirect)
+            console.log('[Login] Decoded redirect:', decodedRedirect)
+            const isValid = isValidRedirectUrl(decodedRedirect)
+            console.log('[Login] Is valid redirect URL:', isValid)
+            if (isValid) {
+              console.log('[Login] Redirecting to:', decodedRedirect)
+              // Use window.location.href for full page reload
               window.location.href = decodedRedirect
-            }, 100)
-            return
-          } else {
-            console.error('[Login] Redirect URL failed validation:', decodedRedirect)
+              return
+            } else {
+              console.error('[Login] Redirect URL failed validation:', decodedRedirect)
+            }
           }
-        }
-        // WHAT: No redirect specified, go to homepage
-        // WHY: Demo page was for testing only, users should see main SSO page
-        console.log('[Login] No valid redirect, going to homepage')
-        router.push('/')
+          // WHAT: Use window.location.href for full page reload to ensure session cookie is loaded
+          // WHY: router.push() doesn't always refresh session state properly  
+          console.log('[Login] No valid redirect, reloading homepage to show logged-in state')
+          window.location.href = '/'
+        }, 800) // Give user time to see success message
       } else {
         // Handle server errors
         if (res.status === 401) {
@@ -358,8 +404,24 @@ export default function LoginPage() {
             </p>
           </div>
 
+          {/* Login Success */}
+          {loginSuccess && (
+            <div style={{
+              background: '#e8f5e9',
+              border: '1px solid #81c784',
+              borderRadius: '8px',
+              padding: '12px 16px',
+              marginBottom: '24px',
+              color: '#2e7d32',
+              fontSize: '14px',
+              textAlign: 'center'
+            }}>
+              ✅ <strong>Login successful!</strong> Redirecting...
+            </div>
+          )}
+
           {/* Magic Link Success */}
-          {magicLinkSent && (
+          {magicLinkSent && !loginSuccess && (
             <div style={{
               background: '#e8f5e9',
               border: '1px solid #81c784',
