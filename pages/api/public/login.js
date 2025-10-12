@@ -83,12 +83,28 @@ export default async function handler(req, res) {
       }
     )
 
+    // WHAT: Ensure user has UUID identifier before PIN flow
+    // WHY: PIN system uses UUID as userId
+    if (!user.id) {
+      const { randomUUID } = await import('crypto')
+      const uuid = randomUUID()
+      await db.collection('publicUsers').updateOne(
+        { _id: user._id },
+        { $set: { id: uuid } }
+      )
+      user.id = uuid
+      logger.info('Added UUID to legacy public user', {
+        userId: uuid,
+        email: user.email
+      })
+    }
+    
     // Check if PIN should be triggered
     if (shouldTriggerPin(loginCount)) {
       // Issue PIN and send email
       await ensurePinIndexes() // Ensure indexes exist
       const { pin } = await issuePin({
-        userId: user._id.toString(),
+        userId: user.id,
         email: user.email,
         userType: 'public',
       })
@@ -107,18 +123,18 @@ export default async function handler(req, res) {
           text: emailContent.text,
         })
       } catch (emailError) {
-        logger.error('Failed to send PIN email', {
-          event: 'pin_email_failed',
-          userId: user._id.toString(),
-          email: user.email,
-          error: emailError.message,
-        })
+      logger.error('Failed to send PIN email', {
+        event: 'pin_email_failed',
+        userId: user.id,
+        email: user.email,
+        error: emailError.message,
+      })
         // Continue anyway - PIN is in database, user can retry
       }
 
       logger.info('Public login PIN required', {
         event: 'public_login_pin_required',
-        userId: user._id.toString(),
+        userId: user.id,
         email: user.email,
         loginCount,
       })
@@ -133,8 +149,25 @@ export default async function handler(req, res) {
     }
 
     // No PIN required - proceed with normal login
-    // Create session
-    const sessionToken = await createPublicSession(user._id.toString(), user.email)
+    // WHAT: Ensure user has UUID identifier (for backward compatibility with old users)
+    // WHY: Sessions need stable UUID, not MongoDB ObjectId
+    if (!user.id) {
+      // Legacy user without UUID - add one
+      const { randomUUID } = await import('crypto')
+      const uuid = randomUUID()
+      await db.collection('publicUsers').updateOne(
+        { _id: user._id },
+        { $set: { id: uuid } }
+      )
+      user.id = uuid
+      logger.info('Added UUID to legacy public user', {
+        userId: uuid,
+        email: user.email
+      })
+    }
+    
+    // Create session with UUID
+    const sessionToken = await createPublicSession(user.id, user.email)
 
     // Set session cookie
     const cookieName = process.env.PUBLIC_SESSION_COOKIE || 'public-session'
@@ -155,7 +188,7 @@ export default async function handler(req, res) {
 
     logger.info('Public login successful', {
       event: 'public_login_success',
-      userId: user._id.toString(),
+      userId: user.id,
       email: user.email,
       loginCount,
     })
