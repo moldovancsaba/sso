@@ -7,8 +7,7 @@
  * It generates an authorization code that the client can exchange for tokens.
  */
 
-import { getAdminUser } from '../../../../lib/auth.mjs'
-import { getPublicUserFromRequest } from '../../../../lib/publicSessions.mjs'
+import { getAuthenticatedUser } from '../../../../lib/unifiedAuth.mjs'
 import { createAuthorizationCode } from '../../../../lib/oauth/codes.mjs'
 import logger from '../../../../lib/logger.mjs'
 import { runCors } from '../../../../lib/cors.mjs'
@@ -23,14 +22,13 @@ export default async function handler(req, res) {
 
   // WHAT: Authenticate user (admin or public)
   // WHY: OAuth should work for both user types
-  let user = await getAdminUser(req)
-  if (!user) {
-    user = await getPublicUserFromRequest(req)
-  }
+  const auth = await getAuthenticatedUser(req)
   
-  if (!user) {
+  if (!auth) {
     return res.status(401).json({ error: 'Unauthorized' })
   }
+  
+  const user = auth.user
 
   const {
     client_id,

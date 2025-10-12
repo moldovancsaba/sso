@@ -1,8 +1,7 @@
 // Session validation endpoint for both admin and public users
 // WHAT: Validates HttpOnly cookie session (admin OR public) and returns sanitized user info
 // WHY: OAuth flow needs to work for both admin and public users
-import { getAdminUser } from '../../../lib/auth.mjs'
-import { getPublicUserFromRequest } from '../../../lib/publicSessions.mjs'
+import { getAuthenticatedUser } from '../../../lib/unifiedAuth.mjs'
 import { runCors } from '../../../lib/cors.mjs'
 
 export default async function handler(req, res) {
@@ -14,42 +13,36 @@ export default async function handler(req, res) {
   }
 
   try {
-    // WHAT: Check for admin session first, then public session
-    // WHY: OAuth should work for both user types
-    const admin = await getAdminUser(req)
-    if (admin) {
-      return res.status(200).json({
-        isValid: true,
-        userType: 'admin',
-        user: {
-          id: admin.id,
-          email: admin.email,
-          name: admin.name,
-          role: admin.role,
-          permissions: admin.permissions,
-        }
+    // WHAT: Check for admin or public session using unified auth
+    // WHY: Simplifies code and ensures consistent behavior
+    const auth = await getAuthenticatedUser(req)
+    
+    if (!auth) {
+      // No session found
+      return res.status(401).json({
+        isValid: false,
+        message: 'No active session found'
       })
     }
-
-    // Check for public user session
-    const publicUser = await getPublicUserFromRequest(req)
-    if (publicUser) {
-      return res.status(200).json({
-        isValid: true,
-        userType: 'public',
-        user: {
-          id: publicUser.id,
-          email: publicUser.email,
-          name: publicUser.name,
-        }
-      })
+    
+    // Return user info based on type
+    const response = {
+      isValid: true,
+      userType: auth.userType,
+      user: {
+        id: auth.user.id,
+        email: auth.user.email,
+        name: auth.user.name,
+      }
     }
-
-    // No session found
-    return res.status(401).json({
-      isValid: false,
-      message: 'No active session found'
-    })
+    
+    // Add admin-specific fields if admin user
+    if (auth.userType === 'admin') {
+      response.user.role = auth.user.role
+      response.user.permissions = auth.user.permissions
+    }
+    
+    return res.status(200).json(response)
   } catch (error) {
     const msg = (error && (error.message || error.toString())) || ''
     if (msg.includes('MONGODB_URI is required')) {
