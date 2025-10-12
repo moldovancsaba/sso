@@ -168,10 +168,11 @@ export default function AdminLoginPage() {
         {admin ? (
           <div style={{ marginTop: '1rem', padding: '0.75rem', background: '#0e1733', border: '1px solid #24306b', borderRadius: 8 }}>
             <div style={{ marginBottom: 8 }}>Logged in as <strong>{admin.email}</strong> ({admin.role})</div>
-            <div style={{ display: 'flex', gap: 8 }}>
-              <button onClick={handleLogout} disabled={loading} style={{ padding: '0.5rem 0.75rem', background: '#24306b', color: 'white', border: 0, borderRadius: 6, cursor: 'pointer' }}>Logout</button>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              <Link href="/admin/users" style={{ padding: '0.5rem 0.75rem', background: '#c77700', color: 'white', borderRadius: 6, textDecoration: 'none', fontWeight: '600' }}>👥 Users</Link>
               <Link href="/admin/oauth-clients" style={{ padding: '0.5rem 0.75rem', background: '#4054d6', color: 'white', borderRadius: 6, textDecoration: 'none' }}>OAuth Clients</Link>
-              <Link href="/docs" style={{ padding: '0.5rem 0.75rem', background: '#1e895a', color: 'white', borderRadius: 6 }}>Docs</Link>
+              <Link href="/docs" style={{ padding: '0.5rem 0.75rem', background: '#1e895a', color: 'white', borderRadius: 6, textDecoration: 'none' }}>Docs</Link>
+              <button onClick={handleLogout} disabled={loading} style={{ padding: '0.5rem 0.75rem', background: '#24306b', color: 'white', border: 0, borderRadius: 6, cursor: 'pointer' }}>Logout</button>
             </div>
           </div>
         ) : (
