@@ -94,7 +94,7 @@ export default function App({ Component, pageProps }) {
         zIndex: 100,
         backdropFilter: 'blur(10px)'
       }}>
-        SSO v{packageJson.version} | <a href="https://github.com/moldovancsaba/sso" target="_blank" rel="noopener noreferrer" style={{ color: '#667eea', textDecoration: 'none' }}>GitHub</a> | <a href="/docs" style={{ color: '#667eea', textDecoration: 'none' }}>Docs</a>
+        SSO v{packageJson.version} | <a href="https://github.com/moldovancsaba/sso" target="_blank" rel="noopener noreferrer" style={{ color: '#667eea', textDecoration: 'none' }}>GitHub</a> | <a href="/docs" style={{ color: '#667eea', textDecoration: 'none' }}>Docs</a> | <a href="/privacy" style={{ color: '#667eea', textDecoration: 'none' }}>Privacy</a> | <a href="/terms" style={{ color: '#667eea', textDecoration: 'none' }}>Terms</a> | <a href="/data-deletion" style={{ color: '#667eea', textDecoration: 'none' }}>Data Deletion</a>
       </footer>
     </>
   )
