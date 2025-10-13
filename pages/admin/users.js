@@ -51,10 +51,37 @@ export default function AdminUsersPage({ admin }) {
   const [actionLoading, setActionLoading] = useState(false)
   const [message, setMessage] = useState(null)
 
+  // WHAT: App Permissions state management
+  // WHY: Separating loading/error for list vs. per-app actions provides fine-grained UX
+  const [appPermissions, setAppPermissions] = useState([])
+  const [appPermissionsLoading, setAppPermissionsLoading] = useState(false)
+  const [appPermissionsError, setAppPermissionsError] = useState('')
+  const [appActionLoading, setAppActionLoading] = useState({}) // clientId -> boolean
+  const [selectedRoles, setSelectedRoles] = useState({}) // clientId -> 'user'|'admin'
+  const [permissionSuccess, setPermissionSuccess] = useState('')
+
   // Fetch users
   useEffect(() => {
     fetchUsers()
   }, [filter, sortBy, sortOrder])
+
+  // WHAT: Lifecycle management for app permissions
+  // WHY: Fetch on modal open, clear on close to prevent stale/cross-user state
+  useEffect(() => {
+    if (showDetails && selectedUser?.id) {
+      // WHAT: Fetch app permissions when user details modal opens
+      fetchAppPermissions(selectedUser.id)
+    } else if (!showDetails) {
+      // WHAT: Clear app permissions state when modal closes
+      // WHY: Prevent leaking previous user's permissions to next user
+      setAppPermissions([])
+      setAppPermissionsError('')
+      setAppPermissionsLoading(false)
+      setAppActionLoading({})
+      setSelectedRoles({})
+      setPermissionSuccess('')
+    }
+  }, [showDetails, selectedUser?.id])
 
   const fetchUsers = async () => {
     setLoading(true)
@@ -181,6 +208,181 @@ export default function AdminUsersPage({ admin }) {
   const formatDate = (dateString) => {
     if (!dateString) return 'Never'
     return new Date(dateString).toLocaleString()
+  }
+
+  // WHAT: Fetch user's app permissions for all integrated applications
+  // WHY: SSO admin needs to view and manage user access across all OAuth apps
+  // HOW: GET /api/admin/app-permissions/[userId] returns merged list of all apps with permission status
+  const fetchAppPermissions = async (userId) => {
+    setAppPermissionsLoading(true)
+    setAppPermissionsError('')
+    setPermissionSuccess('')
+    
+    try {
+      const res = await fetch(`/api/admin/app-permissions/${userId}`, {
+        credentials: 'include'
+      })
+      
+      // WHAT: Handle authentication errors
+      // WHY: Admin session may have expired
+      if (res.status === 401 || res.status === 403) {
+        window.location.href = '/admin'
+        return
+      }
+      
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        setAppPermissionsError(data.error?.message || 'Failed to load app permissions')
+        setAppPermissions([])
+        return
+      }
+      
+      const data = await res.json()
+      
+      // WHAT: Initialize app permissions and role selectors
+      // WHY: UI needs default role selection for grant actions
+      setAppPermissions(data.apps || [])
+      
+      // WHAT: Build selectedRoles map with defaults
+      // WHY: When role is 'none', default selector to 'user' for grant action
+      const roles = {}
+      for (const app of data.apps || []) {
+        roles[app.clientId] = (app.role === 'admin' || app.role === 'user') ? app.role : 'user'
+      }
+      setSelectedRoles(roles)
+    } catch (err) {
+      console.error('Failed to fetch app permissions:', err)
+      setAppPermissionsError('Connection error. Please check your internet and try again.')
+      setAppPermissions([])
+    } finally {
+      setAppPermissionsLoading(false)
+    }
+  }
+
+  // WHAT: Grant or approve user access to an application
+  // WHY: POST creates/approves permission (none/pending → approved transition)
+  // HOW: POST /api/admin/app-permissions/[userId] with clientId, role, status='approved'
+  const handleGrantAccess = async (userId, clientId, role) => {
+    setAppActionLoading(prev => ({ ...prev, [clientId]: true }))
+    setAppPermissionsError('')
+    setPermissionSuccess('')
+    
+    try {
+      const res = await fetch(`/api/admin/app-permissions/${userId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ clientId, role, status: 'approved' })
+      })
+      
+      if (res.status === 401 || res.status === 403) {
+        window.location.href = '/admin'
+        return
+      }
+      
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        setAppPermissionsError(data.error?.message || 'Failed to grant access')
+        return
+      }
+      
+      setPermissionSuccess(`Access granted as ${role}`)
+      setTimeout(() => setPermissionSuccess(''), 3000)
+      await fetchAppPermissions(userId)
+    } catch (err) {
+      console.error('Failed to grant access:', err)
+      setAppPermissionsError('Connection error. Please try again.')
+    } finally {
+      setAppActionLoading(prev => ({ ...prev, [clientId]: false }))
+    }
+  }
+
+  // WHAT: Revoke user access to an application
+  // WHY: DELETE marks permission as revoked (approved → revoked transition)
+  // HOW: DELETE /api/admin/app-permissions/[userId] with clientId
+  const handleRevokeAccess = async (userId, clientId, appName) => {
+    // WHAT: Confirmation before destructive action
+    // WHY: Prevent accidental revocations
+    if (!confirm(`Revoke user's access to ${appName}? They will no longer be able to log in to this application.`)) {
+      return
+    }
+    
+    setAppActionLoading(prev => ({ ...prev, [clientId]: true }))
+    setAppPermissionsError('')
+    setPermissionSuccess('')
+    
+    try {
+      const res = await fetch(`/api/admin/app-permissions/${userId}`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ clientId })
+      })
+      
+      if (res.status === 401 || res.status === 403) {
+        window.location.href = '/admin'
+        return
+      }
+      
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        setAppPermissionsError(data.error?.message || 'Failed to revoke access')
+        return
+      }
+      
+      setPermissionSuccess('Access revoked successfully')
+      setTimeout(() => setPermissionSuccess(''), 3000)
+      await fetchAppPermissions(userId)
+    } catch (err) {
+      console.error('Failed to revoke access:', err)
+      setAppPermissionsError('Connection error. Please try again.')
+    } finally {
+      setAppActionLoading(prev => ({ ...prev, [clientId]: false }))
+    }
+  }
+
+  // WHAT: Change user's role within an application
+  // WHY: PATCH updates role without changing status (user ↔ admin)
+  // HOW: PATCH /api/admin/app-permissions/[userId] with clientId, role
+  const handleChangeRole = async (userId, clientId, newRole) => {
+    setAppActionLoading(prev => ({ ...prev, [clientId]: true }))
+    setAppPermissionsError('')
+    setPermissionSuccess('')
+    
+    try {
+      const res = await fetch(`/api/admin/app-permissions/${userId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ clientId, role: newRole })
+      })
+      
+      if (res.status === 401 || res.status === 403) {
+        window.location.href = '/admin'
+        return
+      }
+      
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        setAppPermissionsError(data.error?.message || 'Failed to change role')
+        return
+      }
+      
+      setPermissionSuccess(`Role changed to ${newRole}`)
+      setTimeout(() => setPermissionSuccess(''), 3000)
+      await fetchAppPermissions(userId)
+    } catch (err) {
+      console.error('Failed to change role:', err)
+      setAppPermissionsError('Connection error. Please try again.')
+    } finally {
+      setAppActionLoading(prev => ({ ...prev, [clientId]: false }))
+    }
+  }
+
+  // WHAT: Handle role selector change
+  // WHY: Track selected role for pending grant actions
+  const handleRoleSelectChange = (clientId, newRole) => {
+    setSelectedRoles(prev => ({ ...prev, [clientId]: newRole }))
   }
 
   return (
@@ -390,6 +592,269 @@ export default function AdminUsersPage({ admin }) {
               <p style={{ margin: '8px 0', fontSize: '14px' }}><strong>Created:</strong> {formatDate(selectedUser.createdAt)}</p>
               <p style={{ margin: '8px 0', fontSize: '14px' }}><strong>Last Login:</strong> {formatDate(selectedUser.lastLoginAt)}</p>
               <p style={{ margin: '8px 0', fontSize: '14px' }}><strong>Login Count:</strong> {selectedUser.loginCount || 0}</p>
+            </div>
+
+            {/* WHAT: App Permissions Management Section */}
+            {/* WHY: SSO admins assign app-level roles (user/admin within apps), distinct from SSO admin role */}
+            {/* HOW: Permission lifecycle: none → pending → approved → revoked */}
+            <div style={{ marginBottom: '1.5rem', borderTop: '1px solid #e0e0e0', paddingTop: '1.5rem' }}>
+              <h3 style={{ margin: 0, marginBottom: '8px', fontSize: '16px', fontWeight: '600' }}>Application Access</h3>
+              <p style={{ margin: 0, marginBottom: '12px', fontSize: '13px', color: '#666' }}>
+                Manage this user's access to integrated OAuth applications
+              </p>
+              <div style={{
+                background: '#f5f7fa',
+                border: '1px solid #d0d7de',
+                borderRadius: '6px',
+                padding: '8px 12px',
+                marginBottom: '12px',
+                fontSize: '12px',
+                color: '#666'
+              }}>
+                ℹ️ <strong>Note:</strong> You are acting as an SSO administrator. The role you assign here (‘user’ vs ‘admin’) applies within the selected application, not the SSO system.
+              </div>
+
+              {/* Success Message */}
+              {permissionSuccess && (
+                <div style={{
+                  background: '#e8f5e9',
+                  border: '1px solid #81c784',
+                  borderRadius: '6px',
+                  padding: '8px 12px',
+                  marginBottom: '12px',
+                  fontSize: '13px',
+                  color: '#2e7d32'
+                }}>
+                  ✓ {permissionSuccess}
+                </div>
+              )}
+
+              {/* Error Message */}
+              {appPermissionsError && (
+                <div style={{
+                  background: '#fee',
+                  border: '1px solid #fcc',
+                  borderRadius: '6px',
+                  padding: '8px 12px',
+                  marginBottom: '12px',
+                  fontSize: '13px',
+                  color: '#c33',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center'
+                }}>
+                  <span>{appPermissionsError}</span>
+                  <button
+                    onClick={() => fetchAppPermissions(selectedUser.id)}
+                    style={{
+                      padding: '4px 8px',
+                      fontSize: '12px',
+                      background: 'white',
+                      border: '1px solid #c33',
+                      borderRadius: '4px',
+                      color: '#c33',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Retry
+                  </button>
+                </div>
+              )}
+
+              {/* Loading State */}
+              {appPermissionsLoading ? (
+                <div style={{ textAlign: 'center', padding: '2rem', color: '#999' }}>
+                  <div style={{ fontSize: '24px', marginBottom: '8px' }}>⏳</div>
+                  <div style={{ fontSize: '13px' }}>Loading app permissions...</div>
+                </div>
+              ) : appPermissions.length === 0 && !appPermissionsError ? (
+                <div style={{ textAlign: 'center', padding: '1.5rem', color: '#999', fontSize: '13px' }}>
+                  No integrated applications available
+                </div>
+              ) : (
+                /* Apps Grid */
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+                  gap: '12px'
+                }}>
+                  {appPermissions.map(app => {
+                    const isLoading = appActionLoading[app.clientId]
+                    const isApproved = app.status === 'approved'
+                    const isPending = app.status === 'pending'
+                    const isRevoked = app.status === 'revoked' || app.role === 'none'
+                    const currentRole = selectedRoles[app.clientId] || 'user'
+
+                    // WHAT: Status badge colors
+                    // WHY: Visual differentiation of permission states
+                    const statusColors = {
+                      approved: { bg: '#e8f5e9', text: '#2e7d32' },
+                      pending: { bg: '#fff3e0', text: '#f57c00' },
+                      revoked: { bg: '#fee', text: '#c33' }
+                    }
+                    const statusColor = statusColors[app.status] || statusColors.revoked
+
+                    return (
+                      <div
+                        key={app.clientId}
+                        style={{
+                          background: '#fff',
+                          border: '1px solid #f0f0f0',
+                          borderRadius: '8px',
+                          padding: '12px'
+                        }}
+                      >
+                        {/* App Name */}
+                        <div style={{ marginBottom: '8px' }}>
+                          <div style={{ fontSize: '14px', fontWeight: '600', marginBottom: '4px' }}>
+                            {app.name}
+                          </div>
+                          {app.description && (
+                            <div style={{ fontSize: '12px', color: '#666', marginBottom: '6px' }}>
+                              {app.description}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Status Badge */}
+                        <div style={{ marginBottom: '8px' }}>
+                          <span style={{
+                            display: 'inline-block',
+                            padding: '3px 8px',
+                            borderRadius: '4px',
+                            fontSize: '11px',
+                            fontWeight: '600',
+                            background: statusColor.bg,
+                            color: statusColor.text
+                          }}>
+                            {app.status}
+                          </span>
+                          <span style={{ marginLeft: '8px', fontSize: '12px', color: '#666' }}>
+                            Role: <strong>{app.role}</strong>
+                          </span>
+                        </div>
+
+                        {/* Actions based on status */}
+                        {isRevoked ? (
+                          /* Grant Access UI */
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                            <select
+                              value={currentRole}
+                              onChange={(e) => handleRoleSelectChange(app.clientId, e.target.value)}
+                              disabled={isLoading}
+                              aria-label={`Select role for ${app.name}`}
+                              style={{
+                                width: '100%',
+                                padding: '6px 8px',
+                                fontSize: '13px',
+                                border: '1px solid #ddd',
+                                borderRadius: '4px',
+                                background: 'white'
+                              }}
+                            >
+                              <option value="user">User</option>
+                              <option value="admin">Admin</option>
+                            </select>
+                            <button
+                              onClick={() => handleGrantAccess(selectedUser.id, app.clientId, currentRole)}
+                              disabled={isLoading || appPermissionsLoading}
+                              aria-label={`Grant access to ${app.name}`}
+                              style={{
+                                padding: '8px 12px',
+                                fontSize: '13px',
+                                fontWeight: '600',
+                                color: 'white',
+                                background: (isLoading || appPermissionsLoading) ? '#999' : '#667eea',
+                                border: 'none',
+                                borderRadius: '4px',
+                                cursor: (isLoading || appPermissionsLoading) ? 'not-allowed' : 'pointer'
+                              }}
+                            >
+                              {isLoading ? 'Granting...' : 'Grant Access'}
+                            </button>
+                          </div>
+                        ) : isPending ? (
+                          /* Approve Access UI */
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                            <select
+                              value={currentRole}
+                              onChange={(e) => handleRoleSelectChange(app.clientId, e.target.value)}
+                              disabled={isLoading}
+                              aria-label={`Select role for ${app.name}`}
+                              style={{
+                                width: '100%',
+                                padding: '6px 8px',
+                                fontSize: '13px',
+                                border: '1px solid #ddd',
+                                borderRadius: '4px',
+                                background: 'white'
+                              }}
+                            >
+                              <option value="user">User</option>
+                              <option value="admin">Admin</option>
+                            </select>
+                            <button
+                              onClick={() => handleGrantAccess(selectedUser.id, app.clientId, currentRole)}
+                              disabled={isLoading || appPermissionsLoading}
+                              aria-label={`Approve access to ${app.name}`}
+                              style={{
+                                padding: '8px 12px',
+                                fontSize: '13px',
+                                fontWeight: '600',
+                                color: 'white',
+                                background: (isLoading || appPermissionsLoading) ? '#999' : '#667eea',
+                                border: 'none',
+                                borderRadius: '4px',
+                                cursor: (isLoading || appPermissionsLoading) ? 'not-allowed' : 'pointer'
+                              }}
+                            >
+                              {isLoading ? 'Approving...' : 'Approve'}
+                            </button>
+                          </div>
+                        ) : (
+                          /* Manage Active Access */
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                            <select
+                              value={app.role}
+                              onChange={(e) => handleChangeRole(selectedUser.id, app.clientId, e.target.value)}
+                              disabled={isLoading || appPermissionsLoading}
+                              aria-label={`Change role for ${app.name}`}
+                              style={{
+                                width: '100%',
+                                padding: '6px 8px',
+                                fontSize: '13px',
+                                border: '1px solid #ddd',
+                                borderRadius: '4px',
+                                background: 'white'
+                              }}
+                            >
+                              <option value="user">User</option>
+                              <option value="admin">Admin</option>
+                            </select>
+                            <button
+                              onClick={() => handleRevokeAccess(selectedUser.id, app.clientId, app.name)}
+                              disabled={isLoading || appPermissionsLoading}
+                              aria-label={`Revoke access to ${app.name}`}
+                              style={{
+                                padding: '8px 12px',
+                                fontSize: '13px',
+                                fontWeight: '600',
+                                color: 'white',
+                                background: (isLoading || appPermissionsLoading) ? '#999' : '#d32f2f',
+                                border: 'none',
+                                borderRadius: '4px',
+                                cursor: (isLoading || appPermissionsLoading) ? 'not-allowed' : 'pointer'
+                              }}
+                            >
+                              {isLoading ? 'Revoking...' : 'Revoke Access'}
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
