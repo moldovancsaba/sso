@@ -1,10 +1,10 @@
-# ROADMAP (v5.5.0)
+# ROADMAP (v5.6.0)
 
 Last updated: 2025-01-13T23:45:00.000Z
 
 ## 🚧 IN PROGRESS: Multi-App Permission System (Q1 2025)
 - Priority: **CRITICAL**
-- Dependencies: SSO v5.5.0, Launchmass v5.5.0
+- Dependencies: SSO v5.6.0, Launchmass v5.6.0
 - Started: 2025-01-13
 - Target: 2025-01-20
 
@@ -42,13 +42,17 @@ Last updated: 2025-01-13T23:45:00.000Z
 - ✅ Add navigation link to users page from main admin
 - Commits: launchmass dea74a2, 2aa0af3
 
-### Phase 4: SSO Admin UI ⏳ IN PROGRESS
-- ⏳ Enhance `/admin/users` page with app access overview
-- ⏳ User details modal showing cross-app access
-- ⏳ App permission editor
-- ⏳ SSO superadmin toggle
-- ⏳ Cross-app activity dashboard
-- Target: 2025-01-14
+### Phase 4: SSO Admin UI 🚧 ACTIVE (2025-10-13)
+- 🚧 Enhance `/admin/users` page with app access overview
+- 🚧 User details modal showing cross-app access ("App Permissions" section)
+- 🚧 App permission editor (grant/revoke/change role per app)
+- 🚧 New API endpoint: `/api/admin/app-permissions/[userId]` (GET/POST/PATCH/DELETE)
+- 🚧 Extend `lib/appPermissions.mjs` with admin helpers (upsert, revoke, DTO mapping)
+- ⏳ SSO superadmin toggle (deferred)
+- ⏳ Cross-app activity dashboard (deferred)
+- Target: 2025-10-14
+- Dependencies: OAuth clients listing, existing admin auth, appPermissions collection
+- Owner: AI-Backend/Frontend
 
 ### Phase 5: Documentation & Testing
 - ⏳ Update `ARCHITECTURE.md`
