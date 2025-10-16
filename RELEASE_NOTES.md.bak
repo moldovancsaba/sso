@@ -1,34 +1,4 @@
-# Release Notes [![Version Badge](https://img.shields.io/badge/version-5.16.0-blue)](RELEASE_NOTES.md)
-
-## [v5.16.0] — 2025-10-16T15:24:20.000Z
-
-### Fixed
-
-**Documentation Code Block Contrast**
-- Fixed white-on-white text rendering bug in all documentation code blocks
-- Code examples are now readable with proper light text on dark background contrast
-- Explicitly added `color: inherit` to `.codeBlock pre` and `.codeBlock code` CSS rules
-- Prevents browser default styles from overriding design system tokens
-
-### Technical Changes
-
-**Modified Files**:
-- `styles/docs.module.css` - Added explicit color inheritance to code block nested elements
-  - `.codeBlock pre` now has `color: inherit` (line 142)
-  - `.codeBlock code` now has `color: inherit` (line 149)
-  - Both include comments explaining WHAT and WHY per coding standards
-
-**Design System Tokens Used**:
-- `--bg-code: var(--color-neutral-900)` - Dark background
-- `--text-code: var(--color-neutral-300)` - Light text
-- Tokens were already correct; only CSS inheritance needed fixing
-
-**Impact**:
-- Affects all 18+ documentation pages with code examples
-- WCAG AA contrast compliance restored
-- No regression to inline `<code>` elements (separate styling preserved)
-
----
+# Release Notes [![Version Badge](https://img.shields.io/badge/version-5.5.0-blue)](RELEASE_NOTES.md)
 
 ## [v5.16.0] — 2025-10-12T14:07:00.000Z
 
