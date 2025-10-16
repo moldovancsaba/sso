@@ -1,127 +1,175 @@
+/* Home Page Styles - Uses Centralized Design System */
+
 .container {
-  max-width: 1200px;
+  max-width: var(--max-w-6xl);
   margin: 0 auto;
-  padding: 2rem;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  padding: var(--space-8);
+  font-family: var(--font-sans);
 }
 
 .header {
   text-align: center;
-  margin-bottom: 4rem;
+  margin-bottom: var(--space-16);
 }
 
 .header h1 {
-  font-size: 3rem;
-  color: #2c5282;
-  margin-bottom: 1rem;
+  font-size: var(--text-5xl);
+  background: var(--brand-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-weight: var(--font-bold);
+  margin-bottom: var(--space-4);
+  letter-spacing: var(--tracking-tight);
 }
 
 .subtitle {
-  font-size: 1.5rem;
-  color: #4a5568;
-  margin-bottom: 3rem;
+  font-size: var(--text-2xl);
+  color: var(--text-secondary);
+  margin-bottom: var(--space-12);
+  font-weight: var(--font-normal);
 }
 
 .apiCard {
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
-  padding: 2rem;
-  margin: 2rem auto;
-  max-width: 800px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xl);
+  padding: var(--space-8);
+  margin: var(--space-8) auto;
+  max-width: var(--max-w-4xl);
+  box-shadow: var(--shadow-md);
+  transition: all var(--transition-base);
+}
+
+.apiCard:hover {
+  border-color: var(--border-default);
+  box-shadow: var(--shadow-lg);
 }
 
 .apiCard h2 {
-  color: #2d3748;
-  font-size: 1.8rem;
-  margin-bottom: 1rem;
+  color: var(--text-primary);
+  font-size: var(--text-3xl);
+  font-weight: var(--font-semibold);
+  margin-bottom: var(--space-4);
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
+  gap: var(--space-2);
 }
 
 .apiCard p {
-  color: #4a5568;
-  font-size: 1.2rem;
-  margin-bottom: 2rem;
+  color: var(--text-secondary);
+  font-size: var(--text-lg);
+  line-height: var(--leading-relaxed);
+  margin-bottom: var(--space-6);
+}
+
+.apiCard ul {
+  list-style: none;
+  padding: 0;
+}
+
+.apiCard ul li {
+  color: var(--text-primary);
+  font-size: var(--text-base);
+  padding: var(--space-2) 0;
 }
 
 .apiLinks {
   display: flex;
-  gap: 1rem;
+  gap: var(--space-4);
   justify-content: center;
-  margin-bottom: 2rem;
+  margin-bottom: var(--space-6);
+  flex-wrap: wrap;
 }
 
-.primaryButton, .secondaryButton {
-  padding: 0.75rem 1.5rem;
-  border-radius: 6px;
-  font-weight: 600;
-  font-size: 1.1rem;
+.primaryButton,
+.secondaryButton {
+  padding: var(--space-3) var(--space-6);
+  border-radius: var(--radius-md);
+  font-weight: var(--font-semibold);
+  font-size: var(--text-lg);
+  font-family: var(--font-sans);
   text-decoration: none;
-  transition: all 0.2s;
+  transition: all var(--transition-base);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .primaryButton {
-  background: #2c5282;
-  color: white;
+  background: var(--brand-gradient);
+  color: var(--text-inverse);
+  box-shadow: var(--shadow-brand);
 }
 
 .primaryButton:hover {
-  background: #2b6cb0;
   transform: translateY(-1px);
+  box-shadow: var(--shadow-brand-lg);
+}
+
+.primaryButton:active {
+  transform: translateY(0);
 }
 
 .secondaryButton {
-  background: #edf2f7;
-  color: #2c5282;
+  background: var(--bg-surface);
+  color: var(--brand-primary);
+  border: 1px solid var(--border-default);
 }
 
 .secondaryButton:hover {
-  background: #e2e8f0;
+  background: var(--bg-surface-hover);
+  border-color: var(--brand-primary);
   transform: translateY(-1px);
 }
 
+.secondaryButton:active {
+  transform: translateY(0);
+}
+
 .apiExample {
-  background: #2d3748;
-  border-radius: 8px;
-  padding: 1.5rem;
-  margin-top: 2rem;
+  background: var(--bg-code);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  margin-top: var(--space-8);
+  border: 1px solid var(--border-subtle);
 }
 
 .apiExample code {
-  color: #a0aec0;
-  font-family: 'Fira Code', Consolas, Monaco, monospace;
-  font-size: 0.9rem;
+  color: var(--text-code);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
   white-space: pre;
   display: block;
+  line-height: var(--leading-relaxed);
 }
 
-/* Responsive design */
+/* Responsive Design */
 @media (max-width: 768px) {
   .container {
-    padding: 1rem;
+    padding: var(--space-4);
   }
 
   .header h1 {
-    font-size: 2rem;
+    font-size: var(--text-3xl);
   }
 
   .subtitle {
-    font-size: 1.2rem;
+    font-size: var(--text-xl);
   }
 
   .apiCard {
-    padding: 1.5rem;
+    padding: var(--space-6);
+    margin: var(--space-6) auto;
   }
 
   .apiLinks {
     flex-direction: column;
   }
 
-  .primaryButton, .secondaryButton {
+  .primaryButton,
+  .secondaryButton {
     width: 100%;
     text-align: center;
   }
