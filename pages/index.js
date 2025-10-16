@@ -41,12 +41,12 @@ export default function Home() {
         </div>
       </header>
 
-      <section style={{ marginTop: '2rem' }}>
+      <section className={styles.section}>
         {publicUser ? (
           <div className={styles.apiCard}>
             <h2>✅ Logged In</h2>
             <p>Welcome, <strong>{publicUser.email}</strong>!</p>
-            <p style={{ fontSize: '14px', color: '#666', marginTop: '8px' }}>Your session is active and secure.</p>
+            <p className={styles.sessionInfo}>Your session is active and secure.</p>
             <div className={styles.apiLinks}>
               <Link href="/account" className={styles.primaryButton}>My Account</Link>
               <Link href="/logout" className={styles.secondaryButton}>Logout</Link>
@@ -56,7 +56,7 @@ export default function Home() {
           <div className={styles.apiCard}>
             <h2>🔐 User Login</h2>
             <p>Sign in to access your account with multiple authentication options:</p>
-            <ul style={{ textAlign: 'left', marginBottom: '1rem', lineHeight: '1.8' }}>
+            <ul className={styles.featureList}>
               <li>🔑 Email + Password</li>
               <li>🔗 Magic Link (passwordless)</li>
               <li>📧 Forgot Password Recovery</li>
