@@ -1,0 +1,314 @@
+/* Login Page Styles - Uses Centralized Design System */
+
+.pageContainer {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--brand-gradient);
+  padding: var(--space-8);
+}
+
+.loginCard {
+  background: var(--bg-surface);
+  border-radius: var(--radius-2xl);
+  box-shadow: var(--shadow-2xl);
+  padding: var(--space-12);
+  max-width: var(--max-w-md);
+  width: 100%;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: var(--space-8);
+}
+
+.title {
+  font-size: var(--text-4xl);
+  font-weight: var(--font-bold);
+  background: var(--brand-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: var(--space-2);
+}
+
+.subtitle {
+  color: var(--text-tertiary);
+  font-size: var(--text-sm);
+}
+
+/* Alert Messages */
+.successBox {
+  background: var(--color-success-50);
+  border: 1px solid var(--color-success-600);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+  margin-bottom: var(--space-6);
+  color: var(--color-success-700);
+  font-size: var(--text-sm);
+  text-align: center;
+}
+
+.errorBox {
+  background: var(--color-error-50);
+  border: 1px solid var(--color-error-500);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+  margin-bottom: var(--space-6);
+  color: var(--color-error-700);
+  font-size: var(--text-sm);
+}
+
+/* Form Fields */
+.formGroup {
+  margin-bottom: var(--space-5);
+}
+
+.label {
+  display: block;
+  margin-bottom: var(--space-2);
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+}
+
+.input {
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--text-sm);
+  border: 2px solid var(--border-default);
+  border-radius: var(--radius-md);
+  outline: none;
+  transition: border-color var(--transition-base);
+  box-sizing: border-box;
+  font-family: var(--font-sans);
+}
+
+.input:focus {
+  border-color: var(--brand-primary);
+}
+
+.input.error {
+  border-color: var(--status-error);
+}
+
+.input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.errorText {
+  margin-top: var(--space-2);
+  font-size: var(--text-xs);
+  color: var(--status-error);
+}
+
+/* Buttons */
+.primaryButton {
+  width: 100%;
+  padding: var(--space-4);
+  font-size: var(--text-base);
+  font-weight: var(--font-semibold);
+  color: var(--text-inverse);
+  background: var(--brand-gradient);
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-base);
+  box-shadow: var(--shadow-brand);
+  font-family: var(--font-sans);
+}
+
+.primaryButton:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-brand-lg);
+}
+
+.primaryButton:disabled {
+  background: var(--color-neutral-400);
+  cursor: not-allowed;
+  transform: none;
+}
+
+.secondaryButton {
+  width: 100%;
+  padding: var(--space-4);
+  font-size: var(--text-base);
+  font-weight: var(--font-semibold);
+  color: var(--brand-primary);
+  background: var(--bg-surface);
+  border: 2px solid var(--brand-primary);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-base);
+  font-family: var(--font-sans);
+}
+
+.secondaryButton:hover:not(:disabled) {
+  background: var(--color-blue-50);
+  transform: translateY(-1px);
+}
+
+.secondaryButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.cancelButton {
+  width: 100%;
+  padding: var(--space-3);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: var(--text-tertiary);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-family: var(--font-sans);
+}
+
+.cancelButton:hover:not(:disabled) {
+  background: var(--bg-surface-hover);
+}
+
+/* Divider */
+.divider {
+  margin-top: var(--space-6);
+  margin-bottom: var(--space-6);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.dividerLine {
+  flex: 1;
+  height: 1px;
+  background: var(--border-default);
+}
+
+.dividerText {
+  font-size: var(--text-xs);
+  color: var(--text-tertiary);
+  font-weight: var(--font-medium);
+}
+
+/* Links */
+.linkContainer {
+  margin-top: var(--space-4);
+  text-align: center;
+}
+
+.link {
+  font-size: var(--text-sm);
+  color: var(--text-link);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+.link:hover {
+  color: var(--text-link-hover);
+}
+
+.linkSmall {
+  font-size: var(--text-xs);
+  color: var(--text-tertiary);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+.linkSmall:hover {
+  color: var(--text-secondary);
+}
+
+.textContainer {
+  margin-top: var(--space-6);
+  text-align: center;
+  font-size: var(--text-sm);
+  color: var(--text-tertiary);
+}
+
+.textContainerLink {
+  color: var(--text-link);
+  text-decoration: none;
+  font-weight: var(--font-semibold);
+  transition: color var(--transition-fast);
+}
+
+.textContainerLink:hover {
+  color: var(--text-link-hover);
+}
+
+/* Modal/Overlay */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--bg-overlay);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-8);
+  z-index: var(--z-modal);
+}
+
+.modalContent {
+  background: var(--bg-surface);
+  border-radius: var(--radius-2xl);
+  padding: var(--space-8);
+  max-width: var(--max-w-md);
+  width: 100%;
+  box-shadow: var(--shadow-2xl);
+}
+
+.modalTitle {
+  margin: 0;
+  margin-bottom: var(--space-2);
+  font-size: var(--text-3xl);
+  font-weight: var(--font-bold);
+  color: var(--text-primary);
+}
+
+.modalDescription {
+  margin: 0;
+  margin-bottom: var(--space-6);
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+}
+
+/* PIN Input */
+.pinInput {
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--text-xl);
+  letter-spacing: 0.3em;
+  text-align: center;
+  border: 2px solid var(--border-default);
+  border-radius: var(--radius-md);
+  outline: none;
+  transition: border-color var(--transition-base);
+  box-sizing: border-box;
+  font-family: var(--font-mono);
+}
+
+.pinInput:focus {
+  border-color: var(--brand-primary);
+}
+
+.pinInput.error {
+  border-color: var(--status-error);
+}
+
+.pinInput:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Button spacing in modals */
+.buttonGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
