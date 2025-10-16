@@ -137,16 +137,10 @@
   font-size: var(--text-sm);
   line-height: var(--leading-relaxed);
   font-feature-settings: 'liga' 1, 'calt' 1;
-  /* WHAT: Explicitly inherit light text color from .codeBlock parent */
-  /* WHY: Prevent browser defaults from overriding with dark text on dark background */
-  color: inherit;
 }
 
 .codeBlock code {
   font-family: inherit;
-  /* WHAT: Explicitly inherit light text color from .codeBlock parent */
-  /* WHY: Ensure consistent contrast in nested code elements */
-  color: inherit;
 }
 
 .steps {
