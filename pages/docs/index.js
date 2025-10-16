@@ -12,14 +12,14 @@ export default function DocsPage() {
       <header className={styles.header}>
         <h1>DoneIsBetter SSO Integration Guide</h1>
         <p className={styles.version}>API Version: {packageJson.version}</p>
-        <p style={{ fontSize: '14px', color: '#666', marginTop: '8px' }}>OAuth 2.0 Authorization Server</p>
+        <p className={styles.subtitle}>OAuth 2.0 Authorization Server</p>
       </header>
 
       <main className={styles.main}>
         <section className={styles.section}>
           <h2>⚠️ Important: OAuth 2.0 Flow</h2>
-          <div style={{ background: '#fff3e0', border: '1px solid #f57c00', borderRadius: '8px', padding: '16px', marginBottom: '1rem' }}>
-            <p style={{ margin: 0, fontSize: '14px', color: '#e65100' }}>
+          <div className={styles.warningBox}>
+            <p>
               <strong>This SSO service uses OAuth 2.0 Authorization Code Flow.</strong> The old client-side approach has been deprecated. 
               You must implement server-side token exchange and handle app-level permissions.
             </p>

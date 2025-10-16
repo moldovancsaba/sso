@@ -336,14 +336,35 @@ code:not(.codeBlock code) {
 
 .section ol li {
   margin-bottom: var(--space-3);
-  line-height: 1.7;
-  color: #3f3f46;
-  padding-left: 0.5rem;
+  line-height: var(--leading-relaxed);
+  color: var(--text-secondary);
 }
 
-.section ol li::marker {
-  color: #3b82f6;
-  font-weight: 600;
+/* Utility classes for documentation pages */
+.subtitle {
+  font-size: var(--text-sm);
+  color: var(--text-tertiary);
+  margin-top: var(--space-2);
+}
+
+.warningBox {
+  background: var(--color-warning-50);
+  border: 1px solid var(--color-warning-600);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+
+.warningBox p {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--color-error-700);
+}
+
+.dangerText {
+  color: var(--status-error);
+  font-size: var(--text-sm);
+  margin: var(--space-2) 0;
 }
 
 /* Responsive design */

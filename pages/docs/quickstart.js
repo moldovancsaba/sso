@@ -18,8 +18,8 @@ export default function Quickstart() {
           {/* WHAT: Warning banner about OAuth 2.0 requirement */}
           {/* WHY: Prevent developers from looking for deprecated client library */}
           <section className={styles.section}>
-            <div style={{ background: '#fff3e0', border: '1px solid #f57c00', borderRadius: '8px', padding: '16px', marginBottom: '1rem' }}>
-              <p style={{ margin: 0, fontSize: '14px', color: '#e65100' }}>
+            <div className={styles.warningBox}>
+              <p>
                 <strong>⚠️ OAuth 2.0 Authorization Code Flow Required</strong><br />
                 This SSO uses standard OAuth 2.0. No client library needed - implement OAuth flow in your backend.
               </p>
@@ -49,7 +49,7 @@ export default function Quickstart() {
 }`}
               </pre>
             </div>
-            <p style={{ color: '#d32f2f', fontSize: '14px' }}>
+            <p className={styles.dangerText}>
               <strong>⚠️ Store client_secret securely!</strong> It will only be shown once.
             </p>
           </section>
