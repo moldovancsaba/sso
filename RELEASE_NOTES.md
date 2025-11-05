@@ -1,4 +1,138 @@
-# Release Notes [![Version Badge](https://img.shields.io/badge/version-5.16.0-blue)](RELEASE_NOTES.md)
+# Release Notes [![Version Badge](https://img.shields.io/badge/version-5.17.0-blue)](RELEASE_NOTES.md)
+
+## [v5.17.0] — 2025-11-05T15:00:00.000Z
+
+### 🔐 Critical Session Fix & PIN Verification Toggle
+
+**CRITICAL BUG FIX**: Fixed admin sessions expiring after 20-30 seconds. Sessions now properly persist for 30 days with sliding expiration.
+
+**NEW FEATURE**: PIN verification can now be toggled on/off via admin dashboard without redeployment.
+
+#### Session Validation Fix
+
+**Issue**: Admin users were being logged out after 20-30 seconds of activity on `/admin` page
+
+**Root Cause**:
+- `getAdminUser()` in `lib/auth.mjs` only validated cookie expiration
+- Never checked database session state
+- Database sessions could expire while cookie remained valid
+- No sliding expiration was applied during validation
+
+**Solution**:
+- Modified `lib/auth.mjs` to call `validateSession()` from `lib/sessions.mjs`
+- Now validates BOTH cookie expiration AND database session state
+- Updates sliding expiration (30 days) on every request
+- Enables proper session revocation
+
+**Impact**:
+- ✅ Admin sessions now persist correctly for 30 days
+- ✅ Session extends automatically on each access (sliding)
+- ✅ No more unexpected logouts during active use
+- ✅ Revoked sessions properly invalidated
+
+#### PIN Verification Toggle Feature
+
+**New Admin Dashboard Control**: Super-admins can now enable/disable PIN verification without changing environment variables or redeploying.
+
+**What**: PIN verification (6-digit code sent via email on 5th-10th login) can be toggled in real-time
+
+**How**:
+1. Login as super-admin at `/admin`
+2. See "🔐 PIN Verification" section in dashboard
+3. Toggle checkbox to enable/disable
+4. Setting persists in MongoDB across server restarts
+
+**New API Endpoint**: `GET/POST /api/admin/settings/pin-verification`
+- GET: Returns current PIN status and source (environment/database)
+- POST: Updates setting (super-admin only)
+- Body: `{ "enabled": boolean }`
+- Response: `{ "success": true, "enabled": boolean, "message": "..." }`
+
+**Priority System**:
+1. Environment variable `DISABLE_LOGIN_PIN=true` (highest priority)
+2. Database setting in `systemSettings` collection
+3. Default: enabled
+
+#### Technical Changes
+
+**Modified Files**:
+- `lib/auth.mjs` (+17 lines)
+  - Added `validateSession` import
+  - Updated `getAdminUser()` to validate against database
+  - Comments explaining the fix
+
+- `lib/loginPin.mjs` (+15 lines)
+  - Changed `shouldTriggerPin()` from sync to async
+  - Added database settings check
+  - Falls back to environment variable if DB unavailable
+
+- `pages/api/admin/login.js` (1 line)
+  - Updated to await `shouldTriggerPin()`
+
+- `pages/api/public/login.js` (1 line)
+  - Updated to await `shouldTriggerPin()`
+
+- `pages/admin/index.js` (+70 lines)
+  - Added PIN toggle UI (super-admin only)
+  - Fetch PIN status on login
+  - Real-time toggle with success feedback
+  - Clean, integrated design
+
+**New Files**:
+- `pages/api/admin/settings/pin-verification.js` (143 lines)
+  - GET/POST endpoint for PIN settings
+  - MongoDB `systemSettings` collection management
+  - Super-admin role enforcement
+  - Environment variable override detection
+
+- `scripts/disable-pin.mjs` (33 lines)
+  - Quick script to disable PIN via command line
+  - Useful for troubleshooting email configuration
+
+**Database Collections**:
+- `systemSettings` — New collection for system-wide settings
+  - `_id: 'system'` — Single document for all settings
+  - `pin_verification_enabled: boolean` — PIN toggle state
+  - `createdAt`, `updatedAt` — ISO 8601 timestamps
+
+#### Testing Performed
+
+✅ Session persistence:
+- Login successful without 20-30 second timeout
+- Session validated after 50+ seconds
+- Sliding expiration confirmed working
+
+✅ PIN toggle API:
+- GET returns current status correctly
+- POST enables/disables successfully
+- Setting persists across server restarts
+- Environment variable override respected
+- Super-admin role enforcement working
+
+✅ Login flows:
+- PIN disabled: Direct login without email requirement
+- PIN enabled: Email sent with 6-digit code (if configured)
+- Both admin and public login endpoints updated
+
+#### Upgrade Notes
+
+**No breaking changes**. Existing sessions remain valid.
+
+**Default behavior**: PIN verification is **disabled** by default after this update.
+
+To enable PIN verification:
+1. Login as super-admin
+2. Toggle "PIN Verification" on the dashboard
+
+Or via script:
+```bash
+node scripts/disable-pin.mjs  # Disable
+# (Enable script coming in future release)
+```
+
+**Environment variable**: Remove `DISABLE_LOGIN_PIN=true` from `.env.local` if you want database setting to control PIN verification. Environment variable overrides database setting.
+
+---
 
 ## [v5.16.0] — 2025-10-16T15:24:20.000Z
 
@@ -30,7 +164,7 @@
 
 ---
 
-## [v5.16.0] — 2025-10-12T14:07:00.000Z
+## [v5.17.0] — 2025-10-12T14:07:00.000Z
 
 ### 🎯 User Account Management & Session Improvements
 
@@ -128,7 +262,7 @@
 
 ---
 
-## [v5.16.0] — 2025-01-13T23:45:00.000Z
+## [v5.17.0] — 2025-01-13T23:45:00.000Z
 
 ### 🔐 OAuth Flow Fix: Preserve Authorization Context During Admin Login
 
@@ -197,7 +331,7 @@ useEffect(() => {
 
 ---
 
-## [v5.16.0] — 2025-10-06T21:30:00.000Z
+## [v5.17.0] — 2025-10-06T21:30:00.000Z
 
 ### 🎉 All Authentication Features Complete + PKCE Flexibility
 
@@ -293,7 +427,7 @@ useEffect(() => {
   - Success message display
 - **Email Templates** (`lib/emailTemplates.mjs`):
   - Added `buildMagicLinkEmail()` - Magic link email template
-  - Login PIN email already added in v5.16.0
+  - Login PIN email already added in v5.17.0
 
 #### Database Schema
 
@@ -387,7 +521,7 @@ useEffect(() => {
 
 ---
 
-## [v5.16.0] — 2025-10-06T11:22:25.000Z
+## [v5.17.0] — 2025-10-06T11:22:25.000Z
 
 ### 🎉 New Authentication Features: Forgot Password + Email System
 
@@ -452,7 +586,7 @@ useEffect(() => {
   - MongoDB TTL indexes
 - PIN email template in `lib/emailTemplates.mjs`
 
-**Public User Authentication** (from v5.16.0 merge):
+**Public User Authentication** (from v5.17.0 merge):
 - `lib/publicUsers.mjs` - Public user management
 - `lib/publicSessions.mjs` - Public user sessions
 - `pages/login.js` - Public login page
@@ -528,7 +662,7 @@ EMAIL_VERIFICATION_TOKEN_TTL=86400     # 24 hours
 
 ---
 
-## [v5.16.0] — 2025-10-03T09:15:22.000Z
+## [v5.17.0] — 2025-10-03T09:15:22.000Z
 
 ### 🚀 Phase 2: Complete OAuth2/OIDC Authorization Server Implementation
 
@@ -755,7 +889,7 @@ OAUTH2_CONSENT_TTL=31536000                 # 1 year
 
 ---
 
-## [v5.16.0] — 2025-10-02T11:54:33.000Z
+## [v5.17.0] — 2025-10-02T11:54:33.000Z
 
 ### 🔒 Phase 1: Critical Security Hardening
 
@@ -851,7 +985,7 @@ CSRF_SECRET=<generate with: openssl rand -base64 32>
 
 ---
 
-## [v5.16.0] — 2025-09-17T11:43:02.000Z
+## [v5.17.0] — 2025-09-17T11:43:02.000Z
 
 ### Added
 - Development-only passwordless admin login:
@@ -864,7 +998,7 @@ CSRF_SECRET=<generate with: openssl rand -base64 32>
 
 ---
 
-## [v5.16.0] — 2025-09-16T18:14:33.000Z
+## [v5.17.0] — 2025-09-16T18:14:33.000Z
 
 ### Added
 - Secure, single-use, time-limited admin magic link flow:
@@ -877,7 +1011,7 @@ CSRF_SECRET=<generate with: openssl rand -base64 32>
 
 ---
 
-## [v5.16.0] — 2025-09-15T18:25:45.000Z
+## [v5.17.0] — 2025-09-15T18:25:45.000Z
 
 ### Changed
 - MongoDB client now uses fast-fail timeouts (serverSelection/connect/socket) to surface 503 quickly when DB is unreachable.
@@ -888,7 +1022,7 @@ CSRF_SECRET=<generate with: openssl rand -base64 32>
 
 ---
 
-## [v5.16.0] — 2025-09-15T17:36:07.000Z
+## [v5.17.0] — 2025-09-15T17:36:07.000Z
 
 ### Changed
 - MongoDB client initialization is now lazy in serverless functions to prevent import-time crashes (avoids “Empty reply from server”).
@@ -899,7 +1033,7 @@ CSRF_SECRET=<generate with: openssl rand -base64 32>
 
 ---
 
-## [v5.16.0] — 2025-09-14T08:25:57.000Z
+## [v5.17.0] — 2025-09-14T08:25:57.000Z
 
 ### Added
 - UUIDs as the primary identifier for admin users (with backfill for legacy users)
@@ -919,7 +1053,7 @@ CSRF_SECRET=<generate with: openssl rand -base64 32>
 
 ---
 
-## [v5.16.0] — 2025-09-11T14:28:29.000Z
+## [v5.17.0] — 2025-09-11T14:28:29.000Z
 
 ### Added
 - Admin login UI at /admin (email + 32‑hex token) with session display and logout
@@ -930,12 +1064,12 @@ CSRF_SECRET=<generate with: openssl rand -base64 32>
 
 ---
 
-## [v5.16.0] — 2025-09-11T13:57:38.000Z
+## [v5.17.0] — 2025-09-11T13:57:38.000Z
 
 ### Changed
-- Version bump to align with commit protocol; no functional changes since v5.16.0
+- Version bump to align with commit protocol; no functional changes since v5.17.0
 
-## [v5.16.0] — 2025-09-11T13:35:02.000Z
+## [v5.17.0] — 2025-09-11T13:35:02.000Z
 
 ### Added
 - DB-backed admin authentication with HttpOnly cookie session (admin-session)
@@ -959,7 +1093,7 @@ CSRF_SECRET=<generate with: openssl rand -base64 32>
 
 ---
 
-## [v5.16.0] — 2025-07-23T10:00:00.000Z
+## [v5.17.0] — 2025-07-23T10:00:00.000Z
 
 ### Removed
 - Removed nested client package (@doneisbetter/sso-client)
@@ -970,7 +1104,7 @@ CSRF_SECRET=<generate with: openssl rand -base64 32>
 - Updated documentation to focus on server-side implementation
 - Streamlined API documentation
 - Simplified configuration options
-## [v5.16.0] — 2025-07-22T08:03:17Z
+## [v5.17.0] — 2025-07-22T08:03:17Z
 
 ### Updated Dependencies
 - Upgraded Next.js to ^15.4.2
@@ -988,7 +1122,7 @@ CSRF_SECRET=<generate with: openssl rand -base64 32>
 - Updated package overrides for better dependency management
 - Optimized session handling and validation
 
-## [v5.16.0]
+## [v5.17.0]
 
 ### Major Changes
 - Upgraded all dependencies to their latest stable versions
@@ -1017,7 +1151,7 @@ CSRF_SECRET=<generate with: openssl rand -base64 32>
 - Better memory management with lru-cache
 - Stricter npm configuration
 
-## [v5.16.0] — 2025-07-21T13:12:00.000Z
+## [v5.17.0] — 2025-07-21T13:12:00.000Z
 
 ### Added
 - User management features:
@@ -1065,7 +1199,7 @@ CSRF_SECRET=<generate with: openssl rand -base64 32>
 - Added admin user management
 - Created API routes for user operations
 
-## [v5.16.0] — 2024-04-13T12:00:00.000Z
+## [v5.17.0] — 2024-04-13T12:00:00.000Z
 
 ### Added
 - Initial project setup

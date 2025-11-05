@@ -13,6 +13,9 @@ export default function AdminLoginPage() {
   const [lastBody, setLastBody] = useState('')
   const [magicLinkSent, setMagicLinkSent] = useState(false)
   const [magicLinkLoading, setMagicLinkLoading] = useState(false)
+  const [pinEnabled, setPinEnabled] = useState(null) // null = loading, true/false = state
+  const [pinToggleLoading, setPinToggleLoading] = useState(false)
+  const [pinMessage, setPinMessage] = useState('')
 
   async function checkSession() {
     try {
@@ -22,6 +25,10 @@ export default function AdminLoginPage() {
         if (data?.isValid) {
           setAdmin(data.user)
           setMessage('Admin session active')
+          // Fetch PIN verification setting if super-admin
+          if (data.user.role === 'super-admin') {
+            fetchPinStatus()
+          }
         } else {
           setAdmin(null)
           setMessage('No active admin session')
@@ -33,6 +40,43 @@ export default function AdminLoginPage() {
     } catch (e) {
       setAdmin(null)
       setMessage(`Session check error: ${e?.message || 'unknown'}`)
+    }
+  }
+
+  async function fetchPinStatus() {
+    try {
+      const res = await fetch('/api/admin/settings/pin-verification', { credentials: 'include' })
+      if (res.ok) {
+        const data = await res.json()
+        setPinEnabled(data.enabled)
+      }
+    } catch (e) {
+      console.error('Failed to fetch PIN status:', e)
+    }
+  }
+
+  async function togglePin() {
+    setPinToggleLoading(true)
+    setPinMessage('')
+    try {
+      const res = await fetch('/api/admin/settings/pin-verification', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ enabled: !pinEnabled })
+      })
+      const data = await res.json()
+      if (res.ok) {
+        setPinEnabled(data.enabled)
+        setPinMessage(`PIN verification ${data.enabled ? 'enabled' : 'disabled'}`)
+        setTimeout(() => setPinMessage(''), 3000)
+      } else {
+        setPinMessage(data.error?.message || 'Failed to toggle PIN verification')
+      }
+    } catch (e) {
+      setPinMessage(`Error: ${e.message}`)
+    } finally {
+      setPinToggleLoading(false)
     }
   }
 
@@ -174,6 +218,31 @@ export default function AdminLoginPage() {
               <Link href="/docs" style={{ padding: '0.5rem 0.75rem', background: '#1e895a', color: 'white', borderRadius: 6, textDecoration: 'none' }}>Docs</Link>
               <button onClick={handleLogout} disabled={loading} style={{ padding: '0.5rem 0.75rem', background: '#24306b', color: 'white', border: 0, borderRadius: 6, cursor: 'pointer' }}>Logout</button>
             </div>
+            
+            {/* PIN Verification Toggle (super-admin only) */}
+            {admin.role === 'super-admin' && pinEnabled !== null && (
+              <div style={{ marginTop: 12, padding: '0.75rem', background: '#1a2140', border: '1px solid #2d3a5f', borderRadius: 6 }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+                  <div>
+                    <div style={{ fontWeight: '600', marginBottom: 4 }}>🔐 PIN Verification</div>
+                    <div style={{ fontSize: 12, opacity: 0.8 }}>Require PIN code on 5th-10th login</div>
+                  </div>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
+                    <input 
+                      type="checkbox" 
+                      checked={pinEnabled} 
+                      onChange={togglePin}
+                      disabled={pinToggleLoading}
+                      style={{ width: 18, height: 18, cursor: 'pointer' }}
+                    />
+                    <span style={{ fontSize: 13, fontWeight: '500' }}>{pinEnabled ? 'Enabled' : 'Disabled'}</span>
+                  </label>
+                </div>
+                {pinMessage && (
+                  <div style={{ marginTop: 8, fontSize: 12, color: '#81c784' }}>{pinMessage}</div>
+                )}
+              </div>
+            )}
           </div>
         ) : (
           <form onSubmit={handleLogin} style={{ marginTop: '1rem', display: 'grid', gap: 12 }}>

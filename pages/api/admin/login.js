@@ -88,8 +88,8 @@ export default async function handler(req, res) {
         }
       )
 
-      // Check if PIN should be triggered
-      if (shouldTriggerPin(loginCount)) {
+      // Check if PIN should be triggered (now async - checks database settings)
+      if (await shouldTriggerPin(loginCount)) {
         // Issue PIN and send email
         await ensurePinIndexes() // Ensure indexes exist
         const { pin } = await issuePin({
