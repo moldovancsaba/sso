@@ -1,6 +1,6 @@
-# LEARNINGS (v5.16.0)
+# LEARNINGS (v5.17.0)
 
-Last updated: 2025-10-02T11:54:33.000Z
+Last updated: 2025-11-05T15:00:00.000Z
 
 Backend:
 - MessMass cookie session pattern adapts cleanly to Pages Router with minimal dependencies
@@ -22,4 +22,22 @@ Security:
 - Always log security events with ISO 8601 UTC timestamps for auditability
 
 Backend (Stability):
-- Avoid import-time DB client instantiation in serverless environments; lazily create the Mongo client inside getDb() to prevent function cold-start crashes and “Empty reply from server”.
+- Avoid import-time DB client instantiation in serverless environments; lazily create the Mongo client inside getDb() to prevent function cold-start crashes and "Empty reply from server".
+
+Session Management (Critical):
+- Cookie-only validation is insufficient for proper session management; always validate against database to enable revocation
+- Session validation must check BOTH cookie expiration AND database state (expired, revoked, etc.)
+- Sliding session expiration should be updated on EVERY validation, not just at login
+- Without database validation, sessions cannot be revoked and expired database sessions remain valid until cookie expires
+- This caused the "20-30 second logout" bug where cookie was valid but database session had different state
+
+Settings Management:
+- System-wide settings should be stored in database (not just environment variables) to allow runtime toggling
+- Environment variables should override database settings for hard-disable scenarios (e.g., development)
+- Use a single `systemSettings` document with `_id: 'system'` for centralized configuration
+- Making async functions (like shouldTriggerPin) requires updating all callers to await them
+
+User Experience:
+- Features like PIN verification that depend on external services (email) should be easy to disable without redeployment
+- Admin UI toggles are more user-friendly than editing environment variables or database directly
+- Always provide clear feedback when settings change (success messages, state indicators)
