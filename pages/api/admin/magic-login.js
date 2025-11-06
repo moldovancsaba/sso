@@ -17,14 +17,20 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { token } = req.query
+    const { token, redirect_uri, return_to } = req.query
 
     if (!token) {
       return res.status(400).json({ error: 'Token is required' })
     }
 
     // Consume the magic token (validates and marks as used)
-    const { email } = await consumeMagicToken(token)
+    const result = await consumeMagicToken(token)
+    
+    if (!result.ok) {
+      throw new Error(result.error || 'Invalid or expired magic link')
+    }
+    
+    const { email, redirectUri: tokenRedirectUri } = result.payload
 
     // Find admin user
     const user = await findUserByEmail(email)
@@ -57,14 +63,28 @@ export default async function handler(req, res) {
       })
     )
 
+    // WHAT: Determine final redirect destination
+    // WHY: User should return to where they originally requested authentication
+    // Priority: return_to query param → redirect_uri from query → redirectUri from token → fallback
+    let finalRedirect = '/admin'
+    
+    if (return_to) {
+      finalRedirect = return_to
+    } else if (redirect_uri) {
+      finalRedirect = redirect_uri
+    } else if (tokenRedirectUri) {
+      finalRedirect = tokenRedirectUri
+    }
+
     logger.info('Admin magic login successful', {
       event: 'magic_login_success',
       userId: user.id,
       email: user.email,
+      redirect: finalRedirect,
     })
 
-    // Redirect to admin panel
-    return res.redirect(302, '/admin')
+    // Redirect to original destination
+    return res.redirect(302, finalRedirect)
 
   } catch (error) {
     logger.error('Magic login error', {

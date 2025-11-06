@@ -1,4 +1,4 @@
-# TASKLIST (v5.17.0)
+# TASKLIST (v5.18.0)
 
 Last updated: 2025-10-13T14:35:00.000Z
 
@@ -43,11 +43,11 @@ Active:
    - Owner: Platform
    - Expected Delivery: 2025-09-13T18:30:00.000Z
    - Priority: P1
-11) Redeploy v5.17.0 and validate admin login in production (login/validate/logout)
+11) Redeploy v5.18.0 and validate admin login in production (login/validate/logout)
    - Owner: Platform
    - Expected Delivery: 2025-09-15T18:00:00.000Z
    - Priority: P1
-12) Add fast-fail MongoDB client timeouts + 503 mapping; bump to v5.17.0 and redeploy
+12) Add fast-fail MongoDB client timeouts + 503 mapping; bump to v5.18.0 and redeploy
    - Owner: Platform
    - Expected Delivery: 2025-09-15T18:25:45.000Z
    - Priority: P1
