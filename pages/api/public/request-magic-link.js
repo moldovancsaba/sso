@@ -16,7 +16,7 @@ import { getDb } from '../../../lib/db.mjs'
  * WHAT: Generates HMAC-signed token with TTL
  * WHY: Reuses proven security pattern from admin magic links
  */
-async function createPublicMagicToken(email, ttlSeconds = 900) {
+async function createPublicMagicToken(email, ttlSeconds = 900, redirectUri = null) {
   const SECRET = process.env.PUBLIC_MAGIC_SECRET || process.env.JWT_SECRET
   if (!SECRET) {
     throw new Error('PUBLIC_MAGIC_SECRET or JWT_SECRET must be set')
@@ -32,6 +32,7 @@ async function createPublicMagicToken(email, ttlSeconds = 900) {
     iat: now,
     exp,
     jti,
+    ...(redirectUri && { redirectUri }), // Include redirect_uri if provided
   }
 
   const payloadJson = JSON.stringify(payload)
@@ -80,7 +81,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { email } = req.body
+    const { email, redirect_uri } = req.body
 
     if (!email || typeof email !== 'string') {
       return res.status(400).json({ error: 'Email is required' })
@@ -117,7 +118,8 @@ export default async function handler(req, res) {
     }
 
     // Generate magic link token (15 minutes TTL)
-    const { token, expiresAt } = await createPublicMagicToken(user.email, 900)
+    // Include redirect_uri in token so user returns to original site after login
+    const { token, expiresAt } = await createPublicMagicToken(user.email, 900, redirect_uri || null)
 
     // Build magic link URL
     const SSO_BASE_URL = process.env.SSO_BASE_URL || 'http://localhost:3000'

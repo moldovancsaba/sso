@@ -1,7 +1,7 @@
 /**
  * pages/api/public/magic-login.js - Verify magic link token and log in public user
- * WHAT: Consumes magic link token, creates public session, redirects to user dashboard
- * WHY: Completes passwordless authentication flow for public users
+ * WHAT: Consumes magic link token, creates public session, redirects to destination
+ * WHY: Completes passwordless authentication flow and returns user to original site
  */
 
 import { findPublicUserByEmail } from '../../../lib/publicUsers.mjs'
@@ -86,6 +86,48 @@ async function consumePublicMagicToken(token) {
   }
 }
 
+/**
+ * Validate redirect_uri for security
+ * WHAT: Ensures redirect URI is safe and matches allowed domains
+ * WHY: Prevents open redirect vulnerabilities
+ */
+function validateRedirectUri(uri) {
+  if (!uri) return null
+  
+  try {
+    const url = new URL(uri)
+    
+    // Allow localhost domains
+    if (url.hostname === 'localhost' || url.hostname.endsWith('.localhost')) {
+      return true
+    }
+    
+    // Allow domains in allowed origins list
+    const allowedOrigins = process.env.SSO_ALLOWED_ORIGINS?.split(',') || []
+    const isAllowed = allowedOrigins.some(origin => {
+      try {
+        const originUrl = new URL(origin)
+        return url.hostname === url.hostname && 
+               url.protocol === url.protocol &&
+               (!url.port || url.port === originUrl.port)
+      } catch {
+        return false
+      }
+    })
+    
+    if (isAllowed) {
+      return true
+    }
+    
+    // Default: deny
+    logger.warn('Invalid redirect URI for magic link', { url: uri })
+    return false
+  } catch (error) {
+    logger.warn('Invalid redirect URI format for magic link', { error: error.message })
+    return false
+  }
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
     res.setHeader('Allow', 'GET')
@@ -101,6 +143,27 @@ export default async function handler(req, res) {
 
     // Consume the magic token (validates and marks as used)
     const { email, redirectUri: tokenRedirectUri } = await consumePublicMagicToken(token)
+    
+    // Determine final redirect destination
+    let finalRedirect = '/'
+    
+    // Priority: return_to query param → redirect_uri from token → fallback
+    if (return_to) {
+      // Validate return_to parameter (from original request)
+      if (validateRedirectUri(return_to)) {
+        finalRedirect = return_to
+      }
+    } else if (tokenRedirectUri) {
+      // Use redirect_uri stored in token (from original request when token was generated)
+      if (validateRedirectUri(tokenRedirectUri)) {
+        finalRedirect = tokenRedirectUri
+      }
+    } else if (redirect_uri) {
+      // Use direct redirect_uri parameter (current request)
+      if (validateRedirectUri(redirect_uri)) {
+        finalRedirect = redirect_uri
+      }
+    }
 
     // Find public user
     const user = await findPublicUserByEmail(email)
@@ -132,19 +195,6 @@ export default async function handler(req, res) {
         ...(domain && { domain }),
       })
     )
-
-    // WHAT: Determine final redirect destination
-    // WHY: User should return to where they originally requested authentication
-    // Priority: return_to query param → redirect_uri from query → redirectUri from token → fallback
-    let finalRedirect = '/'
-    
-    if (return_to) {
-      finalRedirect = return_to
-    } else if (redirect_uri) {
-      finalRedirect = redirect_uri
-    } else if (tokenRedirectUri) {
-      finalRedirect = tokenRedirectUri
-    }
 
     logger.info('Public magic login successful', {
       event: 'public_magic_login_success',

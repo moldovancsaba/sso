@@ -17,7 +17,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { email } = req.body
+    const { email, redirect_uri } = req.body
 
     if (!email || typeof email !== 'string') {
       return res.status(400).json({ error: 'Email is required' })
@@ -46,7 +46,8 @@ export default async function handler(req, res) {
     }
 
     // Generate magic link token (15 minutes TTL)
-    const { token, expiresAt } = await createMagicToken(user.email, 900)
+    // Include redirect_uri in token so user returns to original site after login
+    const { token, expiresAt } = await createMagicToken(user.email, 900, redirect_uri || null)
 
     // Build magic link URL
     const SSO_BASE_URL = process.env.SSO_BASE_URL || 'http://localhost:3000'
