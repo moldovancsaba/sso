@@ -155,6 +155,34 @@
   cursor: not-allowed;
 }
 
+.facebookButton {
+  width: 100%;
+  padding: var(--space-4);
+  font-size: var(--text-base);
+  font-weight: var(--font-semibold);
+  color: white;
+  background: #1877f2;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-base);
+  font-family: var(--font-sans);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: var(--space-3);
+}
+
+.facebookButton:hover:not(:disabled) {
+  background: #166fe5;
+  transform: translateY(-1px);
+}
+
+.facebookButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .cancelButton {
   width: 100%;
   padding: var(--space-3);
