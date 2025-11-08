@@ -1,6 +1,6 @@
 # Release Notes [![Version Badge](https://img.shields.io/badge/version-5.17.0-blue)](RELEASE_NOTES.md)
 
-## [v5.22.0] — 2025-11-05T15:00:00.000Z
+## [v5.23.0] — 2025-11-05T15:00:00.000Z
 
 ### 🔐 Critical Session Fix & PIN Verification Toggle
 
@@ -134,7 +134,7 @@ node scripts/disable-pin.mjs  # Disable
 
 ---
 
-## [v5.22.0] — 2025-10-16T15:24:20.000Z
+## [v5.23.0] — 2025-10-16T15:24:20.000Z
 
 ### Fixed
 
@@ -164,7 +164,7 @@ node scripts/disable-pin.mjs  # Disable
 
 ---
 
-## [v5.22.0] — 2025-10-12T14:07:00.000Z
+## [v5.23.0] — 2025-10-12T14:07:00.000Z
 
 ### 🎯 User Account Management & Session Improvements
 
@@ -262,7 +262,7 @@ node scripts/disable-pin.mjs  # Disable
 
 ---
 
-## [v5.22.0] — 2025-01-13T23:45:00.000Z
+## [v5.23.0] — 2025-01-13T23:45:00.000Z
 
 ### 🔐 OAuth Flow Fix: Preserve Authorization Context During Admin Login
 
@@ -331,7 +331,7 @@ useEffect(() => {
 
 ---
 
-## [v5.22.0] — 2025-10-06T21:30:00.000Z
+## [v5.23.0] — 2025-10-06T21:30:00.000Z
 
 ### 🎉 All Authentication Features Complete + PKCE Flexibility
 
@@ -427,7 +427,7 @@ useEffect(() => {
   - Success message display
 - **Email Templates** (`lib/emailTemplates.mjs`):
   - Added `buildMagicLinkEmail()` - Magic link email template
-  - Login PIN email already added in v5.22.0
+  - Login PIN email already added in v5.23.0
 
 #### Database Schema
 
@@ -521,7 +521,7 @@ useEffect(() => {
 
 ---
 
-## [v5.22.0] — 2025-10-06T11:22:25.000Z
+## [v5.23.0] — 2025-10-06T11:22:25.000Z
 
 ### 🎉 New Authentication Features: Forgot Password + Email System
 
@@ -586,7 +586,7 @@ useEffect(() => {
   - MongoDB TTL indexes
 - PIN email template in `lib/emailTemplates.mjs`
 
-**Public User Authentication** (from v5.22.0 merge):
+**Public User Authentication** (from v5.23.0 merge):
 - `lib/publicUsers.mjs` - Public user management
 - `lib/publicSessions.mjs` - Public user sessions
 - `pages/login.js` - Public login page
@@ -662,7 +662,7 @@ EMAIL_VERIFICATION_TOKEN_TTL=86400     # 24 hours
 
 ---
 
-## [v5.22.0] — 2025-10-03T09:15:22.000Z
+## [v5.23.0] — 2025-10-03T09:15:22.000Z
 
 ### 🚀 Phase 2: Complete OAuth2/OIDC Authorization Server Implementation
 
@@ -889,7 +889,7 @@ OAUTH2_CONSENT_TTL=31536000                 # 1 year
 
 ---
 
-## [v5.22.0] — 2025-10-02T11:54:33.000Z
+## [v5.23.0] — 2025-10-02T11:54:33.000Z
 
 ### 🔒 Phase 1: Critical Security Hardening
 
@@ -985,7 +985,7 @@ CSRF_SECRET=<generate with: openssl rand -base64 32>
 
 ---
 
-## [v5.22.0] — 2025-09-17T11:43:02.000Z
+## [v5.23.0] — 2025-09-17T11:43:02.000Z
 
 ### Added
 - Development-only passwordless admin login:
@@ -998,7 +998,7 @@ CSRF_SECRET=<generate with: openssl rand -base64 32>
 
 ---
 
-## [v5.22.0] — 2025-09-16T18:14:33.000Z
+## [v5.23.0] — 2025-09-16T18:14:33.000Z
 
 ### Added
 - Secure, single-use, time-limited admin magic link flow:
@@ -1011,7 +1011,7 @@ CSRF_SECRET=<generate with: openssl rand -base64 32>
 
 ---
 
-## [v5.22.0] — 2025-09-15T18:25:45.000Z
+## [v5.23.0] — 2025-09-15T18:25:45.000Z
 
 ### Changed
 - MongoDB client now uses fast-fail timeouts (serverSelection/connect/socket) to surface 503 quickly when DB is unreachable.
@@ -1022,7 +1022,7 @@ CSRF_SECRET=<generate with: openssl rand -base64 32>
 
 ---
 
-## [v5.22.0] — 2025-09-15T17:36:07.000Z
+## [v5.23.0] — 2025-09-15T17:36:07.000Z
 
 ### Changed
 - MongoDB client initialization is now lazy in serverless functions to prevent import-time crashes (avoids “Empty reply from server”).
@@ -1033,7 +1033,7 @@ CSRF_SECRET=<generate with: openssl rand -base64 32>
 
 ---
 
-## [v5.22.0] — 2025-09-14T08:25:57.000Z
+## [v5.23.0] — 2025-09-14T08:25:57.000Z
 
 ### Added
 - UUIDs as the primary identifier for admin users (with backfill for legacy users)
@@ -1053,7 +1053,7 @@ CSRF_SECRET=<generate with: openssl rand -base64 32>
 
 ---
 
-## [v5.22.0] — 2025-09-11T14:28:29.000Z
+## [v5.23.0] — 2025-09-11T14:28:29.000Z
 
 ### Added
 - Admin login UI at /admin (email + 32‑hex token) with session display and logout
@@ -1064,12 +1064,12 @@ CSRF_SECRET=<generate with: openssl rand -base64 32>
 
 ---
 
-## [v5.22.0] — 2025-09-11T13:57:38.000Z
+## [v5.23.0] — 2025-09-11T13:57:38.000Z
 
 ### Changed
-- Version bump to align with commit protocol; no functional changes since v5.22.0
+- Version bump to align with commit protocol; no functional changes since v5.23.0
 
-## [v5.22.0] — 2025-09-11T13:35:02.000Z
+## [v5.23.0] — 2025-09-11T13:35:02.000Z
 
 ### Added
 - DB-backed admin authentication with HttpOnly cookie session (admin-session)
@@ -1093,7 +1093,7 @@ CSRF_SECRET=<generate with: openssl rand -base64 32>
 
 ---
 
-## [v5.22.0] — 2025-07-23T10:00:00.000Z
+## [v5.23.0] — 2025-07-23T10:00:00.000Z
 
 ### Removed
 - Removed nested client package (@doneisbetter/sso-client)
@@ -1104,7 +1104,7 @@ CSRF_SECRET=<generate with: openssl rand -base64 32>
 - Updated documentation to focus on server-side implementation
 - Streamlined API documentation
 - Simplified configuration options
-## [v5.22.0] — 2025-07-22T08:03:17Z
+## [v5.23.0] — 2025-07-22T08:03:17Z
 
 ### Updated Dependencies
 - Upgraded Next.js to ^15.4.2
@@ -1122,7 +1122,7 @@ CSRF_SECRET=<generate with: openssl rand -base64 32>
 - Updated package overrides for better dependency management
 - Optimized session handling and validation
 
-## [v5.22.0]
+## [v5.23.0]
 
 ### Major Changes
 - Upgraded all dependencies to their latest stable versions
@@ -1151,7 +1151,7 @@ CSRF_SECRET=<generate with: openssl rand -base64 32>
 - Better memory management with lru-cache
 - Stricter npm configuration
 
-## [v5.22.0] — 2025-07-21T13:12:00.000Z
+## [v5.23.0] — 2025-07-21T13:12:00.000Z
 
 ### Added
 - User management features:
@@ -1199,7 +1199,7 @@ CSRF_SECRET=<generate with: openssl rand -base64 32>
 - Added admin user management
 - Created API routes for user operations
 
-## [v5.22.0] — 2024-04-13T12:00:00.000Z
+## [v5.23.0] — 2024-04-13T12:00:00.000Z
 
 ### Added
 - Initial project setup

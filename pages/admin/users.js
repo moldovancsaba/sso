@@ -498,6 +498,7 @@ export default function AdminUsersPage({ admin }) {
                     <tr style={{ borderBottom: '2px solid #e0e0e0' }}>
                       <th style={{ textAlign: 'left', padding: '12px 8px', fontWeight: '600' }}>Email</th>
                       <th style={{ textAlign: 'left', padding: '12px 8px', fontWeight: '600' }}>Name</th>
+                      <th style={{ textAlign: 'left', padding: '12px 8px', fontWeight: '600' }}>Login Method</th>
                       <th style={{ textAlign: 'left', padding: '12px 8px', fontWeight: '600' }}>Status</th>
                       <th style={{ textAlign: 'left', padding: '12px 8px', fontWeight: '600' }}>Registered</th>
                       <th style={{ textAlign: 'left', padding: '12px 8px', fontWeight: '600' }}>Last Login</th>
@@ -509,6 +510,31 @@ export default function AdminUsersPage({ admin }) {
                       <tr key={user.id} style={{ borderBottom: '1px solid #f0f0f0' }}>
                         <td style={{ padding: '12px 8px' }}>{user.email}</td>
                         <td style={{ padding: '12px 8px' }}>{user.name || '-'}</td>
+                        <td style={{ padding: '12px 8px' }}>
+                          {/* WHAT: Show login methods (email, facebook, etc.) */}
+                          {/* WHY: Admins need to see how each user authenticated */}
+                          <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+                            {user.loginMethods && user.loginMethods.length > 0 ? (
+                              user.loginMethods.map(method => (
+                                <span
+                                  key={method}
+                                  style={{
+                                    padding: '3px 8px',
+                                    borderRadius: '4px',
+                                    fontSize: '11px',
+                                    fontWeight: '600',
+                                    background: method === 'facebook' ? '#1877f2' : method === 'google' ? '#ea4335' : '#667eea',
+                                    color: 'white',
+                                  }}
+                                >
+                                  {method === 'facebook' ? '' : method === 'google' ? 'G' : '✉'} {method}
+                                </span>
+                              ))
+                            ) : (
+                              <span style={{ fontSize: '12px', color: '#999' }}>-</span>
+                            )}
+                          </div>
+                        </td>
                         <td style={{ padding: '12px 8px' }}>
                           <span style={{
                             padding: '4px 8px',
