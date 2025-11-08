@@ -1,13 +1,26 @@
 import '../styles/globals.css';
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/router';
 import packageJson from '../package.json';
 
 export default function App({ Component, pageProps }) {
+  const router = useRouter();
   const [sessionStatus, setSessionStatus] = useState('active');
   const [notificationShown, setNotificationShown] = useState(false);
 
+  // WHAT: Check if current page is admin-related
+  // WHY: Admin pages use different session (admin-session cookie) than public pages
+  const isAdminPage = router.pathname.startsWith('/admin');
+
   // Set interval for checking session status
   useEffect(() => {
+    // WHAT: Skip session check on admin pages
+    // WHY: Admin pages use admin-session cookie, not public user session
+    // This prevents false "session expired" alerts when logged in as admin
+    if (isAdminPage) {
+      return;
+    }
+
     const checkSession = async () => {
       try {
         const response = await fetch('/api/users/session-status');
@@ -27,7 +40,7 @@ export default function App({ Component, pageProps }) {
     const interval = setInterval(checkSession, 60000); // Check every minute
 
     return () => clearInterval(interval);
-  }, [notificationShown]);
+  }, [notificationShown, isAdminPage]);
 
   // Form submission handler
   const handleFormSubmit = async (event) => {
