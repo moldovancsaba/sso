@@ -8,6 +8,7 @@ export default function OAuthClientsPage() {
   const [message, setMessage] = useState('')
   const [showCreateForm, setShowCreateForm] = useState(false)
   const [newClientSecret, setNewClientSecret] = useState(null)
+  const [editingClientId, setEditingClientId] = useState(null)
 
   // Form state
   const [formData, setFormData] = useState({
@@ -176,6 +177,116 @@ export default function OAuthClientsPage() {
     }
   }
 
+  async function handleRegenerateSecret(clientId, clientName) {
+    if (!confirm(`⚠️ Regenerate secret for "${clientName}"?\n\nThis will invalidate the old secret immediately. The new secret will be shown only once.`)) {
+      return
+    }
+
+    try {
+      setLoading(true)
+      setMessage('')
+      const res = await fetch(`/api/admin/oauth-clients/${clientId}/regenerate-secret`, {
+        method: 'POST',
+        credentials: 'include',
+      })
+
+      if (!res.ok) {
+        const data = await res.json()
+        throw new Error(data.error || `Failed to regenerate secret: ${res.status}`)
+      }
+
+      const data = await res.json()
+      setNewClientSecret(data.client_secret)
+      setMessage(`Secret regenerated for "${clientName}". Save it now!`)
+      await loadClients()
+    } catch (err) {
+      setMessage(err.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  function handleStartEdit(client) {
+    setEditingClientId(client.client_id)
+    setFormData({
+      name: client.name,
+      description: client.description || '',
+      redirect_uris: client.redirect_uris.join('\n'),
+      allowed_scopes: client.allowed_scopes.join(' '),
+      homepage_uri: client.homepage_uri || '',
+      logo_uri: client.logo_uri || '',
+      require_pkce: client.require_pkce || false,
+    })
+    setShowCreateForm(false)
+  }
+
+  function handleCancelEdit() {
+    setEditingClientId(null)
+    setFormData({
+      name: '',
+      description: '',
+      redirect_uris: '',
+      allowed_scopes: 'openid profile email offline_access',
+      homepage_uri: '',
+      logo_uri: '',
+      require_pkce: false,
+    })
+  }
+
+  async function handleUpdateClient(e) {
+    e.preventDefault()
+    setLoading(true)
+    setMessage('')
+
+    try {
+      // Parse redirect URIs (comma or newline separated)
+      const redirectUris = formData.redirect_uris
+        .split(/[\n,]/)
+        .map(u => u.trim())
+        .filter(Boolean)
+
+      if (redirectUris.length === 0) {
+        throw new Error('At least one redirect URI is required')
+      }
+
+      // Parse scopes (space-separated)
+      const allowedScopes = formData.allowed_scopes
+        .split(/\s+/)
+        .map(s => s.trim())
+        .filter(Boolean)
+
+      const payload = {
+        name: formData.name.trim(),
+        description: formData.description.trim(),
+        redirect_uris: redirectUris,
+        allowed_scopes: allowedScopes,
+        homepage_uri: formData.homepage_uri.trim() || null,
+        logo_uri: formData.logo_uri.trim() || null,
+        require_pkce: formData.require_pkce,
+      }
+
+      const res = await fetch(`/api/admin/oauth-clients/${editingClientId}`, {
+        method: 'PATCH',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+
+      if (!res.ok) {
+        const data = await res.json()
+        throw new Error(data.error || `Failed to update client: ${res.status}`)
+      }
+
+      setMessage('Client updated successfully!')
+      handleCancelEdit()
+      await loadClients()
+    } catch (err) {
+      setMessage(err.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
   function copyToClipboard(text) {
     navigator.clipboard.writeText(text)
     setMessage('Copied to clipboard!')
@@ -229,6 +340,93 @@ export default function OAuthClientsPage() {
               <button onClick={() => copyToClipboard(newClientSecret)} style={{ padding: '0.5rem 0.75rem', background: '#24306b', color: 'white', border: 0, borderRadius: 6, cursor: 'pointer' }}>Copy</button>
             </div>
             <button onClick={() => setNewClientSecret(null)} style={{ marginTop: '0.5rem', padding: '0.25rem 0.5rem', background: '#8a6d3b', color: 'white', border: 0, borderRadius: 6, cursor: 'pointer', fontSize: '0.875rem' }}>I've saved it, close this</button>
+          </div>
+        )}
+
+        {/* Edit Form */}
+        {editingClientId && admin.role === 'super-admin' && (
+          <div style={{ marginBottom: '2rem', padding: '1.5rem', background: '#12172b', border: '1px solid #22284a', borderRadius: 12 }}>
+            <h2 style={{ margin: '0 0 1rem 0', fontSize: '1.25rem' }}>Edit OAuth Client</h2>
+            <form onSubmit={handleUpdateClient} style={{ display: 'grid', gap: 12 }}>
+              <label style={{ display: 'grid', gap: 6 }}>
+                <span style={{ fontSize: 12, opacity: 0.8 }}>Client Name *</span>
+                <input
+                  value={formData.name}
+                  onChange={e => setFormData({ ...formData, name: e.target.value })}
+                  placeholder="e.g., Narimato"
+                  required
+                  style={{ padding: '0.5rem 0.75rem', background: '#0b1021', color: '#e6e8f2', border: '1px solid #22284a', borderRadius: 6 }}
+                />
+              </label>
+
+              <label style={{ display: 'grid', gap: 6 }}>
+                <span style={{ fontSize: 12, opacity: 0.8 }}>Description</span>
+                <input
+                  value={formData.description}
+                  onChange={e => setFormData({ ...formData, description: e.target.value })}
+                  placeholder="Brief description of the application"
+                  style={{ padding: '0.5rem 0.75rem', background: '#0b1021', color: '#e6e8f2', border: '1px solid #22284a', borderRadius: 6 }}
+                />
+              </label>
+
+              <label style={{ display: 'grid', gap: 6 }}>
+                <span style={{ fontSize: 12, opacity: 0.8 }}>Redirect URIs * (one per line)</span>
+                <textarea
+                  value={formData.redirect_uris}
+                  onChange={e => setFormData({ ...formData, redirect_uris: e.target.value })}
+                  placeholder="https://narimato.com/auth/callback&#10;https://narimato.com/api/oauth/callback"
+                  required
+                  rows={3}
+                  style={{ padding: '0.5rem 0.75rem', background: '#0b1021', color: '#e6e8f2', border: '1px solid #22284a', borderRadius: 6, fontFamily: 'monospace', fontSize: '0.875rem' }}
+                />
+              </label>
+
+              <label style={{ display: 'grid', gap: 6 }}>
+                <span style={{ fontSize: 12, opacity: 0.8 }}>Allowed Scopes (space-separated)</span>
+                <input
+                  value={formData.allowed_scopes}
+                  onChange={e => setFormData({ ...formData, allowed_scopes: e.target.value })}
+                  placeholder="openid profile email read:cards write:cards"
+                  style={{ padding: '0.5rem 0.75rem', background: '#0b1021', color: '#e6e8f2', border: '1px solid #22284a', borderRadius: 6, fontFamily: 'monospace', fontSize: '0.875rem' }}
+                />
+              </label>
+
+              <label style={{ display: 'grid', gap: 6 }}>
+                <span style={{ fontSize: 12, opacity: 0.8 }}>Homepage URL</span>
+                <input
+                  value={formData.homepage_uri}
+                  onChange={e => setFormData({ ...formData, homepage_uri: e.target.value })}
+                  placeholder="https://narimato.com"
+                  type="url"
+                  style={{ padding: '0.5rem 0.75rem', background: '#0b1021', color: '#e6e8f2', border: '1px solid #22284a', borderRadius: 6 }}
+                />
+              </label>
+
+              <label style={{ display: 'flex', gap: 8, alignItems: 'center', cursor: 'pointer' }}>
+                <input
+                  type="checkbox"
+                  checked={formData.require_pkce}
+                  onChange={e => setFormData({ ...formData, require_pkce: e.target.checked })}
+                  style={{ width: 16, height: 16, cursor: 'pointer' }}
+                />
+                <span style={{ fontSize: 12, opacity: 0.8 }}>
+                  Require PKCE (Proof Key for Code Exchange)
+                  <br />
+                  <span style={{ fontSize: 11, opacity: 0.6 }}>
+                    Check this for public clients (mobile/SPA). Leave unchecked for confidential clients (server-side).
+                  </span>
+                </span>
+              </label>
+
+              <div style={{ display: 'flex', gap: 8, marginTop: '0.5rem' }}>
+                <button type="submit" disabled={loading} style={{ padding: '0.65rem 0.75rem', background: '#4054d6', color: 'white', border: 0, borderRadius: 6, cursor: 'pointer' }}>
+                  {loading ? 'Updating…' : 'Update Client'}
+                </button>
+                <button type="button" onClick={handleCancelEdit} style={{ padding: '0.65rem 0.75rem', background: '#24306b', color: 'white', border: 0, borderRadius: 6, cursor: 'pointer' }}>
+                  Cancel
+                </button>
+              </div>
+            </form>
           </div>
         )}
 
@@ -355,10 +553,10 @@ export default function OAuthClientsPage() {
                     </div>
                     {admin.role === 'super-admin' && (
                       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                        <button onClick={() => alert('Edit feature coming soon')} style={{ padding: '0.25rem 0.5rem', background: '#24306b', color: 'white', border: 0, borderRadius: 6, cursor: 'pointer', fontSize: '0.875rem' }}>
+                        <button onClick={() => handleStartEdit(client)} style={{ padding: '0.25rem 0.5rem', background: '#24306b', color: 'white', border: 0, borderRadius: 6, cursor: 'pointer', fontSize: '0.875rem' }}>
                           Edit
                         </button>
-                        <button onClick={() => alert('Regenerate secret feature coming soon')} style={{ padding: '0.25rem 0.5rem', background: '#4054d6', color: 'white', border: 0, borderRadius: 6, cursor: 'pointer', fontSize: '0.875rem' }}>
+                        <button onClick={() => handleRegenerateSecret(client.client_id, client.name)} style={{ padding: '0.25rem 0.5rem', background: '#4054d6', color: 'white', border: 0, borderRadius: 6, cursor: 'pointer', fontSize: '0.875rem' }}>
                           Regenerate Secret
                         </button>
                         <button onClick={() => handleToggleStatus(client.client_id, client.status)} style={{ padding: '0.25rem 0.5rem', background: '#24306b', color: 'white', border: 0, borderRadius: 6, cursor: 'pointer', fontSize: '0.875rem' }}>
