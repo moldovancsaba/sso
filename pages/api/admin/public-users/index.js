@@ -53,17 +53,34 @@ export default async function handler(req, res) {
     })
 
     return res.status(200).json({
-      users: users.map(user => ({
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        status: user.status || 'active',
-        emailVerified: user.emailVerified !== false,
-        createdAt: user.createdAt,
-        updatedAt: user.updatedAt,
-        lastLoginAt: user.lastLoginAt,
-        loginCount: user.loginCount || 0
-      }))
+      users: users.map(user => {
+        // WHAT: Determine login methods for this user
+        // WHY: Show admins how each user authenticated (email, Facebook, etc.)
+        const loginMethods = []
+        if (user.password || user.passwordHash) {
+          loginMethods.push('email')
+        }
+        if (user.socialProviders?.facebook) {
+          loginMethods.push('facebook')
+        }
+        if (user.socialProviders?.google) {
+          loginMethods.push('google')
+        }
+        
+        return {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          status: user.status || 'active',
+          emailVerified: user.emailVerified !== false,
+          createdAt: user.createdAt,
+          updatedAt: user.updatedAt,
+          lastLoginAt: user.lastLoginAt,
+          loginCount: user.loginCount || 0,
+          loginMethods, // NEW: Show which login methods this user has
+          hasFacebook: !!user.socialProviders?.facebook, // NEW: Quick Facebook check
+        }
+      })
     })
 
   } catch (error) {
