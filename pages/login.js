@@ -528,12 +528,6 @@ export default function LoginPage({ initialRedirect, initialOAuthRequest }) {
               }}
               disabled={loading}
               className={styles.facebookButton}
-              style={{
-                marginTop: '0.75rem',
-                backgroundColor: '#1877f2',
-                color: 'white',
-                border: 'none',
-              }}
             >
               <svg 
                 width="20" 
