@@ -128,26 +128,54 @@ async function handleAuthorizationCodeGrant(req, res) {
     })
   }
 
-  if (!client_secret) {
-    return res.status(400).json({
-      error: 'invalid_request',
-      error_description: 'client_secret is required',
-    })
-  }
-
-  // WHAT: code_verifier is now optional
-  // WHY: It's only required if the authorization code was created with PKCE
-  // The validateAndConsumeCode function will check if PKCE is required
-
-  // Authenticate client
-  const client = await verifyClient(client_id, client_secret)
-  if (!client) {
-    logger.warn('Token request: invalid client credentials', { client_id })
+  // WHAT: Get client first to check auth method
+  // WHY: Public clients (token_endpoint_auth_method: 'none') don't need client_secret
+  const { getClient } = await import('../../../lib/oauth/clients.mjs')
+  const client = await getClient(client_id)
+  
+  if (!client || client.status !== 'active') {
+    logger.warn('Token request: invalid client', { client_id })
     return res.status(401).json({
       error: 'invalid_client',
-      error_description: 'Invalid client credentials',
+      error_description: 'Invalid client',
     })
   }
+
+  // WHAT: Validate client secret only for confidential clients
+  // WHY: Public clients (SPA, mobile apps) use PKCE instead of client_secret
+  if (client.token_endpoint_auth_method !== 'none') {
+    if (!client_secret) {
+      return res.status(400).json({
+        error: 'invalid_request',
+        error_description: 'client_secret is required',
+      })
+    }
+
+    // Verify client credentials
+    const verifiedClient = await verifyClient(client_id, client_secret)
+    if (!verifiedClient) {
+      logger.warn('Token request: invalid client credentials', { client_id })
+      return res.status(401).json({
+        error: 'invalid_client',
+        error_description: 'Invalid client credentials',
+      })
+    }
+  } else {
+    // WHAT: For public clients, PKCE is mandatory
+    // WHY: Without client_secret, PKCE provides the security
+    if (!code_verifier) {
+      logger.warn('Token request: public client missing PKCE', { client_id })
+      return res.status(400).json({
+        error: 'invalid_request',
+        error_description: 'code_verifier is required for public clients',
+      })
+    }
+    logger.info('Token request: public client with PKCE', { client_id })
+  }
+
+  // WHAT: code_verifier is now optional for confidential clients
+  // WHY: It's only required if the authorization code was created with PKCE
+  // The validateAndConsumeCode function will check if PKCE is required
 
   // Validate and consume authorization code
   const codeData = await validateAndConsumeCode({
@@ -246,21 +274,40 @@ async function handleRefreshTokenGrant(req, res) {
     })
   }
 
-  if (!client_secret) {
-    return res.status(400).json({
-      error: 'invalid_request',
-      error_description: 'client_secret is required',
+  // WHAT: Get client first to check auth method
+  // WHY: Public clients don't need client_secret
+  const { getClient } = await import('../../../lib/oauth/clients.mjs')
+  const client = await getClient(client_id)
+  
+  if (!client || client.status !== 'active') {
+    logger.warn('Refresh token request: invalid client', { client_id })
+    return res.status(401).json({
+      error: 'invalid_client',
+      error_description: 'Invalid client',
     })
   }
 
-  // Authenticate client
-  const client = await verifyClient(client_id, client_secret)
-  if (!client) {
-    logger.warn('Refresh token request: invalid client credentials', { client_id })
-    return res.status(401).json({
-      error: 'invalid_client',
-      error_description: 'Invalid client credentials',
-    })
+  // WHAT: Validate client secret only for confidential clients
+  // WHY: Public clients use PKCE and don't have a secret
+  if (client.token_endpoint_auth_method !== 'none') {
+    if (!client_secret) {
+      return res.status(400).json({
+        error: 'invalid_request',
+        error_description: 'client_secret is required',
+      })
+    }
+
+    // Verify client credentials
+    const verifiedClient = await verifyClient(client_id, client_secret)
+    if (!verifiedClient) {
+      logger.warn('Refresh token request: invalid client credentials', { client_id })
+      return res.status(401).json({
+        error: 'invalid_client',
+        error_description: 'Invalid client credentials',
+      })
+    }
+  } else {
+    logger.info('Refresh token request: public client (no secret required)', { client_id })
   }
 
   // Verify refresh token
