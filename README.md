@@ -1,6 +1,6 @@
 # SSO Service — Production-Ready Authentication with Advanced Security
 
-Version: 5.21.0
+Version: 5.22.0
 Last updated: 2025-01-13T23:45:00.000Z
 
 A production-ready authentication backend for sso.doneisbetter.com with comprehensive security and user-friendly authentication options:
@@ -20,17 +20,17 @@ A production-ready authentication backend for sso.doneisbetter.com with comprehe
   - CSRF protection (double-submit cookie + HMAC)
   - Structured audit logging with Winston
   - Subdomain SSO support (*.doneisbetter.com)
-- **🔑 Authentication Options** (v5.21.0):
+- **🔑 Authentication Options** (v5.22.0):
   - Password-based login (admin + public users)
   - **Forgot password with email** (auto-generates secure passwords)
   - **Magic link authentication** (passwordless login for admin + public users)
   - **Random PIN verification** (6-digit PIN on 5th-10th login for enhanced security)
-- **📧 Email System** (v5.21.0):
+- **📧 Email System** (v5.22.0):
   - Dual provider support (Nodemailer + Resend)
   - Password reset via email
   - Email verification
   - Forgot password flow
-- **OAuth2/OIDC** (v5.21.0):
+- **OAuth2/OIDC** (v5.22.0):
   - Authorization Code Flow with **optional PKCE** (configurable per client)
   - JWT access tokens (RS256)
   - Refresh token rotation
@@ -43,7 +43,7 @@ A production-ready authentication backend for sso.doneisbetter.com with comprehe
 - Resource password generation/validation (MD5-style 32-hex token)
 - CORS per SSO_ALLOWED_ORIGINS
 
-## User Account Management (v5.21.0)
+## User Account Management (v5.22.0)
 - **Account Page**: `/account` — Comprehensive user dashboard
   - View and edit profile (name, email)
   - See connected services (OAuth apps)
@@ -66,7 +66,7 @@ A production-ready authentication backend for sso.doneisbetter.com with comprehe
 - GET/POST /api/admin/orgs/[orgId]/users — list/create org users (UUID)
 - GET/PATCH/DELETE /api/admin/orgs/[orgId]/users/[id] — manage org user
 
-### Public User Endpoints (v5.21.0)
+### Public User Endpoints (v5.22.0)
 - POST /api/public/register — Create new user account
 - POST /api/public/login — Authenticate user
 - POST /api/public/verify-pin — Verify PIN during login
@@ -115,7 +115,7 @@ Deprecated/Removed:
 - Set all env vars in Vercel Project Settings
 
 ## Security Notes
-- **Phase 1 Hardening Complete** (v5.21.0):
+- **Phase 1 Hardening Complete** (v5.22.0):
   - ✅ Server-side session revocation
   - ✅ Rate limiting (5 login attempts per 15 minutes)
   - ✅ CSRF protection (double-submit cookie)
