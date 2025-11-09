@@ -31,14 +31,15 @@ export default function Quickstart() {
           <section className={styles.section}>
             <h2>1. Register Your Application</h2>
             <p>
-              Contact SSO administrators at <a href="mailto:sso@doneisbetter.com">sso@doneisbetter.com</a> to register your application.
+              Login to <a href="https://sso.doneisbetter.com/admin">SSO Admin Panel</a>, navigate to <strong>OAuth Clients</strong>, and click <strong>+ New Client</strong>.
             </p>
             <p><strong>Required Information:</strong></p>
             <ul>
               <li>Application name (e.g., "Launchmass", "Messmass")</li>
               <li>Application description</li>
               <li>Redirect URIs (development and production)</li>
-              <li>Required scopes (e.g., <code>openid profile email</code>)</li>
+              <li>Required scopes (e.g., <code>openid profile email offline_access</code>)</li>
+              <li>Homepage URL</li>
             </ul>
             <p>You will receive:</p>
             <div className={styles.codeBlock}>
@@ -52,6 +53,9 @@ export default function Quickstart() {
             <p className={styles.dangerText}>
               <strong>⚠️ Store client_secret securely!</strong> It will only be shown once.
             </p>
+            <p>
+              <strong>Note:</strong> PKCE (Proof Key for Code Exchange) is recommended for enhanced security. See <a href="/docs/authentication">Authentication Guide</a> for PKCE implementation.
+            </p>
           </section>
 
           {/* WHAT: Step 2 - Implement OAuth login redirect */}
@@ -59,20 +63,47 @@ export default function Quickstart() {
           <section className={styles.section}>
             <h2>2. Redirect Users to SSO Login</h2>
             <p>
-              When users click "Login", redirect them to the SSO authorization endpoint:
+              When users click "Login", redirect them to the SSO authorization endpoint with PKCE parameters:
             </p>
             <div className={styles.codeBlock}>
               <pre>
                 {`// In your frontend (any framework)
-function handleLogin() {
+async function handleLogin() {
+  // Generate PKCE parameters
+  const codeVerifier = generateCodeVerifier();
+  const codeChallenge = await generateCodeChallenge(codeVerifier);
+  
+  // Store verifier for token exchange
+  sessionStorage.setItem('pkce_verifier', codeVerifier);
+  
   const authUrl = new URL('https://sso.doneisbetter.com/api/oauth/authorize');
   authUrl.searchParams.set('client_id', 'YOUR_CLIENT_ID');
   authUrl.searchParams.set('redirect_uri', 'https://yourapp.com/auth/callback');
   authUrl.searchParams.set('response_type', 'code');
-  authUrl.searchParams.set('scope', 'openid profile email');
+  authUrl.searchParams.set('scope', 'openid profile email offline_access');
+  authUrl.searchParams.set('code_challenge', codeChallenge);
+  authUrl.searchParams.set('code_challenge_method', 'S256');
+  authUrl.searchParams.set('state', generateRandomState()); // CSRF protection
   
   // Redirect user to SSO
   window.location.href = authUrl.toString();
+}
+
+function generateCodeVerifier() {
+  const array = new Uint8Array(32);
+  crypto.getRandomValues(array);
+  return base64URLEncode(array);
+}
+
+async function generateCodeChallenge(verifier) {
+  const data = new TextEncoder().encode(verifier);
+  const hash = await crypto.subtle.digest('SHA-256', data);
+  return base64URLEncode(new Uint8Array(hash));
+}
+
+function base64URLEncode(buffer) {
+  return btoa(String.fromCharCode(...buffer))
+    .replace(/\\+/g, '-').replace(/\\//g, '_').replace(/=/g, '');
 }`}
               </pre>
             </div>
@@ -81,8 +112,14 @@ function handleLogin() {
               <li><code>client_id</code> - Your OAuth client ID (from step 1)</li>
               <li><code>redirect_uri</code> - Where SSO redirects after login (must match registered URI)</li>
               <li><code>response_type</code> - Always <code>code</code> for authorization code flow</li>
-              <li><code>scope</code> - Requested scopes (space-separated)</li>
+              <li><code>scope</code> - Requested scopes (space-separated, include <code>offline_access</code> for refresh tokens)</li>
+              <li><code>code_challenge</code> - PKCE challenge (SHA-256 hash of code_verifier)</li>
+              <li><code>code_challenge_method</code> - Always <code>S256</code></li>
+              <li><code>state</code> - Random string for CSRF protection</li>
             </ul>
+            <p>
+              <strong>Authentication Options:</strong> Users can login with email/password, magic link (passwordless), or <strong>social providers (Facebook, Google coming soon)</strong>.
+            </p>
           </section>
 
           {/* WHAT: Step 3 - Handle OAuth callback */}
@@ -104,7 +141,15 @@ function handleLogin() {
               <pre>
                 {`// Node.js / Express example
 app.get('/auth/callback', async (req, res) => {
-  const { code } = req.query;
+  const { code, state } = req.query;
+  
+  // Validate state parameter (CSRF protection)
+  if (state !== req.session.oauth_state) {
+    return res.status(400).send('Invalid state parameter');
+  }
+  
+  // Retrieve PKCE verifier from session
+  const codeVerifier = req.session.pkce_verifier;
   
   // WHAT: Exchange authorization code for tokens
   // WHY: Code is single-use and short-lived, need long-lived tokens
@@ -116,7 +161,8 @@ app.get('/auth/callback', async (req, res) => {
       code: code,
       client_id: process.env.SSO_CLIENT_ID,
       client_secret: process.env.SSO_CLIENT_SECRET,
-      redirect_uri: 'https://yourapp.com/auth/callback'
+      redirect_uri: 'https://yourapp.com/auth/callback',
+      code_verifier: codeVerifier  // PKCE verification
     })
   });
   
@@ -124,16 +170,16 @@ app.get('/auth/callback', async (req, res) => {
   // tokens = { access_token, refresh_token, id_token, expires_in }
   
   // WHAT: Decode ID token to get user info
-  // WHY: ID token contains user identity and app-level role
+  // WHY: ID token contains user identity (works for all login methods)
   const jwt = require('jsonwebtoken');
   const userInfo = jwt.decode(tokens.id_token);
-  // userInfo = { sub, email, name, role: 'user'|'admin' }
+  // userInfo = { sub, email, name, email_verified, picture }
   
   // WHAT: Create your app's session
   // WHY: Store user identity and tokens for future API calls
   req.session.userId = userInfo.sub;
   req.session.email = userInfo.email;
-  req.session.role = userInfo.role;
+  req.session.name = userInfo.name;
   req.session.accessToken = tokens.access_token;
   req.session.refreshToken = tokens.refresh_token;
   
@@ -226,20 +272,21 @@ app.get('/dashboard', requireAuth, (req, res) => {
           <section className={styles.section}>
             <h2>6. Implement Logout</h2>
             <p>
-              Revoke tokens and clear session:
+              Revoke tokens and clear session (both your app and SSO):
             </p>
             <div className={styles.codeBlock}>
               <pre>
                 {`app.post('/logout', async (req, res) => {
-  const accessToken = req.session.accessToken;
+  const refreshToken = req.session.refreshToken;
   
-  // WHAT: Revoke token at SSO
-  // WHY: Prevent token reuse after logout
+  // WHAT: Revoke refresh token at SSO
+  // WHY: Invalidate all tokens (access tokens become invalid too)
   await fetch('https://sso.doneisbetter.com/api/oauth/revoke', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      token: accessToken,
+      token: refreshToken,
+      token_type_hint: 'refresh_token',
       client_id: process.env.SSO_CLIENT_ID,
       client_secret: process.env.SSO_CLIENT_SECRET
     })
@@ -247,10 +294,18 @@ app.get('/dashboard', requireAuth, (req, res) => {
   
   // Clear your app's session
   req.session.destroy();
-  res.redirect('/login');
+  
+  // WHAT: Redirect to SSO logout endpoint
+  // WHY: Clear SSO cookie session across all apps
+  const logoutUrl = 'https://sso.doneisbetter.com/api/oauth/logout' +
+    '?post_logout_redirect_uri=' + encodeURIComponent('https://yourapp.com');
+  res.redirect(logoutUrl);
 });`}
               </pre>
             </div>
+            <p>
+              <strong>Note:</strong> The <code>post_logout_redirect_uri</code> must match a registered redirect URI for your OAuth client.
+            </p>
           </section>
 
           {/* WHAT: Next steps section */}

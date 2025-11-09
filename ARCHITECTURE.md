@@ -1,6 +1,6 @@
 # Architecture — SSO (v5.23.1)
 
-Last updated: 2025-09-17T11:43:02.000Z
+Last updated: 2025-11-09T12:16:00.000Z
 
 ## Stack
 - Next.js (Pages Router)
@@ -35,8 +35,38 @@ Last updated: 2025-09-17T11:43:02.000Z
   - GET/POST /api/admin/orgs/[orgId]/users
   - GET/PATCH/DELETE /api/admin/orgs/[orgId]/users/[id]
 
-5) Validation
-- GET /api/sso/validate — validates admin cookie session and returns sanitized user info
+5) Public Users (End-User Authentication)
+- Collection: publicUsers { id: uuid, email, name, password?, status: 'active'|'disabled', emailVerified: boolean, socialProviders?: { facebook?: {...}, google?: {...} }, createdAt, updatedAt, lastLoginAt }
+- Session: HttpOnly cookie 'public-session' (SHA-256 hashed token stored in publicSessions collection)
+- Authentication Methods:
+  - Email + Password
+  - Magic Link (passwordless)
+  - Facebook Login (OAuth 2.0)
+- Endpoints:
+  - POST /api/public/login — email/password login
+  - POST /api/public/register — create account
+  - POST /api/public/request-magic-link — request passwordless login link
+  - GET /api/public/magic-login?token=... — consume magic link and login
+  - GET /api/auth/facebook/login — initiate Facebook OAuth
+  - GET /api/auth/facebook/callback — Facebook OAuth callback
+  - POST /api/public/logout — logout and clear session
+
+6) OAuth2 Server (Third-Party App Integration)
+- Collection: oauthClients { client_id: uuid, client_secret: bcrypt-hash, name, redirect_uris, allowed_scopes, status, require_pkce, created_at, updated_at }
+- Collection: appPermissions { userId: uuid, clientId: uuid, hasAccess: boolean, role, status, grantedAt, grantedBy }
+- Endpoints:
+  - GET /api/oauth/authorize — authorization endpoint (OAuth 2.0 flow start)
+  - POST /api/oauth/token — token endpoint (exchange code for access token)
+  - GET /api/oauth/logout?post_logout_redirect_uri=... — logout from SSO
+  - POST /api/oauth/revoke — revoke refresh tokens
+  - GET /api/admin/oauth-clients — list OAuth clients (admin)
+  - POST /api/admin/oauth-clients — create OAuth client (super-admin)
+  - PATCH /api/admin/oauth-clients/[clientId] — update client (super-admin)
+  - POST /api/admin/oauth-clients/[clientId]/regenerate-secret — regenerate client secret
+  - DELETE /api/admin/oauth-clients/[clientId] — delete client (super-admin)
+
+7) Validation
+- GET /api/sso/validate — validates admin OR public cookie session and returns sanitized user info
 
 ## Design Choices
 - Plaintext-like random tokens (32-hex) per team convention (not password hashes)

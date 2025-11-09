@@ -1,6 +1,6 @@
 # LEARNINGS (v5.23.1)
 
-Last updated: 2025-11-05T15:00:00.000Z
+Last updated: 2025-11-09T12:16:00.000Z
 
 Backend:
 - MessMass cookie session pattern adapts cleanly to Pages Router with minimal dependencies
@@ -41,3 +41,28 @@ User Experience:
 - Features like PIN verification that depend on external services (email) should be easy to disable without redeployment
 - Admin UI toggles are more user-friendly than editing environment variables or database directly
 - Always provide clear feedback when settings change (success messages, state indicators)
+- Button widths should be consistent across login forms (use CSS classes, not inline styles)
+- Content ordering matters: put User Login first (primary action), API docs second (developer resources)
+
+Authentication (OAuth & Social Login):
+- Facebook Login integration requires proper app domain configuration in Facebook Developer Console
+- Always use UUID (user.id) not MongoDB ObjectId (user._id) when creating sessions
+- Session creation must include metadata (IP, user agent) for audit logging
+- Use helper functions (setPublicSessionCookie) instead of manual cookie serialization for consistency
+- Social provider data should be stored in socialProviders.{provider} field on user document
+- Email verification not required for social logins (provider already verified)
+- Magic link tokens must be validated AND consumed in same operation to prevent replay
+- Magic link session creation MUST use user.id (UUID), not user._id (ObjectId) - this caused the "token consumed but not logged in" bug
+
+Admin UX:
+- Public user list must show login methods (email, Facebook, Google) for visibility
+- Login method badges help admins understand how users authenticate
+- Add Facebook users to admin dashboard so they can be approved for OAuth client apps
+- Session check on _app.js should skip admin pages (/admin/*) to prevent false "session expired" alerts
+- Admin pages use admin-session cookie, public pages use public-session cookie - don't mix them
+
+Logout Flow:
+- OAuth logout requires TWO steps: (1) client app clears local session, (2) SSO clears SSO session
+- Client apps must call their own /api/auth/logout first, THEN redirect to SSO /api/oauth/logout
+- SSO /api/oauth/logout validates post_logout_redirect_uri against registered client redirect URIs
+- Both cookies must be cleared: client's session cookie AND SSO's public-session cookie

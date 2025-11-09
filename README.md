@@ -53,7 +53,35 @@ A production-ready authentication backend for sso.doneisbetter.com with comprehe
 - **Session Duration**: 30 days with sliding expiration (extends on each access)
 - **After Login**: Users are automatically redirected to `/account` page
 
+## Third-Party Integration
+
+**For complete integration documentation, see: `docs/THIRD_PARTY_INTEGRATION_GUIDE.md`**
+
+Integrate your application with SSO using one of three methods:
+
+### Method 1: OAuth2/OIDC (External Domains)
+- **Best for**: External domains (e.g., narimato.com, yourapp.com), mobile apps, SPAs
+- **Features**: Full OAuth2 Authorization Code Flow with PKCE, JWT access tokens, refresh tokens
+- **Setup**: Register OAuth client in admin panel, implement OAuth flow
+- **Docs**: `docs/THIRD_PARTY_INTEGRATION_GUIDE.md` (Method 1)
+
+### Method 2: Cookie-Based SSO (Subdomain Only)
+- **Best for**: Internal tools on *.doneisbetter.com subdomains
+- **Features**: Shared session cookie, simple validation, no OAuth complexity
+- **Setup**: Call validation endpoint with forwarded cookies
+- **Docs**: `docs/THIRD_PARTY_INTEGRATION_GUIDE.md` (Method 2)
+
+### Method 3: Social Login Integration
+- **Best for**: Adding Facebook/Google/Apple login to your app
+- **Features**: Users authenticate via social provider, automatic account creation
+- **Current**: Facebook Login available, Google/Apple coming soon
+- **Docs**: `docs/THIRD_PARTY_INTEGRATION_GUIDE.md` (Method 3)
+
+---
+
 ## API Endpoints
+
+**Complete API reference**: `docs/THIRD_PARTY_INTEGRATION_GUIDE.md`
 
 ### Admin Endpoints
 - POST /api/admin/login — body: { email, password }
@@ -65,6 +93,17 @@ A production-ready authentication backend for sso.doneisbetter.com with comprehe
 - GET/PATCH/DELETE /api/admin/orgs/[id] — manage organization
 - GET/POST /api/admin/orgs/[orgId]/users — list/create org users (UUID)
 - GET/PATCH/DELETE /api/admin/orgs/[orgId]/users/[id] — manage org user
+- GET /api/admin/oauth-clients — list OAuth clients
+- POST /api/admin/oauth-clients — create OAuth client
+- GET/PATCH/DELETE /api/admin/oauth-clients/[clientId] — manage OAuth client
+
+### OAuth2/OIDC Endpoints
+- GET /api/oauth/authorize — OAuth2 authorization endpoint
+- POST /api/oauth/token — Token exchange (authorization_code, refresh_token)
+- POST /api/oauth/revoke — Token revocation
+- GET /api/oauth/logout — Logout with redirect
+- GET /.well-known/openid-configuration — OIDC discovery
+- GET /.well-known/jwks.json — Public keys for JWT verification
 
 ### Public User Endpoints (v5.23.1)
 - POST /api/public/register — Create new user account
@@ -74,16 +113,21 @@ A production-ready authentication backend for sso.doneisbetter.com with comprehe
 - GET /api/public/magic-login — Consume magic link token
 - POST /api/public/forgot-password — Request password reset
 - GET /api/public/session — Check session status
+- GET /api/public/validate — Validate session (for subdomain SSO)
 - PATCH /api/public/profile — Update user profile
 - POST /api/public/change-password — Change password
 - DELETE /api/public/account — Delete user account
 - GET /api/public/authorizations — List connected OAuth services
 - DELETE /api/public/authorizations/[id] — Revoke service access
 
+### Social Login Endpoints
+- GET /api/auth/facebook/login — Initiate Facebook OAuth
+- GET /api/auth/facebook/callback — Facebook OAuth callback
+
 ### Resource & Validation
 - POST /api/resource-passwords — { resourceId, resourceType, regenerate? } -> token + shareableLink
 - PUT /api/resource-passwords — { resourceId, resourceType, password } -> validate
-- GET /api/sso/validate — returns session info if valid
+- GET /api/sso/validate — Admin session validation
 
 Deprecated/Removed:
 - /api/auth/login, /api/auth/logout, /api/users/register, /api/users/logout, /api/users/[userId]

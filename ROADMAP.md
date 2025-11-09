@@ -1,8 +1,31 @@
 # ROADMAP (v5.23.1)
 
-Last updated: 2025-01-13T23:45:00.000Z
+Last updated: 2025-11-09T12:16:00.000Z
 
-## 🚧 IN PROGRESS: Multi-App Permission System (Q1 2025)
+## ✅ COMPLETED: Multi-App Permission System & Facebook Login (Q4 2024)
+
+### Facebook Login Integration ✅ COMPLETE (Nov 2024)
+- ✅ Facebook OAuth 2.0 integration (lib/facebook.mjs)
+- ✅ Social provider data storage (socialProviders.facebook field)
+- ✅ Facebook login button on login page
+- ✅ Automatic account linking by email
+- ✅ Environment variables: FACEBOOK_APP_ID, FACEBOOK_APP_SECRET, FACEBOOK_REDIRECT_URI
+- ✅ Facebook users visible in admin dashboard with login method badges
+- ✅ OAuth logout endpoint (GET /api/oauth/logout)
+- ✅ Two-phase logout: client app clears session, then SSO clears session
+
+### OAuth Client Management ✅ COMPLETE (Nov 2024)
+- ✅ Edit OAuth client details (name, description, redirect URIs, scopes)
+- ✅ Regenerate client secret with security confirmation
+- ✅ Admin UI for OAuth client management
+
+### Bug Fixes ✅ COMPLETE (Nov 2024)
+- ✅ Magic link now properly creates sessions with UUID (was using ObjectId)
+- ✅ Admin session no longer falsely expires (skip public session check on /admin/*)
+- ✅ Consistent button widths on login page
+- ✅ Homepage reordered: User Login first, API Integration second
+
+## 🚧 IN PROGRESS: Multi-App Permission System (Q1 2025 - FINAL PHASE)
 - Priority: **CRITICAL**
 - Dependencies: SSO v5.23.1, Launchmass v5.23.1
 - Started: 2025-01-13
