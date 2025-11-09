@@ -67,11 +67,12 @@ const { access_token, id_token } = await response.json();`}
             <h2>API Endpoint Categories</h2>
             
             <h3>OAuth 2.0 Authorization</h3>
-            <p>Standard OAuth 2.0 endpoints for authentication and token management:</p>
+            <p>Standard OAuth 2.0 endpoints with PKCE support for authentication and token management:</p>
             <ul>
-              <li><code>GET /api/oauth/authorize</code> - Start OAuth flow, get authorization code</li>
+              <li><code>GET /api/oauth/authorize</code> - Start OAuth flow, get authorization code (PKCE supported)</li>
               <li><code>POST /api/oauth/token</code> - Exchange code for access/refresh tokens</li>
               <li><code>POST /api/oauth/revoke</code> - Revoke access or refresh token</li>
+              <li><code>GET /api/oauth/logout</code> - Logout and clear SSO session with redirect</li>
             </ul>
             <p><a href="/docs/api/endpoints#oauth">View OAuth endpoints →</a></p>
 
@@ -89,16 +90,31 @@ const { access_token, id_token } = await response.json();`}
               <li><code>POST /api/public/register</code> - Register new user account</li>
               <li><code>POST /api/public/login</code> - Direct login (email + password)</li>
               <li><code>GET /api/public/session</code> - Validate Bearer token session</li>
-              <li><code>POST /api/public/magic-link</code> - Request passwordless magic link</li>
-              <li><code>POST /api/public/pin</code> - Request PIN code authentication</li>
+              <li><code>POST /api/public/request-magic-link</code> - Request passwordless magic link</li>
+              <li><code>GET /api/public/magic-login</code> - Consume magic link token</li>
+              <li><code>POST /api/public/verify-pin</code> - Verify PIN code during login</li>
+              <li><code>GET /api/public/validate</code> - Validate session cookie (subdomain SSO)</li>
             </ul>
             <p><a href="/docs/api/endpoints#public">View public endpoints →</a></p>
+            
+            <h3>Social Login API</h3>
+            <p>Social provider authentication (Facebook, Google coming soon):</p>
+            <ul>
+              <li><code>GET /api/auth/facebook/login</code> - Initiate Facebook OAuth flow</li>
+              <li><code>GET /api/auth/facebook/callback</code> - Facebook OAuth callback handler</li>
+            </ul>
+            <p>Users authenticate via social provider, accounts created automatically with profile data.</p>
 
             <h3>Admin API</h3>
             <p>Administrative endpoints (requires SSO admin authentication):</p>
             <ul>
               <li><code>POST /api/admin/login</code> - Admin authentication</li>
-              <li><code>GET /api/admin/users</code> - List all users</li>
+              <li><code>GET /api/admin/users</code> - List all admin users</li>
+              <li><code>GET /api/admin/public-users</code> - List public users with login methods</li>
+              <li><code>GET /api/admin/oauth-clients</code> - List OAuth clients</li>
+              <li><code>POST /api/admin/oauth-clients</code> - Create OAuth client (super-admin)</li>
+              <li><code>PATCH /api/admin/oauth-clients/[clientId]</code> - Update OAuth client</li>
+              <li><code>POST /api/admin/oauth-clients/[clientId]/regenerate-secret</code> - Regenerate client secret</li>
               <li><code>GET /api/admin/app-permissions/[userId]</code> - Get user's app permissions</li>
               <li><code>POST /api/admin/app-permissions/[userId]</code> - Grant app access</li>
               <li><code>DELETE /api/admin/app-permissions/[userId]</code> - Revoke app access</li>
@@ -131,7 +147,7 @@ const { access_token, id_token } = await response.json();`}
             </div>
 
             <h3>ID Token (JWT)</h3>
-            <p>Contains user identity and app-level role. Decode to get user info.</p>
+            <p>Contains user identity including social login data. Decode to get user info.</p>
             <div className={styles.codeBlock}>
               <pre>
                 {`// Decoded payload:
@@ -139,7 +155,8 @@ const { access_token, id_token } = await response.json();`}
   "sub": "user-uuid",
   "email": "user@example.com",
   "name": "John Doe",
-  "role": "admin",  // App-level role: 'user' or 'admin'
+  "email_verified": true,
+  "picture": "https://...",  // Profile picture (if available)
   "iss": "https://sso.doneisbetter.com",
   "aud": "your-client-id",
   "exp": 1234571490,
@@ -147,7 +164,7 @@ const { access_token, id_token } = await response.json();`}
 }
 
 // Received once during token exchange
-// No expiry checks needed (snapshot at issuance)`}
+// Works for all authentication methods (password, magic link, social login)`}
               </pre>
             </div>
 
