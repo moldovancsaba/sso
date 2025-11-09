@@ -522,9 +522,12 @@ export default function LoginPage({ initialRedirect, initialOAuthRequest }) {
             <button
               type="button"
               onClick={() => {
-                // WHAT: Redirect to Facebook OAuth login
-                // WHY: Let users sign in with their Facebook account
-                window.location.href = '/api/auth/facebook/login'
+                // WHAT: Redirect to Facebook OAuth login with oauth_request if present
+                // WHY: Preserve OAuth flow context through Facebook authentication
+                const fbLoginUrl = oauth_request 
+                  ? `/api/auth/facebook/login?oauth_request=${encodeURIComponent(oauth_request)}`
+                  : '/api/auth/facebook/login'
+                window.location.href = fbLoginUrl
               }}
               disabled={loading}
               className={styles.facebookButton}
