@@ -27,18 +27,6 @@ export default function Home() {
       <header className={styles.header}>
         <h1>DoneIsBetter SSO</h1>
         <p className={styles.subtitle}>Secure Single Sign-On Solution</p>
-
-        <div className={styles.apiCard}>
-          <h2>🔗 API Integration</h2>
-          <p>Ready to integrate SSO into your application?</p>
-          <div className={styles.apiLinks}>
-            <Link href="/docs/api" className={styles.primaryButton}>API Documentation</Link>
-            <Link href="/docs/quickstart" className={styles.secondaryButton}>Quick Start Guide</Link>
-          </div>
-          <div className={styles.apiExample}>
-            <code>{`// Quick integration example\nconst sso = new SSOClient('https://sso.doneisbetter.com');\nconst session = await sso.validateSession();`}</code>
-          </div>
-        </div>
       </header>
 
       <section className={styles.section}>
@@ -59,7 +47,7 @@ export default function Home() {
             <ul className={styles.featureList}>
               <li>🔑 Email + Password</li>
               <li>🔗 Magic Link (passwordless)</li>
-              <li>📧 Forgot Password Recovery</li>
+              <li>📱 Facebook Login</li>
               <li>🔒 PIN Verification (enhanced security)</li>
             </ul>
             <div className={styles.apiLinks}>
@@ -68,6 +56,18 @@ export default function Home() {
             </div>
           </div>
         )}
+
+        <div className={styles.apiCard}>
+          <h2>🔗 API Integration</h2>
+          <p>Ready to integrate SSO into your application?</p>
+          <div className={styles.apiLinks}>
+            <Link href="/docs/api" className={styles.primaryButton}>API Documentation</Link>
+            <Link href="/docs/quickstart" className={styles.secondaryButton}>Quick Start Guide</Link>
+          </div>
+          <div className={styles.apiExample}>
+            <code>{`// Quick integration example\nconst sso = new SSOClient('https://sso.doneisbetter.com');\nconst session = await sso.validateSession();`}</code>
+          </div>
+        </div>
       </section>
     </div>
   );
