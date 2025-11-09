@@ -61,7 +61,8 @@ export default function Home() {
           <h2>🔗 API Integration</h2>
           <p>Ready to integrate SSO into your application?</p>
           <div className={styles.apiLinks}>
-            <Link href="/docs/api" className={styles.primaryButton}>API Documentation</Link>
+            <Link href="/docs/integration" className={styles.primaryButton}>Third-Party Integration Guide</Link>
+            <Link href="/docs/api" className={styles.secondaryButton}>API Documentation</Link>
             <Link href="/docs/quickstart" className={styles.secondaryButton}>Quick Start Guide</Link>
           </div>
           <div className={styles.apiExample}>
