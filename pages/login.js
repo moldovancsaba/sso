@@ -47,6 +47,8 @@ export default function LoginPage({ initialRedirect, initialOAuthRequest }) {
   const [pin, setPin] = useState('')
   const [pinLoading, setPinLoading] = useState(false)
   const [pinError, setPinError] = useState('')
+  const [pinEmailSent, setPinEmailSent] = useState(false)
+  const [resendingPin, setResendingPin] = useState(false)
   const [loginSuccess, setLoginSuccess] = useState(false)
   
   // WHAT: Track when component is mounted and log OAuth params
@@ -153,6 +155,39 @@ export default function LoginPage({ initialRedirect, initialOAuthRequest }) {
       setServerError('An unexpected error occurred. Please try again.')
     } finally {
       setMagicLinkLoading(false)
+    }
+  }
+
+  // Handle PIN resend
+  const handleResendPin = async () => {
+    setResendingPin(true)
+    setPinError('')
+
+    try {
+      // Re-login to trigger new PIN
+      const res = await fetch('/api/public/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          email: formData.email.toLowerCase().trim(),
+          password: formData.password
+        })
+      })
+
+      const data = await res.json()
+
+      if (res.ok && data.requiresPin) {
+        setPinEmailSent(true)
+        setTimeout(() => setPinEmailSent(false), 3000) // Hide success message after 3s
+      } else {
+        setPinError('Failed to resend PIN. Please try again.')
+      }
+    } catch (err) {
+      console.error('[Login] PIN resend error:', err)
+      setPinError('Failed to resend PIN')
+    } finally {
+      setResendingPin(false)
     }
   }
 
@@ -299,8 +334,11 @@ export default function LoginPage({ initialRedirect, initialOAuthRequest }) {
         if (data.requiresPin) {
           console.log('[Login] PIN required')
           setPinRequired(true)
+          setPinEmailSent(true) // Show confirmation that email was sent
           setServerError('')
           setLoading(false)
+          // Hide email sent confirmation after 5 seconds
+          setTimeout(() => setPinEmailSent(false), 5000)
           return
         }
 
@@ -574,8 +612,21 @@ export default function LoginPage({ initialRedirect, initialOAuthRequest }) {
             <div className={styles.modalContent}>
               <h2 className={styles.modalTitle}>🔒 Verify Your Identity</h2>
               <p className={styles.modalDescription}>
-                We've sent a 6-digit PIN to your email for additional security.
+                For additional security, we've sent a 6-digit PIN to:
               </p>
+              <p className={styles.emailDisplay}>
+                <strong>{formData.email.toLowerCase().trim()}</strong>
+              </p>
+              <p className={styles.modalSubtext}>
+                Please check your email and enter the PIN below. The code expires in 5 minutes.
+              </p>
+
+              {/* Email Sent Confirmation */}
+              {pinEmailSent && (
+                <div className={styles.successBox}>
+                  ✓ PIN sent to your email
+                </div>
+              )}
 
               {/* PIN Error */}
               {pinError && (
@@ -626,11 +677,24 @@ export default function LoginPage({ initialRedirect, initialOAuthRequest }) {
                     setPinRequired(false)
                     setPin('')
                     setPinError('')
+                    setPinEmailSent(false)
                   }}
                   disabled={pinLoading}
                   className={styles.cancelButton}
                 >
                   Cancel
+                </button>
+              </div>
+
+              {/* Resend PIN Link */}
+              <div className={styles.resendContainer}>
+                <button
+                  type="button"
+                  onClick={handleResendPin}
+                  disabled={resendingPin || pinLoading}
+                  className={styles.resendLink}
+                >
+                  {resendingPin ? 'Sending...' : 'Didn\'t receive the PIN? Resend it'}
                 </button>
               </div>
             </div>
