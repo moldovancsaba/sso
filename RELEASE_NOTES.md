@@ -1,6 +1,59 @@
 # Release Notes [![Version Badge](https://img.shields.io/badge/version-5.24.0-blue)](RELEASE_NOTES.md)
 
-## [v5.24.0] — 2025-11-09T12:38:00.000Z
+## [v5.24.0] — 2025-11-09T14:00:00.000Z
+
+### 🎯 Phase 4A: SSO Admin UI for Multi-App Permissions (COMPLETE)
+
+**NEW FEATURE**: Centralized permission management UI for SSO admins to manage user access across all OAuth applications
+
+**What**: SSO admins can now view and manage user permissions for all integrated apps (launchmass, messmass, cardmass, blockmass) from a single interface
+
+**Why**: Unified User Rights Management (URM) requires SSO to be the authoritative source of truth for permissions. Admins need a central place to grant/revoke access and change roles across all applications.
+
+**Implementation**:
+- Enhanced `/admin/users` page with "Application Access" section in user details modal
+- Shows all OAuth clients (apps) with user's permission status for each
+- Real-time role management (user ↔ admin) with dropdown selectors
+- Grant access to pending users with role selection
+- Revoke access with confirmation dialog
+- Status badges (approved/pending/revoked) and role indicators
+- Per-app loading states and error handling
+- Success/error messages with auto-dismiss
+
+**API Endpoints**:
+- `GET /api/admin/app-permissions/[userId]` - Fetch user's permissions merged with all available OAuth clients
+- `POST /api/admin/app-permissions/[userId]` - Grant/approve access with role
+- `PATCH /api/admin/app-permissions/[userId]` - Update role for existing permission
+- `DELETE /api/admin/app-permissions/[userId]` - Revoke user access
+
+**Security**:
+- All endpoints require admin authentication via HttpOnly cookie
+- Comprehensive input validation (userId, clientId, role, status)
+- Audit logging via `lib/appPermissions.mjs`
+- Changes tracked with who/what/when timestamps
+
+**User Experience**:
+- No refresh required - optimistic UI updates
+- Loading indicators per app (won't block other actions)
+- Retry button on errors
+- Confirmation dialogs for destructive actions (revoke)
+- Clear visual hierarchy with status colors
+
+**Database Integration**:
+- Uses existing `appPermissions` collection (Phase 1)
+- Uses existing `appAccessLogs` collection for audit trail
+- ISO 8601 timestamps with milliseconds
+- UUID-based identifiers throughout
+
+**Next Steps**: Phase 4B (Client Credentials OAuth) enables bidirectional sync - apps can push permission changes back to SSO
+
+**Technical Details**:
+- `pages/admin/users.js` (+262 lines) - App permissions UI section
+- `pages/api/admin/app-permissions/[userId].js` (370 lines) - Admin permission management API
+- `lib/appPermissions.mjs` - Already includes `upsertPermissionForAdmin`, `revokePermissionForAdmin`, `mapPermissionToDTO`
+- `lib/oauth/clients.mjs` - Added `getAllClients()` helper for admin UI
+
+---
 
 ### 🔐 OAuth Security & OIDC Compliance
 
