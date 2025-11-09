@@ -1,9 +1,9 @@
-# TASKLIST (v5.23.1)
+# TASKLIST (v5.24.0)
 
 Last updated: 2025-11-09T12:16:00.000Z
 
 Active:
-None - all major features completed for v5.23.1
+None - all major features completed for v5.24.0
 
 Pending (Future):
 1) Add Google Login (similar to Facebook integration)
@@ -23,7 +23,7 @@ Pending (Future):
    - Expected Delivery: TBD
    - Priority: P3
 
-Completed (v5.23.1 - November 2024):
+Completed (v5.24.0 - November 2024):
 - Initial planning recorded and endpoints implemented (admin + resource passwords)
 - DB-backed admin auth and resource passwords refactor
 - Vercel env + CORS configuration for sso.doneisbetter.com

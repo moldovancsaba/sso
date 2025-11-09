@@ -1,6 +1,6 @@
-# LEARNINGS (v5.23.1)
+# LEARNINGS (v5.24.0)
 
-Last updated: 2025-11-09T12:16:00.000Z
+Last updated: 2025-11-09T12:38:00.000Z
 
 Backend:
 - MessMass cookie session pattern adapts cleanly to Pages Router with minimal dependencies
@@ -66,3 +66,18 @@ Logout Flow:
 - Client apps must call their own /api/auth/logout first, THEN redirect to SSO /api/oauth/logout
 - SSO /api/oauth/logout validates post_logout_redirect_uri against registered client redirect URIs
 - Both cookies must be cleared: client's session cookie AND SSO's public-session cookie
+
+OAuth Security (Re-Authentication):
+- OIDC prompt parameter is critical for secure logout/login flow
+- Without prompt=login, users are auto-logged back in after logout (security issue)
+- prompt=login forces credential entry even if SSO session cookie exists
+- prompt=consent forces consent screen even if already granted
+- Always document prompt parameter usage in integration guides
+- Third-party apps should use prompt=login after logout to require re-authentication
+
+OIDC Compliance:
+- MUST implement advertised endpoints in discovery document
+- Missing /api/oauth/userinfo caused 404 errors for OAuth clients
+- UserInfo endpoint returns user claims based on granted scopes (profile, email)
+- Always validate access token before returning user information
+- Include social login data (profile picture) in UserInfo response
