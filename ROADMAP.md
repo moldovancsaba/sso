@@ -65,17 +65,43 @@ Last updated: 2025-11-09T12:16:00.000Z
 - ✅ Add navigation link to users page from main admin
 - Commits: launchmass dea74a2, 2aa0af3
 
-### Phase 4: SSO Admin UI 🚧 ACTIVE (2025-10-13)
-- 🚧 Enhance `/admin/users` page with app access overview
-- 🚧 User details modal showing cross-app access ("App Permissions" section)
-- 🚧 App permission editor (grant/revoke/change role per app)
-- 🚧 New API endpoint: `/api/admin/app-permissions/[userId]` (GET/POST/PATCH/DELETE)
-- 🚧 Extend `lib/appPermissions.mjs` with admin helpers (upsert, revoke, DTO mapping)
+### Phase 4A: SSO Admin UI ✅ COMPLETE (2025-11-09)
+- ✅ Enhanced `/admin/users` page with app access overview
+- ✅ User details modal showing cross-app access ("App Permissions" section)
+- ✅ App permission editor (grant/revoke/change role per app)
+- ✅ New API endpoint: `/api/admin/app-permissions/[userId]` (GET/POST/PATCH/DELETE)
+- ✅ Extended `lib/appPermissions.mjs` with admin helpers (upsert, revoke, DTO mapping)
 - ⏳ SSO superadmin toggle (deferred)
 - ⏳ Cross-app activity dashboard (deferred)
-- Target: 2025-10-14
-- Dependencies: OAuth clients listing, existing admin auth, appPermissions collection
-- Owner: AI-Backend/Frontend
+- Completed: 2025-11-09T14:00:00.000Z
+- Files: pages/admin/users.js, pages/api/admin/app-permissions/[userId].js
+
+### Phase 4B: Client Credentials OAuth (NEXT - 2025-11-10)
+- ⏳ Implement client credentials grant in `/api/oauth/token`
+- ⏳ Add `manage_permissions` scope
+- ⏳ Token validation middleware for app-to-app requests
+- ⏳ Update oauthClients collection with `allowClientCredentials: true`
+- Target: 2025-11-10
+- Dependencies: Phase 4A complete
+- Document: docs/UNIFIED_URM_BIDIRECTIONAL_SYNC.md
+
+### Phase 4C: Bidirectional Permission APIs (2025-11-11)
+- ⏳ Implement `PUT /api/users/{userId}/apps/{clientId}/permissions`
+- ⏳ Implement `DELETE /api/users/{userId}/apps/{clientId}/permissions`
+- ⏳ Add authorization checks (app can only modify own permissions)
+- ⏳ Add audit logging for all changes
+- ⏳ Fix OAuth token validation in existing GET endpoint
+- Target: 2025-11-11
+- Dependencies: Phase 4B complete
+
+### Phase 4D: Launchmass Integration (2025-11-12)
+- ⏳ Add client credentials auth to launchmass
+- ⏳ Create `lib/ssoPermissions.ts` helper
+- ⏳ Update launchmass admin UI to use SSO APIs
+- ⏳ Add "Sync from SSO" button in admin UI
+- ⏳ Show SSO sync status and last sync time
+- Target: 2025-11-12
+- Dependencies: Phase 4C complete
 
 ### Phase 5: Documentation & Testing
 - ⏳ Update `ARCHITECTURE.md`

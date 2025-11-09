@@ -81,3 +81,22 @@ OIDC Compliance:
 - UserInfo endpoint returns user claims based on granted scopes (profile, email)
 - Always validate access token before returning user information
 - Include social login data (profile picture) in UserInfo response
+
+Multi-App Permission Management (Phase 4A):
+- SSO must be the single source of truth for user permissions across all OAuth apps
+- Admin UI should show ALL apps (even those user doesn't have access to) for complete visibility
+- Merge pattern: fetch all OAuth clients + user permissions separately, then merge with O(1) Map lookup
+- Role vs Status distinction: role = user/admin/none, status = approved/pending/revoked
+- Use optimistic UI updates with per-app loading states (don't block entire modal)
+- Confirmation dialogs required for destructive actions (revoke access)
+- Modal state cleanup: always clear app permissions state when modal closes to prevent cross-user data leakage
+- useEffect dependencies must include selectedUser?.id to trigger permission fetch on user change
+- API validation: userId and clientId must be valid UUIDs, role must be enum, status must be enum
+- Audit trail: track grantedBy/revokedBy (admin UUID) and timestamps for all permission changes
+- Status mapping: users with no permission record default to role='none', status='revoked'
+- Role selector defaults: for revoked/pending states, default to 'user' role for grant actions
+- Database upsert pattern handles both create and update in single operation (race condition safe)
+- ISO 8601 timestamps with milliseconds throughout (createdAt, updatedAt, grantedAt, revokedAt)
+- Helper functions: mapPermissionToDTO removes MongoDB _id and ensures consistent field names
+- Admin authentication via requireAdmin() helper (HttpOnly cookie validation)
+- Next step: Phase 4B requires client_credentials OAuth grant for bidirectional sync
