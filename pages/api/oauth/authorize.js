@@ -17,7 +17,7 @@
  * - code_challenge_method: PKCE method (S256 or plain)
  */
 
-import { getAuthenticatedUser } from '../../../lib/unifiedAuth.mjs'
+import { getPublicUserFromRequest } from '../../../lib/publicSessions.mjs'
 import { getClient, validateRedirectUri, validateClientScopes } from '../../../lib/oauth/clients.mjs'
 import { validateScopes, ensureRequiredScopes } from '../../../lib/oauth/scopes.mjs'
 import { createAuthorizationCode } from '../../../lib/oauth/codes.mjs'
@@ -134,10 +134,11 @@ export default async function handler(req, res) {
       return respondWithError(res, redirect_uri, state, 'invalid_scope', 'One or more scopes not allowed for this client')
     }
 
-    // WHAT: Check if user is authenticated (admin or public user)
-    // WHY: OAuth should work for both admin users and regular public users
-    // HOW: Use unified auth helper that checks both session types
-    const auth = await getAuthenticatedUser(req)
+    // WHAT: Check if user is authenticated (public user session ONLY)
+    // WHY: OAuth flows should be isolated from admin sessions
+    // HOW: Only check public user session - admin UI is separate
+    // CRITICAL: Admin sessions must NOT interfere with public OAuth flows
+    const user = await getPublicUserFromRequest(req)
     
     // WHAT: Handle prompt=login - force re-authentication even if user has session
     // WHY: When user logs out from 3rd party app, they should be asked to login again
@@ -146,7 +147,7 @@ export default async function handler(req, res) {
       logger.info('Authorization request: prompt=login, forcing re-authentication', {
         client_id,
         client_name: client.name,
-        has_existing_session: !!auth,
+        has_existing_session: !!user,
       })
 
       // Store authorization request for after re-authentication
@@ -170,7 +171,7 @@ export default async function handler(req, res) {
       return res.redirect(302, loginUrl)
     }
     
-    if (!auth) {
+    if (!user) {
       // User not authenticated - redirect to login with return URL
       logger.info('Authorization request: user not authenticated, redirecting to login', {
         client_id,
@@ -201,12 +202,11 @@ export default async function handler(req, res) {
     }
 
     // User is authenticated - check for existing consent
-    const { user, userType } = auth
     logger.info('Authorization request: user authenticated', {
       client_id,
       client_name: client.name,
       user_id: user.id,
-      user_type: userType,
+      user_type: 'public', // Always public for OAuth flows
     })
 
     const db = await getDb()
