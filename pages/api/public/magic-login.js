@@ -5,9 +5,8 @@
  */
 
 import { findPublicUserByEmail } from '../../../lib/publicUsers.mjs'
-import { createPublicSession } from '../../../lib/publicSessions.mjs'
+import { createPublicSession, setPublicSessionCookie } from '../../../lib/publicSessions.mjs'
 import logger from '../../../lib/logger.mjs'
-import cookie from 'cookie'
 import crypto from 'crypto'
 import { getDb } from '../../../lib/db.mjs'
 
@@ -113,25 +112,17 @@ export default async function handler(req, res) {
       return res.status(401).json({ error: 'Invalid or expired magic link' })
     }
 
-    // Create public session
-    const sessionToken = await createPublicSession(user._id.toString(), user.email)
+    // WHAT: Create public session using user UUID (not MongoDB ObjectId)
+    // WHY: createPublicSession expects UUID for consistency with other auth methods
+    const metadata = {
+      ip: req.headers['x-forwarded-for'] || req.connection?.remoteAddress || 'unknown',
+      userAgent: req.headers['user-agent'] || 'unknown',
+    }
+    const sessionToken = await createPublicSession(user.id, metadata)
 
-    // Set secure session cookie
-    const cookieName = process.env.PUBLIC_SESSION_COOKIE || 'public-session'
-    const isProduction = process.env.NODE_ENV === 'production'
-    const domain = process.env.SSO_COOKIE_DOMAIN
-
-    res.setHeader(
-      'Set-Cookie',
-      cookie.serialize(cookieName, sessionToken, {
-        httpOnly: true,
-        secure: isProduction,
-        sameSite: isProduction ? 'none' : 'lax',
-        path: '/',
-        maxAge: 30 * 24 * 60 * 60, // 30 days
-        ...(domain && { domain }),
-      })
-    )
+    // WHAT: Set secure session cookie using helper function
+    // WHY: Ensures consistent cookie attributes (domain, secure, etc.) across all auth methods
+    setPublicSessionCookie(res, sessionToken)
 
     // WHAT: Determine final redirect destination
     // WHY: User should return to where they originally requested authentication
@@ -148,7 +139,7 @@ export default async function handler(req, res) {
 
     logger.info('Public magic login successful', {
       event: 'public_magic_login_success',
-      userId: user._id.toString(),
+      userId: user.id,
       email: user.email,
       redirect: finalRedirect,
     })
