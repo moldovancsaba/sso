@@ -8,6 +8,7 @@
  * Supported Grant Types:
  * - authorization_code: Exchange authorization code for tokens (first time)
  * - refresh_token: Exchange refresh token for new access token
+ * - client_credentials: Server-to-server authentication (no user context)
  * 
  * Request Body (authorization_code):
  * - grant_type: "authorization_code"
@@ -65,9 +66,13 @@ export default async function handler(req, res) {
       return await handleRefreshTokenGrant(req, res)
     }
 
+    if (grant_type === 'client_credentials') {
+      return await handleClientCredentialsGrant(req, res)
+    }
+
     return res.status(400).json({
       error: 'unsupported_grant_type',
-      error_description: 'grant_type must be authorization_code or refresh_token',
+      error_description: 'grant_type must be authorization_code, refresh_token, or client_credentials',
     })
   } catch (error) {
     logger.error('Token endpoint error', {
@@ -386,6 +391,121 @@ async function handleRefreshTokenGrant(req, res) {
     user_id: tokenData.user_id,
     scope: finalScope,
     rotated_refresh_token: !!response.refresh_token,
+  })
+
+  return res.status(200).json(response)
+}
+
+/**
+ * Handle client_credentials grant type
+ * 
+ * WHAT: Server-to-server authentication without user context
+ * WHY: Allows apps (like Launchmass) to call SSO APIs to manage permissions
+ * HOW: Validate client credentials, issue access token with requested scopes
+ * 
+ * This grant type is used for machine-to-machine communication where
+ * the client is acting on its own behalf, not on behalf of a user.
+ * 
+ * Required for Phase 4C/4D: Apps need to authenticate with SSO to call
+ * PUT/DELETE permission APIs.
+ */
+async function handleClientCredentialsGrant(req, res) {
+  const {
+    client_id,
+    client_secret,
+    scope: requestedScope,
+  } = req.body
+
+  // Validate required parameters
+  if (!client_id) {
+    return res.status(400).json({
+      error: 'invalid_request',
+      error_description: 'client_id is required',
+    })
+  }
+
+  if (!client_secret) {
+    return res.status(400).json({
+      error: 'invalid_request',
+      error_description: 'client_secret is required for client_credentials grant',
+    })
+  }
+
+  // WHAT: Get client and check if it supports client_credentials
+  // WHY: Not all clients should be allowed to use this grant type
+  const { getClient } = await import('../../../lib/oauth/clients.mjs')
+  const client = await getClient(client_id)
+  
+  if (!client || client.status !== 'active') {
+    logger.warn('Client credentials request: invalid client', { client_id })
+    return res.status(401).json({
+      error: 'invalid_client',
+      error_description: 'Invalid client',
+    })
+  }
+
+  // WHAT: Check if client is authorized for client_credentials grant
+  // WHY: Only confidential clients (with secrets) can use this grant type
+  if (!client.grant_types || !client.grant_types.includes('client_credentials')) {
+    logger.warn('Client credentials request: grant type not allowed', { client_id })
+    return res.status(400).json({
+      error: 'unauthorized_client',
+      error_description: 'Client is not authorized to use client_credentials grant type',
+    })
+  }
+
+  // Verify client credentials
+  const verifiedClient = await verifyClient(client_id, client_secret)
+  if (!verifiedClient) {
+    logger.warn('Client credentials request: invalid credentials', { client_id })
+    return res.status(401).json({
+      error: 'invalid_client',
+      error_description: 'Invalid client credentials',
+    })
+  }
+
+  // WHAT: Validate and filter requested scopes
+  // WHY: Client can only request scopes it's authorized for
+  let finalScope = requestedScope || 'manage_permissions'
+  const requestedScopes = finalScope.split(' ').filter(Boolean)
+  const allowedScopes = client.allowed_scopes || []
+  
+  // Check each requested scope is in allowed_scopes
+  for (const scope of requestedScopes) {
+    if (!allowedScopes.includes(scope)) {
+      logger.warn('Client credentials request: invalid scope requested', {
+        client_id,
+        requested: scope,
+        allowed: allowedScopes,
+      })
+      return res.status(400).json({
+        error: 'invalid_scope',
+        error_description: `Scope '${scope}' is not allowed for this client`,
+      })
+    }
+  }
+
+  finalScope = requestedScopes.join(' ')
+
+  // WHAT: Generate access token without user context
+  // WHY: This is machine-to-machine auth, no user involved
+  // HOW: Use null userId to indicate client-only token
+  const accessToken = await generateAccessToken({
+    userId: null, // No user context
+    clientId: client_id,
+    scope: finalScope,
+  })
+
+  const response = {
+    access_token: accessToken.token,
+    token_type: 'Bearer',
+    expires_in: 3600, // 1 hour
+    scope: finalScope,
+  }
+
+  logger.info('Client credentials token issued', {
+    client_id,
+    scope: finalScope,
   })
 
   return res.status(200).json(response)
