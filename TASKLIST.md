@@ -1,9 +1,16 @@
-# TASKLIST (v5.24.0)
+# TASKLIST (v5.25.0)
 
-Last updated: 2025-11-09T12:16:00.000Z
+Last updated: 2025-11-09T16:00:00.000Z
 
 Active:
-None - all major features completed for v5.24.0
+1) Complete Phase 5: Launchmass Admin UI Integration
+   - Enable Launchmass OAuth client for client_credentials grant
+   - Add SSO_CLIENT_ID and SSO_CLIENT_SECRET to Launchmass env
+   - Update Launchmass admin UI to call SSO sync functions
+   - Add "Sync to SSO" button
+   - Owner: Full Stack
+   - Expected Delivery: 2025-11-10
+   - Priority: P0
 
 Pending (Future):
 1) Add Google Login (similar to Facebook integration)
@@ -23,7 +30,7 @@ Pending (Future):
    - Expected Delivery: TBD
    - Priority: P3
 
-Completed (v5.24.0 - November 2024):
+Completed (v5.25.0 - November 2024):
 - Initial planning recorded and endpoints implemented (admin + resource passwords)
 - DB-backed admin auth and resource passwords refactor
 - Vercel env + CORS configuration for sso.doneisbetter.com
@@ -47,3 +54,11 @@ Completed (v5.24.0 - November 2024):
 - Consistent button widths on login page
 - Homepage content reordering (User Login first)
 - All documentation updates (README, ARCHITECTURE, RELEASE_NOTES, LEARNINGS, ROADMAP, TASKLIST)
+- Phase 4B: Client credentials OAuth grant implementation
+- Phase 4B: OAuth token validation middleware (lib/oauth/middleware.mjs)
+- Phase 4C: Bidirectional permission APIs (PUT/DELETE methods)
+- Phase 4C: Fixed OAuth token validation in GET endpoint
+- Phase 4D: Launchmass SSO permissions helper library (lib/ssoPermissions.mjs)
+- PIN verification modal UX enhancements
+- OAuth admin session isolation fix
+- Camera app role authorization fix
