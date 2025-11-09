@@ -21,22 +21,20 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { redirect_after_login } = req.query
+    const { oauth_request } = req.query
 
     // WHAT: Generate CSRF protection state token
     // WHY: Prevent CSRF attacks by validating state on callback
-    const state = randomBytes(16).toString('hex')
+    const csrfToken = randomBytes(16).toString('hex')
 
-    // TODO: Store state in session/database for validation
-    // For now, we just generate it (improve security later)
-
-    // WHAT: Build Facebook OAuth authorization URL
-    // WHY: Redirect user to Facebook to authorize our app
-    const facebookAuthUrl = getFacebookAuthUrl(state, redirect_after_login)
+    // WHAT: Build Facebook OAuth authorization URL with OAuth request
+    // WHY: Need to preserve OAuth flow context through Facebook redirect
+    // HOW: Pass oauth_request to getFacebookAuthUrl, which encodes it in state parameter
+    const facebookAuthUrl = getFacebookAuthUrl(csrfToken, oauth_request)
 
     logger.info('Initiating Facebook login', {
-      state,
-      redirectAfterLogin: redirect_after_login || 'none',
+      csrf: csrfToken,
+      hasOAuthRequest: !!oauth_request,
     })
 
     // WHAT: Redirect user to Facebook OAuth page
