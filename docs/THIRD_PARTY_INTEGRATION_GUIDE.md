@@ -377,6 +377,34 @@ async function logout(refreshToken) {
 }
 ```
 
+**Security Best Practice: Force Re-Authentication After Logout**
+
+When user logs out and clicks login again, add `prompt=login` to force credential entry:
+
+```javascript
+// After logout, when user clicks "Login" again
+async function handleLoginAfterLogout() {
+  const codeVerifier = generateCodeVerifier();
+  const codeChallenge = await generateCodeChallenge(codeVerifier);
+  
+  sessionStorage.setItem('pkce_verifier', codeVerifier);
+  
+  const params = new URLSearchParams({
+    response_type: 'code',
+    client_id: process.env.SSO_CLIENT_ID,
+    redirect_uri: process.env.SSO_REDIRECT_URI,
+    scope: 'openid profile email offline_access',
+    state: generateRandomState(),
+    code_challenge: codeChallenge,
+    code_challenge_method: 'S256',
+    prompt: 'login', // ⚠️ IMPORTANT: Force re-authentication
+  });
+  
+  sessionStorage.setItem('oauth_state', params.get('state'));
+  window.location.href = `${process.env.SSO_BASE_URL}/api/oauth/authorize?${params}`;
+}
+```
+
 ---
 
 ### Available Scopes
@@ -659,6 +687,10 @@ Parameters:
 - state: CSRF token (required)
 - code_challenge: PKCE challenge (required)
 - code_challenge_method: "S256" or "plain" (required)
+- prompt: (optional) "none" | "login" | "consent" | "select_account"
+  - "login": Force re-authentication even if user has session
+  - "consent": Force consent screen even if already granted
+  - "none": No UI, return error if interaction required
 
 Response: 302 redirect to redirect_uri with code and state
 ```

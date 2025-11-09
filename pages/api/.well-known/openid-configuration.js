@@ -132,6 +132,14 @@ export default async function handler(req, res) {
 
     // Require request URI registration
     require_request_uri_registration: false,
+
+    // Prompt values supported
+    prompt_values_supported: [
+      'none',    // No UI, return error if interaction required
+      'login',   // Force re-authentication even if user has session
+      'consent', // Force consent screen even if already granted
+      'select_account', // Prompt user to select account (treated as consent)
+    ],
   }
 
   // Set cache headers (discovery documents can be cached)
