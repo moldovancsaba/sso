@@ -41,6 +41,7 @@ export default async function handler(req, res) {
     state,
     code_challenge,
     code_challenge_method = 'S256',
+    prompt, // OIDC prompt parameter: 'none', 'login', 'consent', 'select_account'
   } = req.query
 
   try {
@@ -138,6 +139,37 @@ export default async function handler(req, res) {
     // HOW: Use unified auth helper that checks both session types
     const auth = await getAuthenticatedUser(req)
     
+    // WHAT: Handle prompt=login - force re-authentication even if user has session
+    // WHY: When user logs out from 3rd party app, they should be asked to login again
+    // HOW: If prompt=login, redirect to login page regardless of existing session
+    if (prompt === 'login') {
+      logger.info('Authorization request: prompt=login, forcing re-authentication', {
+        client_id,
+        client_name: client.name,
+        has_existing_session: !!auth,
+      })
+
+      // Store authorization request for after re-authentication
+      const authRequest = {
+        response_type,
+        client_id,
+        redirect_uri,
+        scope: finalScope,
+        state,
+        code_challenge,
+        code_challenge_method,
+        client_name: client.name,
+        client_homepage: client.homepage_uri,
+        client_logo: client.logo_uri,
+      }
+
+      const encodedRequest = Buffer.from(JSON.stringify(authRequest)).toString('base64url')
+      // Add force_login flag to tell login page to show credentials form
+      const loginUrl = `/login?oauth_request=${encodedRequest}&force_login=true`
+
+      return res.redirect(302, loginUrl)
+    }
+    
     if (!auth) {
       // User not authenticated - redirect to login with return URL
       logger.info('Authorization request: user not authenticated, redirecting to login', {
@@ -190,7 +222,11 @@ export default async function handler(req, res) {
       existingConsent.scope.split(' ').includes(s)
     )
 
-    if (!hasConsent) {
+    // WHAT: Handle prompt=consent - force consent screen even if already granted
+    // WHY: Client may want explicit re-consent from user
+    const forceConsent = prompt === 'consent' || prompt === 'select_account'
+
+    if (!hasConsent || forceConsent) {
       // Need user consent - redirect to consent page
       logger.info('Authorization request: consent required', {
         client_id,

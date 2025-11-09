@@ -116,6 +116,13 @@ function base64URLEncode(buffer) {
               <li><code>code_challenge</code> - PKCE challenge (SHA-256 hash of code_verifier)</li>
               <li><code>code_challenge_method</code> - Always <code>S256</code></li>
               <li><code>state</code> - Random string for CSRF protection</li>
+              <li><code>prompt</code> - (Optional) Controls auth behavior:
+                <ul>
+                  <li><code>login</code> - Force re-authentication (use on logout to require credentials)</li>
+                  <li><code>consent</code> - Force consent screen</li>
+                  <li><code>none</code> - No UI, fail if interaction required</li>
+                </ul>
+              </li>
             </ul>
             <p>
               <strong>Authentication Options:</strong> Users can login with email/password, magic link (passwordless), or <strong>social providers (Facebook, Google coming soon)</strong>.
@@ -306,6 +313,25 @@ app.get('/dashboard', requireAuth, (req, res) => {
             <p>
               <strong>Note:</strong> The <code>post_logout_redirect_uri</code> must match a registered redirect URI for your OAuth client.
             </p>
+            <p>
+              <strong>Security Tip:</strong> After logout, when redirecting user back to login, add <code>prompt=login</code> parameter to force re-authentication:
+            </p>
+            <div className={styles.codeBlock}>
+              <pre>
+                {`// After logout redirect
+const loginUrl = 'https://sso.doneisbetter.com/api/oauth/authorize' +
+  '?client_id=' + encodeURIComponent(CLIENT_ID) +
+  '&redirect_uri=' + encodeURIComponent(REDIRECT_URI) +
+  '&response_type=code' +
+  '&scope=openid profile email offline_access' +
+  '&state=' + generateRandomState() +
+  '&code_challenge=' + codeChallenge +
+  '&code_challenge_method=S256' +
+  '&prompt=login';  // Force re-authentication
+
+window.location.href = loginUrl;`}
+              </pre>
+            </div>
           </section>
 
           {/* WHAT: Next steps section */}
