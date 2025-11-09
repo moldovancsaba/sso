@@ -1,6 +1,6 @@
-# ROADMAP (v5.24.0)
+# ROADMAP (v5.25.0)
 
-Last updated: 2025-11-09T12:16:00.000Z
+Last updated: 2025-11-09T16:00:00.000Z
 
 ## ✅ COMPLETED: Multi-App Permission System & Facebook Login (Q4 2024)
 
@@ -76,32 +76,36 @@ Last updated: 2025-11-09T12:16:00.000Z
 - Completed: 2025-11-09T14:00:00.000Z
 - Files: pages/admin/users.js, pages/api/admin/app-permissions/[userId].js
 
-### Phase 4B: Client Credentials OAuth (NEXT - 2025-11-10)
-- ⏳ Implement client credentials grant in `/api/oauth/token`
-- ⏳ Add `manage_permissions` scope
-- ⏳ Token validation middleware for app-to-app requests
-- ⏳ Update oauthClients collection with `allowClientCredentials: true`
-- Target: 2025-11-10
-- Dependencies: Phase 4A complete
-- Document: docs/UNIFIED_URM_BIDIRECTIONAL_SYNC.md
+### Phase 4B: Client Credentials OAuth ✅ COMPLETE (2025-11-09)
+- ✅ Implement client credentials grant in `/api/oauth/token`
+- ✅ Add `manage_permissions` scope
+- ✅ Token validation middleware for app-to-app requests (`lib/oauth/middleware.mjs`)
+- ✅ Validate client grant_types and allowed_scopes
+- Completed: 2025-11-09T16:00:00.000Z
+- Commit: 9d8ca2d6
+- Files: pages/api/oauth/token.js, lib/oauth/middleware.mjs
 
-### Phase 4C: Bidirectional Permission APIs (2025-11-11)
-- ⏳ Implement `PUT /api/users/{userId}/apps/{clientId}/permissions`
-- ⏳ Implement `DELETE /api/users/{userId}/apps/{clientId}/permissions`
-- ⏳ Add authorization checks (app can only modify own permissions)
-- ⏳ Add audit logging for all changes
-- ⏳ Fix OAuth token validation in existing GET endpoint
-- Target: 2025-11-11
-- Dependencies: Phase 4B complete
+### Phase 4C: Bidirectional Permission APIs ✅ COMPLETE (2025-11-09)
+- ✅ Implement `PUT /api/users/{userId}/apps/{clientId}/permissions`
+- ✅ Implement `DELETE /api/users/{userId}/apps/{clientId}/permissions`
+- ✅ Add authorization checks (app can only modify own permissions)
+- ✅ Add audit logging for all changes
+- ✅ Fix OAuth token validation in existing GET endpoint
+- Completed: 2025-11-09T16:00:00.000Z
+- Commit: 9d8ca2d6
+- Files: pages/api/users/[userId]/apps/[clientId]/permissions.js
 
-### Phase 4D: Launchmass Integration (2025-11-12)
-- ⏳ Add client credentials auth to launchmass
-- ⏳ Create `lib/ssoPermissions.ts` helper
-- ⏳ Update launchmass admin UI to use SSO APIs
-- ⏳ Add "Sync from SSO" button in admin UI
-- ⏳ Show SSO sync status and last sync time
-- Target: 2025-11-12
-- Dependencies: Phase 4C complete
+### Phase 4D: Launchmass Integration ✅ COMPLETE (2025-11-09)
+- ✅ Create `lib/ssoPermissions.mjs` helper library
+- ✅ Implement getPermissionFromSSO()
+- ✅ Implement syncPermissionToSSO()
+- ✅ Implement revokePermissionInSSO()
+- ✅ Implement batchSyncToSSO()
+- ⏳ Update launchmass admin UI to call sync functions (Phase 5)
+- ⏳ Add "Sync to SSO" button in admin UI (Phase 5)
+- Completed: 2025-11-09T16:00:00.000Z
+- Commit: launchmass db7532a
+- Files: lib/ssoPermissions.mjs
 
 ### Phase 5: Documentation & Testing
 - ⏳ Update `ARCHITECTURE.md`
