@@ -1,4 +1,104 @@
-# Release Notes [![Version Badge](https://img.shields.io/badge/version-5.17.0-blue)](RELEASE_NOTES.md)
+# Release Notes [![Version Badge](https://img.shields.io/badge/version-5.24.0-blue)](RELEASE_NOTES.md)
+
+## [v5.24.0] — 2025-11-09T12:38:00.000Z
+
+### 🔐 OAuth Security & OIDC Compliance
+
+**NEW FEATURE**: Added OIDC UserInfo endpoint and prompt parameter for secure re-authentication
+
+#### OAuth UserInfo Endpoint
+
+**What**: Standard OIDC `/api/oauth/userinfo` endpoint
+
+**Why**: Third-party OAuth clients were getting 404 errors when trying to fetch user profile
+
+**Implementation**:
+- GET /api/oauth/userinfo
+- Validates Bearer access token
+- Returns user claims based on granted scopes (profile, email)
+- Includes social login data (profile picture from Facebook/Google)
+- Fully OIDC compliant
+
+**Response Example**:
+```json
+{
+  "sub": "user-uuid",
+  "name": "John Doe",
+  "email": "user@example.com",
+  "email_verified": true,
+  "picture": "https://...",
+  "updated_at": "2025-11-09T12:00:00.000Z"
+}
+```
+
+#### Prompt Parameter (Security Enhancement)
+
+**What**: OIDC `prompt` parameter for controlling authentication behavior
+
+**Why**: After logout from 3rd party app, users were automatically logged back in without credentials (security issue)
+
+**Implementation**:
+- `prompt=login`: Force re-authentication even if user has active SSO session
+- `prompt=consent`: Force consent screen even if already granted
+- `prompt=none`: No UI, return error if interaction required
+- `prompt=select_account`: Prompt user to select account
+
+**Security Impact**: Third-party apps can now force credential entry after logout by adding `prompt=login` parameter to authorization URL
+
+**Usage Example**:
+```javascript
+const authUrl = new URL('https://sso.doneisbetter.com/api/oauth/authorize');
+authUrl.searchParams.set('prompt', 'login'); // Force re-authentication
+// ... other params
+window.location.href = authUrl.toString();
+```
+
+#### Documentation Updates
+
+**New Documentation**:
+- `docs/THIRD_PARTY_INTEGRATION_GUIDE.md` - Comprehensive integration guide
+  - OAuth2/OIDC for external domains
+  - Cookie-based SSO for subdomains
+  - Social login integration
+  - Complete API reference and troubleshooting
+
+**Updated Documentation**:
+- `/docs/quickstart` - Added PKCE implementation and prompt parameter
+- `/docs/api` - Added UserInfo endpoint and prompt parameter docs
+- `README.md` - Added third-party integration overview
+- `LEARNINGS.md` - Added OAuth security and OIDC compliance lessons
+
+#### OIDC Discovery
+
+**Updated**: `/.well-known/openid-configuration`
+- Added `userinfo_endpoint` declaration
+- Added `prompt_values_supported` array
+- Fully compliant with OIDC spec
+
+#### Technical Changes
+
+**New Files**:
+- `pages/api/oauth/userinfo.js` (108 lines) - OIDC UserInfo endpoint
+- `docs/THIRD_PARTY_INTEGRATION_GUIDE.md` (926 lines) - Complete integration guide
+
+**Modified Files**:
+- `pages/api/oauth/authorize.js` - Added prompt parameter support
+- `pages/api/.well-known/openid-configuration.js` - Added OIDC discovery updates
+- `pages/docs/quickstart.js` - Added PKCE and prompt parameter docs
+- `pages/docs/api/index.js` - Added UserInfo and prompt docs
+- `README.md` - Added integration method overview
+
+#### Bug Fixes
+
+**Fixed**: fancamera.vercel.app 404 error
+- Root cause: Missing /api/oauth/userinfo endpoint
+- Impact: OAuth clients can now fetch user info successfully
+
+**Fixed**: Auto-login after logout security issue
+- Root cause: No way to force re-authentication
+- Impact: Users must re-enter credentials after logout
+
+---
 
 ## [v5.23.1] — 2025-11-05T15:00:00.000Z
 
@@ -134,7 +234,7 @@ node scripts/disable-pin.mjs  # Disable
 
 ---
 
-## [v5.23.1] — 2025-10-16T15:24:20.000Z
+## [v5.24.0] — 2025-10-16T15:24:20.000Z
 
 ### Fixed
 
@@ -164,7 +264,7 @@ node scripts/disable-pin.mjs  # Disable
 
 ---
 
-## [v5.23.1] — 2025-10-12T14:07:00.000Z
+## [v5.24.0] — 2025-10-12T14:07:00.000Z
 
 ### 🎯 User Account Management & Session Improvements
 
@@ -262,7 +362,7 @@ node scripts/disable-pin.mjs  # Disable
 
 ---
 
-## [v5.23.1] — 2025-01-13T23:45:00.000Z
+## [v5.24.0] — 2025-01-13T23:45:00.000Z
 
 ### 🔐 OAuth Flow Fix: Preserve Authorization Context During Admin Login
 
@@ -331,7 +431,7 @@ useEffect(() => {
 
 ---
 
-## [v5.23.1] — 2025-10-06T21:30:00.000Z
+## [v5.24.0] — 2025-10-06T21:30:00.000Z
 
 ### 🎉 All Authentication Features Complete + PKCE Flexibility
 
@@ -427,7 +527,7 @@ useEffect(() => {
   - Success message display
 - **Email Templates** (`lib/emailTemplates.mjs`):
   - Added `buildMagicLinkEmail()` - Magic link email template
-  - Login PIN email already added in v5.23.1
+  - Login PIN email already added in v5.24.0
 
 #### Database Schema
 
@@ -521,7 +621,7 @@ useEffect(() => {
 
 ---
 
-## [v5.23.1] — 2025-10-06T11:22:25.000Z
+## [v5.24.0] — 2025-10-06T11:22:25.000Z
 
 ### 🎉 New Authentication Features: Forgot Password + Email System
 
@@ -586,7 +686,7 @@ useEffect(() => {
   - MongoDB TTL indexes
 - PIN email template in `lib/emailTemplates.mjs`
 
-**Public User Authentication** (from v5.23.1 merge):
+**Public User Authentication** (from v5.24.0 merge):
 - `lib/publicUsers.mjs` - Public user management
 - `lib/publicSessions.mjs` - Public user sessions
 - `pages/login.js` - Public login page
@@ -662,7 +762,7 @@ EMAIL_VERIFICATION_TOKEN_TTL=86400     # 24 hours
 
 ---
 
-## [v5.23.1] — 2025-10-03T09:15:22.000Z
+## [v5.24.0] — 2025-10-03T09:15:22.000Z
 
 ### 🚀 Phase 2: Complete OAuth2/OIDC Authorization Server Implementation
 
@@ -889,7 +989,7 @@ OAUTH2_CONSENT_TTL=31536000                 # 1 year
 
 ---
 
-## [v5.23.1] — 2025-10-02T11:54:33.000Z
+## [v5.24.0] — 2025-10-02T11:54:33.000Z
 
 ### 🔒 Phase 1: Critical Security Hardening
 
@@ -985,7 +1085,7 @@ CSRF_SECRET=<generate with: openssl rand -base64 32>
 
 ---
 
-## [v5.23.1] — 2025-09-17T11:43:02.000Z
+## [v5.24.0] — 2025-09-17T11:43:02.000Z
 
 ### Added
 - Development-only passwordless admin login:
@@ -998,7 +1098,7 @@ CSRF_SECRET=<generate with: openssl rand -base64 32>
 
 ---
 
-## [v5.23.1] — 2025-09-16T18:14:33.000Z
+## [v5.24.0] — 2025-09-16T18:14:33.000Z
 
 ### Added
 - Secure, single-use, time-limited admin magic link flow:
@@ -1011,7 +1111,7 @@ CSRF_SECRET=<generate with: openssl rand -base64 32>
 
 ---
 
-## [v5.23.1] — 2025-09-15T18:25:45.000Z
+## [v5.24.0] — 2025-09-15T18:25:45.000Z
 
 ### Changed
 - MongoDB client now uses fast-fail timeouts (serverSelection/connect/socket) to surface 503 quickly when DB is unreachable.
@@ -1022,7 +1122,7 @@ CSRF_SECRET=<generate with: openssl rand -base64 32>
 
 ---
 
-## [v5.23.1] — 2025-09-15T17:36:07.000Z
+## [v5.24.0] — 2025-09-15T17:36:07.000Z
 
 ### Changed
 - MongoDB client initialization is now lazy in serverless functions to prevent import-time crashes (avoids “Empty reply from server”).
@@ -1033,7 +1133,7 @@ CSRF_SECRET=<generate with: openssl rand -base64 32>
 
 ---
 
-## [v5.23.1] — 2025-09-14T08:25:57.000Z
+## [v5.24.0] — 2025-09-14T08:25:57.000Z
 
 ### Added
 - UUIDs as the primary identifier for admin users (with backfill for legacy users)
@@ -1053,7 +1153,7 @@ CSRF_SECRET=<generate with: openssl rand -base64 32>
 
 ---
 
-## [v5.23.1] — 2025-09-11T14:28:29.000Z
+## [v5.24.0] — 2025-09-11T14:28:29.000Z
 
 ### Added
 - Admin login UI at /admin (email + 32‑hex token) with session display and logout
@@ -1064,12 +1164,12 @@ CSRF_SECRET=<generate with: openssl rand -base64 32>
 
 ---
 
-## [v5.23.1] — 2025-09-11T13:57:38.000Z
+## [v5.24.0] — 2025-09-11T13:57:38.000Z
 
 ### Changed
-- Version bump to align with commit protocol; no functional changes since v5.23.1
+- Version bump to align with commit protocol; no functional changes since v5.24.0
 
-## [v5.23.1] — 2025-09-11T13:35:02.000Z
+## [v5.24.0] — 2025-09-11T13:35:02.000Z
 
 ### Added
 - DB-backed admin authentication with HttpOnly cookie session (admin-session)
@@ -1093,7 +1193,7 @@ CSRF_SECRET=<generate with: openssl rand -base64 32>
 
 ---
 
-## [v5.23.1] — 2025-07-23T10:00:00.000Z
+## [v5.24.0] — 2025-07-23T10:00:00.000Z
 
 ### Removed
 - Removed nested client package (@doneisbetter/sso-client)
@@ -1104,7 +1204,7 @@ CSRF_SECRET=<generate with: openssl rand -base64 32>
 - Updated documentation to focus on server-side implementation
 - Streamlined API documentation
 - Simplified configuration options
-## [v5.23.1] — 2025-07-22T08:03:17Z
+## [v5.24.0] — 2025-07-22T08:03:17Z
 
 ### Updated Dependencies
 - Upgraded Next.js to ^15.4.2
@@ -1122,7 +1222,7 @@ CSRF_SECRET=<generate with: openssl rand -base64 32>
 - Updated package overrides for better dependency management
 - Optimized session handling and validation
 
-## [v5.23.1]
+## [v5.24.0]
 
 ### Major Changes
 - Upgraded all dependencies to their latest stable versions
@@ -1151,7 +1251,7 @@ CSRF_SECRET=<generate with: openssl rand -base64 32>
 - Better memory management with lru-cache
 - Stricter npm configuration
 
-## [v5.23.1] — 2025-07-21T13:12:00.000Z
+## [v5.24.0] — 2025-07-21T13:12:00.000Z
 
 ### Added
 - User management features:
@@ -1199,7 +1299,7 @@ CSRF_SECRET=<generate with: openssl rand -base64 32>
 - Added admin user management
 - Created API routes for user operations
 
-## [v5.23.1] — 2024-04-13T12:00:00.000Z
+## [v5.24.0] — 2024-04-13T12:00:00.000Z
 
 ### Added
 - Initial project setup
