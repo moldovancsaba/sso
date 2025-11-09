@@ -12,11 +12,12 @@
 1. [Overview](#overview)
 2. [Integration Methods](#integration-methods)
 3. [Method 1: OAuth2/OIDC (Recommended for External Domains)](#method-1-oauth2oidc-recommended-for-external-domains)
-4. [Method 2: Cookie-Based SSO (Subdomain Only)](#method-2-cookie-based-sso-subdomain-only)
-5. [Method 3: Social Login Integration](#method-3-social-login-integration)
-6. [API Reference](#api-reference)
-7. [Security Best Practices](#security-best-practices)
-8. [Troubleshooting](#troubleshooting)
+4. [App-Level Permissions (Multi-App Authorization)](#app-level-permissions-multi-app-authorization)
+5. [Method 2: Cookie-Based SSO (Subdomain Only)](#method-2-cookie-based-sso-subdomain-only)
+6. [Method 3: Social Login Integration](#method-3-social-login-integration)
+7. [API Reference](#api-reference)
+8. [Security Best Practices](#security-best-practices)
+9. [Troubleshooting](#troubleshooting)
 
 ---
 
@@ -402,6 +403,492 @@ async function handleLoginAfterLogout() {
   
   sessionStorage.setItem('oauth_state', params.get('state'));
   window.location.href = `${process.env.SSO_BASE_URL}/api/oauth/authorize?${params}`;
+}
+```
+
+---
+
+## App-Level Permissions (Multi-App Authorization)
+
+**New in v5.24.0**: SSO now provides centralized permission management for all integrated applications.
+
+### Overview
+
+**Problem**: OAuth provides user authentication, but doesn't manage **app-specific roles** (user vs admin within your app).
+
+**Solution**: SSO's app permissions system provides:
+- ✅ Centralized role management per app
+- ✅ Roles: `none`, `user`, `admin`, `superadmin`
+- ✅ Admin approval workflow for new users
+- ✅ Single source of truth for permissions
+- ✅ Real-time permission sync
+
+### Key Concepts
+
+**SSO-Level Authentication** vs **App-Level Authorization**:
+
+```
+SSO Authentication → Who is this user? (identity)
+App Authorization → What can they do in THIS app? (permissions)
+```
+
+**Example**: User `john@example.com` might be:
+- ✅ **Authenticated** via SSO (has valid access token)
+- ✅ **Admin** in Camera app (appPermissions.role = 'admin')
+- ✅ **User** in Launchmass app (appPermissions.role = 'user')
+- ❌ **No Access** in Messmass app (appPermissions.role = 'none')
+
+### Permission Statuses
+
+| Status | hasAccess | Meaning |
+|--------|-----------|----------|
+| `approved` | `true` | User can access app |
+| `pending` | `false` | Awaiting admin approval |
+| `revoked` | `false` | Access was removed |
+| (none) | `false` | User never requested access |
+
+### Role Hierarchy
+
+| Role | Meaning | Typical Permissions |
+|------|---------|--------------------|
+| `none` | No access | Cannot login |
+| `user` | Basic access | Read data, create own content |
+| `admin` | Organization admin | Manage team, moderate content |
+| `superadmin` | App superadmin | Manage all users, app settings |
+
+---
+
+### Step 4: Query User's App Permission
+
+After OAuth callback (after token exchange), query SSO for app-specific permission:
+
+```javascript
+// In your OAuth callback handler (after exchanging code for tokens)
+async function handleOAuthCallback(code, state) {
+  // 1. Exchange code for tokens (as shown in Step 2.4)
+  const tokens = await exchangeCodeForTokens(code, codeVerifier);
+  
+  // 2. Parse user info from ID token
+  const user = parseIdToken(tokens.id_token);
+  
+  // 3. Query SSO for app-specific permission
+  const permission = await getAppPermission(user.userId, tokens.access_token);
+  
+  // 4. Check if user has access
+  if (!permission.hasAccess) {
+    // User doesn't have access yet
+    if (permission.status === 'pending') {
+      return redirectTo('/access-pending'); // Show "waiting for approval" page
+    } else {
+      // No permission record - create one
+      await requestAppAccess(user.userId, tokens.access_token);
+      return redirectTo('/access-pending');
+    }
+  }
+  
+  // 5. Store app role in session
+  req.session.user = {
+    ...user,
+    appRole: permission.role,  // 'user', 'admin', or 'superadmin'
+    appAccess: permission.hasAccess,
+  };
+  
+  // 6. Redirect to app
+  return redirectTo('/dashboard');
+}
+```
+
+#### Get App Permission Endpoint
+
+```javascript
+/**
+ * Get user's permission for your app
+ * 
+ * @param userId - User's SSO ID (from id_token.sub)
+ * @param accessToken - OAuth access token
+ * @returns App permission with role and access status
+ */
+async function getAppPermission(userId, accessToken) {
+  const response = await fetch(
+    `${process.env.SSO_BASE_URL}/api/users/${userId}/apps/${process.env.SSO_CLIENT_ID}/permissions`,
+    {
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+      },
+    }
+  );
+  
+  if (response.status === 404) {
+    // No permission record exists yet
+    return {
+      userId,
+      clientId: process.env.SSO_CLIENT_ID,
+      hasAccess: false,
+      status: 'none',
+      role: 'none',
+    };
+  }
+  
+  if (!response.ok) {
+    throw new Error(`Failed to get permission: ${response.status}`);
+  }
+  
+  return await response.json();
+  /* Returns:
+  {
+    userId: "user-uuid",
+    clientId: "your-client-id",
+    appName: "YourApp",
+    hasAccess: true,
+    status: "approved",
+    role: "admin",
+    requestedAt: "2025-11-09T10:00:00.000Z",
+    grantedAt: "2025-11-09T10:05:00.000Z",
+    grantedBy: "admin-uuid",
+    lastAccessedAt: "2025-11-09T13:50:00.000Z"
+  }
+  */
+}
+```
+
+#### Request App Access Endpoint
+
+```javascript
+/**
+ * Request access to your app (creates pending permission)
+ * Admin will approve/deny via SSO admin UI
+ * 
+ * @param userId - User's SSO ID
+ * @param accessToken - OAuth access token
+ * @returns Created permission (status will be 'pending')
+ */
+async function requestAppAccess(userId, accessToken) {
+  const response = await fetch(
+    `${process.env.SSO_BASE_URL}/api/users/${userId}/apps/${process.env.SSO_CLIENT_ID}/request-access`,
+    {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        // Optional: SSO will auto-fill from access token
+        email: '',
+        name: '',
+      }),
+    }
+  );
+  
+  if (!response.ok) {
+    throw new Error(`Failed to request access: ${response.status}`);
+  }
+  
+  return await response.json();
+  /* Returns:
+  {
+    userId: "user-uuid",
+    clientId: "your-client-id",
+    appName: "YourApp",
+    hasAccess: false,
+    status: "pending",
+    role: "none",
+    requestedAt: "2025-11-09T14:00:00.000Z"
+  }
+  */
+}
+```
+
+---
+
+### Step 5: Use App Role for Authorization
+
+In your app, check the stored `appRole` to control access:
+
+#### Example: Protected Admin Route
+
+```javascript
+// middleware/requireAdmin.js
+export function requireAdmin(req, res, next) {
+  const session = req.session;
+  
+  // Check if user is authenticated
+  if (!session?.user?.appAccess) {
+    return res.status(403).json({ error: 'Access denied' });
+  }
+  
+  // Check if user is admin or superadmin
+  if (session.user.appRole !== 'admin' && session.user.appRole !== 'superadmin') {
+    return res.status(403).json({ error: 'Admin access required' });
+  }
+  
+  next();
+}
+
+// Usage in routes
+app.get('/api/admin/users', requireAdmin, async (req, res) => {
+  // Only admins can access this
+  const users = await getAllUsers();
+  res.json({ users });
+});
+```
+
+#### Example: Conditional UI Rendering
+
+```jsx
+// React component
+function Dashboard({ session }) {
+  const isAdmin = session.user.appRole === 'admin' || session.user.appRole === 'superadmin';
+  
+  return (
+    <div>
+      <h1>Dashboard</h1>
+      
+      {/* All users see this */}
+      <UserContent />
+      
+      {/* Only admins see this */}
+      {isAdmin && (
+        <AdminPanel>
+          <button>Manage Users</button>
+          <button>View Analytics</button>
+        </AdminPanel>
+      )}
+    </div>
+  );
+}
+```
+
+---
+
+### Step 6: Periodic Permission Sync
+
+**Important**: SSO admin can change user permissions at any time. Apps should periodically re-check permissions.
+
+#### Option 1: Sync on Session Refresh
+
+```javascript
+// When refreshing access token, also refresh permissions
+async function refreshSession(session) {
+  // 1. Refresh access token
+  const newTokens = await refreshAccessToken(session.refreshToken);
+  
+  // 2. Re-query app permission
+  const permission = await getAppPermission(session.user.userId, newTokens.access_token);
+  
+  // 3. Update session
+  session.accessToken = newTokens.access_token;
+  session.user.appRole = permission.role;
+  session.user.appAccess = permission.hasAccess;
+  
+  // 4. If access was revoked, logout user
+  if (!permission.hasAccess) {
+    await logout(session);
+    return redirectTo('/access-revoked');
+  }
+  
+  return session;
+}
+```
+
+#### Option 2: Background Sync (Recommended)
+
+```javascript
+// Run every 5 minutes for active sessions
+setInterval(async () => {
+  const activeSessions = await getActiveSessions();
+  
+  for (const session of activeSessions) {
+    try {
+      const permission = await getAppPermission(
+        session.user.userId,
+        session.accessToken
+      );
+      
+      // Update stored permission
+      await updateSessionPermission(session.id, permission);
+      
+      // If access revoked, invalidate session
+      if (!permission.hasAccess) {
+        await invalidateSession(session.id);
+      }
+    } catch (error) {
+      console.error('Permission sync failed:', error);
+    }
+  }
+}, 5 * 60 * 1000); // 5 minutes
+```
+
+---
+
+### Access Denied Pages
+
+Provide clear UX for users without access:
+
+#### Pending Approval Page
+
+```html
+<!-- /access-pending -->
+<div class="access-pending">
+  <h1>⏳ Access Pending</h1>
+  <p>Your access request has been submitted to the administrator.</p>
+  <p>You'll receive an email once approved.</p>
+  <p>Email: support@yourapp.com for urgent access.</p>
+</div>
+```
+
+#### Access Revoked Page
+
+```html
+<!-- /access-revoked -->
+<div class="access-revoked">
+  <h1>🚫 Access Revoked</h1>
+  <p>Your access to this application has been removed.</p>
+  <p>Contact: support@yourapp.com for assistance.</p>
+</div>
+```
+
+---
+
+### Admin Workflow (SSO Admin UI)
+
+SSO admins manage app permissions via the admin UI:
+
+1. Login to **https://sso.doneisbetter.com/admin**
+2. Navigate to **"Users"**
+3. Click **"Manage"** on any user
+4. View **"Application Access"** section
+5. For each app:
+   - **Grant Access** (pending → approved)
+   - **Change Role** (user ↔ admin)
+   - **Revoke Access** (approved → revoked)
+
+**All changes are logged** in `appAccessLogs` for audit trail.
+
+---
+
+### Complete Integration Example
+
+Here's a complete example integrating app permissions:
+
+```javascript
+// lib/auth/sso-permissions.js
+import { SSO_BASE_URL, SSO_CLIENT_ID } from './config';
+
+export async function getAppPermission(userId, accessToken) {
+  const response = await fetch(
+    `${SSO_BASE_URL}/api/users/${userId}/apps/${SSO_CLIENT_ID}/permissions`,
+    {
+      headers: { 'Authorization': `Bearer ${accessToken}` },
+    }
+  );
+  
+  if (response.status === 404) {
+    return {
+      userId,
+      clientId: SSO_CLIENT_ID,
+      hasAccess: false,
+      status: 'none',
+      role: 'none',
+    };
+  }
+  
+  if (!response.ok) {
+    throw new Error(`Failed to get permission: ${response.status}`);
+  }
+  
+  return await response.json();
+}
+
+export async function requestAppAccess(userId, accessToken) {
+  const response = await fetch(
+    `${SSO_BASE_URL}/api/users/${userId}/apps/${SSO_CLIENT_ID}/request-access`,
+    {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({}),
+    }
+  );
+  
+  if (!response.ok) {
+    throw new Error(`Failed to request access: ${response.status}`);
+  }
+  
+  return await response.json();
+}
+
+export function hasAppAccess(permission) {
+  return permission.hasAccess && permission.status === 'approved';
+}
+
+export function isAppAdmin(permission) {
+  return hasAppAccess(permission) && 
+         (permission.role === 'admin' || permission.role === 'superadmin');
+}
+```
+
+```javascript
+// app/api/auth/callback/route.js
+import { exchangeCodeForToken, decodeIdToken } from '@/lib/auth/sso';
+import { getAppPermission, requestAppAccess, hasAppAccess } from '@/lib/auth/sso-permissions';
+import { createSession } from '@/lib/auth/session';
+
+export async function GET(request) {
+  const { code, state } = request.nextUrl.searchParams;
+  
+  // Validate state (CSRF protection)
+  // ...
+  
+  try {
+    // 1. Exchange code for tokens
+    const tokens = await exchangeCodeForToken(code, codeVerifier);
+    
+    // 2. Extract user from ID token
+    const user = decodeIdToken(tokens.id_token);
+    
+    // 3. Query SSO for app permission
+    let permission;
+    try {
+      permission = await getAppPermission(user.id, tokens.access_token);
+    } catch (error) {
+      console.error('Failed to get app permission:', error);
+      // Default to no access
+      permission = { hasAccess: false, role: 'none', status: 'none' };
+    }
+    
+    // 4. Check if user has access
+    if (!hasAppAccess(permission)) {
+      if (permission.status === 'pending') {
+        // Already requested, waiting for approval
+        return NextResponse.redirect(new URL('/access-pending', request.url));
+      } else {
+        // No permission record - create one
+        try {
+          await requestAppAccess(user.id, tokens.access_token);
+        } catch (error) {
+          console.error('Failed to request access:', error);
+        }
+        return NextResponse.redirect(new URL('/access-pending', request.url));
+      }
+    }
+    
+    // 5. Create session with app permission
+    await createSession(user, tokens, {
+      appRole: permission.role,
+      appAccess: permission.hasAccess,
+    });
+    
+    // 6. Redirect to app
+    return NextResponse.redirect(new URL('/', request.url));
+    
+  } catch (error) {
+    console.error('OAuth callback failed:', error);
+    return NextResponse.redirect(
+      new URL(`/?error=auth_failed&message=${encodeURIComponent(error.message)}`, request.url)
+    );
+  }
 }
 ```
 
@@ -954,5 +1441,5 @@ See `docs/SSO_INTEGRATION_GUIDE.md` for complete implementation.
 ---
 
 **End of Third-Party Integration Guide**  
-**Version**: 5.23.1  
-**Last Updated**: 2025-11-09T12:20:00.000Z
+**Version**: 5.24.0  
+**Last Updated**: 2025-11-09T14:20:00.000Z
