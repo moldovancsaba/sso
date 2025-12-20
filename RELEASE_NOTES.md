@@ -1,6 +1,68 @@
-# Release Notes [![Version Badge](https://img.shields.io/badge/version-5.24.0-blue)](RELEASE_NOTES.md)
+# Release Notes [![Version Badge](https://img.shields.io/badge/version-5.25.0-blue)](RELEASE_NOTES.md)
 
-## [v5.25.0] — 2025-11-09T14:00:00.000Z
+## [v5.25.0] — 2025-12-20T20:08:00.000Z
+
+### 🎯 Phase 5: Launchmass Admin UI Integration (COMPLETE)
+
+**NEW FEATURE**: Manual SSO sync capability with batch operations and visual feedback
+
+**What**: Launchmass admins can now manually sync all user permissions to SSO with detailed status feedback
+
+**Why**: Provides reconciliation capability when automatic sync fails, enables initial migration, and gives admins visibility into sync operations
+
+**Implementation**:
+
+#### Launchmass Changes:
+- **Sync to SSO Button**: Added prominent button in `/admin/users` page
+- **Batch Sync Endpoint**: New `POST /api/admin/batch-sync-sso` endpoint
+- **Visual Feedback**: Loading states, spinner animation, success/error messages
+- **Detailed Results**: Shows per-user sync status (success/error with messages)
+- **Admin Access Control**: Only admin/superadmin roles can trigger batch sync
+- **Automatic Sync**: All permission operations (grant/revoke/change-role) automatically sync to SSO
+
+#### SSO Changes:
+- **OAuth Flow Preservation**: Register page maintains OAuth context through account creation
+- **Return URL Handling**: Complete documentation and security validation for preserving user location
+- **Permission API Refactoring**: Updated to use admin-specific functions with improved audit logging
+- **Duplicate User Tools**: Investigation and fix scripts for managing duplicate users
+
+**User Experience**:
+- Click "Sync to SSO" button to reconcile all user permissions
+- Real-time progress indicator during sync
+- Detailed breakdown of successful/failed syncs per user
+- Confirmation dialog before starting batch operation
+- Error messages clearly indicate what failed and why
+
+**Technical Details**:
+- Uses `batchSyncToSSO()` from `lib/ssoPermissions.mjs`
+- OAuth client credentials authentication with SSO
+- Maps Launchmass status (active/pending) to SSO status (approved/pending)
+- Handles missing ssoUserId gracefully
+- Continues on individual errors, reports all results
+
+**Files Changed**:
+- Launchmass:
+  - `pages/admin/users.js` (+33 lines) - Batch sync UI and handler
+  - `pages/api/admin/batch-sync-sso.js` (new, 66 lines) - Batch sync endpoint
+  - `styles/globals.css` (+6 lines) - Spinner animation
+- SSO:
+  - `pages/register.js` - OAuth flow preservation
+  - `pages/docs/return-url-handling.js` (new, 439 lines) - Return URL documentation
+  - `docs/THIRD_PARTY_INTEGRATION_GUIDE.md` - Return URL handling guide
+  - `pages/api/users/[userId]/apps/[clientId]/permissions.js` - Admin function refactoring
+  - Multiple investigation/fix scripts for duplicate users
+
+**Success Metrics**:
+- ✅ Admins can manually trigger full permission sync
+- ✅ Visual feedback during sync operations
+- ✅ Detailed error reporting for failed syncs
+- ✅ Automatic sync on all permission changes
+- ✅ OAuth registration flow preserved seamlessly
+- ✅ Multi-App Permission System fully operational
+
+---
+
+## [v5.24.0] — 2025-11-09T14:00:00.000Z
 
 ### 🎯 Phase 4A: SSO Admin UI for Multi-App Permissions (COMPLETE)
 

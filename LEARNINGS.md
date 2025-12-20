@@ -99,4 +99,14 @@ Multi-App Permission Management (Phase 4A):
 - ISO 8601 timestamps with milliseconds throughout (createdAt, updatedAt, grantedAt, revokedAt)
 - Helper functions: mapPermissionToDTO removes MongoDB _id and ensures consistent field names
 - Admin authentication via requireAdmin() helper (HttpOnly cookie validation)
-- Next step: Phase 4B requires client_credentials OAuth grant for bidirectional sync
+
+Bidirectional Permission Sync (Phase 4D/5):
+- Client credentials OAuth flow enables app-to-app authentication without user context
+- Token caching essential for performance (reuse until 5 min before expiration)
+- Automatic sync on permission changes prevents drift between systems
+- Manual batch sync provides reconciliation capability for initial migration or error recovery
+- Graceful degradation: continue local operations even if SSO sync fails (don't block admin workflow)
+- Detailed error reporting helps admins understand sync failures per user
+- Admin-only batch sync prevents unauthorized mass permission changes
+- Visual feedback (loading states, spinners) critical for long-running operations
+- Confirmation dialogs required for destructive/bulk operations
