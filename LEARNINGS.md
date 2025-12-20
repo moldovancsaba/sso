@@ -1,4 +1,4 @@
-# LEARNINGS (v5.24.0)
+# LEARNINGS (v5.25.0)
 
 Last updated: 2025-11-09T12:38:00.000Z
 

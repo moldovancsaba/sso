@@ -27,7 +27,7 @@ Last updated: 2025-11-09T16:00:00.000Z
 
 ## 🚧 IN PROGRESS: Multi-App Permission System (Q1 2025 - FINAL PHASE)
 - Priority: **CRITICAL**
-- Dependencies: SSO v5.24.0, Launchmass v5.24.0
+- Dependencies: SSO v5.25.0, Launchmass v5.25.0
 - Started: 2025-01-13
 - Target: 2025-01-20
 

@@ -14,10 +14,11 @@
 
 import { 
   getAppPermission, 
-  upsertPermission, 
-  revokePermission 
+  updateAppPermission,
+  upsertPermissionForAdmin, 
+  revokePermissionForAdmin 
 } from '../../../../../../lib/appPermissions.mjs'
-import { logAppAccess } from '../../../../../../lib/appAccessLogs.mjs'
+import { logAccessAttempt, logPermissionChange } from '../../../../../../lib/appAccessLogs.mjs'
 import { getAdminUser } from '../../../../../../lib/auth.mjs'
 import { 
   requireOAuthToken, 
@@ -224,26 +225,26 @@ async function handlePut(req, res) {
 
     // WHAT: Upsert permission record
     // WHY: Create new or update existing permission
-    const permission = await upsertPermission({
+    const hasAccess = status === 'approved'
+    const permission = await updateAppPermission({
       userId,
       clientId,
-      role,
+      hasAccess,
       status,
+      role,
       grantedBy: grantedBy || `app:${tokenData.clientId}`,
     })
 
     // WHAT: Log permission change for audit trail
-    await logAppAccess({
+    await logPermissionChange({
       userId,
       clientId,
-      action: 'permission_updated',
-      result: 'success',
-      metadata: {
-        role,
-        status,
-        updatedBy: tokenData.clientId,
-        grantedBy: grantedBy || `app:${tokenData.clientId}`,
-      },
+      appName: permission.appName || clientId,
+      eventType: 'role_changed',
+      previousRole: permission.role || 'none',
+      newRole: role,
+      changedBy: `app:${tokenData.clientId}`,
+      message: `Permission updated via app API: ${status}`,
     })
 
     logger.info('Permission updated via app API', {
@@ -322,7 +323,11 @@ async function handleDelete(req, res) {
     }
 
     // WHAT: Revoke permission (set status to 'revoked')
-    const permission = await revokePermission(userId, clientId)
+    const permission = await revokePermissionForAdmin({
+      userId,
+      clientId,
+      adminUserId: `app:${tokenData.clientId}`,
+    })
 
     if (!permission) {
       return res.status(404).json({
@@ -332,14 +337,15 @@ async function handleDelete(req, res) {
     }
 
     // WHAT: Log permission revocation for audit trail
-    await logAppAccess({
+    await logPermissionChange({
       userId,
       clientId,
-      action: 'permission_revoked',
-      result: 'success',
-      metadata: {
-        revokedBy: tokenData.clientId,
-      },
+      appName: permission.appName || clientId,
+      eventType: 'access_revoked',
+      previousRole: permission.role || 'none',
+      newRole: 'none',
+      changedBy: `app:${tokenData.clientId}`,
+      message: 'Permission revoked via app API',
     })
 
     logger.info('Permission revoked via app API', {
