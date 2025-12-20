@@ -3,14 +3,7 @@
 Last updated: 2025-11-09T16:00:00.000Z
 
 Active:
-1) Complete Phase 5: Launchmass Admin UI Integration
-   - Enable Launchmass OAuth client for client_credentials grant
-   - Add SSO_CLIENT_ID and SSO_CLIENT_SECRET to Launchmass env
-   - Update Launchmass admin UI to call SSO sync functions
-   - Add "Sync to SSO" button
-   - Owner: Full Stack
-   - Expected Delivery: 2025-11-10
-   - Priority: P0
+(No active tasks)
 
 Pending (Future):
 1) Add Google Login (similar to Facebook integration)
@@ -62,3 +55,8 @@ Completed (v5.25.0 - November 2024):
 - PIN verification modal UX enhancements
 - OAuth admin session isolation fix
 - Camera app role authorization fix
+- Phase 5: Launchmass Admin UI Integration
+  - Batch sync endpoint for manual SSO reconciliation
+  - "Sync to SSO" button with loading states and detailed results
+  - Automatic sync on all permission operations (grant/revoke/change-role)
+  - Admin-only access control
