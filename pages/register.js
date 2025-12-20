@@ -11,15 +11,26 @@ import Head from 'next/head'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 
-// Make page server-rendered to ensure query params are available
+// WHAT: Make page server-rendered to ensure query params are available immediately
+// WHY: useRouter().query can be empty on first render, causing OAuth params to be lost
+// HOW: Extract query params in getServerSideProps and pass as props
 export async function getServerSideProps(context) {
-  // Just return empty props - we only need this to force server rendering
-  return { props: {} }
+  const { redirect, oauth_request } = context.query
+  
+  return {
+    props: {
+      initialRedirect: redirect || null,
+      initialOAuthRequest: oauth_request || null,
+    },
+  }
 }
 
-export default function RegisterPage() {
+export default function RegisterPage({ initialRedirect, initialOAuthRequest }) {
   const router = useRouter()
-  const { redirect } = router.query
+  // WHAT: Use props as primary source, fallback to router.query
+  // WHY: Props from getServerSideProps are reliable, router.query can be empty initially
+  const redirect = initialRedirect || router.query.redirect
+  const oauth_request = initialOAuthRequest || router.query.oauth_request
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -126,12 +137,59 @@ export default function RegisterPage() {
       const data = await res.json()
 
       if (res.ok) {
-        // WHAT: Registration successful, redirect to requested page or homepage
-        // WHY: Demo page was for testing only, users should see main SSO page
+        // WHAT: Check if this is an OAuth flow registration - REDIRECT IMMEDIATELY to continue OAuth
+        // WHY: Third-party apps (like camera) need seamless flow after account creation
+        // HOW: Decode oauth_request and redirect to authorization endpoint (same as login page)
+        if (oauth_request) {
+          console.log('[Register] OAuth flow detected, continuing authorization immediately')
+          console.log('[Register] oauth_request:', oauth_request)
+          try {
+            // WHAT: Decode base64url in browser (Buffer doesn't exist in browser)
+            // WHY: Node.js Buffer API is not available in client-side JavaScript
+            // HOW: Convert base64url to base64, then use atob() to decode
+            const base64 = oauth_request.replace(/-/g, '+').replace(/_/g, '/')
+            const decoded = JSON.parse(decodeURIComponent(escape(atob(base64))))
+            console.log('[Register] Decoded OAuth request:', decoded)
+            
+            // Reconstruct the authorize URL with original parameters
+            const params = new URLSearchParams({
+              response_type: decoded.response_type,
+              client_id: decoded.client_id,
+              redirect_uri: decoded.redirect_uri,
+              scope: decoded.scope,
+              state: decoded.state,
+            })
+            
+            // WHAT: Only add code_challenge if it exists
+            // WHY: Some clients might not use PKCE
+            if (decoded.code_challenge) {
+              params.set('code_challenge', decoded.code_challenge)
+              params.set('code_challenge_method', decoded.code_challenge_method || 'S256')
+            }
+            
+            const authorizeUrl = `/api/oauth/authorize?${params.toString()}`
+            console.log('[Register] Redirecting to:', authorizeUrl)
+            
+            // WHAT: Small delay to ensure session cookie is set
+            // WHY: Cookie needs time to be persisted by browser
+            setTimeout(() => {
+              console.log('[Register] Now redirecting to OAuth authorize...')
+              window.location.href = authorizeUrl
+            }, 150)
+            return // Stop execution
+          } catch (err) {
+            console.error('[Register] Failed to decode oauth_request:', err)
+            console.error('[Register] Error details:', err.message, err.stack)
+            // Fall through to normal redirect logic
+          }
+        }
+        
+        // WHAT: Registration successful, redirect to requested page or account page
+        // WHY: Non-OAuth flows should go to account page or specified redirect
         if (redirect && isValidRedirectUrl(decodeURIComponent(redirect))) {
           window.location.href = decodeURIComponent(redirect)
         } else {
-          router.push('/')
+          window.location.href = '/account'
         }
       } else {
         // Handle server errors
@@ -421,7 +479,13 @@ export default function RegisterPage() {
             color: '#666'
           }}>
             Already have an account?{' '}
-            <Link href={redirect ? `/login?redirect=${encodeURIComponent(redirect)}` : '/login'} style={{
+            <Link href={
+              oauth_request 
+                ? `/login?oauth_request=${encodeURIComponent(oauth_request)}`
+                : redirect 
+                  ? `/login?redirect=${encodeURIComponent(redirect)}`
+                  : '/login'
+            } style={{
               color: '#667eea',
               textDecoration: 'none',
               fontWeight: '600'
