@@ -2,6 +2,7 @@
  * pages/api/public/login.js - Public user authentication
  * WHAT: Authenticates public users with email + password and optional PIN verification
  * WHY: Secure login for public users with random PIN verification for additional security
+ * Enhanced: Provides helpful guidance for social-only accounts
  */
 
 import { findPublicUserByEmail } from '../../../lib/publicUsers.mjs'
@@ -13,6 +14,7 @@ import { getDb } from '../../../lib/db.mjs'
 import logger from '../../../lib/logger.mjs'
 import bcrypt from 'bcryptjs'
 import cookie from 'cookie'
+import { getUserLoginMethods, canLoginWithPassword } from '../../../lib/accountLinking.mjs'
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -45,6 +47,36 @@ export default async function handler(req, res) {
       })
       // Generic error to prevent email enumeration
       return res.status(401).json({ error: 'Invalid email or password' })
+    }
+
+    // WHAT: Check if user can login with password
+    // WHY: User might have social-only account - provide helpful guidance
+    const hasPassword = canLoginWithPassword(user)
+    
+    if (!hasPassword) {
+      // WHAT: User has social login only - guide them to correct login method
+      // WHY: Better UX than generic "wrong password" error
+      const loginMethods = getUserLoginMethods(user)
+      
+      logger.warn('Login attempted with password for social-only account', {
+        event: 'public_login_social_only',
+        userId: user.id || user._id.toString(),
+        email: user.email,
+        availableMethods: loginMethods,
+      })
+      
+      // WHAT: Build helpful error message listing available login methods
+      let loginMethodsText = []
+      if (loginMethods.includes('facebook')) loginMethodsText.push('Facebook')
+      if (loginMethods.includes('google')) loginMethodsText.push('Google')
+      
+      const methodsList = loginMethodsText.join(' or ')
+      
+      return res.status(401).json({
+        error: 'Password not set',
+        message: `This account was created with ${methodsList}. Please login with ${methodsList}, or register a password using the registration form.`,
+        availableLoginMethods: loginMethods,
+      })
     }
 
     // Verify password (bcrypt)
@@ -191,6 +223,8 @@ export default async function handler(req, res) {
       userId: user.id,
       email: user.email,
       loginCount,
+      loginMethod: 'password',
+      availableMethods: getUserLoginMethods(user),
     })
 
     return res.status(200).json({

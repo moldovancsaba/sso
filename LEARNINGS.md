@@ -1,4 +1,4 @@
-# LEARNINGS (v5.27.0)
+# LEARNINGS (v5.28.0)
 
 Last updated: 2025-12-21T12:00:00.000Z
 
@@ -111,7 +111,7 @@ Bidirectional Permission Sync (Phase 4D/5):
 - Visual feedback (loading states, spinners) critical for long-running operations
 - Confirmation dialogs required for destructive/bulk operations
 
-Security Hardening (v5.27.0 - 5-Phase Implementation):
+Security Hardening (v5.28.0 - 5-Phase Implementation):
 
 Rate Limiting:
 - Admin endpoints need stricter rate limits than public endpoints (3 vs 5 login attempts)
