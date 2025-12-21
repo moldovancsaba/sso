@@ -177,6 +177,31 @@ export default function ConsentPage({ initialRequest }) {
     window.location.href = redirectUrl.toString()
   }
 
+  // WHAT: Switch account - logout and redirect back to login with OAuth request preserved
+  // WHY: Users may want to authorize with a different account
+  // HOW: Logout current session, then redirect to login with oauth_request parameter
+  async function handleSwitchAccount() {
+    if (!authRequest || !requestParam) return
+
+    setSubmitting(true)
+    setError(null)
+
+    try {
+      // Logout current user
+      await fetch('/api/public/logout', {
+        method: 'POST',
+        credentials: 'include',
+      })
+
+      // Redirect to login page with OAuth request preserved
+      // This ensures the user returns to the same authorization flow after login
+      window.location.href = `/login?oauth_request=${encodeURIComponent(requestParam)}`
+    } catch (err) {
+      setError('Failed to switch account')
+      setSubmitting(false)
+    }
+  }
+
   // Group scopes by category
   const groupedScopes = scopeDetails.reduce((acc, scope) => {
     const category = scope.category || 'other'
@@ -240,7 +265,24 @@ export default function ConsentPage({ initialRequest }) {
         {/* User Info */}
         {user && (
           <div style={{ marginBottom: '1.5rem', padding: '0.75rem', background: '#0e1733', border: '1px solid #24306b', borderRadius: 8, fontSize: '0.875rem' }}>
-            Logged in as <strong>{user.email}</strong>
+            <div>Logged in as <strong>{user.email}</strong></div>
+            <button
+              onClick={handleSwitchAccount}
+              disabled={submitting}
+              style={{
+                marginTop: '0.5rem',
+                padding: 0,
+                background: 'transparent',
+                color: '#4da6ff',
+                border: 0,
+                cursor: submitting ? 'not-allowed' : 'pointer',
+                fontSize: '0.875rem',
+                textDecoration: 'underline',
+                opacity: submitting ? 0.5 : 1,
+              }}
+            >
+              Not you? Switch account
+            </button>
           </div>
         )}
 
