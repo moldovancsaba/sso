@@ -310,8 +310,8 @@ export default function OAuthClientsPage() {
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
           <div>
-            <h1 style={{ margin: 0, fontSize: '2rem' }}>OAuth2 Clients</h1>
-            <p style={{ marginTop: '0.5rem', opacity: 0.8 }}>Manage OAuth2 client applications</p>
+            <h1 style={{ margin: 0, fontSize: '2rem', color: '#e6e8f2' }}>OAuth2 Clients</h1>
+            <p style={{ marginTop: '0.5rem', opacity: 0.8, color: '#e6e8f2' }}>Manage OAuth2 client applications</p>
           </div>
           <div style={{ display: 'flex', gap: 12 }}>
             <Link href="/admin" style={{ padding: '0.5rem 0.75rem', background: '#24306b', color: 'white', borderRadius: 6, textDecoration: 'none' }}>← Admin Home</Link>
@@ -325,7 +325,7 @@ export default function OAuthClientsPage() {
 
         {/* Message */}
         {message && (
-          <div style={{ marginBottom: '1rem', padding: '0.75rem', background: '#0e1733', border: '1px solid #24306b', borderRadius: 8 }}>
+          <div style={{ marginBottom: '1rem', padding: '0.75rem', background: '#0e1733', border: '1px solid #24306b', borderRadius: 8, color: '#e6e8f2' }}>
             {message}
           </div>
         )}
@@ -334,7 +334,7 @@ export default function OAuthClientsPage() {
         {newClientSecret && (
           <div style={{ marginBottom: '1rem', padding: '1rem', background: '#211a0b', border: '1px solid #8a6d3b', borderRadius: 8 }}>
             <h3 style={{ margin: '0 0 0.5rem 0', color: '#ffc107' }}>⚠️ Save Client Secret Now!</h3>
-            <p style={{ marginBottom: '0.5rem' }}>This secret will not be shown again. Copy it now:</p>
+            <p style={{ marginBottom: '0.5rem', color: '#e6e8f2' }}>This secret will not be shown again. Copy it now:</p>
             <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
               <code style={{ flex: 1, padding: '0.5rem', background: '#0b1021', borderRadius: 6, overflowX: 'auto' }}>{newClientSecret}</code>
               <button onClick={() => copyToClipboard(newClientSecret)} style={{ padding: '0.5rem 0.75rem', background: '#24306b', color: 'white', border: 0, borderRadius: 6, cursor: 'pointer' }}>Copy</button>
@@ -346,10 +346,10 @@ export default function OAuthClientsPage() {
         {/* Edit Form */}
         {editingClientId && admin.role === 'super-admin' && (
           <div style={{ marginBottom: '2rem', padding: '1.5rem', background: '#12172b', border: '1px solid #22284a', borderRadius: 12 }}>
-            <h2 style={{ margin: '0 0 1rem 0', fontSize: '1.25rem' }}>Edit OAuth Client</h2>
+            <h2 style={{ margin: '0 0 1rem 0', fontSize: '1.25rem', color: '#e6e8f2' }}>Edit OAuth Client</h2>
             <form onSubmit={handleUpdateClient} style={{ display: 'grid', gap: 12 }}>
               <label style={{ display: 'grid', gap: 6 }}>
-                <span style={{ fontSize: 12, opacity: 0.8 }}>Client Name *</span>
+                <span style={{ fontSize: 12, opacity: 0.8, color: '#e6e8f2' }}>Client Name *</span>
                 <input
                   value={formData.name}
                   onChange={e => setFormData({ ...formData, name: e.target.value })}
@@ -360,7 +360,7 @@ export default function OAuthClientsPage() {
               </label>
 
               <label style={{ display: 'grid', gap: 6 }}>
-                <span style={{ fontSize: 12, opacity: 0.8 }}>Description</span>
+                <span style={{ fontSize: 12, opacity: 0.8, color: '#e6e8f2' }}>Description</span>
                 <input
                   value={formData.description}
                   onChange={e => setFormData({ ...formData, description: e.target.value })}
@@ -382,7 +382,7 @@ export default function OAuthClientsPage() {
               </label>
 
               <label style={{ display: 'grid', gap: 6 }}>
-                <span style={{ fontSize: 12, opacity: 0.8 }}>Allowed Scopes (space-separated)</span>
+                <span style={{ fontSize: 12, opacity: 0.8, color: '#e6e8f2' }}>Allowed Scopes (space-separated)</span>
                 <input
                   value={formData.allowed_scopes}
                   onChange={e => setFormData({ ...formData, allowed_scopes: e.target.value })}
@@ -392,7 +392,7 @@ export default function OAuthClientsPage() {
               </label>
 
               <label style={{ display: 'grid', gap: 6 }}>
-                <span style={{ fontSize: 12, opacity: 0.8 }}>Homepage URL</span>
+                <span style={{ fontSize: 12, opacity: 0.8, color: '#e6e8f2' }}>Homepage URL</span>
                 <input
                   value={formData.homepage_uri}
                   onChange={e => setFormData({ ...formData, homepage_uri: e.target.value })}
@@ -409,10 +409,10 @@ export default function OAuthClientsPage() {
                   onChange={e => setFormData({ ...formData, require_pkce: e.target.checked })}
                   style={{ width: 16, height: 16, cursor: 'pointer' }}
                 />
-                <span style={{ fontSize: 12, opacity: 0.8 }}>
+                <span style={{ fontSize: 12, opacity: 0.8, color: '#e6e8f2' }}>
                   Require PKCE (Proof Key for Code Exchange)
                   <br />
-                  <span style={{ fontSize: 11, opacity: 0.6 }}>
+                  <span style={{ fontSize: 11, opacity: 0.6, color: '#e6e8f2' }}>
                     Check this for public clients (mobile/SPA). Leave unchecked for confidential clients (server-side).
                   </span>
                 </span>
@@ -433,10 +433,10 @@ export default function OAuthClientsPage() {
         {/* Create Form */}
         {showCreateForm && admin.role === 'super-admin' && (
           <div style={{ marginBottom: '2rem', padding: '1.5rem', background: '#12172b', border: '1px solid #22284a', borderRadius: 12 }}>
-            <h2 style={{ margin: '0 0 1rem 0', fontSize: '1.25rem' }}>Create OAuth Client</h2>
+            <h2 style={{ margin: '0 0 1rem 0', fontSize: '1.25rem', color: '#e6e8f2' }}>Create OAuth Client</h2>
             <form onSubmit={handleCreateClient} style={{ display: 'grid', gap: 12 }}>
               <label style={{ display: 'grid', gap: 6 }}>
-                <span style={{ fontSize: 12, opacity: 0.8 }}>Client Name *</span>
+                <span style={{ fontSize: 12, opacity: 0.8, color: '#e6e8f2' }}>Client Name *</span>
                 <input
                   value={formData.name}
                   onChange={e => setFormData({ ...formData, name: e.target.value })}
@@ -447,7 +447,7 @@ export default function OAuthClientsPage() {
               </label>
 
               <label style={{ display: 'grid', gap: 6 }}>
-                <span style={{ fontSize: 12, opacity: 0.8 }}>Description</span>
+                <span style={{ fontSize: 12, opacity: 0.8, color: '#e6e8f2' }}>Description</span>
                 <input
                   value={formData.description}
                   onChange={e => setFormData({ ...formData, description: e.target.value })}
@@ -469,7 +469,7 @@ export default function OAuthClientsPage() {
               </label>
 
               <label style={{ display: 'grid', gap: 6 }}>
-                <span style={{ fontSize: 12, opacity: 0.8 }}>Allowed Scopes (space-separated)</span>
+                <span style={{ fontSize: 12, opacity: 0.8, color: '#e6e8f2' }}>Allowed Scopes (space-separated)</span>
                 <input
                   value={formData.allowed_scopes}
                   onChange={e => setFormData({ ...formData, allowed_scopes: e.target.value })}
@@ -479,7 +479,7 @@ export default function OAuthClientsPage() {
               </label>
 
               <label style={{ display: 'grid', gap: 6 }}>
-                <span style={{ fontSize: 12, opacity: 0.8 }}>Homepage URL</span>
+                <span style={{ fontSize: 12, opacity: 0.8, color: '#e6e8f2' }}>Homepage URL</span>
                 <input
                   value={formData.homepage_uri}
                   onChange={e => setFormData({ ...formData, homepage_uri: e.target.value })}
@@ -496,10 +496,10 @@ export default function OAuthClientsPage() {
                   onChange={e => setFormData({ ...formData, require_pkce: e.target.checked })}
                   style={{ width: 16, height: 16, cursor: 'pointer' }}
                 />
-                <span style={{ fontSize: 12, opacity: 0.8 }}>
+                <span style={{ fontSize: 12, opacity: 0.8, color: '#e6e8f2' }}>
                   Require PKCE (Proof Key for Code Exchange)
                   <br />
-                  <span style={{ fontSize: 11, opacity: 0.6 }}>
+                  <span style={{ fontSize: 11, opacity: 0.6, color: '#e6e8f2' }}>
                     Check this for public clients (mobile/SPA). Leave unchecked for confidential clients (server-side).
                   </span>
                 </span>
@@ -520,22 +520,22 @@ export default function OAuthClientsPage() {
         {/* Clients List */}
         <div style={{ background: '#12172b', border: '1px solid #22284a', borderRadius: 12, overflow: 'hidden' }}>
           <div style={{ padding: '1rem 1.5rem', borderBottom: '1px solid #22284a' }}>
-            <h2 style={{ margin: 0, fontSize: '1.25rem' }}>Registered Clients ({clients.length})</h2>
+            <h2 style={{ margin: 0, fontSize: '1.25rem', color: '#e6e8f2' }}>Registered Clients ({clients.length})</h2>
           </div>
 
           {loading ? (
-            <div style={{ padding: '2rem', textAlign: 'center', opacity: 0.6 }}>Loading clients...</div>
+            <div style={{ padding: '2rem', textAlign: 'center', opacity: 0.6, color: '#e6e8f2' }}>Loading clients...</div>
           ) : clients.length === 0 ? (
-            <div style={{ padding: '2rem', textAlign: 'center', opacity: 0.6 }}>No OAuth clients registered yet</div>
+            <div style={{ padding: '2rem', textAlign: 'center', opacity: 0.6, color: '#e6e8f2' }}>No OAuth clients registered yet</div>
           ) : (
             <div>
               {clients.map((client) => (
                 <div key={client.client_id} style={{ padding: '1.5rem', borderBottom: '1px solid #22284a' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '1rem' }}>
                     <div>
-                      <h3 style={{ margin: '0 0 0.25rem 0', fontSize: '1.125rem' }}>{client.name}</h3>
+                      <h3 style={{ margin: '0 0 0.25rem 0', fontSize: '1.125rem', color: '#e6e8f2' }}>{client.name}</h3>
                       {client.description && (
-                        <p style={{ margin: '0 0 0.5rem 0', opacity: 0.8, fontSize: '0.875rem' }}>{client.description}</p>
+                        <p style={{ margin: '0 0 0.5rem 0', opacity: 0.8, fontSize: '0.875rem', color: '#e6e8f2' }}>{client.description}</p>
                       )}
                       <div style={{ display: 'flex', gap: 8, alignItems: 'center', fontSize: '0.875rem', flexWrap: 'wrap' }}>
                         <span style={{ padding: '0.25rem 0.5rem', background: client.status === 'active' ? '#1e895a' : '#8a6d3b', borderRadius: 4 }}>
@@ -571,9 +571,9 @@ export default function OAuthClientsPage() {
 
                   <div style={{ display: 'grid', gap: 8, fontSize: '0.875rem' }}>
                     <div>
-                      <strong>Client ID:</strong>
+                      <strong style={{ color: '#e6e8f2' }}>Client ID:</strong>
                       <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 4 }}>
-                        <code style={{ flex: 1, padding: '0.25rem 0.5rem', background: '#0b1021', borderRadius: 4, overflowX: 'auto', fontSize: '0.8125rem' }}>
+                        <code style={{ flex: 1, padding: '0.25rem 0.5rem', background: '#0b1021', borderRadius: 4, overflowX: 'auto', fontSize: '0.8125rem', color: '#e6e8f2' }}>
                           {client.client_id}
                         </code>
                         <button onClick={() => copyToClipboard(client.client_id)} style={{ padding: '0.25rem 0.5rem', background: '#24306b', color: 'white', border: 0, borderRadius: 4, cursor: 'pointer', fontSize: '0.75rem' }}>
@@ -583,26 +583,26 @@ export default function OAuthClientsPage() {
                     </div>
 
                     <div>
-                      <strong>Redirect URIs:</strong>
+                      <strong style={{ color: '#e6e8f2' }}>Redirect URIs:</strong>
                       <ul style={{ margin: '4px 0 0 0', paddingLeft: '1.5rem' }}>
                         {client.redirect_uris.map((uri, idx) => (
-                          <li key={idx} style={{ fontFamily: 'monospace', fontSize: '0.8125rem' }}>{uri}</li>
+                          <li key={idx} style={{ fontFamily: 'monospace', fontSize: '0.8125rem', color: '#e6e8f2' }}>{uri}</li>
                         ))}
                       </ul>
                     </div>
 
                     <div>
-                      <strong>Allowed Scopes:</strong>
+                      <strong style={{ color: '#e6e8f2' }}>Allowed Scopes:</strong>
                       <div style={{ marginTop: 4, display: 'flex', flexWrap: 'wrap', gap: 4 }}>
                         {client.allowed_scopes.map((scope) => (
-                          <span key={scope} style={{ padding: '0.25rem 0.5rem', background: '#24306b', borderRadius: 4, fontSize: '0.75rem', fontFamily: 'monospace' }}>
+                          <span key={scope} style={{ padding: '0.25rem 0.5rem', background: '#24306b', borderRadius: 4, fontSize: '0.75rem', fontFamily: 'monospace', color: 'white' }}>
                             {scope}
                           </span>
                         ))}
                       </div>
                     </div>
 
-                    <div style={{ display: 'flex', gap: 16, opacity: 0.6 }}>
+                    <div style={{ display: 'flex', gap: 16, opacity: 0.6, color: '#e6e8f2' }}>
                       <span>Created: {new Date(client.created_at).toLocaleDateString()}</span>
                       <span>Updated: {new Date(client.updated_at).toLocaleDateString()}</span>
                     </div>
