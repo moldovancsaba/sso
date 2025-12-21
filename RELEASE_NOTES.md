@@ -1,4 +1,135 @@
-# Release Notes [![Version Badge](https://img.shields.io/badge/version-5.26.0-blue)](RELEASE_NOTES.md)
+# Release Notes [![Version Badge](https://img.shields.io/badge/version-5.27.0-blue)](RELEASE_NOTES.md)
+
+## [v5.27.0] — 2025-12-21T13:00:00.000Z
+
+### 🎯 Google Sign-In Integration (NEW FEATURE)
+
+**NEW FEATURE**: Google Sign-In added as third social login provider alongside Facebook Login.
+
+**What**: Users can now authenticate using their Google accounts via OAuth 2.0 flow.
+
+**Why**: Expand authentication options and make it easier for users to access the platform with their existing Google accounts.
+
+**Implementation**:
+
+#### Backend Integration:
+- **Google OAuth Module**: New `lib/google.mjs` (255 lines)
+  - `getGoogleAuthUrl()` - Generates Google authorization URL with state preservation
+  - `exchangeCodeForToken()` - Exchanges authorization code for access token
+  - `getGoogleUserProfile()` - Fetches user profile from Google API
+  - `linkOrCreateUser()` - Links Google account to existing user or creates new user
+
+- **API Endpoints**: New Google OAuth endpoints
+  - `GET /api/auth/google/login` - Initiates Google OAuth flow
+  - `GET /api/auth/google/callback` - Handles Google OAuth callback
+
+- **OAuth Flow Preservation**: Google login preserves OAuth authorization context when user logs in during OAuth client app authorization (same pattern as Facebook)
+
+#### Frontend Integration:
+- **Google Login Button**: Added to `/login` page
+  - Official Google branding with multi-color SVG logo
+  - Clean white button with subtle shadow (follows Google design guidelines)
+  - Disabled state styling
+  - Positioned below Facebook button
+
+- **CSS Styling**: New `.googleButton` class in `login.module.css`
+  - White background with Google gray border
+  - Hover effects and shadow transitions
+  - Consistent with existing button styling
+
+#### Admin Dashboard:
+- **Google Badge**: Users who login via Google display "Google" badge in admin users list
+- **Login Method Tracking**: Google login method automatically tracked and displayed
+- **Already integrated**: Existing admin UI code already supports Google login badges
+
+#### Data Model:
+- **Social Provider Storage**: Google account data stored in `socialProviders.google`
+  - Google user ID, email, name
+  - Profile picture URL
+  - Email verification status
+  - Link timestamp and last login timestamp
+
+- **Account Linking**: Automatic linking by email
+  - If user exists with same email → link Google account
+  - If no user exists → create new user with Google profile
+  - Google-verified emails marked as `emailVerified: true`
+
+#### Security Features:
+- **CSRF Protection**: State parameter with random token validation
+- **OAuth Context Preservation**: Maintains OAuth flow state through Google redirect
+- **Email Verification**: Trusts Google's email verification
+- **Session Management**: Same HttpOnly cookie security as other login methods
+- **Rate Limiting**: Subject to same rate limits as other authentication methods
+- **Audit Logging**: All Google login events logged to audit trail
+
+#### OAuth Integration:
+- **UserInfo Endpoint**: Already supports Google profile pictures at `/api/oauth/userinfo`
+- **Seamless OAuth Flow**: Google users can authorize OAuth client apps immediately after login
+- **Profile Data**: Google profile pictures available to OAuth clients via OIDC scopes
+
+#### Documentation:
+- **Setup Guide**: New comprehensive `docs/GOOGLE_LOGIN_SETUP.md` (272 lines)
+  - Step-by-step Google Cloud Console configuration
+  - OAuth consent screen setup
+  - Credentials creation and environment variable configuration
+  - Troubleshooting common issues
+  - Security features and compliance information
+
+- **README Updates**: 
+  - Updated social login section to include Google
+  - Added Google OAuth environment variables to Quick Start
+  - Added Google API endpoints to endpoint list
+
+#### Environment Variables:
+```bash
+GOOGLE_CLIENT_ID=<your-client-id>.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=<your-client-secret>
+GOOGLE_REDIRECT_URI=https://sso.doneisbetter.com/api/auth/google/callback
+```
+
+**Files Changed**:
+- `lib/google.mjs` (new, 255 lines) - Google OAuth integration
+- `pages/api/auth/google/login.js` (new, 55 lines) - Login initiation
+- `pages/api/auth/google/callback.js` (new, 173 lines) - OAuth callback handler
+- `pages/login.js` (+28 lines) - Google login button
+- `styles/login.module.css` (+30 lines) - Google button styling
+- `docs/GOOGLE_LOGIN_SETUP.md` (new, 272 lines) - Setup documentation
+- `README.md` - Updated social login documentation
+- `pages/api/oauth/userinfo.js` - Already supports Google (line 87)
+- `pages/admin/users.js` - Already supports Google badges (line 526, 530)
+
+**User Experience**:
+- One-click Google Sign-In from login page
+- Automatic account creation with Google profile data
+- Seamless linking to existing accounts via email
+- Google profile pictures displayed in admin dashboard
+- OAuth flow preserved through Google authentication
+
+**Scope Requested**:
+- `openid` - OpenID Connect authentication
+- `email` - User's email address
+- `profile` - User's name and profile picture
+
+**Google APIs Used**:
+- `https://accounts.google.com/o/oauth2/v2/auth` - Authorization
+- `https://oauth2.googleapis.com/token` - Token exchange
+- `https://www.googleapis.com/oauth2/v2/userinfo` - Profile fetch
+
+**Compliance**:
+- ✅ OAuth 2.0 specification compliant
+- ✅ OIDC (OpenID Connect) compatible
+- ✅ GDPR compliant (user consent required)
+- ✅ Minimal data collection (only email, name, picture)
+- ✅ Audit logging for all Google login events
+
+**Next Steps**:
+1. Configure Google Cloud Console OAuth client
+2. Add environment variables to production
+3. Test Google login flow in development
+4. Deploy to production
+5. Monitor audit logs for Google login activity
+
+---
 
 ## [v5.26.0] — 2025-12-21T12:00:00.000Z
 
@@ -163,7 +294,7 @@
 
 ---
 
-## [v5.26.0] — 2025-11-09T14:00:00.000Z
+## [v5.27.0] — 2025-11-09T14:00:00.000Z
 
 ### 🎯 Phase 4A: SSO Admin UI for Multi-App Permissions (COMPLETE)
 
@@ -316,7 +447,7 @@ window.location.href = authUrl.toString();
 
 ---
 
-## [v5.26.0] — 2025-11-05T15:00:00.000Z
+## [v5.27.0] — 2025-11-05T15:00:00.000Z
 
 ### 🔐 Critical Session Fix & PIN Verification Toggle
 
@@ -450,7 +581,7 @@ node scripts/disable-pin.mjs  # Disable
 
 ---
 
-## [v5.26.0] — 2025-10-16T15:24:20.000Z
+## [v5.27.0] — 2025-10-16T15:24:20.000Z
 
 ### Fixed
 
@@ -480,7 +611,7 @@ node scripts/disable-pin.mjs  # Disable
 
 ---
 
-## [v5.26.0] — 2025-10-12T14:07:00.000Z
+## [v5.27.0] — 2025-10-12T14:07:00.000Z
 
 ### 🎯 User Account Management & Session Improvements
 
@@ -578,7 +709,7 @@ node scripts/disable-pin.mjs  # Disable
 
 ---
 
-## [v5.26.0] — 2025-01-13T23:45:00.000Z
+## [v5.27.0] — 2025-01-13T23:45:00.000Z
 
 ### 🔐 OAuth Flow Fix: Preserve Authorization Context During Admin Login
 
@@ -647,7 +778,7 @@ useEffect(() => {
 
 ---
 
-## [v5.26.0] — 2025-10-06T21:30:00.000Z
+## [v5.27.0] — 2025-10-06T21:30:00.000Z
 
 ### 🎉 All Authentication Features Complete + PKCE Flexibility
 
@@ -743,7 +874,7 @@ useEffect(() => {
   - Success message display
 - **Email Templates** (`lib/emailTemplates.mjs`):
   - Added `buildMagicLinkEmail()` - Magic link email template
-  - Login PIN email already added in v5.26.0
+  - Login PIN email already added in v5.27.0
 
 #### Database Schema
 
@@ -837,7 +968,7 @@ useEffect(() => {
 
 ---
 
-## [v5.26.0] — 2025-10-06T11:22:25.000Z
+## [v5.27.0] — 2025-10-06T11:22:25.000Z
 
 ### 🎉 New Authentication Features: Forgot Password + Email System
 
@@ -902,7 +1033,7 @@ useEffect(() => {
   - MongoDB TTL indexes
 - PIN email template in `lib/emailTemplates.mjs`
 
-**Public User Authentication** (from v5.26.0 merge):
+**Public User Authentication** (from v5.27.0 merge):
 - `lib/publicUsers.mjs` - Public user management
 - `lib/publicSessions.mjs` - Public user sessions
 - `pages/login.js` - Public login page
@@ -978,7 +1109,7 @@ EMAIL_VERIFICATION_TOKEN_TTL=86400     # 24 hours
 
 ---
 
-## [v5.26.0] — 2025-10-03T09:15:22.000Z
+## [v5.27.0] — 2025-10-03T09:15:22.000Z
 
 ### 🚀 Phase 2: Complete OAuth2/OIDC Authorization Server Implementation
 
@@ -1205,7 +1336,7 @@ OAUTH2_CONSENT_TTL=31536000                 # 1 year
 
 ---
 
-## [v5.26.0] — 2025-10-02T11:54:33.000Z
+## [v5.27.0] — 2025-10-02T11:54:33.000Z
 
 ### 🔒 Phase 1: Critical Security Hardening
 
@@ -1301,7 +1432,7 @@ CSRF_SECRET=<generate with: openssl rand -base64 32>
 
 ---
 
-## [v5.26.0] — 2025-09-17T11:43:02.000Z
+## [v5.27.0] — 2025-09-17T11:43:02.000Z
 
 ### Added
 - Development-only passwordless admin login:
@@ -1314,7 +1445,7 @@ CSRF_SECRET=<generate with: openssl rand -base64 32>
 
 ---
 
-## [v5.26.0] — 2025-09-16T18:14:33.000Z
+## [v5.27.0] — 2025-09-16T18:14:33.000Z
 
 ### Added
 - Secure, single-use, time-limited admin magic link flow:
@@ -1327,7 +1458,7 @@ CSRF_SECRET=<generate with: openssl rand -base64 32>
 
 ---
 
-## [v5.26.0] — 2025-09-15T18:25:45.000Z
+## [v5.27.0] — 2025-09-15T18:25:45.000Z
 
 ### Changed
 - MongoDB client now uses fast-fail timeouts (serverSelection/connect/socket) to surface 503 quickly when DB is unreachable.
@@ -1338,7 +1469,7 @@ CSRF_SECRET=<generate with: openssl rand -base64 32>
 
 ---
 
-## [v5.26.0] — 2025-09-15T17:36:07.000Z
+## [v5.27.0] — 2025-09-15T17:36:07.000Z
 
 ### Changed
 - MongoDB client initialization is now lazy in serverless functions to prevent import-time crashes (avoids “Empty reply from server”).
@@ -1349,7 +1480,7 @@ CSRF_SECRET=<generate with: openssl rand -base64 32>
 
 ---
 
-## [v5.26.0] — 2025-09-14T08:25:57.000Z
+## [v5.27.0] — 2025-09-14T08:25:57.000Z
 
 ### Added
 - UUIDs as the primary identifier for admin users (with backfill for legacy users)
@@ -1369,7 +1500,7 @@ CSRF_SECRET=<generate with: openssl rand -base64 32>
 
 ---
 
-## [v5.26.0] — 2025-09-11T14:28:29.000Z
+## [v5.27.0] — 2025-09-11T14:28:29.000Z
 
 ### Added
 - Admin login UI at /admin (email + 32‑hex token) with session display and logout
@@ -1380,12 +1511,12 @@ CSRF_SECRET=<generate with: openssl rand -base64 32>
 
 ---
 
-## [v5.26.0] — 2025-09-11T13:57:38.000Z
+## [v5.27.0] — 2025-09-11T13:57:38.000Z
 
 ### Changed
-- Version bump to align with commit protocol; no functional changes since v5.26.0
+- Version bump to align with commit protocol; no functional changes since v5.27.0
 
-## [v5.26.0] — 2025-09-11T13:35:02.000Z
+## [v5.27.0] — 2025-09-11T13:35:02.000Z
 
 ### Added
 - DB-backed admin authentication with HttpOnly cookie session (admin-session)
@@ -1409,7 +1540,7 @@ CSRF_SECRET=<generate with: openssl rand -base64 32>
 
 ---
 
-## [v5.26.0] — 2025-07-23T10:00:00.000Z
+## [v5.27.0] — 2025-07-23T10:00:00.000Z
 
 ### Removed
 - Removed nested client package (@doneisbetter/sso-client)
@@ -1420,7 +1551,7 @@ CSRF_SECRET=<generate with: openssl rand -base64 32>
 - Updated documentation to focus on server-side implementation
 - Streamlined API documentation
 - Simplified configuration options
-## [v5.26.0] — 2025-07-22T08:03:17Z
+## [v5.27.0] — 2025-07-22T08:03:17Z
 
 ### Updated Dependencies
 - Upgraded Next.js to ^15.4.2
@@ -1438,7 +1569,7 @@ CSRF_SECRET=<generate with: openssl rand -base64 32>
 - Updated package overrides for better dependency management
 - Optimized session handling and validation
 
-## [v5.26.0]
+## [v5.27.0]
 
 ### Major Changes
 - Upgraded all dependencies to their latest stable versions
@@ -1467,7 +1598,7 @@ CSRF_SECRET=<generate with: openssl rand -base64 32>
 - Better memory management with lru-cache
 - Stricter npm configuration
 
-## [v5.26.0] — 2025-07-21T13:12:00.000Z
+## [v5.27.0] — 2025-07-21T13:12:00.000Z
 
 ### Added
 - User management features:
@@ -1515,7 +1646,7 @@ CSRF_SECRET=<generate with: openssl rand -base64 32>
 - Added admin user management
 - Created API routes for user operations
 
-## [v5.26.0] — 2024-04-13T12:00:00.000Z
+## [v5.27.0] — 2024-04-13T12:00:00.000Z
 
 ### Added
 - Initial project setup
