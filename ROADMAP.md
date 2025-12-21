@@ -1,4 +1,4 @@
-# ROADMAP (v5.26.0)
+# ROADMAP (v5.27.0)
 
 Last updated: 2025-12-21T12:00:00.000Z
 
@@ -27,7 +27,7 @@ Last updated: 2025-12-21T12:00:00.000Z
 
 ## ✅ COMPLETE: Multi-App Permission System (Q4 2024 - Q4 2025)
 - Priority: **CRITICAL**
-- Dependencies: SSO v5.26.0, Launchmass v5.26.0
+- Dependencies: SSO v5.27.0, Launchmass v5.27.0
 - Started: 2025-01-13
 - Completed: 2025-12-20
 

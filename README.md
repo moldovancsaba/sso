@@ -1,6 +1,6 @@
 # SSO Service — Production-Ready Authentication with Advanced Security
 
-Version: 5.26.0
+Version: 5.27.0
 Last updated: 2025-12-21T12:00:00.000Z
 
 A production-ready authentication backend for sso.doneisbetter.com with comprehensive security and user-friendly authentication options:
@@ -20,17 +20,17 @@ A production-ready authentication backend for sso.doneisbetter.com with comprehe
   - CSRF protection (double-submit cookie + HMAC)
   - Structured audit logging with Winston
   - Subdomain SSO support (*.doneisbetter.com)
-- **🔑 Authentication Options** (v5.26.0):
+- **🔑 Authentication Options** (v5.27.0):
   - Password-based login (admin + public users)
   - **Forgot password with email** (auto-generates secure passwords)
   - **Magic link authentication** (passwordless login for admin + public users)
   - **Random PIN verification** (6-digit PIN on 5th-10th login for enhanced security)
-- **📧 Email System** (v5.26.0):
+- **📧 Email System** (v5.27.0):
   - Dual provider support (Nodemailer + Resend)
   - Password reset via email
   - Email verification
   - Forgot password flow
-- **OAuth2/OIDC** (v5.26.0):
+- **OAuth2/OIDC** (v5.27.0):
   - Authorization Code Flow with **optional PKCE** (configurable per client)
   - JWT access tokens (RS256)
   - Refresh token rotation
@@ -43,7 +43,7 @@ A production-ready authentication backend for sso.doneisbetter.com with comprehe
 - Resource password generation/validation (MD5-style 32-hex token)
 - CORS per SSO_ALLOWED_ORIGINS
 
-## User Account Management (v5.26.0)
+## User Account Management (v5.27.0)
 - **Account Page**: `/account` — Comprehensive user dashboard
   - View and edit profile (name, email)
   - See connected services (OAuth apps)
@@ -74,7 +74,7 @@ Integrate your application with SSO using one of three methods:
 ### Method 3: Social Login Integration
 - **Best for**: Adding Facebook/Google/Apple login to your app
 - **Features**: Users authenticate via social provider, automatic account creation
-- **Current**: Facebook Login available, Google/Apple coming soon
+- **Current**: Facebook Login & Google Sign-In available, Apple coming soon
 - **Docs**: `docs/THIRD_PARTY_INTEGRATION_GUIDE.md` (Method 3)
 
 ---
@@ -105,7 +105,7 @@ Integrate your application with SSO using one of three methods:
 - GET /.well-known/openid-configuration — OIDC discovery
 - GET /.well-known/jwks.json — Public keys for JWT verification
 
-### Public User Endpoints (v5.26.0)
+### Public User Endpoints (v5.27.0)
 - POST /api/public/register — Create new user account
 - POST /api/public/login — Authenticate user
 - POST /api/public/verify-pin — Verify PIN during login
@@ -123,6 +123,8 @@ Integrate your application with SSO using one of three methods:
 ### Social Login Endpoints
 - GET /api/auth/facebook/login — Initiate Facebook OAuth
 - GET /api/auth/facebook/callback — Facebook OAuth callback
+- GET /api/auth/google/login — Initiate Google Sign-In
+- GET /api/auth/google/callback — Google OAuth callback
 
 ### Resource & Validation
 - POST /api/resource-passwords — { resourceId, resourceType, regenerate? } -> token + shareableLink
@@ -145,6 +147,10 @@ Deprecated/Removed:
 - RATE_LIMIT_LOGIN_MAX=5 (optional, default: 5)
 - RATE_LIMIT_LOGIN_WINDOW=900000 (optional, default: 15 minutes)
 
+**Social Login (Optional):**
+- FACEBOOK_APP_ID, FACEBOOK_APP_SECRET, FACEBOOK_REDIRECT_URI
+- GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REDIRECT_URI
+
 2) Install deps and run dev:
 - npm install
 - npm run dev
@@ -160,7 +166,7 @@ Deprecated/Removed:
 
 ## Security Notes
 
-### 🔒 Enterprise-Grade Security Hardening (v5.26.0) ✅ COMPLETE
+### 🔒 Enterprise-Grade Security Hardening (v5.27.0) ✅ COMPLETE
 
 **Multi-layered defense-in-depth architecture with 5 security phases:**
 
