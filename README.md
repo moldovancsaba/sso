@@ -1,6 +1,6 @@
 # SSO Service — Production-Ready Authentication with Advanced Security
 
-Version: 5.28.0
+Version: 5.29.0
 Last updated: 2025-12-21T12:00:00.000Z
 
 A production-ready authentication backend for sso.doneisbetter.com with comprehensive security and user-friendly authentication options:
@@ -20,17 +20,17 @@ A production-ready authentication backend for sso.doneisbetter.com with comprehe
   - CSRF protection (double-submit cookie + HMAC)
   - Structured audit logging with Winston
   - Subdomain SSO support (*.doneisbetter.com)
-- **🔑 Authentication Options** (v5.28.0):
+- **🔑 Authentication Options** (v5.29.0):
   - Password-based login (admin + public users)
   - **Forgot password with email** (auto-generates secure passwords)
   - **Magic link authentication** (passwordless login for admin + public users)
   - **Random PIN verification** (6-digit PIN on 5th-10th login for enhanced security)
-- **📧 Email System** (v5.28.0):
+- **📧 Email System** (v5.29.0):
   - Dual provider support (Nodemailer + Resend)
   - Password reset via email
   - Email verification
   - Forgot password flow
-- **OAuth2/OIDC** (v5.28.0):
+- **OAuth2/OIDC** (v5.29.0):
   - Authorization Code Flow with **optional PKCE** (configurable per client)
   - JWT access tokens (RS256)
   - Refresh token rotation
@@ -43,7 +43,7 @@ A production-ready authentication backend for sso.doneisbetter.com with comprehe
 - Resource password generation/validation (MD5-style 32-hex token)
 - CORS per SSO_ALLOWED_ORIGINS
 
-## User Account Management (v5.28.0)
+## User Account Management (v5.29.0)
 - **Account Page**: `/account` — Comprehensive user dashboard
   - View and edit profile (name, email)
   - See connected services (OAuth apps)
@@ -105,7 +105,7 @@ Integrate your application with SSO using one of three methods:
 - GET /.well-known/openid-configuration — OIDC discovery
 - GET /.well-known/jwks.json — Public keys for JWT verification
 
-### Public User Endpoints (v5.28.0)
+### Public User Endpoints (v5.29.0)
 - POST /api/public/register — Create new user account
 - POST /api/public/login — Authenticate user
 - POST /api/public/verify-pin — Verify PIN during login
@@ -166,7 +166,7 @@ Deprecated/Removed:
 
 ## Security Notes
 
-### 🔒 Enterprise-Grade Security Hardening (v5.28.0) ✅ COMPLETE
+### 🔒 Enterprise-Grade Security Hardening (v5.29.0) ✅ COMPLETE
 
 **Multi-layered defense-in-depth architecture with 5 security phases:**
 

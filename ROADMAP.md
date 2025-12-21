@@ -1,4 +1,4 @@
-# ROADMAP (v5.28.0)
+# ROADMAP (v5.29.0)
 
 Last updated: 2025-12-21T10:00:00.000Z
 
@@ -27,7 +27,7 @@ Last updated: 2025-12-21T10:00:00.000Z
 
 ## ✅ COMPLETE: Multi-App Permission System (Q4 2024 - Q4 2025)
 - Priority: **CRITICAL**
-- Dependencies: SSO v5.28.0, Launchmass v5.28.0
+- Dependencies: SSO v5.29.0, Launchmass v5.29.0
 - Started: 2025-01-13
 - Completed: 2025-12-20
 
@@ -193,7 +193,7 @@ Last updated: 2025-12-21T10:00:00.000Z
 - Estimated Effort: 4-6 hours
 - Target: Q1 2026
 
-**Objective**: Implement "Sign in with Apple" following the same pattern as Facebook (v5.26.0) and Google (v5.27.0) integrations.
+**Objective**: Implement "Sign in with Apple" following the same pattern as Facebook (v5.29.0) and Google (v5.29.0) integrations.
 
 ### Key Differences from Google/Facebook
 - JWT-based authentication (not simple access tokens)
