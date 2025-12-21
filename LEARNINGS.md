@@ -1,6 +1,6 @@
-# LEARNINGS (v5.25.0)
+# LEARNINGS (v5.26.0)
 
-Last updated: 2025-11-09T12:38:00.000Z
+Last updated: 2025-12-21T12:00:00.000Z
 
 Backend:
 - MessMass cookie session pattern adapts cleanly to Pages Router with minimal dependencies
@@ -110,3 +110,65 @@ Bidirectional Permission Sync (Phase 4D/5):
 - Admin-only batch sync prevents unauthorized mass permission changes
 - Visual feedback (loading states, spinners) critical for long-running operations
 - Confirmation dialogs required for destructive/bulk operations
+
+Security Hardening (v5.26.0 - 5-Phase Implementation):
+
+Rate Limiting:
+- Admin endpoints need stricter rate limits than public endpoints (3 vs 5 login attempts)
+- Mutation operations (create/update/delete) should have tighter limits than queries (20 vs 100 req/min)
+- Reusable wrapper functions (withAdminMutation, withAdminQuery) enforce consistent rate limiting
+- Rate limiters must be applied at the endpoint level, not globally, for granular control
+
+Security Headers:
+- Next.js Edge Middleware is the correct place for security headers (applies to all routes)
+- Environment-aware CSP policies essential: development needs 'unsafe-eval' for HMR, production doesn't
+- X-Frame-Options DENY prevents clickjacking attacks
+- Permissions-Policy should disable unused browser features (camera, mic, geolocation, etc.)
+- HSTS should only be enabled in production to avoid HTTPS requirement in dev
+- CSP script-src 'self' 'unsafe-inline' required for Next.js inline scripts
+
+Input Validation:
+- Zod provides type-safe validation with excellent TypeScript integration
+- Pre-built composite schemas reduce duplication and ensure consistency
+- Validation should happen at API boundary before any business logic
+- HTML sanitization required for user-generated content to prevent XSS
+- Filename sanitization prevents path traversal attacks
+- UUID validation prevents injection attacks via ID parameters
+- Email validation should use standard RFC 5322 patterns
+
+Session Security:
+- 4-hour session timeout balances security and UX for admin sessions
+- Device fingerprinting (SHA-256 of IP + User-Agent) detects suspicious session usage
+- Device changes should be logged for security audit trail
+- Sliding expiration extends session on activity (prevents mid-work timeouts)
+- Session data must include device fingerprint for validation on each request
+- HttpOnly cookies prevent XSS-based session theft
+- SameSite=Lax prevents CSRF while allowing normal navigation
+
+Audit Logging:
+- Comprehensive audit logging is essential for compliance (SOC 2, GDPR)
+- All admin actions should be logged with before/after state for change tracking
+- Sensitive data (passwords, tokens) must be sanitized from audit logs
+- Standardized action constants prevent typos and enable filtering
+- Audit logs need efficient indexes: (actorUserId, timestamp), (resource, resourceId), (action, status)
+- Metadata (IP, user agent) provides context for security investigations
+- Failed actions should be logged separately for anomaly detection
+- Audit log retention policies required for storage management
+- Helper functions (auditLog) simplify integration and ensure consistency
+- Audit API endpoint with pagination essential for admin visibility
+
+Defense in Depth:
+- Multiple security layers provide redundancy (rate limiting + validation + audit logging)
+- No single security measure is sufficient alone
+- Each layer addresses different attack vectors
+- Security headers protect at browser level
+- Validation protects at application level
+- Audit logging enables detection and response
+- Short session timeouts limit damage from compromised credentials
+
+Compliance:
+- OWASP Top 10 coverage requires addressing multiple categories simultaneously
+- Audit trails must be immutable and timestamped (ISO 8601 UTC with milliseconds)
+- GDPR requires ability to trace all actions affecting user data
+- SOC 2 requires comprehensive logging and access controls
+- Separation of concerns: security middleware should be independent of business logic

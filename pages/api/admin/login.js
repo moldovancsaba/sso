@@ -7,7 +7,7 @@ import { findUserByEmail, ensureUserUuid } from '../../../lib/users.mjs'
 import { setAdminSessionCookie, clearAdminSessionCookie, getCookie, decodeSessionToken } from '../../../lib/auth.mjs'
 import { createSession, revokeSession } from '../../../lib/sessions.mjs'
 import { logLoginSuccess, logLoginFailure, logLogout } from '../../../lib/logger.mjs'
-import { loginRateLimiter } from '../../../lib/middleware/rateLimit.mjs'
+import { adminLoginRateLimiter } from '../../../lib/middleware/rateLimit.mjs'
 import { ensureCsrfToken, validateCsrf } from '../../../lib/middleware/csrf.mjs'
 import { shouldTriggerPin, issuePin, ensurePinIndexes } from '../../../lib/loginPin.mjs'
 import { sendEmail } from '../../../lib/email.mjs'
@@ -29,9 +29,9 @@ function getClientMetadata(req) {
 }
 
 export default async function handler(req, res) {
-  // Apply rate limiting to login endpoint
+  // Apply stricter rate limiting to admin login endpoint (3 attempts vs 5 for public)
   await new Promise((resolve, reject) => {
-    loginRateLimiter(req, res, (err) => {
+    adminLoginRateLimiter(req, res, (err) => {
       if (err) reject(err)
       else resolve()
     })
@@ -133,13 +133,14 @@ export default async function handler(req, res) {
 
       // No PIN required - proceed with normal login
       // Create server-side session in MongoDB
-      // WHAT: Extended session timeout to 30 days for admin usability
-      // WHY: Admins need longer sessions for OAuth client management and testing
+      // WHAT: Admin session timeout set to 4 hours for security (Phase 4 hardening)
+      // WHY: Shorter admin sessions reduce risk of stolen session tokens
+      // NOTE: Sessions auto-extend on activity (sliding expiration)
       const { token, sessionId, expiresAt } = await createSession(
         user.id,
         user.email,
         user.role,
-        30 * 24 * 60 * 60, // 30 days (was 7 days)
+        4 * 60 * 60, // 4 hours (changed from 30 days for security)
         metadata
       )
 
@@ -152,8 +153,8 @@ export default async function handler(req, res) {
       }
       const signedToken = Buffer.from(JSON.stringify(tokenData)).toString('base64')
 
-      // Set secure cookie
-      setAdminSessionCookie(res, signedToken, 30 * 24 * 60 * 60)
+      // Set secure cookie (4 hours to match session timeout)
+      setAdminSessionCookie(res, signedToken, 4 * 60 * 60)
       
       // Log successful login
       logLoginSuccess(user.id, user.email, user.role, { ...metadata, sessionId })

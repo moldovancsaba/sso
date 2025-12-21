@@ -6,6 +6,8 @@
 import { getAdminUser } from '../../../../lib/auth.mjs'
 import { deleteUser, findUserById, updateUser, updateUserPassword } from '../../../../lib/users.mjs'
 import { generateMD5StylePassword } from '../../../../lib/resourcePasswords.mjs'
+import { auditLog } from '../../../../lib/adminHelpers.mjs'
+import { AuditAction } from '../../../../lib/auditLog.mjs'
 
 export default async function handler(req, res) {
   const admin = await getAdminUser(req)
@@ -39,6 +41,10 @@ export default async function handler(req, res) {
         return res.status(403).json({ error: 'Forbidden' })
       }
 
+      // Capture before state for audit log
+      const beforeUser = await findUserById(userId)
+      if (!beforeUser) return res.status(404).json({ error: 'Not found' })
+
       let updated = null
       if (typeof name === 'string' || typeof role === 'string') {
         updated = await updateUser(userId, { name, role })
@@ -53,6 +59,21 @@ export default async function handler(req, res) {
 
       const user = updated || (await findUserById(userId))
       if (!user) return res.status(404).json({ error: 'Not found' })
+
+      // Audit log user update (sanitize passwords from state)
+      const beforeState = { email: beforeUser.email, name: beforeUser.name, role: beforeUser.role }
+      const afterState = { email: user.email, name: user.name, role: user.role }
+      if (newPassword) {
+        afterState.passwordChanged = true // indicate password was changed
+      }
+      await auditLog(
+        Object.assign(req, { admin }),
+        AuditAction.USER_UPDATED,
+        'user',
+        userId,
+        beforeState,
+        afterState
+      )
 
       const out = {
         success: true,
@@ -79,8 +100,24 @@ export default async function handler(req, res) {
       if (admin.role !== 'super-admin') {
         return res.status(403).json({ error: 'Forbidden' })
       }
+
+      // Capture before state for audit log
+      const beforeUser = await findUserById(userId)
+      if (!beforeUser) return res.status(404).json({ error: 'Not found' })
+
       const ok = await deleteUser(userId)
       if (!ok) return res.status(404).json({ error: 'Not found' })
+
+      // Audit log user deletion (sanitize password from state)
+      await auditLog(
+        Object.assign(req, { admin }),
+        AuditAction.USER_DELETED,
+        'user',
+        userId,
+        { email: beforeUser.email, name: beforeUser.name, role: beforeUser.role },
+        null // no after state for deletion
+      )
+
       return res.status(200).json({ success: true, deleted: true })
     } catch (error) {
       console.error('Delete user error:', error)

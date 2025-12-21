@@ -6,6 +6,8 @@
 import { getAdminUser } from '../../../../lib/auth.mjs'
 import { createUser, listUsers } from '../../../../lib/users.mjs'
 import { generateMD5StylePassword } from '../../../../lib/resourcePasswords.mjs'
+import { auditLog } from '../../../../lib/adminHelpers.mjs'
+import { AuditAction } from '../../../../lib/auditLog.mjs'
 
 export default async function handler(req, res) {
   const admin = await getAdminUser(req)
@@ -44,6 +46,16 @@ export default async function handler(req, res) {
 
       const token = password || generateMD5StylePassword()
       const user = await createUser({ email, name, role: role || 'admin', password: token })
+
+      // Audit log user creation (sanitize password from state)
+      await auditLog(
+        Object.assign(req, { admin }),
+        AuditAction.USER_CREATED,
+        'user',
+        user.id || user._id?.toString(),
+        null, // no before state for creation
+        { email: user.email, name: user.name, role: user.role } // exclude password
+      )
 
       return res.status(201).json({
         success: true,
