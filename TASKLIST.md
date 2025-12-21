@@ -1,29 +1,33 @@
 # TASKLIST (v5.28.0)
 
-Last updated: 2025-11-09T16:00:00.000Z
+Last updated: 2025-12-21T09:00:00.000Z
 
 Active:
 (No active tasks)
 
 Pending (Future):
-1) Add Google Login (similar to Facebook integration)
+1) Add Apple Login (required for iOS apps)
    - Owner: Backend
    - Expected Delivery: TBD
    - Priority: P2
-2) Add Apple Login (required for iOS apps)
+2) Email notifications for app access approval/denial
    - Owner: Backend
    - Expected Delivery: TBD
    - Priority: P2
-3) Email notifications for app access approval/denial
-   - Owner: Backend
-   - Expected Delivery: TBD
-   - Priority: P2
-4) Cross-app activity dashboard for admins
+3) Cross-app activity dashboard for admins
    - Owner: Frontend
    - Expected Delivery: TBD
    - Priority: P3
+4) Manual account linking UI (link social providers from dashboard)
+   - Owner: Frontend + Backend
+   - Expected Delivery: TBD
+   - Priority: P3
+5) Account unlinking feature (remove linked methods)
+   - Owner: Frontend + Backend
+   - Expected Delivery: TBD
+   - Priority: P3
 
-Completed (v5.28.0 - November 2024):
+Completed (v5.28.0 - December 2025):
 - Initial planning recorded and endpoints implemented (admin + resource passwords)
 - DB-backed admin auth and resource passwords refactor
 - Vercel env + CORS configuration for sso.doneisbetter.com
@@ -60,3 +64,26 @@ Completed (v5.28.0 - November 2024):
   - "Sync to SSO" button with loading states and detailed results
   - Automatic sync on all permission operations (grant/revoke/change-role)
   - Admin-only access control
+- Google Login integration (v5.27.0)
+  - OAuth 2.0 flow with Google Cloud Console
+  - Automatic account linking by email
+  - Google profile pictures in admin dashboard
+  - Comprehensive setup documentation
+- Enterprise Security Hardening (v5.26.0)
+  - 5-phase implementation complete
+  - Enhanced rate limiting for admin endpoints
+  - Security headers via Next.js Edge Middleware
+  - Input validation with Zod
+  - Session hardening (4-hour timeout, device fingerprinting)
+  - Enhanced audit logging with MongoDB collection
+- Next.js CVE-2025-66478 security fix (v5.27.x)
+  - Updated Next.js from 15.5.3 to 15.5.9
+  - React2Shell vulnerability patched
+- Unified Account Linking System (v5.28.0)
+  - One person, one email = one account
+  - Automatic linking across Email+Password, Facebook, Google, Magic Link
+  - Smart registration (adds password to social-only accounts)
+  - Helpful login error messages
+  - Account dashboard with login methods display
+  - Migration tool for merging duplicate accounts
+  - Comprehensive documentation (docs/ACCOUNT_LINKING.md)
