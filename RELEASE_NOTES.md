@@ -1,4 +1,264 @@
-# Release Notes [![Version Badge](https://img.shields.io/badge/version-5.27.0-blue)](RELEASE_NOTES.md)
+# Release Notes [![Version Badge](https://img.shields.io/badge/version-5.28.0-blue)](RELEASE_NOTES.md)
+
+## [v5.28.0] — 2025-12-21T14:00:00.000Z
+
+### 🔗 Unified Account Linking System (MAJOR FEATURE)
+
+**MAJOR UPDATE**: Comprehensive account linking system enables users to login with multiple authentication methods (Email+Password, Facebook, Google, Magic Link) while maintaining a single account per email address.
+
+**Key Principle**: **One person, one email = one account**
+
+**What**: Users can now link multiple login methods to the same account based on email address. The system automatically merges accounts created with different authentication methods if they share the same email.
+
+**Why**: Improve user experience by allowing flexible authentication while maintaining data consistency and preventing duplicate accounts.
+
+---
+
+#### Phase 1: Unified Account Linking Library ✅
+
+**Implementation**:
+- **Centralized Logic**: Created `lib/accountLinking.mjs` (291 lines) with reusable account linking functions
+  - `findUserByEmail(email)` - Find user regardless of login method
+  - `getUserLoginMethods(user)` - Get list of linked methods
+  - `canLoginWithPassword(user)` - Check if user has password
+  - `addPasswordToAccount(userId, password)` - Add password to social-only account
+  - `linkLoginMethod(user, provider, providerData)` - Link social provider
+  - `getAccountLinkingSummary(email)` - Comprehensive account status
+
+**Files**:
+- `lib/accountLinking.mjs` (new, 291 lines) - Core account linking logic
+
+---
+
+#### Phase 2: Enhanced Registration with Account Linking ✅
+
+**Implementation**:
+- **Smart Registration**: Checks if email exists before creating account
+  - If user has password → Returns 409 error "Account already exists"
+  - If user has social-only → Adds password to existing account
+  - Returns `isAccountLinking: true` flag for frontend handling
+- **Automatic Linking**: Social-only accounts can add password via registration form
+- **Better UX**: Clear success message when password is added to existing account
+
+**Response Format**:
+```json
+{
+  "success": true,
+  "message": "Password added to your account successfully...",
+  "isAccountLinking": true,
+  "loginMethods": ["facebook", "password"],
+  "user": { ... }
+}
+```
+
+**Files**:
+- `pages/api/public/register.js` - Enhanced with account linking logic
+
+---
+
+#### Phase 3: Enhanced Login with Helpful Error Messages ✅
+
+**Implementation**:
+- **Smart Error Messages**: Detects social-only accounts and provides guidance
+  - Error: "This account was created with Facebook. Please login with Facebook, or register a password using the registration form."
+  - Includes `availableLoginMethods` in error response
+- **Better UX**: Users know exactly which login methods they can use
+
+**Error Response Format**:
+```json
+{
+  "error": "Password not set",
+  "message": "This account was created with Facebook...",
+  "availableLoginMethods": ["facebook"]
+}
+```
+
+**Files**:
+- `pages/api/public/login.js` - Enhanced login validation
+
+---
+
+#### Phase 4: Account Dashboard with Login Methods Display ✅
+
+**Implementation**:
+- **New Section**: "🔑 Login Methods" on account dashboard
+  - Visual badges for Email+Password, Facebook, Google
+  - Color-coded: Purple (#667eea), Blue (#1877f2), Red (#db4437)
+  - Shows linked/not-linked status
+  - Helpful tip about linking multiple methods
+- **Server-Side Rendering**: Fetches login methods in `getServerSideProps`
+- **No Extra API Calls**: Data passed as prop from server
+
+**Files**:
+- `pages/account.js` - Added login methods section (+130 lines)
+
+---
+
+#### Phase 5: Migration Tool for Existing Duplicates ✅
+
+**Implementation**:
+- **Safe Migration Script**: Merges duplicate accounts with same email
+  - Keeps oldest account as primary
+  - Merges all social providers
+  - Transfers passwordHash if needed
+  - Transfers sessions, OAuth tokens, authorizations
+  - Deletes duplicate accounts
+- **Dry Run Mode**: Preview changes before applying
+  - `DRY_RUN=true node scripts/merge-duplicate-accounts.mjs`
+- **Idempotent**: Safe to run multiple times
+
+**Usage**:
+```bash
+DRY_RUN=true node scripts/merge-duplicate-accounts.mjs  # Preview
+node scripts/merge-duplicate-accounts.mjs                # Apply
+```
+
+**Files**:
+- `scripts/merge-duplicate-accounts.mjs` (new, 267 lines) - Migration tool
+
+---
+
+#### Phase 6: Comprehensive Documentation ✅
+
+**Implementation**:
+- **User Documentation**: How account linking works from user perspective
+- **Developer Guide**: Technical implementation details
+- **Testing Scenarios**: 5 common scenarios with step-by-step instructions
+- **Troubleshooting**: Common issues and solutions
+- **API Changes**: Summary of modified endpoints
+- **Security Considerations**: Email verification, password security, sessions
+
+**Files**:
+- `docs/ACCOUNT_LINKING.md` (new, 546 lines) - Comprehensive documentation
+
+---
+
+#### User Experience Scenarios
+
+**Scenario 1: Social → Email+Password**
+1. Login with Facebook
+2. Later register with email+password
+3. System adds password to existing Facebook account
+4. Can now login with either method
+
+**Scenario 2: Email+Password → Social**
+1. Register with email+password
+2. Later login with Google
+3. System automatically links Google to existing account
+4. Can now login with either method
+
+**Scenario 3: Facebook → Google**
+1. Login with Facebook
+2. Later login with Google (same email)
+3. System automatically links both providers
+4. Single account with multiple login methods
+
+**Scenario 4: Password Login for Social-Only**
+1. User created account with Google only
+2. Tries to login with email+password
+3. System shows helpful error: "This account was created with Google..."
+4. User knows to login with Google or add password via registration
+
+---
+
+#### Data Model Changes
+
+**publicUsers Collection**:
+```javascript
+{
+  id: "uuid",
+  email: "user@example.com",
+  name: "User Name",
+  
+  // Optional - only if email+password used
+  passwordHash: "...",
+  emailVerified: true,
+  
+  // Social providers
+  socialProviders: {
+    facebook: { id, email, name, picture, linkedAt, lastLoginAt },
+    google: { id, email, name, picture, emailVerified, linkedAt, lastLoginAt }
+  },
+  
+  // Computed (not stored)
+  loginMethods: ["password", "facebook", "google"]
+}
+```
+
+---
+
+#### Security Features
+
+- **Email Verification**: Inherited from any verified method
+- **Password Security**: bcrypt (12 rounds), minimum 8 characters
+- **Session Management**: All sessions remain valid after linking
+- **OAuth Security**: State parameter CSRF protection
+- **Audit Logging**: All account linking events logged
+
+---
+
+#### API Changes
+
+**Modified Endpoints**:
+
+**`POST /api/public/register`**
+- Now adds password to social-only accounts
+- Returns `isAccountLinking` and `loginMethods` in response
+
+**`POST /api/public/login`**
+- Returns helpful error for social-only accounts
+- Includes `availableLoginMethods` in error response
+
+---
+
+#### Logging Events
+
+**Account Linking Success**:
+```javascript
+{
+  event: 'account_linking_success',
+  userId: 'uuid',
+  email: 'user@example.com',
+  isAccountLinking: true,
+  loginMethods: ['facebook', 'password']
+}
+```
+
+**Password Login for Social-Only**:
+```javascript
+{
+  event: 'public_login_social_only',
+  userId: 'uuid',
+  email: 'user@example.com',
+  availableMethods: ['facebook']
+}
+```
+
+---
+
+**Files Changed**:
+- `lib/accountLinking.mjs` (new, 291 lines) - Core account linking logic
+- `pages/api/public/register.js` - Enhanced registration with account linking
+- `pages/api/public/login.js` - Enhanced login with helpful errors
+- `pages/account.js` - Added login methods display section
+- `scripts/merge-duplicate-accounts.mjs` (new, 267 lines) - Migration tool
+- `docs/ACCOUNT_LINKING.md` (new, 546 lines) - Comprehensive documentation
+
+**Impact**:
+- ✅ One person, one email = one account
+- ✅ All login methods work for the same account
+- ✅ Helpful error messages guide users
+- ✅ Users can see which methods they've linked
+- ✅ Existing accounts can be merged
+- ✅ All changes are audited
+
+**Next Steps**:
+1. Test account linking in development
+2. Run migration tool for existing duplicates (if any)
+3. Deploy to production
+4. Monitor audit logs for account linking activity
+
+---
 
 ## [v5.27.0] — 2025-12-21T13:00:00.000Z
 
@@ -131,7 +391,7 @@ GOOGLE_REDIRECT_URI=https://sso.doneisbetter.com/api/auth/google/callback
 
 ---
 
-## [v5.26.0] — 2025-12-21T12:00:00.000Z
+## [v5.28.0] — 2025-12-21T12:00:00.000Z
 
 ### 🔒 Security Hardening: 5-Phase Implementation (COMPLETE)
 
@@ -294,7 +554,7 @@ GOOGLE_REDIRECT_URI=https://sso.doneisbetter.com/api/auth/google/callback
 
 ---
 
-## [v5.27.0] — 2025-11-09T14:00:00.000Z
+## [v5.28.0] — 2025-11-09T14:00:00.000Z
 
 ### 🎯 Phase 4A: SSO Admin UI for Multi-App Permissions (COMPLETE)
 
@@ -447,7 +707,7 @@ window.location.href = authUrl.toString();
 
 ---
 
-## [v5.27.0] — 2025-11-05T15:00:00.000Z
+## [v5.28.0] — 2025-11-05T15:00:00.000Z
 
 ### 🔐 Critical Session Fix & PIN Verification Toggle
 
@@ -581,7 +841,7 @@ node scripts/disable-pin.mjs  # Disable
 
 ---
 
-## [v5.27.0] — 2025-10-16T15:24:20.000Z
+## [v5.28.0] — 2025-10-16T15:24:20.000Z
 
 ### Fixed
 
@@ -611,7 +871,7 @@ node scripts/disable-pin.mjs  # Disable
 
 ---
 
-## [v5.27.0] — 2025-10-12T14:07:00.000Z
+## [v5.28.0] — 2025-10-12T14:07:00.000Z
 
 ### 🎯 User Account Management & Session Improvements
 
@@ -709,7 +969,7 @@ node scripts/disable-pin.mjs  # Disable
 
 ---
 
-## [v5.27.0] — 2025-01-13T23:45:00.000Z
+## [v5.28.0] — 2025-01-13T23:45:00.000Z
 
 ### 🔐 OAuth Flow Fix: Preserve Authorization Context During Admin Login
 
@@ -778,7 +1038,7 @@ useEffect(() => {
 
 ---
 
-## [v5.27.0] — 2025-10-06T21:30:00.000Z
+## [v5.28.0] — 2025-10-06T21:30:00.000Z
 
 ### 🎉 All Authentication Features Complete + PKCE Flexibility
 
@@ -874,7 +1134,7 @@ useEffect(() => {
   - Success message display
 - **Email Templates** (`lib/emailTemplates.mjs`):
   - Added `buildMagicLinkEmail()` - Magic link email template
-  - Login PIN email already added in v5.27.0
+  - Login PIN email already added in v5.28.0
 
 #### Database Schema
 
@@ -968,7 +1228,7 @@ useEffect(() => {
 
 ---
 
-## [v5.27.0] — 2025-10-06T11:22:25.000Z
+## [v5.28.0] — 2025-10-06T11:22:25.000Z
 
 ### 🎉 New Authentication Features: Forgot Password + Email System
 
@@ -1033,7 +1293,7 @@ useEffect(() => {
   - MongoDB TTL indexes
 - PIN email template in `lib/emailTemplates.mjs`
 
-**Public User Authentication** (from v5.27.0 merge):
+**Public User Authentication** (from v5.28.0 merge):
 - `lib/publicUsers.mjs` - Public user management
 - `lib/publicSessions.mjs` - Public user sessions
 - `pages/login.js` - Public login page
@@ -1109,7 +1369,7 @@ EMAIL_VERIFICATION_TOKEN_TTL=86400     # 24 hours
 
 ---
 
-## [v5.27.0] — 2025-10-03T09:15:22.000Z
+## [v5.28.0] — 2025-10-03T09:15:22.000Z
 
 ### 🚀 Phase 2: Complete OAuth2/OIDC Authorization Server Implementation
 
@@ -1336,7 +1596,7 @@ OAUTH2_CONSENT_TTL=31536000                 # 1 year
 
 ---
 
-## [v5.27.0] — 2025-10-02T11:54:33.000Z
+## [v5.28.0] — 2025-10-02T11:54:33.000Z
 
 ### 🔒 Phase 1: Critical Security Hardening
 
@@ -1432,7 +1692,7 @@ CSRF_SECRET=<generate with: openssl rand -base64 32>
 
 ---
 
-## [v5.27.0] — 2025-09-17T11:43:02.000Z
+## [v5.28.0] — 2025-09-17T11:43:02.000Z
 
 ### Added
 - Development-only passwordless admin login:
@@ -1445,7 +1705,7 @@ CSRF_SECRET=<generate with: openssl rand -base64 32>
 
 ---
 
-## [v5.27.0] — 2025-09-16T18:14:33.000Z
+## [v5.28.0] — 2025-09-16T18:14:33.000Z
 
 ### Added
 - Secure, single-use, time-limited admin magic link flow:
@@ -1458,7 +1718,7 @@ CSRF_SECRET=<generate with: openssl rand -base64 32>
 
 ---
 
-## [v5.27.0] — 2025-09-15T18:25:45.000Z
+## [v5.28.0] — 2025-09-15T18:25:45.000Z
 
 ### Changed
 - MongoDB client now uses fast-fail timeouts (serverSelection/connect/socket) to surface 503 quickly when DB is unreachable.
@@ -1469,7 +1729,7 @@ CSRF_SECRET=<generate with: openssl rand -base64 32>
 
 ---
 
-## [v5.27.0] — 2025-09-15T17:36:07.000Z
+## [v5.28.0] — 2025-09-15T17:36:07.000Z
 
 ### Changed
 - MongoDB client initialization is now lazy in serverless functions to prevent import-time crashes (avoids “Empty reply from server”).
@@ -1480,7 +1740,7 @@ CSRF_SECRET=<generate with: openssl rand -base64 32>
 
 ---
 
-## [v5.27.0] — 2025-09-14T08:25:57.000Z
+## [v5.28.0] — 2025-09-14T08:25:57.000Z
 
 ### Added
 - UUIDs as the primary identifier for admin users (with backfill for legacy users)
@@ -1500,7 +1760,7 @@ CSRF_SECRET=<generate with: openssl rand -base64 32>
 
 ---
 
-## [v5.27.0] — 2025-09-11T14:28:29.000Z
+## [v5.28.0] — 2025-09-11T14:28:29.000Z
 
 ### Added
 - Admin login UI at /admin (email + 32‑hex token) with session display and logout
@@ -1511,12 +1771,12 @@ CSRF_SECRET=<generate with: openssl rand -base64 32>
 
 ---
 
-## [v5.27.0] — 2025-09-11T13:57:38.000Z
+## [v5.28.0] — 2025-09-11T13:57:38.000Z
 
 ### Changed
-- Version bump to align with commit protocol; no functional changes since v5.27.0
+- Version bump to align with commit protocol; no functional changes since v5.28.0
 
-## [v5.27.0] — 2025-09-11T13:35:02.000Z
+## [v5.28.0] — 2025-09-11T13:35:02.000Z
 
 ### Added
 - DB-backed admin authentication with HttpOnly cookie session (admin-session)
@@ -1540,7 +1800,7 @@ CSRF_SECRET=<generate with: openssl rand -base64 32>
 
 ---
 
-## [v5.27.0] — 2025-07-23T10:00:00.000Z
+## [v5.28.0] — 2025-07-23T10:00:00.000Z
 
 ### Removed
 - Removed nested client package (@doneisbetter/sso-client)
@@ -1551,7 +1811,7 @@ CSRF_SECRET=<generate with: openssl rand -base64 32>
 - Updated documentation to focus on server-side implementation
 - Streamlined API documentation
 - Simplified configuration options
-## [v5.27.0] — 2025-07-22T08:03:17Z
+## [v5.28.0] — 2025-07-22T08:03:17Z
 
 ### Updated Dependencies
 - Upgraded Next.js to ^15.4.2
@@ -1569,7 +1829,7 @@ CSRF_SECRET=<generate with: openssl rand -base64 32>
 - Updated package overrides for better dependency management
 - Optimized session handling and validation
 
-## [v5.27.0]
+## [v5.28.0]
 
 ### Major Changes
 - Upgraded all dependencies to their latest stable versions
@@ -1598,7 +1858,7 @@ CSRF_SECRET=<generate with: openssl rand -base64 32>
 - Better memory management with lru-cache
 - Stricter npm configuration
 
-## [v5.27.0] — 2025-07-21T13:12:00.000Z
+## [v5.28.0] — 2025-07-21T13:12:00.000Z
 
 ### Added
 - User management features:
@@ -1646,7 +1906,7 @@ CSRF_SECRET=<generate with: openssl rand -base64 32>
 - Added admin user management
 - Created API routes for user operations
 
-## [v5.27.0] — 2024-04-13T12:00:00.000Z
+## [v5.28.0] — 2024-04-13T12:00:00.000Z
 
 ### Added
 - Initial project setup

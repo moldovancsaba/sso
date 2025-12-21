@@ -4,6 +4,7 @@
  * WHAT: Comprehensive dashboard for users to manage their SSO account
  * WHY: Users need to see connected services, change password, update profile, and delete account
  * HOW: Fetch user data and authorizations, provide forms for updates, handle all account operations
+ * Enhanced: Shows linked login methods (Email+Password, Facebook, Google) for account linking
  */
 
 import { useState, useEffect } from 'react'
@@ -16,6 +17,7 @@ import styles from '../styles/home.module.css'
 // WHY: Ensure user is authenticated before showing account page
 export async function getServerSideProps(context) {
   const { getPublicUserFromRequest } = await import('../lib/publicSessions.mjs')
+  const { getUserLoginMethods } = await import('../lib/accountLinking.mjs')
   
   try {
     const user = await getPublicUserFromRequest(context.req)
@@ -30,6 +32,10 @@ export async function getServerSideProps(context) {
       }
     }
     
+    // WHAT: Get user's linked login methods
+    // WHY: Show user which login methods they can use (account linking feature)
+    const loginMethods = getUserLoginMethods(user)
+    
     // Pass user data to page
     return {
       props: {
@@ -39,7 +45,8 @@ export async function getServerSideProps(context) {
           name: user.name || '',
           role: user.role || 'user',
           status: user.status,
-          emailVerified: user.emailVerified !== false
+          emailVerified: user.emailVerified !== false,
+          loginMethods: loginMethods
         }
       }
     }
@@ -286,6 +293,131 @@ export default function AccountPage({ initialUser }) {
             >
               🚪 Logout
             </Link>
+          </div>
+
+          {/* Login Methods Section */}
+          <div className={styles.apiCard} style={{ marginBottom: '2rem' }}>
+            <h2 style={{ margin: 0, marginBottom: '4px' }}>🔑 Login Methods</h2>
+            <p style={{ margin: 0, marginBottom: '1rem', fontSize: '14px', color: '#666' }}>
+              You can use any of these methods to login to your account
+            </p>
+            
+            <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+              {/* Email+Password Badge */}
+              {user.loginMethods && user.loginMethods.includes('password') ? (
+                <div style={{
+                  padding: '12px 16px',
+                  border: '2px solid #667eea',
+                  borderRadius: '8px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  background: '#f0f4ff',
+                  fontSize: '14px'
+                }}>
+                  <span style={{ fontSize: '18px' }}>✉️</span>
+                  <div>
+                    <div style={{ fontWeight: '600', color: '#667eea' }}>Email + Password</div>
+                    <div style={{ fontSize: '12px', color: '#666' }}>Linked ✓</div>
+                  </div>
+                </div>
+              ) : (
+                <div style={{
+                  padding: '12px 16px',
+                  border: '2px dashed #ddd',
+                  borderRadius: '8px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  background: '#f9f9f9',
+                  fontSize: '14px'
+                }}>
+                  <span style={{ fontSize: '18px', opacity: 0.5 }}>✉️</span>
+                  <div>
+                    <div style={{ fontWeight: '600', color: '#999' }}>Email + Password</div>
+                    <div style={{ fontSize: '12px', color: '#999' }}>Not linked</div>
+                  </div>
+                </div>
+              )}
+
+              {/* Facebook Badge */}
+              {user.loginMethods && user.loginMethods.includes('facebook') ? (
+                <div style={{
+                  padding: '12px 16px',
+                  border: '2px solid #1877f2',
+                  borderRadius: '8px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  background: '#e7f3ff',
+                  fontSize: '14px'
+                }}>
+                  <span style={{ fontSize: '18px' }}>📘</span>
+                  <div>
+                    <div style={{ fontWeight: '600', color: '#1877f2' }}>Facebook</div>
+                    <div style={{ fontSize: '12px', color: '#666' }}>Linked ✓</div>
+                  </div>
+                </div>
+              ) : (
+                <div style={{
+                  padding: '12px 16px',
+                  border: '2px dashed #ddd',
+                  borderRadius: '8px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  background: '#f9f9f9',
+                  fontSize: '14px'
+                }}>
+                  <span style={{ fontSize: '18px', opacity: 0.5 }}>📘</span>
+                  <div>
+                    <div style={{ fontWeight: '600', color: '#999' }}>Facebook</div>
+                    <div style={{ fontSize: '12px', color: '#999' }}>Not linked</div>
+                  </div>
+                </div>
+              )}
+
+              {/* Google Badge */}
+              {user.loginMethods && user.loginMethods.includes('google') ? (
+                <div style={{
+                  padding: '12px 16px',
+                  border: '2px solid #db4437',
+                  borderRadius: '8px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  background: '#ffebee',
+                  fontSize: '14px'
+                }}>
+                  <span style={{ fontSize: '18px' }}>🔍</span>
+                  <div>
+                    <div style={{ fontWeight: '600', color: '#db4437' }}>Google</div>
+                    <div style={{ fontSize: '12px', color: '#666' }}>Linked ✓</div>
+                  </div>
+                </div>
+              ) : (
+                <div style={{
+                  padding: '12px 16px',
+                  border: '2px dashed #ddd',
+                  borderRadius: '8px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  background: '#f9f9f9',
+                  fontSize: '14px'
+                }}>
+                  <span style={{ fontSize: '18px', opacity: 0.5 }}>🔍</span>
+                  <div>
+                    <div style={{ fontWeight: '600', color: '#999' }}>Google</div>
+                    <div style={{ fontSize: '12px', color: '#999' }}>Not linked</div>
+                  </div>
+                </div>
+              )}
+            </div>
+            
+            <p style={{ margin: 0, marginTop: '1rem', fontSize: '12px', color: '#999' }}>
+              💡 Tip: Link multiple login methods to the same account by using the same email address when logging in
+            </p>
           </div>
 
           {/* Profile Section */}

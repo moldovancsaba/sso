@@ -1,11 +1,13 @@
 // WHAT: Public user registration API endpoint
 // WHY: Enable users to create accounts on the SSO service
 // Strategic: This is the entry point for new users to join the SSO system
+// Enhanced: Supports adding password to existing social accounts (account linking)
 
 import { createPublicUser } from '../../../lib/publicUsers.mjs'
 import { createPublicSession, setPublicSessionCookie } from '../../../lib/publicSessions.mjs'
 import { runCors } from '../../../lib/cors.mjs'
 import logger from '../../../lib/logger.mjs'
+import { findUserByEmail, addPasswordToAccount, getUserLoginMethods } from '../../../lib/accountLinking.mjs'
 
 export default async function handler(req, res) {
   // WHAT: Enable CORS for cross-domain requests
@@ -52,8 +54,56 @@ export default async function handler(req, res) {
       })
     }
     
-    // WHAT: Create new user
-    const user = await createPublicUser({ email, password, name })
+    // WHAT: Check if user already exists (account linking flow)
+    // WHY: Allow adding password to existing social accounts instead of rejecting
+    const existingUser = await findUserByEmail(email)
+    
+    let user
+    let isAccountLinking = false
+    
+    if (existingUser) {
+      // WHAT: User exists - check if they have password or only social login
+      const loginMethods = getUserLoginMethods(existingUser)
+      
+      if (loginMethods.includes('password')) {
+        // WHAT: User already has password - they should login instead
+        // WHY: Prevent duplicate accounts and guide user to correct action
+        logger.warn('Registration attempted for existing email+password account', {
+          email: email.toLowerCase(),
+          existingMethods: loginMethods,
+        })
+        
+        return res.status(409).json({
+          error: 'Account already exists',
+          message: 'An account with this email already exists. Please login instead.',
+          loginMethods: loginMethods,
+        })
+      }
+      
+      // WHAT: User has social login only - add password to existing account
+      // WHY: Enable account linking - same person can use multiple login methods
+      logger.info('Adding password to existing social account', {
+        userId: existingUser.id,
+        email: existingUser.email,
+        existingMethods: loginMethods,
+      })
+      
+      // WHAT: Add password to existing social account
+      await addPasswordToAccount(existingUser.id, password)
+      
+      // WHAT: Fetch updated user
+      user = await findUserByEmail(email)
+      isAccountLinking = true
+      
+      logger.info('Password successfully added to social account', {
+        userId: user.id,
+        email: user.email,
+        newMethods: getUserLoginMethods(user),
+      })
+    } else {
+      // WHAT: New user - create account normally
+      user = await createPublicUser({ email, password, name })
+    }
     
     // WHAT: Create session and set cookie
     const token = await createPublicSession(user.id, {
@@ -63,16 +113,22 @@ export default async function handler(req, res) {
     
     setPublicSessionCookie(res, token)
     
-    logger.info('User registration successful', {
+    logger.info(isAccountLinking ? 'Account linking successful' : 'User registration successful', {
       userId: user.id,
       email: user.email,
+      isAccountLinking,
+      loginMethods: getUserLoginMethods(user),
       ip: req.headers['x-forwarded-for'] || req.socket.remoteAddress,
     })
     
     // WHAT: Return success with user data (no password)
-    return res.status(201).json({
+    return res.status(isAccountLinking ? 200 : 201).json({
       success: true,
-      message: 'Registration successful',
+      message: isAccountLinking 
+        ? 'Password added to your account successfully. You can now login with email+password or your social account.'
+        : 'Registration successful',
+      isAccountLinking,
+      loginMethods: getUserLoginMethods(user),
       user: {
         id: user.id,
         email: user.email,
@@ -82,13 +138,21 @@ export default async function handler(req, res) {
       },
     })
   } catch (err) {
-    logger.error('Registration error', { error: err.message })
+    logger.error('Registration error', { error: err.message, stack: err.stack })
     
     // WHAT: Handle duplicate email error
     if (err.message.includes('already exists')) {
       return res.status(409).json({
         error: 'Email already registered',
         message: 'An account with this email already exists. Please login instead.',
+      })
+    }
+    
+    // WHAT: Handle password strength error
+    if (err.message.includes('Password must be at least')) {
+      return res.status(400).json({
+        error: 'Weak password',
+        message: err.message,
       })
     }
     

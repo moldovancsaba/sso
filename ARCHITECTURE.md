@@ -1,4 +1,4 @@
-# Architecture — SSO (v5.27.0)
+# Architecture — SSO (v5.28.0)
 
 Last updated: 2025-12-21T12:00:00.000Z
 
@@ -78,7 +78,7 @@ Last updated: 2025-12-21T12:00:00.000Z
 - CORS controlled by SSO_ALLOWED_ORIGINS
 - Duplicate/insecure endpoints removed; legacy username flows deprecated
 
-## Security Layers (v5.27.0 Hardening)
+## Security Layers (v5.28.0 Hardening)
 
 ### Layer 1: Rate Limiting
 **Location**: `lib/middleware/rateLimit.mjs`
