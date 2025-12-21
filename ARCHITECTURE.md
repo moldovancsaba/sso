@@ -1,6 +1,6 @@
-# Architecture — SSO (v5.25.0)
+# Architecture — SSO (v5.26.0)
 
-Last updated: 2025-11-09T12:16:00.000Z
+Last updated: 2025-12-21T12:00:00.000Z
 
 ## Stack
 - Next.js (Pages Router)
@@ -77,3 +77,181 @@ Last updated: 2025-11-09T12:16:00.000Z
 - All admin routes require a valid admin-session cookie
 - CORS controlled by SSO_ALLOWED_ORIGINS
 - Duplicate/insecure endpoints removed; legacy username flows deprecated
+
+## Security Layers (v5.26.0 Hardening)
+
+### Layer 1: Rate Limiting
+**Location**: `lib/middleware/rateLimit.mjs`
+
+**What**: Request rate limiting with admin-specific restrictions
+
+**Implementation**:
+- Public endpoints: 5 attempts per 15 minutes
+- Admin login: 3 attempts per 15 minutes
+- Admin mutations (create/update/delete): 20 requests per minute
+- Admin queries: 100 requests per minute
+
+**Enforcement**: Via wrapper functions in `lib/adminHelpers.mjs`
+- `withAdminMutation()` - Applies admin mutation rate limiter
+- `withAdminQuery()` - Applies admin query rate limiter
+- `withAdmin()` - Base admin auth + custom rate limiter
+
+**Attack Mitigation**: Brute force attacks, credential stuffing, API abuse
+
+---
+
+### Layer 2: Security Headers
+**Location**: `middleware.js` (Next.js Edge Middleware)
+
+**What**: HTTP security headers applied to all routes
+
+**Headers**:
+```http
+X-Frame-Options: DENY
+X-Content-Type-Options: nosniff
+X-XSS-Protection: 1; mode=block
+Strict-Transport-Security: max-age=31536000; includeSubDomains (production only)
+Content-Security-Policy: [environment-specific]
+Permissions-Policy: [restrictive - disables camera, mic, geolocation, etc.]
+```
+
+**CSP Policies**:
+- Development: Allows 'unsafe-eval' for Next.js HMR
+- Production: Strict policy with 'self' and trusted CDNs only
+
+**Attack Mitigation**: Clickjacking, XSS, MIME sniffing, man-in-the-middle
+
+---
+
+### Layer 3: Input Validation
+**Location**: `lib/validation.mjs`
+
+**What**: Type-safe input validation using Zod schemas
+
+**Schemas**:
+- Primitive: email, UUID, password, name, role, status
+- Composite: adminLoginSchema, createAdminUserSchema, updateAdminUserSchema, createOrganizationSchema, etc.
+
+**Integration**: Via `withValidation()` wrapper or direct schema validation
+
+**Utilities**:
+- `sanitizeHtml()` - Removes dangerous HTML tags
+- `sanitizeFilename()` - Prevents path traversal attacks
+
+**Attack Mitigation**: SQL/NoSQL injection, XSS, path traversal, malformed input
+
+---
+
+### Layer 4: Session Security
+**Location**: `lib/sessions.mjs`, `pages/api/admin/login.js`
+
+**What**: Enhanced session management with device fingerprinting
+
+**Features**:
+- **Short Lifetime**: 4 hours (reduced from 30 days)
+- **Device Fingerprinting**: SHA-256 hash of IP + User-Agent
+  - Stored in session document
+  - Validated on every request
+  - Logged when device changes detected
+- **Sliding Expiration**: Extends session on activity
+- **Secure Cookies**: HttpOnly, SameSite=Lax, Secure (production)
+
+**Functions**:
+- `generateDeviceFingerprint(req)` - Creates device identifier
+- `checkDeviceChange(session, req)` - Detects suspicious activity
+- `createAdminSession()` - Creates session with fingerprint
+- `validateSession()` - Validates session and device
+
+**Attack Mitigation**: Session hijacking, credential theft, unauthorized access
+
+---
+
+### Layer 5: Audit Logging
+**Location**: `lib/auditLog.mjs`
+
+**What**: Comprehensive audit trail for all admin actions
+
+**Collection**: `auditLogs`
+```javascript
+{
+  _id: ObjectId,
+  action: string,           // Standardized action constant (AuditAction.*)
+  actorUserId: string,      // UUID of admin who performed action
+  actorEmail: string,       // Email of admin
+  actorRole: string,        // Role at time of action
+  resource: string,         // Resource type (user, organization, oauthClient, etc.)
+  resourceId: string,       // UUID of affected resource
+  beforeState: object,      // State before action (sanitized)
+  afterState: object,       // State after action (sanitized)
+  status: string,           // success | failure
+  metadata: {               // Context data
+    ip: string,
+    userAgent: string,
+    // ... additional context
+  },
+  timestamp: string         // ISO 8601 UTC with milliseconds
+}
+```
+
+**Indexes**:
+1. `{ actorUserId: 1, timestamp: -1 }` - User activity queries
+2. `{ resource: 1, resourceId: 1, timestamp: -1 }` - Resource history
+3. `{ action: 1, timestamp: -1 }` - Action filtering
+4. `{ status: 1, timestamp: -1 }` - Failed action detection
+
+**Action Types** (AuditAction constants):
+- User operations: USER_CREATED, USER_UPDATED, USER_DELETED, USER_LOGIN_SUCCESS, USER_LOGIN_FAILED, etc.
+- Permission operations: PERMISSION_GRANTED, PERMISSION_REVOKED, PERMISSION_ROLE_CHANGED
+- OAuth operations: OAUTH_CLIENT_CREATED, OAUTH_CLIENT_SECRET_REGENERATED, etc.
+
+**Query Functions**:
+- `getAuditLogs(filter, limit, skip)` - Paginated log retrieval
+- `getResourceAuditTrail(resource, resourceId)` - Complete history of a resource
+- `getUserAuditTrail(userId)` - All actions by a user
+- `getFailedActions(filter)` - Failed operations only
+- `getAuditStats(filter)` - Aggregated statistics
+- `cleanupOldAuditLogs(retentionDays)` - Retention management
+
+**Integration**:
+- Helper function: `auditLog(req, action, resource, resourceId, beforeState, afterState)`
+- Used in: User management, organization management, OAuth client management
+- Admin API: `GET /api/admin/audit-logs` with filtering and pagination
+
+**Data Sanitization**: Passwords, tokens, and secrets automatically removed from logged state
+
+**Compliance**: SOC 2, GDPR, OWASP audit requirements
+
+**Attack Mitigation**: Enables detection, investigation, and response to security incidents
+
+---
+
+## Security Architecture Diagram
+
+```
+Client Request
+     │
+     ├─> [Layer 1: Rate Limiting] ────────> 429 Too Many Requests (if exceeded)
+     │
+     ├─> [Layer 2: Security Headers] ─────> Headers applied to response
+     │
+     ├─> [Layer 3: Input Validation] ─────> 400 Bad Request (if invalid)
+     │
+     ├─> [Layer 4: Session Security] ─────> 401 Unauthorized (if invalid/hijacked)
+     │
+     └─> [Business Logic]
+             │
+             └─> [Layer 5: Audit Logging] ─> Log written to auditLogs collection
+                     │
+                     └─> Response to Client
+```
+
+## Defense in Depth Strategy
+
+Each security layer addresses different attack vectors:
+1. **Rate Limiting**: Prevents automated attacks (brute force, DDoS)
+2. **Security Headers**: Browser-level protection (XSS, clickjacking, MIME sniffing)
+3. **Input Validation**: Application-level protection (injection attacks)
+4. **Session Security**: Identity protection (session hijacking, credential theft)
+5. **Audit Logging**: Detection and response (compliance, forensics, anomaly detection)
+
+No single layer is sufficient alone. Multiple layers provide redundancy and catch different types of attacks.

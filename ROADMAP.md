@@ -1,6 +1,6 @@
-# ROADMAP (v5.25.0)
+# ROADMAP (v5.26.0)
 
-Last updated: 2025-11-09T16:00:00.000Z
+Last updated: 2025-12-21T12:00:00.000Z
 
 ## ✅ COMPLETED: Multi-App Permission System & Facebook Login (Q4 2024)
 
@@ -27,7 +27,7 @@ Last updated: 2025-11-09T16:00:00.000Z
 
 ## ✅ COMPLETE: Multi-App Permission System (Q4 2024 - Q4 2025)
 - Priority: **CRITICAL**
-- Dependencies: SSO v5.25.0, Launchmass v5.25.0
+- Dependencies: SSO v5.26.0, Launchmass v5.26.0
 - Started: 2025-01-13
 - Completed: 2025-12-20
 
@@ -129,19 +129,69 @@ Last updated: 2025-11-09T16:00:00.000Z
 
 ---
 
-## Milestone: Harden admin & password services (Q1 2025)
-- Priority: High
-- Dependencies: MongoDB Atlas, Vercel
+## ✅ COMPLETE: Security Hardening (Q4 2025)
+- Priority: **CRITICAL**
+- Dependencies: Next.js 15, MongoDB Atlas, Zod
+- Started: 2025-12-21
+- Completed: 2025-12-21T12:00:00.000Z
 
-Planned:
-- Add audit logs for admin actions (create/update/delete users)
-- Optional expiry policy per resourceType
-- Admin UI for resource password lifecycle
+**Objective**: Implement enterprise-grade security across all admin operations with defense-in-depth architecture.
 
-## Milestone: Operational resilience (Q4 2025)
-- Add rate limiting on sensitive endpoints
+### Phase 1: Enhanced Rate Limiting ✅ COMPLETE
+- ✅ Admin-specific rate limiters (3 attempts/15min for login)
+- ✅ Mutation rate limiter (20 req/min)
+- ✅ Query rate limiter (100 req/min)
+- ✅ Reusable admin wrappers (withAdminMutation, withAdminQuery, withAdmin)
+- Files: lib/middleware/rateLimit.mjs, lib/adminHelpers.mjs
+
+### Phase 2: Security Headers Middleware ✅ COMPLETE
+- ✅ Next.js Edge Middleware for all routes
+- ✅ X-Frame-Options, X-Content-Type-Options, X-XSS-Protection
+- ✅ HSTS (production only)
+- ✅ Content-Security-Policy (environment-aware)
+- ✅ Permissions-Policy (restrictive)
+- Files: middleware.js, lib/securityHeaders.mjs
+
+### Phase 3: Input Validation Layer ✅ COMPLETE
+- ✅ Zod integration with type-safe schemas
+- ✅ Reusable primitive and composite schemas
+- ✅ withValidation() wrapper function
+- ✅ sanitizeHtml() and sanitizeFilename() utilities
+- Files: lib/validation.mjs, package.json
+
+### Phase 4: Admin Session Hardening ✅ COMPLETE
+- ✅ Reduced session lifetime (30 days → 4 hours)
+- ✅ Device fingerprinting (SHA-256 of IP + User-Agent)
+- ✅ Device change detection and logging
+- ✅ Sliding expiration with 4-hour window
+- Files: lib/sessions.mjs, pages/api/admin/login.js
+
+### Phase 5: Enhanced Audit Logging ✅ COMPLETE
+- ✅ Comprehensive audit system (lib/auditLog.mjs)
+- ✅ auditLogs collection with 4 indexes
+- ✅ Standardized action constants (AuditAction.*)
+- ✅ Before/after state tracking
+- ✅ Password/token sanitization
+- ✅ Query functions (getAuditLogs, getResourceAuditTrail, etc.)
+- ✅ auditLog() helper in adminHelpers.mjs
+- ✅ Integration in user management endpoints
+- ✅ Admin API endpoint (/api/admin/audit-logs)
+- Files: lib/auditLog.mjs, lib/adminHelpers.mjs, pages/api/admin/users/*, pages/api/admin/audit-logs/index.js
+
+**Security Improvements**:
+- ✅ OWASP Top 10 coverage
+- ✅ SOC 2 audit trail requirements
+- ✅ GDPR-compliant logging
+- ✅ Defense in depth architecture
+- ✅ Attack vectors mitigated: brute force, XSS, clickjacking, MIME sniffing, MITM, session hijacking, injection attacks
+
+---
+
+## Milestone: Operational resilience (Q1 2026)
 - Structured error telemetry (privacy-safe)
 - Background cleanup for expired resource passwords
+- Automated audit log retention management
+- Performance monitoring and alerting
 
 ## Milestone: Multi-tenant Organizations & Org Users (Q4 2025)
 - Priority: High

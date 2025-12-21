@@ -1,4 +1,4 @@
-# TASKLIST (v5.25.0)
+# TASKLIST (v5.26.0)
 
 Last updated: 2025-11-09T16:00:00.000Z
 
@@ -23,7 +23,7 @@ Pending (Future):
    - Expected Delivery: TBD
    - Priority: P3
 
-Completed (v5.25.0 - November 2024):
+Completed (v5.26.0 - November 2024):
 - Initial planning recorded and endpoints implemented (admin + resource passwords)
 - DB-backed admin auth and resource passwords refactor
 - Vercel env + CORS configuration for sso.doneisbetter.com
