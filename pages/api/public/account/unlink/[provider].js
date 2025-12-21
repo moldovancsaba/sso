@@ -8,10 +8,10 @@
  * Security: User must be authenticated, cannot unlink last login method
  */
 
-import { getPublicUserFromRequest } from '../../../../../../lib/publicSessions.mjs'
-import { unlinkLoginMethod, removePassword, validateUnlinking, getUserLoginMethods } from '../../../../../../lib/accountLinking.mjs'
-import { logAuditEvent, AuditAction } from '../../../../../../lib/auditLog.mjs'
-import logger from '../../../../../../lib/logger.mjs'
+import { getPublicUserFromRequest } from '../../../../../lib/publicSessions.mjs'
+import { unlinkLoginMethod, removePassword, validateUnlinking, getUserLoginMethods } from '../../../../../lib/accountLinking.mjs'
+import { logAuditEvent, AuditAction } from '../../../../../lib/auditLog.mjs'
+import logger from '../../../../../lib/logger.mjs'
 
 export default async function handler(req, res) {
   if (req.method !== 'DELETE') {
