@@ -370,14 +370,14 @@ export default function OAuthClientsPage() {
               </label>
 
               <label style={{ display: 'grid', gap: 6 }}>
-                <span style={{ fontSize: 12, opacity: 0.8 }}>Redirect URIs * (one per line)</span>
+                <span style={{ fontSize: 12, opacity: 0.8, color: '#e6e8f2' }}>Redirect URIs * (one per line)</span>
                 <textarea
                   value={formData.redirect_uris}
                   onChange={e => setFormData({ ...formData, redirect_uris: e.target.value })}
                   placeholder="https://narimato.com/auth/callback&#10;https://narimato.com/api/oauth/callback"
                   required
-                  rows={3}
-                  style={{ padding: '0.5rem 0.75rem', background: '#0b1021', color: '#e6e8f2', border: '1px solid #22284a', borderRadius: 6, fontFamily: 'monospace', fontSize: '0.875rem' }}
+                  rows={5}
+                  style={{ padding: '0.5rem 0.75rem', background: '#0b1021', color: '#e6e8f2', border: '1px solid #22284a', borderRadius: 6, fontFamily: 'monospace', fontSize: '0.875rem', lineHeight: '1.4' }}
                 />
               </label>
 
@@ -457,14 +457,14 @@ export default function OAuthClientsPage() {
               </label>
 
               <label style={{ display: 'grid', gap: 6 }}>
-                <span style={{ fontSize: 12, opacity: 0.8 }}>Redirect URIs * (one per line)</span>
+                <span style={{ fontSize: 12, opacity: 0.8, color: '#e6e8f2' }}>Redirect URIs * (one per line)</span>
                 <textarea
                   value={formData.redirect_uris}
                   onChange={e => setFormData({ ...formData, redirect_uris: e.target.value })}
                   placeholder="https://narimato.com/auth/callback&#10;https://narimato.com/api/oauth/callback"
                   required
-                  rows={3}
-                  style={{ padding: '0.5rem 0.75rem', background: '#0b1021', color: '#e6e8f2', border: '1px solid #22284a', borderRadius: 6, fontFamily: 'monospace', fontSize: '0.875rem' }}
+                  rows={5}
+                  style={{ padding: '0.5rem 0.75rem', background: '#0b1021', color: '#e6e8f2', border: '1px solid #22284a', borderRadius: 6, fontFamily: 'monospace', fontSize: '0.875rem', lineHeight: '1.4' }}
                 />
               </label>
 
