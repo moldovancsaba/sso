@@ -59,6 +59,18 @@ export default function AdminUsersPage({ admin }) {
   const [appActionLoading, setAppActionLoading] = useState({}) // clientId -> boolean
   const [selectedRoles, setSelectedRoles] = useState({}) // clientId -> 'user'|'admin'
   const [permissionSuccess, setPermissionSuccess] = useState('')
+  
+  // WHAT: Account linking state (Phase 5)
+  // WHY: Admin can manually link social providers to fix account issues
+  const [linkingProvider, setLinkingProvider] = useState(null) // null | 'facebook' | 'google'
+  const [linkFormData, setLinkFormData] = useState({ id: '', email: '', name: '', picture: '' })
+  const [linkLoading, setLinkLoading] = useState(false)
+  const [linkError, setLinkError] = useState('')
+  const [linkSuccess, setLinkSuccess] = useState('')
+  
+  // WHAT: Account unlinking state (Phase 7)
+  // WHY: Admin can unlink login methods from user accounts
+  const [unlinkLoading, setUnlinkLoading] = useState(false)
 
   // Fetch users
   useEffect(() => {
@@ -384,6 +396,68 @@ export default function AdminUsersPage({ admin }) {
   const handleRoleSelectChange = (clientId, newRole) => {
     setSelectedRoles(prev => ({ ...prev, [clientId]: newRole }))
   }
+  
+  // WHAT: Handle admin manual linking (Phase 5)
+  // WHY: Allow admins to manually link Facebook/Google to user accounts
+  const handleLinkProvider = async (userId, provider, formData) => {
+    setLinkLoading(true)
+    setLinkError('')
+    setLinkSuccess('')
+    
+    try {
+      const res = await fetch(`/api/admin/public-users/${userId}/link`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ provider, providerData: formData })
+      })
+      
+      const data = await res.json()
+      
+      if (res.ok) {
+        setLinkSuccess(`${provider} linked successfully`)
+        setLinkingProvider(null)
+        setLinkFormData({ id: '', email: '', name: '', picture: '' })
+        fetchUsers() // Refresh user list
+        setTimeout(() => setLinkSuccess(''), 3000)
+      } else {
+        setLinkError(data.error || data.details || 'Failed to link')
+      }
+    } catch (err) {
+      setLinkError('Connection error')
+    } finally {
+      setLinkLoading(false)
+    }
+  }
+  
+  // WHAT: Handle admin unlinking (Phase 7)
+  // WHY: Allow admins to unlink login methods from user accounts
+  const handleAdminUnlinkProvider = async (userId, provider) => {
+    const providerName = provider === 'password' ? 'Email+Password' : provider.charAt(0).toUpperCase() + provider.slice(1)
+    
+    if (!confirm(`Unlink ${providerName} from this user's account?`)) return
+    
+    setUnlinkLoading(true)
+    
+    try {
+      const res = await fetch(`/api/admin/public-users/${userId}/unlink/${provider}`, {
+        method: 'DELETE',
+        credentials: 'include'
+      })
+      
+      if (res.ok) {
+        fetchUsers() // Refresh user list
+        setMessage({ type: 'success', text: `${providerName} unlinked successfully` })
+      } else {
+        const data = await res.json()
+        setMessage({ type: 'error', text: data.details || 'Failed to unlink' })
+      }
+    } catch (err) {
+      setMessage({ type: 'error', text: 'Connection error' })
+    } finally {
+      setUnlinkLoading(false)
+    }
+  }
 
   return (
     <>
@@ -618,6 +692,135 @@ export default function AdminUsersPage({ admin }) {
               <p style={{ margin: '8px 0', fontSize: '14px' }}><strong>Created:</strong> {formatDate(selectedUser.createdAt)}</p>
               <p style={{ margin: '8px 0', fontSize: '14px' }}><strong>Last Login:</strong> {formatDate(selectedUser.lastLoginAt)}</p>
               <p style={{ margin: '8px 0', fontSize: '14px' }}><strong>Login Count:</strong> {selectedUser.loginCount || 0}</p>
+            </div>
+
+            {/* WHAT: Login Methods Management Section (Phase 7) */}
+            {/* WHY: Admins can see and unlink login methods */}
+            <div style={{ marginBottom: '1.5rem', borderTop: '1px solid #e0e0e0', paddingTop: '1.5rem' }}>
+              <h3 style={{ margin: 0, marginBottom: '8px', fontSize: '16px', fontWeight: '600' }}>🔑 Login Methods</h3>
+              <p style={{ margin: 0, marginBottom: '12px', fontSize: '13px', color: '#666' }}>
+                Manage how this user can login to their account
+              </p>
+              
+              <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                {/* Email+Password */}
+                {selectedUser.loginMethods && selectedUser.loginMethods.includes('password') && (
+                  <div style={{
+                    padding: '10px 12px',
+                    border: '2px solid #667eea',
+                    borderRadius: '6px',
+                    background: '#f0f4ff',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '12px',
+                    minWidth: '200px'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ fontSize: '16px' }}>✉️</span>
+                      <span style={{ fontSize: '13px', fontWeight: '600', color: '#667eea' }}>Email+Password</span>
+                    </div>
+                    <button
+                      onClick={() => handleAdminUnlinkProvider(selectedUser.id, 'password')}
+                      disabled={unlinkLoading || (selectedUser.loginMethods?.length || 0) <= 1}
+                      title={(selectedUser.loginMethods?.length || 0) <= 1 ? 'Cannot unlink - last method' : 'Unlink'}
+                      style={{
+                        padding: '4px 10px',
+                        fontSize: '11px',
+                        fontWeight: '600',
+                        color: (selectedUser.loginMethods?.length || 0) <= 1 ? '#999' : '#d32f2f',
+                        background: 'white',
+                        border: `1px solid ${(selectedUser.loginMethods?.length || 0) <= 1 ? '#ddd' : '#d32f2f'}`,
+                        borderRadius: '4px',
+                        cursor: (unlinkLoading || (selectedUser.loginMethods?.length || 0) <= 1) ? 'not-allowed' : 'pointer',
+                        opacity: (selectedUser.loginMethods?.length || 0) <= 1 ? 0.5 : 1
+                      }}
+                    >
+                      Unlink
+                    </button>
+                  </div>
+                )}
+                
+                {/* Facebook */}
+                {selectedUser.loginMethods && selectedUser.loginMethods.includes('facebook') && (
+                  <div style={{
+                    padding: '10px 12px',
+                    border: '2px solid #1877f2',
+                    borderRadius: '6px',
+                    background: '#e7f3ff',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '12px',
+                    minWidth: '200px'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ fontSize: '16px' }}>📘</span>
+                      <span style={{ fontSize: '13px', fontWeight: '600', color: '#1877f2' }}>Facebook</span>
+                    </div>
+                    <button
+                      onClick={() => handleAdminUnlinkProvider(selectedUser.id, 'facebook')}
+                      disabled={unlinkLoading || (selectedUser.loginMethods?.length || 0) <= 1}
+                      title={(selectedUser.loginMethods?.length || 0) <= 1 ? 'Cannot unlink - last method' : 'Unlink'}
+                      style={{
+                        padding: '4px 10px',
+                        fontSize: '11px',
+                        fontWeight: '600',
+                        color: (selectedUser.loginMethods?.length || 0) <= 1 ? '#999' : '#d32f2f',
+                        background: 'white',
+                        border: `1px solid ${(selectedUser.loginMethods?.length || 0) <= 1 ? '#ddd' : '#d32f2f'}`,
+                        borderRadius: '4px',
+                        cursor: (unlinkLoading || (selectedUser.loginMethods?.length || 0) <= 1) ? 'not-allowed' : 'pointer',
+                        opacity: (selectedUser.loginMethods?.length || 0) <= 1 ? 0.5 : 1
+                      }}
+                    >
+                      Unlink
+                    </button>
+                  </div>
+                )}
+                
+                {/* Google */}
+                {selectedUser.loginMethods && selectedUser.loginMethods.includes('google') && (
+                  <div style={{
+                    padding: '10px 12px',
+                    border: '2px solid #db4437',
+                    borderRadius: '6px',
+                    background: '#ffebee',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '12px',
+                    minWidth: '200px'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ fontSize: '16px' }}>🔍</span>
+                      <span style={{ fontSize: '13px', fontWeight: '600', color: '#db4437' }}>Google</span>
+                    </div>
+                    <button
+                      onClick={() => handleAdminUnlinkProvider(selectedUser.id, 'google')}
+                      disabled={unlinkLoading || (selectedUser.loginMethods?.length || 0) <= 1}
+                      title={(selectedUser.loginMethods?.length || 0) <= 1 ? 'Cannot unlink - last method' : 'Unlink'}
+                      style={{
+                        padding: '4px 10px',
+                        fontSize: '11px',
+                        fontWeight: '600',
+                        color: (selectedUser.loginMethods?.length || 0) <= 1 ? '#999' : '#d32f2f',
+                        background: 'white',
+                        border: `1px solid ${(selectedUser.loginMethods?.length || 0) <= 1 ? '#ddd' : '#d32f2f'}`,
+                        borderRadius: '4px',
+                        cursor: (unlinkLoading || (selectedUser.loginMethods?.length || 0) <= 1) ? 'not-allowed' : 'pointer',
+                        opacity: (selectedUser.loginMethods?.length || 0) <= 1 ? 0.5 : 1
+                      }}
+                    >
+                      Unlink
+                    </button>
+                  </div>
+                )}
+              </div>
+              
+              {(!selectedUser.loginMethods || selectedUser.loginMethods.length === 0) && (
+                <p style={{ fontSize: '13px', color: '#999', margin: 0 }}>No login methods available</p>
+              )}
             </div>
 
             {/* WHAT: App Permissions Management Section */}
@@ -882,6 +1085,264 @@ export default function AdminUsersPage({ admin }) {
                       </div>
                     )
                   })}
+                </div>
+              )}
+            </div>
+
+            {/* WHAT: Link Social Provider Section (Phase 5) */}
+            {/* WHY: Admins can manually link Facebook/Google to user accounts */}
+            <div style={{ marginBottom: '1.5rem', borderTop: '1px solid #e0e0e0', paddingTop: '1.5rem' }}>
+              <h3 style={{ margin: 0, marginBottom: '8px', fontSize: '16px', fontWeight: '600' }}>🔗 Link Social Provider</h3>
+              <p style={{ margin: 0, marginBottom: '12px', fontSize: '13px', color: '#666' }}>
+                Manually link Facebook or Google account to this user
+              </p>
+              
+              {/* Provider Selection Buttons */}
+              {!linkingProvider && (
+                <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                  {/* Facebook Link Button */}
+                  {(!selectedUser.loginMethods || !selectedUser.loginMethods.includes('facebook')) && (
+                    <button
+                      onClick={() => {
+                        setLinkingProvider('facebook')
+                        setLinkFormData({ providerId: '', email: '', name: '', picture: '' })
+                        setLinkError(null)
+                        setLinkSuccess(false)
+                      }}
+                      disabled={linkLoading}
+                      style={{
+                        padding: '10px 16px',
+                        fontSize: '13px',
+                        fontWeight: '600',
+                        color: 'white',
+                        background: '#1877f2',
+                        border: 'none',
+                        borderRadius: '6px',
+                        cursor: linkLoading ? 'not-allowed' : 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px'
+                      }}
+                    >
+                      <span>📘</span>
+                      <span>Link Facebook</span>
+                    </button>
+                  )}
+                  
+                  {/* Google Link Button */}
+                  {(!selectedUser.loginMethods || !selectedUser.loginMethods.includes('google')) && (
+                    <button
+                      onClick={() => {
+                        setLinkingProvider('google')
+                        setLinkFormData({ providerId: '', email: '', name: '', picture: '' })
+                        setLinkError(null)
+                        setLinkSuccess(false)
+                      }}
+                      disabled={linkLoading}
+                      style={{
+                        padding: '10px 16px',
+                        fontSize: '13px',
+                        fontWeight: '600',
+                        color: 'white',
+                        background: '#db4437',
+                        border: 'none',
+                        borderRadius: '6px',
+                        cursor: linkLoading ? 'not-allowed' : 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px'
+                      }}
+                    >
+                      <span>🔍</span>
+                      <span>Link Google</span>
+                    </button>
+                  )}
+                </div>
+              )}
+              
+              {/* All providers already linked */}
+              {selectedUser.loginMethods && 
+               selectedUser.loginMethods.includes('facebook') && 
+               selectedUser.loginMethods.includes('google') && 
+               !linkingProvider && (
+                <p style={{ fontSize: '13px', color: '#999', margin: 0 }}>All social providers already linked</p>
+              )}
+              
+              {/* Link Form */}
+              {linkingProvider && (
+                <div style={{
+                  background: '#f9f9f9',
+                  border: '1px solid #e0e0e0',
+                  borderRadius: '8px',
+                  padding: '16px',
+                  marginTop: '12px'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+                    <h4 style={{ margin: 0, fontSize: '14px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span>{linkingProvider === 'facebook' ? '📘' : '🔍'}</span>
+                      <span>Link {linkingProvider === 'facebook' ? 'Facebook' : 'Google'} Account</span>
+                    </h4>
+                    <button
+                      onClick={() => {
+                        setLinkingProvider(null)
+                        setLinkFormData({ providerId: '', email: '', name: '', picture: '' })
+                        setLinkError(null)
+                        setLinkSuccess(false)
+                      }}
+                      disabled={linkLoading}
+                      style={{
+                        padding: '4px 8px',
+                        fontSize: '12px',
+                        color: '#666',
+                        background: 'white',
+                        border: '1px solid #ddd',
+                        borderRadius: '4px',
+                        cursor: linkLoading ? 'not-allowed' : 'pointer'
+                      }}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                  
+                  {/* Form Fields */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    {/* Provider ID */}
+                    <div>
+                      <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '4px' }}>
+                        {linkingProvider === 'facebook' ? 'Facebook' : 'Google'} ID *
+                      </label>
+                      <input
+                        type="text"
+                        value={linkFormData.providerId}
+                        onChange={(e) => setLinkFormData({ ...linkFormData, providerId: e.target.value })}
+                        disabled={linkLoading}
+                        placeholder="Enter provider ID"
+                        required
+                        style={{
+                          width: '100%',
+                          padding: '8px 12px',
+                          fontSize: '13px',
+                          border: '1px solid #ddd',
+                          borderRadius: '4px',
+                          background: 'white'
+                        }}
+                      />
+                    </div>
+                    
+                    {/* Email */}
+                    <div>
+                      <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '4px' }}>
+                        Email *
+                      </label>
+                      <input
+                        type="email"
+                        value={linkFormData.email}
+                        onChange={(e) => setLinkFormData({ ...linkFormData, email: e.target.value })}
+                        disabled={linkLoading}
+                        placeholder="Enter email (must match user's email)"
+                        required
+                        style={{
+                          width: '100%',
+                          padding: '8px 12px',
+                          fontSize: '13px',
+                          border: '1px solid #ddd',
+                          borderRadius: '4px',
+                          background: 'white'
+                        }}
+                      />
+                    </div>
+                    
+                    {/* Name */}
+                    <div>
+                      <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '4px' }}>
+                        Name *
+                      </label>
+                      <input
+                        type="text"
+                        value={linkFormData.name}
+                        onChange={(e) => setLinkFormData({ ...linkFormData, name: e.target.value })}
+                        disabled={linkLoading}
+                        placeholder="Enter name"
+                        required
+                        style={{
+                          width: '100%',
+                          padding: '8px 12px',
+                          fontSize: '13px',
+                          border: '1px solid #ddd',
+                          borderRadius: '4px',
+                          background: 'white'
+                        }}
+                      />
+                    </div>
+                    
+                    {/* Picture URL */}
+                    <div>
+                      <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '4px' }}>
+                        Picture URL
+                      </label>
+                      <input
+                        type="url"
+                        value={linkFormData.picture}
+                        onChange={(e) => setLinkFormData({ ...linkFormData, picture: e.target.value })}
+                        disabled={linkLoading}
+                        placeholder="Enter picture URL (optional)"
+                        style={{
+                          width: '100%',
+                          padding: '8px 12px',
+                          fontSize: '13px',
+                          border: '1px solid #ddd',
+                          borderRadius: '4px',
+                          background: 'white'
+                        }}
+                      />
+                    </div>
+                    
+                    {/* Submit Button */}
+                    <button
+                      onClick={() => handleLinkProvider(selectedUser.id, linkingProvider, linkFormData)}
+                      disabled={linkLoading || !linkFormData.providerId || !linkFormData.email || !linkFormData.name}
+                      style={{
+                        padding: '10px 16px',
+                        fontSize: '13px',
+                        fontWeight: '600',
+                        color: 'white',
+                        background: (linkLoading || !linkFormData.providerId || !linkFormData.email || !linkFormData.name) ? '#999' : '#667eea',
+                        border: 'none',
+                        borderRadius: '4px',
+                        cursor: (linkLoading || !linkFormData.providerId || !linkFormData.email || !linkFormData.name) ? 'not-allowed' : 'pointer'
+                      }}
+                    >
+                      {linkLoading ? 'Linking...' : `Link ${linkingProvider === 'facebook' ? 'Facebook' : 'Google'} Account`}
+                    </button>
+                    
+                    {/* Success Message */}
+                    {linkSuccess && (
+                      <div style={{
+                        padding: '8px 12px',
+                        background: '#e8f5e9',
+                        border: '1px solid #4caf50',
+                        borderRadius: '4px',
+                        fontSize: '13px',
+                        color: '#2e7d32'
+                      }}>
+                        ✅ Successfully linked {linkingProvider === 'facebook' ? 'Facebook' : 'Google'} account
+                      </div>
+                    )}
+                    
+                    {/* Error Message */}
+                    {linkError && (
+                      <div style={{
+                        padding: '8px 12px',
+                        background: '#fee',
+                        border: '1px solid #c33',
+                        borderRadius: '4px',
+                        fontSize: '13px',
+                        color: '#c33'
+                      }}>
+                        ❌ {linkError}
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
             </div>

@@ -1,6 +1,6 @@
-# Release Notes [![Version Badge](https://img.shields.io/badge/version-5.28.0-blue)](RELEASE_NOTES.md)
+# Release Notes [![Version Badge](https://img.shields.io/badge/version-5.29.0-blue)](RELEASE_NOTES.md)
 
-## [v5.28.0] — 2025-12-21T14:00:00.000Z
+## [v5.29.0] — 2025-12-21T14:00:00.000Z
 
 ### 🔗 Unified Account Linking System (MAJOR FEATURE)
 
@@ -252,15 +252,125 @@ node scripts/merge-duplicate-accounts.mjs                # Apply
 - ✅ Existing accounts can be merged
 - ✅ All changes are audited
 
-**Next Steps**:
-1. Test account linking in development
-2. Run migration tool for existing duplicates (if any)
-3. Deploy to production
-4. Monitor audit logs for account linking activity
+---
+
+#### Phase 7: Cross-App Activity Dashboard ✅
+
+**Implementation**:
+- **Activity Timeline**: New admin page showing comprehensive audit log of account management
+  - Real-time activity feed with user names and app names (MongoDB aggregation with $lookup)
+  - Filterable by time range (24h/7d/30d/all)
+  - Filterable by event type (access attempts, permission changes, login events)
+  - Expandable entries showing full log details (before/after state, metadata)
+  - Auto-refresh button for real-time monitoring
+- **Enriched Data**: Joins publicUsers and oauthClients collections for human-readable display
+- **Performance**: Efficient MongoDB aggregation pipeline with proper indexing
+
+**Files**:
+- `pages/api/admin/activity.js` (new, 219 lines) - Activity API endpoint
+- `pages/admin/activity.js` (new, 352 lines) - Activity dashboard UI
+- `pages/admin/index.js` (+1 line) - Navigation link
 
 ---
 
-## [v5.27.0] — 2025-12-21T13:00:00.000Z
+#### Phase 8: Admin Manual Account Linking ✅
+
+**Implementation**:
+- **Manual Linking API**: Admin endpoint to manually link social providers to user accounts
+  - Supports Facebook and Google providers
+  - Email consistency validation (prevents linking wrong person's account)
+  - Comprehensive audit logging with `ACCOUNT_LINK_MANUAL` event
+  - Returns updated login methods after linking
+- **Admin UI**: Link Social Provider section in user modal
+  - Provider selection buttons (Facebook/Google)
+  - Form with fields for provider ID, email, name, picture
+  - Validation: email must match user's email
+  - Success/error messages
+  - Disabled state when all providers already linked
+- **Safety**: Multi-layer validation prevents security issues
+
+**Files**:
+- `pages/api/admin/public-users/[id]/link.js` (new, 182 lines) - Manual linking API
+- `pages/admin/users.js` (+256 lines) - Manual linking UI
+- `lib/accountLinking.mjs` (+170 lines) - Enhanced with `validateUnlinking()` and `unlinkLoginMethod()`
+- `lib/auditLog.mjs` (+4 constants) - New audit event types
+
+---
+
+#### Phase 9: Account Unlinking System ✅
+
+**Implementation**:
+- **Safety-First Unlinking**: Multi-layer validation prevents account lockout
+  - `validateUnlinking()` checks that user has at least 2 login methods
+  - UI disables unlink buttons when last method (opacity 0.5 + tooltip)
+  - API enforces safety validation (prevents orphaned accounts with 0 methods)
+  - Confirmation dialogs for all destructive operations
+- **User-Initiated Unlinking**: Users can unlink methods from account dashboard
+  - DELETE `/api/public/account/unlink/[provider]` endpoint
+  - Unlink buttons on each login method badge
+  - Auto-refresh after successful unlink
+- **Admin-Initiated Unlinking**: Admins can unlink methods from user modal
+  - DELETE `/api/admin/public-users/[id]/unlink/[provider]` endpoint
+  - Unlink buttons in Login Methods section
+  - Support for unlinking password, facebook, google
+- **Comprehensive Audit Logging**: All unlink operations logged with before/after state
+
+**Files**:
+- `pages/api/public/account/unlink/[provider].js` (new, 131 lines) - User unlinking API
+- `pages/api/admin/public-users/[id]/unlink/[provider].js` (new, 149 lines) - Admin unlinking API
+- `pages/account.js` (+148 lines) - User unlinking UI
+- `pages/admin/users.js` (+126 lines) - Admin unlinking UI
+
+**Safety Patterns**:
+- Multi-layer validation: UI disables → API validates → DB logic re-checks
+- Prevents account lockout: Always require at least 1 login method
+- Clear error messages: Explains why operations failed
+- Confirmation dialogs: Users understand what they're doing
+- Audit trail: Full traceability of all changes
+
+---
+
+**Complete Implementation Summary**:
+
+**Total Files Created (10)**:
+- `lib/accountLinking.mjs` (461 lines total)
+- `pages/api/admin/public-users/[id]/link.js` (182 lines)
+- `pages/api/admin/public-users/[id]/unlink/[provider].js` (149 lines)
+- `pages/api/public/account/unlink/[provider].js` (131 lines)
+- `pages/api/admin/activity.js` (219 lines)
+- `pages/admin/activity.js` (352 lines)
+- `scripts/merge-duplicate-accounts.mjs` (267 lines)
+- `docs/ACCOUNT_LINKING.md` (546 lines)
+
+**Total Files Modified (6)**:
+- `pages/api/public/register.js` - Account linking support
+- `pages/api/public/login.js` - Helpful error messages
+- `pages/account.js` (+148 lines) - Login methods + unlinking UI
+- `pages/admin/users.js` (+382 lines) - Manual linking + unlinking UI
+- `pages/admin/index.js` (+1 line) - Activity dashboard link
+- `lib/auditLog.mjs` (+4 constants) - New audit event types
+
+**Total Lines Added**: ~2,850 lines
+
+**Complete Feature Set**:
+- ✅ Automatic account linking by email (Phases 1-6)
+- ✅ Cross-app activity dashboard (Phase 7)
+- ✅ Admin manual linking (Phase 8)
+- ✅ User and admin unlinking (Phase 9)
+- ✅ Multi-layer safety validation
+- ✅ Comprehensive audit logging
+- ✅ Migration tool for duplicates
+- ✅ Complete documentation
+
+**Next Steps**:
+1. Test all features in development
+2. Run migration tool for existing duplicates (if any)
+3. Deploy to production
+4. Monitor audit logs and activity dashboard
+
+---
+
+## [v5.29.0] — 2025-12-21T13:00:00.000Z
 
 ### 🎯 Google Sign-In Integration (NEW FEATURE)
 
@@ -391,7 +501,7 @@ GOOGLE_REDIRECT_URI=https://sso.doneisbetter.com/api/auth/google/callback
 
 ---
 
-## [v5.28.0] — 2025-12-21T12:00:00.000Z
+## [v5.29.0] — 2025-12-21T12:00:00.000Z
 
 ### 🔒 Security Hardening: 5-Phase Implementation (COMPLETE)
 
@@ -554,7 +664,7 @@ GOOGLE_REDIRECT_URI=https://sso.doneisbetter.com/api/auth/google/callback
 
 ---
 
-## [v5.28.0] — 2025-11-09T14:00:00.000Z
+## [v5.29.0] — 2025-11-09T14:00:00.000Z
 
 ### 🎯 Phase 4A: SSO Admin UI for Multi-App Permissions (COMPLETE)
 
@@ -707,7 +817,7 @@ window.location.href = authUrl.toString();
 
 ---
 
-## [v5.28.0] — 2025-11-05T15:00:00.000Z
+## [v5.29.0] — 2025-11-05T15:00:00.000Z
 
 ### 🔐 Critical Session Fix & PIN Verification Toggle
 
@@ -841,7 +951,7 @@ node scripts/disable-pin.mjs  # Disable
 
 ---
 
-## [v5.28.0] — 2025-10-16T15:24:20.000Z
+## [v5.29.0] — 2025-10-16T15:24:20.000Z
 
 ### Fixed
 
@@ -871,7 +981,7 @@ node scripts/disable-pin.mjs  # Disable
 
 ---
 
-## [v5.28.0] — 2025-10-12T14:07:00.000Z
+## [v5.29.0] — 2025-10-12T14:07:00.000Z
 
 ### 🎯 User Account Management & Session Improvements
 
@@ -969,7 +1079,7 @@ node scripts/disable-pin.mjs  # Disable
 
 ---
 
-## [v5.28.0] — 2025-01-13T23:45:00.000Z
+## [v5.29.0] — 2025-01-13T23:45:00.000Z
 
 ### 🔐 OAuth Flow Fix: Preserve Authorization Context During Admin Login
 
@@ -1038,7 +1148,7 @@ useEffect(() => {
 
 ---
 
-## [v5.28.0] — 2025-10-06T21:30:00.000Z
+## [v5.29.0] — 2025-10-06T21:30:00.000Z
 
 ### 🎉 All Authentication Features Complete + PKCE Flexibility
 
@@ -1134,7 +1244,7 @@ useEffect(() => {
   - Success message display
 - **Email Templates** (`lib/emailTemplates.mjs`):
   - Added `buildMagicLinkEmail()` - Magic link email template
-  - Login PIN email already added in v5.28.0
+  - Login PIN email already added in v5.29.0
 
 #### Database Schema
 
@@ -1228,7 +1338,7 @@ useEffect(() => {
 
 ---
 
-## [v5.28.0] — 2025-10-06T11:22:25.000Z
+## [v5.29.0] — 2025-10-06T11:22:25.000Z
 
 ### 🎉 New Authentication Features: Forgot Password + Email System
 
@@ -1293,7 +1403,7 @@ useEffect(() => {
   - MongoDB TTL indexes
 - PIN email template in `lib/emailTemplates.mjs`
 
-**Public User Authentication** (from v5.28.0 merge):
+**Public User Authentication** (from v5.29.0 merge):
 - `lib/publicUsers.mjs` - Public user management
 - `lib/publicSessions.mjs` - Public user sessions
 - `pages/login.js` - Public login page
@@ -1369,7 +1479,7 @@ EMAIL_VERIFICATION_TOKEN_TTL=86400     # 24 hours
 
 ---
 
-## [v5.28.0] — 2025-10-03T09:15:22.000Z
+## [v5.29.0] — 2025-10-03T09:15:22.000Z
 
 ### 🚀 Phase 2: Complete OAuth2/OIDC Authorization Server Implementation
 
@@ -1596,7 +1706,7 @@ OAUTH2_CONSENT_TTL=31536000                 # 1 year
 
 ---
 
-## [v5.28.0] — 2025-10-02T11:54:33.000Z
+## [v5.29.0] — 2025-10-02T11:54:33.000Z
 
 ### 🔒 Phase 1: Critical Security Hardening
 
@@ -1692,7 +1802,7 @@ CSRF_SECRET=<generate with: openssl rand -base64 32>
 
 ---
 
-## [v5.28.0] — 2025-09-17T11:43:02.000Z
+## [v5.29.0] — 2025-09-17T11:43:02.000Z
 
 ### Added
 - Development-only passwordless admin login:
@@ -1705,7 +1815,7 @@ CSRF_SECRET=<generate with: openssl rand -base64 32>
 
 ---
 
-## [v5.28.0] — 2025-09-16T18:14:33.000Z
+## [v5.29.0] — 2025-09-16T18:14:33.000Z
 
 ### Added
 - Secure, single-use, time-limited admin magic link flow:
@@ -1718,7 +1828,7 @@ CSRF_SECRET=<generate with: openssl rand -base64 32>
 
 ---
 
-## [v5.28.0] — 2025-09-15T18:25:45.000Z
+## [v5.29.0] — 2025-09-15T18:25:45.000Z
 
 ### Changed
 - MongoDB client now uses fast-fail timeouts (serverSelection/connect/socket) to surface 503 quickly when DB is unreachable.
@@ -1729,7 +1839,7 @@ CSRF_SECRET=<generate with: openssl rand -base64 32>
 
 ---
 
-## [v5.28.0] — 2025-09-15T17:36:07.000Z
+## [v5.29.0] — 2025-09-15T17:36:07.000Z
 
 ### Changed
 - MongoDB client initialization is now lazy in serverless functions to prevent import-time crashes (avoids “Empty reply from server”).
@@ -1740,7 +1850,7 @@ CSRF_SECRET=<generate with: openssl rand -base64 32>
 
 ---
 
-## [v5.28.0] — 2025-09-14T08:25:57.000Z
+## [v5.29.0] — 2025-09-14T08:25:57.000Z
 
 ### Added
 - UUIDs as the primary identifier for admin users (with backfill for legacy users)
@@ -1760,7 +1870,7 @@ CSRF_SECRET=<generate with: openssl rand -base64 32>
 
 ---
 
-## [v5.28.0] — 2025-09-11T14:28:29.000Z
+## [v5.29.0] — 2025-09-11T14:28:29.000Z
 
 ### Added
 - Admin login UI at /admin (email + 32‑hex token) with session display and logout
@@ -1771,12 +1881,12 @@ CSRF_SECRET=<generate with: openssl rand -base64 32>
 
 ---
 
-## [v5.28.0] — 2025-09-11T13:57:38.000Z
+## [v5.29.0] — 2025-09-11T13:57:38.000Z
 
 ### Changed
-- Version bump to align with commit protocol; no functional changes since v5.28.0
+- Version bump to align with commit protocol; no functional changes since v5.29.0
 
-## [v5.28.0] — 2025-09-11T13:35:02.000Z
+## [v5.29.0] — 2025-09-11T13:35:02.000Z
 
 ### Added
 - DB-backed admin authentication with HttpOnly cookie session (admin-session)
@@ -1800,7 +1910,7 @@ CSRF_SECRET=<generate with: openssl rand -base64 32>
 
 ---
 
-## [v5.28.0] — 2025-07-23T10:00:00.000Z
+## [v5.29.0] — 2025-07-23T10:00:00.000Z
 
 ### Removed
 - Removed nested client package (@doneisbetter/sso-client)
@@ -1811,7 +1921,7 @@ CSRF_SECRET=<generate with: openssl rand -base64 32>
 - Updated documentation to focus on server-side implementation
 - Streamlined API documentation
 - Simplified configuration options
-## [v5.28.0] — 2025-07-22T08:03:17Z
+## [v5.29.0] — 2025-07-22T08:03:17Z
 
 ### Updated Dependencies
 - Upgraded Next.js to ^15.4.2
@@ -1829,7 +1939,7 @@ CSRF_SECRET=<generate with: openssl rand -base64 32>
 - Updated package overrides for better dependency management
 - Optimized session handling and validation
 
-## [v5.28.0]
+## [v5.29.0]
 
 ### Major Changes
 - Upgraded all dependencies to their latest stable versions
@@ -1858,7 +1968,7 @@ CSRF_SECRET=<generate with: openssl rand -base64 32>
 - Better memory management with lru-cache
 - Stricter npm configuration
 
-## [v5.28.0] — 2025-07-21T13:12:00.000Z
+## [v5.29.0] — 2025-07-21T13:12:00.000Z
 
 ### Added
 - User management features:
@@ -1906,7 +2016,7 @@ CSRF_SECRET=<generate with: openssl rand -base64 32>
 - Added admin user management
 - Created API routes for user operations
 
-## [v5.28.0] — 2024-04-13T12:00:00.000Z
+## [v5.29.0] — 2024-04-13T12:00:00.000Z
 
 ### Added
 - Initial project setup

@@ -1,4 +1,4 @@
-# TASKLIST (v5.28.0)
+# TASKLIST (v5.29.0)
 
 Last updated: 2025-12-21T09:00:00.000Z
 
@@ -27,7 +27,7 @@ Pending (Future):
    - Expected Delivery: TBD
    - Priority: P3
 
-Completed (v5.28.0 - December 2025):
+Completed (v5.29.0 - December 2025):
 - Initial planning recorded and endpoints implemented (admin + resource passwords)
 - DB-backed admin auth and resource passwords refactor
 - Vercel env + CORS configuration for sso.doneisbetter.com
@@ -64,12 +64,12 @@ Completed (v5.28.0 - December 2025):
   - "Sync to SSO" button with loading states and detailed results
   - Automatic sync on all permission operations (grant/revoke/change-role)
   - Admin-only access control
-- Google Login integration (v5.27.0)
+- Google Login integration (v5.29.0)
   - OAuth 2.0 flow with Google Cloud Console
   - Automatic account linking by email
   - Google profile pictures in admin dashboard
   - Comprehensive setup documentation
-- Enterprise Security Hardening (v5.26.0)
+- Enterprise Security Hardening (v5.29.0)
   - 5-phase implementation complete
   - Enhanced rate limiting for admin endpoints
   - Security headers via Next.js Edge Middleware
@@ -79,7 +79,7 @@ Completed (v5.28.0 - December 2025):
 - Next.js CVE-2025-66478 security fix (v5.27.x)
   - Updated Next.js from 15.5.3 to 15.5.9
   - React2Shell vulnerability patched
-- Unified Account Linking System (v5.28.0)
+- Unified Account Linking System (v5.29.0)
   - One person, one email = one account
   - Automatic linking across Email+Password, Facebook, Google, Magic Link
   - Smart registration (adds password to social-only accounts)

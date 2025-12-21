@@ -1,6 +1,6 @@
-# LEARNINGS (v5.28.0)
+# LEARNINGS (v5.29.0)
 
-Last updated: 2025-12-21T12:00:00.000Z
+Last updated: 2025-12-21T14:00:00.000Z
 
 Backend:
 - MessMass cookie session pattern adapts cleanly to Pages Router with minimal dependencies
@@ -111,7 +111,7 @@ Bidirectional Permission Sync (Phase 4D/5):
 - Visual feedback (loading states, spinners) critical for long-running operations
 - Confirmation dialogs required for destructive/bulk operations
 
-Security Hardening (v5.28.0 - 5-Phase Implementation):
+Security Hardening (v5.29.0 - 5-Phase Implementation):
 
 Rate Limiting:
 - Admin endpoints need stricter rate limits than public endpoints (3 vs 5 login attempts)
@@ -172,3 +172,115 @@ Compliance:
 - GDPR requires ability to trace all actions affecting user data
 - SOC 2 requires comprehensive logging and access controls
 - Separation of concerns: security middleware should be independent of business logic
+
+Account Linking and Unlinking (v5.29.0 - Safety-First Implementation):
+
+Core Principle:
+- One person, one email = one account (prevents duplicate accounts and data fragmentation)
+- Multi-layer safety validation prevents account lockout (always require at least 1 login method)
+- Clear error messages guide users to correct actions ("Add another login method first")
+
+Automatic Linking:
+- All authentication flows should automatically link accounts by email address
+- Registration with existing social-only account should add password (don't reject)
+- Social login with existing password account should link provider (seamless UX)
+- Return `isAccountLinking: true` flag so clients know account was linked (not created)
+- Helpful error messages when password login attempted on social-only account
+
+Manual Linking (Admin):
+- Email consistency validation is critical (prevents linking wrong person's social account)
+- Email in link request MUST match user's email (security validation layer)
+- Provider cannot already be linked (prevents duplicate provider entries)
+- Comprehensive audit logging with `ACCOUNT_LINK_MANUAL` action (traceability)
+- Form validation client-side + server-side (defense in depth)
+
+Account Unlinking Safety (Critical):
+- NEVER allow unlinking last login method (creates orphaned account)
+- Multi-layer validation essential: UI disables → API validates → DB logic re-checks
+- Layer 1 (UI): Disable unlink buttons when last method (opacity 0.5 + tooltip)
+- Layer 2 (API): Endpoint validates before unlinking, returns 400 if last method
+- Layer 3 (DB): validateUnlinking() re-checks in transaction (prevents race conditions)
+- Confirmation dialogs required for all destructive operations (users understand impact)
+- Auto-refresh after successful unlink (immediate feedback, prevents stale UI)
+
+Error Handling:
+- Clear error messages explain WHY operation failed ("Cannot unlink - last method")
+- Provide guidance on HOW to proceed ("Add another login method first")
+- Don't use generic errors for safety violations (be specific)
+- Include available login methods in error response (helps users choose alternative)
+
+Audit Logging:
+- Log ALL linking/unlinking operations with before/after state (full traceability)
+- Include initiator information (userId, email, role) for accountability
+- Log both successful and failed attempts (detect security incidents)
+- New audit action constants: ACCOUNT_LINK_MANUAL, ACCOUNT_UNLINK, PASSWORD_REMOVED
+- Activity dashboard aggregates logs with user/app names (MongoDB $lookup joins)
+
+Data Model:
+- Login methods computed from data, not stored (single source of truth)
+- `getUserLoginMethods(user)` computes from passwordHash + socialProviders
+- Prevents data inconsistency (stored loginMethods could drift from actual state)
+- socialProviders.{provider} stores provider-specific data (id, email, name, picture)
+- Timestamps for linkedAt and lastLoginAt track provider usage (audit trail)
+
+Cross-App Activity Dashboard:
+- MongoDB aggregation with $lookup joins for human-readable logs (enriches with names)
+- Efficient indexing for time-range queries (timestamp descending)
+- Filterable by time range (24h/7d/30d/all) and event type (access/permission/login)
+- Expandable entries show full log details (before/after state, metadata)
+- Auto-refresh button for real-time monitoring (manual trigger, not auto-polling)
+
+Migration Strategy:
+- Dry-run mode essential for preview before applying changes (DRY_RUN=true)
+- Idempotent scripts safe to run multiple times (no double-merge)
+- Keep oldest account as primary (preserves account history and relationships)
+- Transfer all data: sessions, OAuth tokens, permissions (complete migration)
+- Log all merges for audit trail (compliance requirement)
+
+User Experience:
+- Account dashboard shows all linked login methods with badges (visual clarity)
+- Color-coded badges for different methods (Email=purple, Facebook=blue, Google=red)
+- Unlink buttons directly on badges (minimal clicks for common action)
+- Disabled state clearly visible (opacity 0.5 + tooltip on hover)
+- Success/error messages positioned near action buttons (immediate feedback)
+
+Admin UI:
+- Login Methods section shows user's authentication options (admin visibility)
+- Link Social Provider section allows manual linking (support use cases)
+- Provider selection buttons appear only for unlinked providers (prevent duplicates)
+- Form fields validate email matches user's email (prevent security issues)
+- Success/error messages in-context (don't use global alerts for form feedback)
+
+Security Considerations:
+- Email verification inherited from any verified method (don't require re-verification)
+- Password security: bcrypt (12 rounds), minimum 8 characters (industry standard)
+- Session management: all sessions remain valid after linking (no forced logout)
+- OAuth security: state parameter CSRF protection (prevents authorization interception)
+- Email consistency: manual linking validates email matches (prevents account hijacking)
+- Race conditions: validateUnlinking() in transaction prevents concurrent last-method unlinking
+
+Performance:
+- Computed login methods avoid extra DB reads (calculate from existing data)
+- MongoDB aggregation with $lookup for dashboard (efficient join alternative)
+- Proper indexes for time-range queries (timestamp descending)
+- Client-side state management reduces unnecessary API calls (cache app permissions)
+- Optimistic UI updates with rollback on error (better perceived performance)
+
+Testing Approach (Manual - Tests Prohibited):
+- Test all linking scenarios: social→password, password→social, social→social
+- Test unlinking with 2+ methods (should work) and 1 method (should fail)
+- Test email mismatch on manual linking (should reject)
+- Test concurrent unlinking attempts (race condition handling)
+- Test activity dashboard filters and pagination (data correctness)
+- Verify audit logs for all operations (compliance requirement)
+
+Lessons Learned:
+- Safety validation at every layer catches edge cases and race conditions
+- Clear error messages dramatically improve user experience (reduce support burden)
+- Computed fields prevent data inconsistency (don't store derived data)
+- Confirmation dialogs reduce accidental destructive actions (user protection)
+- Activity dashboard essential for admin visibility (debugging and compliance)
+- Email consistency validation prevents serious security issues (account hijacking)
+- Multi-layer validation seems redundant but catches real bugs (defense in depth)
+- Dry-run mode for migrations builds confidence (preview before commit)
+- Auto-refresh after mutations prevents stale UI state (data consistency)

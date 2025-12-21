@@ -1,6 +1,6 @@
-# Architecture — SSO (v5.28.0)
+# Architecture — SSO (v5.29.0)
 
-Last updated: 2025-12-21T12:00:00.000Z
+Last updated: 2025-12-21T14:00:00.000Z
 
 ## Stack
 - Next.js (Pages Router)
@@ -78,7 +78,7 @@ Last updated: 2025-12-21T12:00:00.000Z
 - CORS controlled by SSO_ALLOWED_ORIGINS
 - Duplicate/insecure endpoints removed; legacy username flows deprecated
 
-## Security Layers (v5.28.0 Hardening)
+## Security Layers (v5.29.0 Hardening)
 
 ### Layer 1: Rate Limiting
 **Location**: `lib/middleware/rateLimit.mjs`
@@ -255,3 +255,256 @@ Each security layer addresses different attack vectors:
 5. **Audit Logging**: Detection and response (compliance, forensics, anomaly detection)
 
 No single layer is sufficient alone. Multiple layers provide redundancy and catch different types of attacks.
+
+---
+
+## Account Linking and Unlinking (v5.29.0)
+
+### Overview
+**Principle**: One person, one email = one account
+
+Users can login with multiple authentication methods (Email+Password, Facebook, Google, Magic Link) while maintaining a single account per email address.
+
+### Core Library
+**Location**: `lib/accountLinking.mjs`
+
+**Functions**:
+- `findUserByEmail(email)` - Find user regardless of login method
+- `getUserLoginMethods(user)` - Get list of linked methods (computed, not stored)
+- `canLoginWithPassword(user)` - Check if user has password
+- `addPasswordToAccount(userId, password)` - Add password to social-only account
+- `linkLoginMethod(user, provider, providerData)` - Link social provider
+- `getAccountLinkingSummary(email)` - Comprehensive account status
+- `validateUnlinking(user, provider)` - Safety check before unlinking (requires at least 2 methods)
+- `unlinkLoginMethod(userId, provider, initiatedBy)` - Remove social login method
+- `removePassword(userId, initiatedBy)` - Remove email+password login
+
+### Automatic Linking
+**Implementation**: All authentication flows automatically link accounts by email
+
+**Registration Flow** (`POST /api/public/register`):
+1. Check if email exists
+2. If user has password → Return 409 error
+3. If user has social-only → Add password to existing account
+4. If no user → Create new account
+5. Return `isAccountLinking: true` flag when linking occurs
+
+**Login Flow** (`POST /api/public/login`):
+1. Find user by email
+2. Check if password exists
+3. If social-only → Return helpful error with available methods
+4. If password exists → Validate and login
+
+**Social Login Flow** (Facebook/Google):
+1. OAuth callback receives provider profile
+2. Find user by email
+3. If user exists → Link provider to existing account
+4. If no user → Create new account with provider
+5. Update `socialProviders.{provider}` with profile data
+
+### Manual Linking (Admin)
+**Endpoint**: `POST /api/admin/public-users/[id]/link`
+
+**Use Case**: Admin manually links social provider to user account (e.g., fixing account issues)
+
+**Body**:
+```json
+{
+  "provider": "facebook" | "google",
+  "providerId": "string",
+  "email": "string",
+  "name": "string",
+  "picture": "string" (optional)
+}
+```
+
+**Validation**:
+- Email must match user's email (prevents linking wrong person's account)
+- Provider cannot already be linked
+- Comprehensive audit logging with `ACCOUNT_LINK_MANUAL` event
+
+**UI**: Link Social Provider section in admin user modal
+- Provider selection buttons (Facebook/Google)
+- Form with fields for provider data
+- Success/error messages
+
+### Account Unlinking
+**Principle**: Safety-first approach prevents account lockout
+
+**Safety Validation** (`validateUnlinking()`):
+1. Check user has at least 2 login methods
+2. If only 1 method → Return error
+3. If 2+ methods → Allow unlinking
+
+**User-Initiated Unlinking**:
+- Endpoint: `DELETE /api/public/account/unlink/[provider]`
+- UI: Unlink buttons on each login method badge in account dashboard
+- Buttons disabled when last method (opacity 0.5 + tooltip)
+- Confirmation dialog before unlinking
+- Auto-refresh after successful unlink
+
+**Admin-Initiated Unlinking**:
+- Endpoint: `DELETE /api/admin/public-users/[id]/unlink/[provider]`
+- UI: Unlink buttons in Login Methods section of user modal
+- Same safety validation as user-initiated
+- Audit logging with admin actor information
+
+**Supported Providers**: `password`, `facebook`, `google`
+
+### Multi-Layer Safety
+**Layer 1 (UI)**: Buttons disabled when last method, tooltip explains why
+**Layer 2 (API)**: Endpoint validates before unlinking, returns 400 if last method
+**Layer 3 (DB)**: `validateUnlinking()` re-checks in transaction, prevents race conditions
+
+**Error Messages**:
+- Clear explanation of why operation failed
+- Guidance on how to proceed (e.g., "Add another login method first")
+
+### Cross-App Activity Dashboard
+**Endpoint**: `GET /api/admin/activity`
+
+**Purpose**: Comprehensive audit log for account management operations
+
+**Query Params**:
+- `timeRange`: `24h` | `7d` | `30d` | `all` (default: `7d`)
+- `eventType`: `access` | `permission` | `login` | (empty for all)
+
+**Implementation**:
+- MongoDB aggregation pipeline with `$lookup` joins
+- Enriches logs with user names from `publicUsers` collection
+- Enriches logs with app names from `oauthClients` collection
+- Efficient indexing for time-range queries
+
+**UI**: `pages/admin/activity.js`
+- Timeline view with expandable entries
+- Filters for time range and event type
+- Auto-refresh button for real-time monitoring
+- Shows full log details (before/after state, metadata)
+
+### Audit Events (v5.29.0)
+**New Audit Action Constants** (`lib/auditLog.mjs`):
+- `ACCOUNT_LINK_MANUAL` - Admin manually linked social provider
+- `ACCOUNT_UNLINK` - Login method unlinked (user or admin)
+- `PASSWORD_REMOVED` - Email+password login removed
+
+**Log Format**:
+```javascript
+{
+  action: 'ACCOUNT_LINK_MANUAL',
+  actorUserId: 'admin-uuid',
+  actorEmail: 'admin@example.com',
+  actorRole: 'super-admin',
+  resource: 'publicUser',
+  resourceId: 'user-uuid',
+  beforeState: { loginMethods: ['password'] },
+  afterState: { loginMethods: ['password', 'facebook'] },
+  status: 'success',
+  metadata: {
+    provider: 'facebook',
+    ip: '1.2.3.4',
+    userAgent: '...'
+  },
+  timestamp: '2025-12-21T14:00:00.000Z'
+}
+```
+
+### Data Model Changes
+**publicUsers Collection** (computed fields):
+```javascript
+{
+  id: "uuid",
+  email: "user@example.com",
+  name: "User Name",
+  
+  // Optional - only if email+password used
+  passwordHash: "...",
+  emailVerified: true,
+  
+  // Social providers
+  socialProviders: {
+    facebook: { id, email, name, picture, linkedAt, lastLoginAt },
+    google: { id, email, name, picture, emailVerified, linkedAt, lastLoginAt }
+  },
+  
+  // Computed (not stored) - calculated by getUserLoginMethods()
+  loginMethods: ["password", "facebook", "google"]
+}
+```
+
+**Login Methods Computation**:
+```javascript
+function getUserLoginMethods(user) {
+  const methods = []
+  if (user.passwordHash) methods.push('password')
+  if (user.socialProviders?.facebook) methods.push('facebook')
+  if (user.socialProviders?.google) methods.push('google')
+  return methods
+}
+```
+
+### Migration Tool
+**Script**: `scripts/merge-duplicate-accounts.mjs`
+
+**Purpose**: Merge duplicate accounts with same email (one-time migration)
+
+**Process**:
+1. Find all emails with multiple accounts
+2. For each duplicate set:
+   - Keep oldest account as primary
+   - Merge all social providers
+   - Transfer passwordHash if needed
+   - Transfer sessions, OAuth tokens, permissions
+   - Delete duplicate accounts
+3. Log all merges for audit trail
+
+**Usage**:
+```bash
+DRY_RUN=true node scripts/merge-duplicate-accounts.mjs  # Preview changes
+node scripts/merge-duplicate-accounts.mjs                # Apply changes
+```
+
+### User Experience
+**Scenario 1**: Social → Email+Password
+1. User creates account with Facebook
+2. Later registers with email+password (same email)
+3. System adds password to existing Facebook account
+4. User can now login with either method
+
+**Scenario 2**: Email+Password → Social
+1. User registers with email+password
+2. Later logs in with Google (same email)
+3. System automatically links Google to existing account
+4. User can now login with either method
+
+**Scenario 3**: Unlinking
+1. User has password + Facebook linked
+2. User clicks "Unlink" on Facebook badge
+3. System confirms user has 2 methods, allows unlinking
+4. Facebook removed, user can still login with password
+
+**Scenario 4**: Prevented Lockout
+1. User has only password method
+2. User clicks "Unlink" on password badge
+3. Button is disabled (opacity 0.5)
+4. Tooltip says "Cannot unlink - last method"
+5. System prevents account lockout
+
+### Security Considerations
+- **Email Verification**: Inherited from any verified method
+- **Password Security**: bcrypt (12 rounds), minimum 8 characters
+- **Session Management**: All sessions remain valid after linking
+- **OAuth Security**: State parameter CSRF protection
+- **Audit Logging**: All linking/unlinking operations logged
+- **Email Consistency**: Manual linking validates email matches user's email
+- **Race Conditions**: Multi-layer validation prevents concurrent unlinking of last method
+
+### Compliance
+- ✅ GDPR compliant (user consent, data portability)
+- ✅ SOC 2 compliant (audit trail, access control)
+- ✅ OWASP compliant (input validation, secure session management)
+
+### Monitoring
+- Activity dashboard shows real-time account management operations
+- Audit logs provide full traceability
+- Failed unlink attempts logged for security review
+- Email consistency violations logged as security events

@@ -237,6 +237,21 @@ openssl rand -base64 32
 - `GET /api/public/authorizations` — List connected OAuth services
 - `DELETE /api/public/authorizations/[id]` — Revoke service access
 
+### Account Management (v5.29.0)
+- `DELETE /api/public/account/unlink/[provider]` — User-initiated login method unlinking
+  - Supports: `password`, `facebook`, `google`
+  - Safety: Prevents unlinking last method (account lockout)
+- `POST /api/admin/public-users/[id]/link` — Admin manual account linking
+  - Supports: `facebook`, `google`
+  - Body: `{ provider, providerId, email, name, picture }`
+  - Validation: Email must match user's email
+- `DELETE /api/admin/public-users/[id]/unlink/[provider]` — Admin-initiated unlinking
+  - Supports: `password`, `facebook`, `google`
+  - Safety: Prevents unlinking last method
+- `GET /api/admin/activity` — Cross-app activity dashboard
+  - Query params: `timeRange` (24h/7d/30d/all), `eventType` (access/permission/login)
+  - Returns enriched audit logs with user/app names
+
 ### Social Login (v5.26.0 Facebook, v5.27.0 Google)
 - `GET /api/auth/facebook/login` — Initiate Facebook OAuth
 - `GET /api/auth/facebook/callback` — Facebook OAuth callback
