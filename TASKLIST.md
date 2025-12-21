@@ -14,18 +14,6 @@ Pending (Future):
    - Owner: Backend
    - Expected Delivery: TBD
    - Priority: P2
-3) Cross-app activity dashboard for admins
-   - Owner: Frontend
-   - Expected Delivery: TBD
-   - Priority: P3
-4) Manual account linking UI (link social providers from dashboard)
-   - Owner: Frontend + Backend
-   - Expected Delivery: TBD
-   - Priority: P3
-5) Account unlinking feature (remove linked methods)
-   - Owner: Frontend + Backend
-   - Expected Delivery: TBD
-   - Priority: P3
 
 Completed (v5.29.0 - December 2025):
 - Initial planning recorded and endpoints implemented (admin + resource passwords)
@@ -87,3 +75,30 @@ Completed (v5.29.0 - December 2025):
   - Account dashboard with login methods display
   - Migration tool for merging duplicate accounts
   - Comprehensive documentation (docs/ACCOUNT_LINKING.md)
+- Account Management System (v5.29.0)
+  - Cross-app activity dashboard for admins (Phase 4)
+    - MongoDB aggregation with user/app name enrichment
+    - Filterable by time range (24h/7d/30d/all) and event type
+    - Real-time activity feed with expandable log details
+  - Admin manual account linking (Phase 5)
+    - Link Social Provider section in admin user modal
+    - Email consistency validation (prevents security issues)
+    - Support for Facebook and Google providers
+  - Account unlinking system (Phases 3, 6, 7)
+    - User-initiated unlinking from account dashboard
+    - Admin-initiated unlinking from admin user modal
+    - Multi-layer safety validation (prevents account lockout)
+    - Confirmation dialogs for all destructive operations
+  - Safety-first architecture
+    - Always require at least 1 login method
+    - UI disabled + API validation + DB re-check
+    - Clear error messages and guidance
+  - Comprehensive audit logging
+    - All linking/unlinking operations tracked
+    - Before/after state tracking
+    - Admin and user action differentiation
+- Critical Bug Fixes (v5.29.0)
+  - Session timeout bug fix (premature logout after <10 minutes)
+    - Fixed /api/users/session-status to use cookie-based validation
+    - Was checking req.session (undefined) causing false expiration
+    - Sessions now properly extend on activity (sliding window)
