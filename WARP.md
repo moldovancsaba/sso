@@ -7,9 +7,9 @@ This file provides guidance to WARP (warp.dev) when working with code in this re
 **Document**: WARP.md — SSO Service  
 **Repository**: sso  
 **Path**: `/Users/moldovancsaba/Library/Mobile Documents/com~apple~CloudDocs/Projects/sso/WARP.md`  
-**Version**: 4.7.0 (auto-synced from package.json via `npm run sync:version`)  
+**Version**: 5.28.0 (auto-synced from package.json via `npm run sync:version`)  
 **CreatedAt (UTC)**: 2025-10-02T10:45:49.000Z  
-**LastUpdated (UTC)**: 2025-10-02T10:45:49.000Z  
+**LastUpdated (UTC)**: 2025-12-21T14:00:00.000Z
 **Maintainer**: moldovancsaba  
 **Status**: Authoritative Source of Truth  
 **Sync**: `npm run sync:version` required after version changes  
@@ -74,12 +74,16 @@ node tools/backfill-user-uuids.mjs
 - **Authentication**: Cookie-based admin sessions (HttpOnly, base64 JSON tokens)
 - **Collections**:
   - `users` — Admin users with UUID IDs, email, name, role ('admin'|'super-admin'), password (32-hex token)
+  - `publicUsers` — End users with UUID IDs, email, name, passwordHash (bcrypt), socialProviders (Facebook, Google)
   - `organizations` — Multi-tenant organizations with UUID IDs, slug, domains, status
   - `orgUsers` — Organization users with UUID IDs, orgId, email, role, status
   - `resourcePasswords` — Resource-specific passwords with 32-hex tokens, usage tracking
-- **Timestamps**: All timestamps use ISO 8601 UTC with milliseconds (e.g., `2025-10-02T10:45:49.000Z`)
-- **Password Convention**: 32-hex tokens (MD5-style), NOT bcrypt hashes
+  - `oauthClients` — OAuth2 clients with client_id, client_secret, redirect_uris, scopes
+  - `appPermissions` — Multi-app permissions with userId, clientId, role, status
+- **Timestamps**: All timestamps use ISO 8601 UTC with milliseconds (e.g., `2025-12-21T14:00:00.000Z`)
+- **Password Convention**: Admin uses 32-hex tokens; Public users use bcrypt hashes
 - **CORS**: Controlled via `SSO_ALLOWED_ORIGINS` environment variable
+- **Security**: 5-layer defense-in-depth (rate limiting, security headers, input validation, session hardening, audit logging)
 
 ---
 
@@ -144,9 +148,12 @@ MONGODB_URI=mongodb+srv://...
 MONGODB_DB=sso
 SSO_ALLOWED_ORIGINS=https://sso.doneisbetter.com,https://doneisbetter.com
 SSO_BASE_URL=https://sso.doneisbetter.com
+SSO_COOKIE_DOMAIN=.doneisbetter.com
 ADMIN_SESSION_COOKIE=admin-session
+PUBLIC_SESSION_COOKIE=public-session
 ADMIN_MAGIC_SECRET=<secure-random-string>
 SESSION_SECRET=<secure-random-string>
+CSRF_SECRET=<secure-random-string>
 SSO_ADMIN_ALIAS_EMAIL=sso@doneisbetter.com
 ```
 
@@ -161,10 +168,22 @@ ADMIN_DEV_ROLE=super-admin
 ADMIN_MAGIC_ALLOWED_EMAILS=<comma-separated-emails>
 MAGIC_TTL_SECONDS=900
 
+# Social login (optional)
+FACEBOOK_APP_ID=<facebook-app-id>
+FACEBOOK_APP_SECRET=<facebook-app-secret>
+FACEBOOK_REDIRECT_URI=https://sso.doneisbetter.com/api/auth/facebook/callback
+GOOGLE_CLIENT_ID=<google-client-id>
+GOOGLE_CLIENT_SECRET=<google-client-secret>
+GOOGLE_REDIRECT_URI=https://sso.doneisbetter.com/api/auth/google/callback
+
 # MongoDB timeouts
 MONGO_SERVER_SELECTION_TIMEOUT_MS=5000
 MONGO_CONNECT_TIMEOUT_MS=5000
 MONGO_SOCKET_TIMEOUT_MS=5000
+
+# Rate limiting
+RATE_LIMIT_LOGIN_MAX=5
+RATE_LIMIT_LOGIN_WINDOW=900000
 ```
 
 ### Generating Secrets
@@ -204,6 +223,39 @@ openssl rand -base64 32
 - `PATCH /api/admin/orgs/[orgId]/users/[id]` — Update org user
 - `DELETE /api/admin/orgs/[orgId]/users/[id]` — Delete org user
 
+### Public User Authentication (v5.28.0)
+- `POST /api/public/register` — Create new user account
+- `POST /api/public/login` — Authenticate user (email+password)
+- `POST /api/public/verify-pin` — Verify PIN during login (random 5th-10th login)
+- `POST /api/public/request-magic-link` — Request passwordless login
+- `GET /api/public/magic-login` — Consume magic link token
+- `POST /api/public/forgot-password` — Request password reset
+- `GET /api/public/session` — Check session status
+- `PATCH /api/public/profile` — Update user profile
+- `POST /api/public/change-password` — Change password
+- `DELETE /api/public/account` — Delete user account
+- `GET /api/public/authorizations` — List connected OAuth services
+- `DELETE /api/public/authorizations/[id]` — Revoke service access
+
+### Social Login (v5.26.0 Facebook, v5.27.0 Google)
+- `GET /api/auth/facebook/login` — Initiate Facebook OAuth
+- `GET /api/auth/facebook/callback` — Facebook OAuth callback
+- `GET /api/auth/google/login` — Initiate Google Sign-In
+- `GET /api/auth/google/callback` — Google OAuth callback
+
+### OAuth2/OIDC Server (v5.28.0)
+- `GET /api/oauth/authorize` — OAuth2 authorization endpoint
+- `POST /api/oauth/token` — Token exchange (authorization_code, refresh_token, client_credentials)
+- `POST /api/oauth/revoke` — Token revocation
+- `GET /api/oauth/logout` — Logout with redirect
+- `GET /api/oauth/userinfo` — OIDC user info endpoint
+- `GET /.well-known/openid-configuration` — OIDC discovery
+- `GET /.well-known/jwks.json` — Public keys for JWT verification
+- `GET /api/admin/oauth-clients` — List OAuth clients
+- `POST /api/admin/oauth-clients` — Create OAuth client
+- `PATCH /api/admin/oauth-clients/[clientId]` — Update client
+- `DELETE /api/admin/oauth-clients/[clientId]` — Delete client
+
 ### Resource Passwords
 - `POST /api/resource-passwords` — Generate/retrieve password + shareable link
   - Body: `{ resourceId, resourceType, regenerate?: boolean }`
@@ -211,7 +263,8 @@ openssl rand -base64 32
   - Body: `{ resourceId, resourceType, password }`
 
 ### Session Validation
-- `GET /api/sso/validate` — Validates admin cookie session, returns sanitized user info
+- `GET /api/sso/validate` — Validates admin OR public cookie session, returns sanitized user info
+- `GET /api/public/validate` — Validates public session (for subdomain SSO)
 
 ### Deprecated Endpoints
 These endpoints are no longer supported and should not be used:
@@ -329,6 +382,45 @@ This is idempotent and safe to run multiple times.
 }
 ```
 
+### publicUsers Collection (v5.28.0)
+```javascript
+{
+  id: string,              // UUID
+  _id: ObjectId,
+  email: string,           // Lowercase, unique
+  name: string,
+  passwordHash: string,    // bcrypt hash (optional - social login only users may not have)
+  status: 'active'|'disabled',
+  emailVerified: boolean,
+  
+  // Social login providers (v5.26.0 Facebook, v5.27.0 Google)
+  socialProviders: {
+    facebook: {
+      id: string,
+      email: string,
+      name: string,
+      picture: string,
+      linkedAt: string,    // ISO 8601 UTC with milliseconds
+      lastLoginAt: string
+    },
+    google: {
+      id: string,
+      email: string,
+      name: string,
+      picture: string,
+      emailVerified: boolean,
+      linkedAt: string,
+      lastLoginAt: string
+    }
+  },
+  
+  createdAt: string,       // ISO 8601 UTC with milliseconds
+  updatedAt: string,
+  lastLoginAt: string,
+  loginCount: number       // For PIN verification trigger (5th-10th login)
+}
+```
+
 ### resourcePasswords Collection
 ```javascript
 {
@@ -343,15 +435,55 @@ This is idempotent and safe to run multiple times.
 }
 ```
 
+### oauthClients Collection (v5.28.0)
+```javascript
+{
+  client_id: string,       // UUID
+  client_secret: string,   // bcrypt hash
+  name: string,
+  redirect_uris: string[], // Allowed redirect URIs
+  allowed_scopes: string[],// openid, profile, email, etc.
+  grant_types: string[],   // authorization_code, refresh_token, client_credentials
+  require_pkce: boolean,   // Enforce PKCE for this client
+  status: 'active'|'disabled',
+  created_at: string,      // ISO 8601 UTC with milliseconds
+  updated_at: string
+}
+```
+
+### appPermissions Collection (v5.28.0)
+```javascript
+{
+  userId: string,          // UUID reference to publicUsers
+  clientId: string,        // UUID reference to oauthClients
+  hasAccess: boolean,
+  role: 'user'|'admin'|'superadmin',
+  status: 'pending'|'approved'|'revoked',
+  grantedAt: string|null,  // ISO 8601 UTC with milliseconds
+  grantedBy: string|null,  // UUID of admin who granted
+  revokedAt: string|null,
+  revokedBy: string|null
+}
+```
+
 ---
 
 ## Security and CORS
 
-### Admin Session Cookie
+### Admin Session Cookie (v5.26.0 Hardened)
 - **Name**: Configured via `ADMIN_SESSION_COOKIE` (default: `admin-session`)
 - **Attributes**: HttpOnly, SameSite=Lax, Secure (production only)
 - **Format**: Base64-encoded JSON containing `{ token, expiresAt, userId, role }`
-- **Lifetime**: 7 days (configurable)
+- **Lifetime**: 4 hours (reduced from 7 days for security)
+- **Device Fingerprinting**: SHA-256 of IP + User-Agent (detects session hijacking)
+- **Sliding Expiration**: Extends on activity
+
+### Public Session Cookie
+- **Name**: Configured via `PUBLIC_SESSION_COOKIE` (default: `public-session`)
+- **Attributes**: HttpOnly, SameSite=Lax/None, Secure (production only)
+- **Format**: SHA-256 hashed token stored in MongoDB `publicSessions` collection
+- **Lifetime**: 30 days with sliding expiration
+- **Subdomain SSO**: Domain=.doneisbetter.com enables SSO across subdomains
 
 ### Admin Bypass
 Resource password validation automatically passes when a valid admin session is present. This is server-side only and cannot be bypassed by clients.
@@ -361,14 +493,38 @@ Resource password validation automatically passes when a valid admin session is 
 - Credentials: `true` (cookies allowed)
 - Configured in `vercel.json` and `lib/cors.mjs`
 
-### Password Format
-Passwords are **32-character lowercase hex strings** (MD5-style convention), NOT bcrypt hashes. This is a project-specific convention for token-based authentication.
+### Password Formats
+**Admin passwords** are **32-character lowercase hex strings** (MD5-style convention), NOT bcrypt hashes:
 
 ```javascript
-// Generate password
+// Generate admin password
 import { randomBytes } from 'crypto'
 const password = randomBytes(16).toString('hex') // 32-hex string
 ```
+
+**Public user passwords** use bcrypt hashing (12 rounds):
+
+```javascript
+// Hash public user password
+import bcrypt from 'bcryptjs'
+const passwordHash = await bcrypt.hash(password, 12)
+```
+
+### Account Linking (v5.28.0)
+Automatic account linking by email address:
+- Users can login with Email+Password, Facebook, Google, or Magic Link
+- **One person, one email = one account**
+- System automatically merges accounts with same email
+- Smart registration adds password to existing social-only accounts
+- Helpful error messages guide users to correct login method
+- Account dashboard shows all linked login methods
+
+### Security Hardening (v5.26.0 - 5 Layers)
+1. **Rate Limiting**: 3 admin login attempts/15min, 20 mutations/min, 100 queries/min
+2. **Security Headers**: X-Frame-Options, CSP, HSTS, Permissions-Policy via Edge Middleware
+3. **Input Validation**: Zod type-safe validation on all endpoints
+4. **Session Security**: 4-hour timeout, device fingerprinting, sliding expiration
+5. **Audit Logging**: Comprehensive audit trail in MongoDB with before/after state tracking
 
 ---
 
@@ -498,4 +654,46 @@ A task is complete when:
 
 ---
 
-**Last Updated**: 2025-10-02T10:45:49.000Z by moldovancsaba
+**Last Updated**: 2025-12-21T14:00:00.000Z by moldovancsaba
+
+---
+
+## Recent Features (v5.26.0 - v5.28.0)
+
+### v5.28.0 - Unified Account Linking System
+- Automatic account linking across all authentication methods (Email+Password, Facebook, Google, Magic Link)
+- One person, one email = one account
+- Smart registration (adds password to social-only accounts instead of rejecting)
+- Enhanced login error messages (guides users to correct method)
+- Account dashboard with linked login methods display
+- Migration tool for merging duplicate accounts
+- Comprehensive documentation: `docs/ACCOUNT_LINKING.md`
+
+### v5.27.0 - Google Sign-In Integration
+- Google OAuth 2.0 implementation
+- Automatic account linking by email
+- Google profile pictures in admin dashboard
+- Full OAuth flow preservation
+- Setup guide: `docs/GOOGLE_LOGIN_SETUP.md`
+
+### v5.26.0 - Enterprise Security Hardening
+- 5-layer defense-in-depth architecture
+- Enhanced rate limiting for admin endpoints
+- Security headers via Next.js Edge Middleware
+- Zod input validation
+- Session hardening (4-hour timeout, device fingerprinting)
+- Comprehensive audit logging in MongoDB
+
+### v5.26.0 - Facebook Login Integration
+- Facebook OAuth 2.0 implementation
+- Automatic account linking by email
+- Social provider data storage
+- Facebook users in admin dashboard
+
+### v5.25.0 - Multi-App Permission System
+- Centralized permission management across OAuth apps
+- Per-app role-based access control (user/admin/superadmin)
+- Admin UI for permission management
+- Bidirectional permission APIs
+- Client credentials OAuth grant
+- Audit logging for all permission changes
