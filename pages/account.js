@@ -87,6 +87,11 @@ export default function AccountPage({ initialUser }) {
   const [deleteConfirmEmail, setDeleteConfirmEmail] = useState('')
   const [deleteLoading, setDeleteLoading] = useState(false)
   const [deleteError, setDeleteError] = useState('')
+  
+  // Account unlinking
+  const [unlinkingProvider, setUnlinkingProvider] = useState(null)
+  const [unlinkLoading, setUnlinkLoading] = useState(false)
+  const [unlinkError, setUnlinkError] = useState('')
 
   // WHAT: Initialize profile data from server-provided user
   // WHY: Server already validated session, no need to check again
@@ -224,6 +229,50 @@ export default function AccountPage({ initialUser }) {
     }
   }
 
+  // Handle account unlinking
+  const handleUnlinkProvider = async (provider) => {
+    const providerName = provider === 'password' ? 'Email+Password' : provider.charAt(0).toUpperCase() + provider.slice(1)
+    
+    // WHAT: Check if this is the last login method
+    // WHY: Prevent account lockout
+    const methodsCount = user.loginMethods?.length || 0
+    if (methodsCount <= 1) {
+      alert('Cannot unlink - you must have at least one login method')
+      return
+    }
+    
+    if (!confirm(`Unlink ${providerName}? You can re-link it later by logging in with ${providerName}.`)) {
+      return
+    }
+    
+    setUnlinkingProvider(provider)
+    setUnlinkLoading(true)
+    setUnlinkError('')
+    
+    try {
+      const res = await fetch(`/api/public/account/unlink/${provider}`, {
+        method: 'DELETE',
+        credentials: 'include'
+      })
+      
+      const data = await res.json()
+      
+      if (res.ok) {
+        // Refresh page to show updated login methods
+        window.location.reload()
+      } else {
+        setUnlinkError(data.details || data.error || 'Failed to unlink')
+        setUnlinkingProvider(null)
+      }
+    } catch (err) {
+      console.error('Unlink error:', err)
+      setUnlinkError('Connection error')
+      setUnlinkingProvider(null)
+    } finally {
+      setUnlinkLoading(false)
+    }
+  }
+
   // Handle account deletion
   const handleDeleteAccount = async () => {
     if (deleteConfirmEmail.toLowerCase().trim() !== user.email.toLowerCase()) {
@@ -311,15 +360,37 @@ export default function AccountPage({ initialUser }) {
                   borderRadius: '8px',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '8px',
+                  justifyContent: 'space-between',
+                  gap: '12px',
                   background: '#f0f4ff',
-                  fontSize: '14px'
+                  fontSize: '14px',
+                  minWidth: '240px'
                 }}>
-                  <span style={{ fontSize: '18px' }}>✉️</span>
-                  <div>
-                    <div style={{ fontWeight: '600', color: '#667eea' }}>Email + Password</div>
-                    <div style={{ fontSize: '12px', color: '#666' }}>Linked ✓</div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ fontSize: '18px' }}>✉️</span>
+                    <div>
+                      <div style={{ fontWeight: '600', color: '#667eea' }}>Email + Password</div>
+                      <div style={{ fontSize: '12px', color: '#666' }}>Linked ✓</div>
+                    </div>
                   </div>
+                  <button
+                    onClick={() => handleUnlinkProvider('password')}
+                    disabled={unlinkLoading || (user.loginMethods?.length || 0) <= 1}
+                    title={(user.loginMethods?.length || 0) <= 1 ? 'Cannot unlink - at least one method required' : 'Unlink Email+Password'}
+                    style={{
+                      padding: '6px 12px',
+                      fontSize: '12px',
+                      fontWeight: '600',
+                      color: (user.loginMethods?.length || 0) <= 1 ? '#999' : '#d32f2f',
+                      background: 'white',
+                      border: `1px solid ${(user.loginMethods?.length || 0) <= 1 ? '#ddd' : '#d32f2f'}`,
+                      borderRadius: '4px',
+                      cursor: (unlinkLoading || (user.loginMethods?.length || 0) <= 1) ? 'not-allowed' : 'pointer',
+                      opacity: (user.loginMethods?.length || 0) <= 1 ? 0.5 : 1
+                    }}
+                  >
+                    {unlinkingProvider === 'password' ? 'Unlinking...' : 'Unlink'}
+                  </button>
                 </div>
               ) : (
                 <div style={{
@@ -348,15 +419,37 @@ export default function AccountPage({ initialUser }) {
                   borderRadius: '8px',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '8px',
+                  justifyContent: 'space-between',
+                  gap: '12px',
                   background: '#e7f3ff',
-                  fontSize: '14px'
+                  fontSize: '14px',
+                  minWidth: '240px'
                 }}>
-                  <span style={{ fontSize: '18px' }}>📘</span>
-                  <div>
-                    <div style={{ fontWeight: '600', color: '#1877f2' }}>Facebook</div>
-                    <div style={{ fontSize: '12px', color: '#666' }}>Linked ✓</div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ fontSize: '18px' }}>📘</span>
+                    <div>
+                      <div style={{ fontWeight: '600', color: '#1877f2' }}>Facebook</div>
+                      <div style={{ fontSize: '12px', color: '#666' }}>Linked ✓</div>
+                    </div>
                   </div>
+                  <button
+                    onClick={() => handleUnlinkProvider('facebook')}
+                    disabled={unlinkLoading || (user.loginMethods?.length || 0) <= 1}
+                    title={(user.loginMethods?.length || 0) <= 1 ? 'Cannot unlink - at least one method required' : 'Unlink Facebook'}
+                    style={{
+                      padding: '6px 12px',
+                      fontSize: '12px',
+                      fontWeight: '600',
+                      color: (user.loginMethods?.length || 0) <= 1 ? '#999' : '#d32f2f',
+                      background: 'white',
+                      border: `1px solid ${(user.loginMethods?.length || 0) <= 1 ? '#ddd' : '#d32f2f'}`,
+                      borderRadius: '4px',
+                      cursor: (unlinkLoading || (user.loginMethods?.length || 0) <= 1) ? 'not-allowed' : 'pointer',
+                      opacity: (user.loginMethods?.length || 0) <= 1 ? 0.5 : 1
+                    }}
+                  >
+                    {unlinkingProvider === 'facebook' ? 'Unlinking...' : 'Unlink'}
+                  </button>
                 </div>
               ) : (
                 <div style={{
@@ -385,15 +478,37 @@ export default function AccountPage({ initialUser }) {
                   borderRadius: '8px',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '8px',
+                  justifyContent: 'space-between',
+                  gap: '12px',
                   background: '#ffebee',
-                  fontSize: '14px'
+                  fontSize: '14px',
+                  minWidth: '240px'
                 }}>
-                  <span style={{ fontSize: '18px' }}>🔍</span>
-                  <div>
-                    <div style={{ fontWeight: '600', color: '#db4437' }}>Google</div>
-                    <div style={{ fontSize: '12px', color: '#666' }}>Linked ✓</div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ fontSize: '18px' }}>🔍</span>
+                    <div>
+                      <div style={{ fontWeight: '600', color: '#db4437' }}>Google</div>
+                      <div style={{ fontSize: '12px', color: '#666' }}>Linked ✓</div>
+                    </div>
                   </div>
+                  <button
+                    onClick={() => handleUnlinkProvider('google')}
+                    disabled={unlinkLoading || (user.loginMethods?.length || 0) <= 1}
+                    title={(user.loginMethods?.length || 0) <= 1 ? 'Cannot unlink - at least one method required' : 'Unlink Google'}
+                    style={{
+                      padding: '6px 12px',
+                      fontSize: '12px',
+                      fontWeight: '600',
+                      color: (user.loginMethods?.length || 0) <= 1 ? '#999' : '#d32f2f',
+                      background: 'white',
+                      border: `1px solid ${(user.loginMethods?.length || 0) <= 1 ? '#ddd' : '#d32f2f'}`,
+                      borderRadius: '4px',
+                      cursor: (unlinkLoading || (user.loginMethods?.length || 0) <= 1) ? 'not-allowed' : 'pointer',
+                      opacity: (user.loginMethods?.length || 0) <= 1 ? 0.5 : 1
+                    }}
+                  >
+                    {unlinkingProvider === 'google' ? 'Unlinking...' : 'Unlink'}
+                  </button>
                 </div>
               ) : (
                 <div style={{
@@ -414,6 +529,21 @@ export default function AccountPage({ initialUser }) {
                 </div>
               )}
             </div>
+            
+            {/* Unlink Error Message */}
+            {unlinkError && (
+              <div style={{
+                marginTop: '1rem',
+                background: '#fee',
+                border: '1px solid #fcc',
+                borderRadius: '6px',
+                padding: '10px',
+                color: '#c33',
+                fontSize: '13px'
+              }}>
+                {unlinkError}
+              </div>
+            )}
             
             <p style={{ margin: 0, marginTop: '1rem', fontSize: '12px', color: '#999' }}>
               💡 Tip: Link multiple login methods to the same account by using the same email address when logging in
