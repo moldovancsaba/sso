@@ -87,6 +87,52 @@ node tools/backfill-user-uuids.mjs
 
 ---
 
+## CRITICAL: Industry Standards Only
+
+**MANDATORY**: This project MUST use industry-standard practices ONLY. No custom implementations, no reinventing wheels, no creative solutions that deviate from established standards.
+
+### Database
+- **ONLY MongoDB Atlas production database** - NO local databases, NO development databases, NO test databases
+- Production Vercel environment variables are the SINGLE SOURCE OF TRUTH
+- All scripts, tests, and operations MUST use production database connection
+- Local `.env` files are for reference only - Vercel production is authoritative
+
+### OAuth & Authentication
+- **ONLY standard OAuth 2.0 scopes**: `openid`, `profile`, `email`, `offline_access`
+- NO custom scopes (e.g., `admin:users`, `admin:settings`) unless explicitly defined in OAuth 2.0 / OpenID Connect specifications
+- Use RFC 6749 (OAuth 2.0) and RFC 7636 (PKCE) standards strictly
+- Session management follows standard JWT/cookie patterns
+
+### API Design
+- RESTful endpoints following HTTP standards (RFC 7231)
+- Standard HTTP status codes (200, 201, 400, 401, 403, 404, 500)
+- JSON responses following JSON API or HAL standards
+- Standard authentication headers (Authorization: Bearer)
+
+### Code & Architecture
+- Follow Next.js official patterns and best practices
+- Use standard npm packages - avoid custom implementations of standard features
+- Follow MongoDB official driver patterns
+- Use bcrypt for passwords, not custom hashing
+- ISO 8601 for timestamps, not custom formats
+- UUID v4 for IDs, not custom ID generation
+
+### UI & UX
+- Follow established design systems (Material Design, Apple HIG, or similar)
+- Standard form validation patterns
+- Standard error messages and user feedback
+- Accessibility standards (WCAG 2.1 Level AA minimum)
+
+### Variable Naming
+- camelCase for JavaScript/TypeScript
+- snake_case for database fields (MongoDB convention)
+- UPPER_SNAKE_CASE for environment variables
+- Standard naming from industry (userId, email, createdAt, etc.)
+
+**VIOLATION POLICY**: Any deviation from industry standards must be explicitly justified and documented. If a standard exists, USE IT.
+
+---
+
 ## Critical Patterns
 
 ### Database Connection
