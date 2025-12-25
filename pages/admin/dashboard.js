@@ -18,7 +18,9 @@ export default function AdminDashboard() {
 
   async function checkSession() {
     try {
-      const res = await fetch('/api/sso/validate', { credentials: 'include' })
+      // WHAT: Check ADMIN session only (not public session)
+      // WHY: Admin dashboard should only accept admin sessions
+      const res = await fetch('/api/admin/session', { credentials: 'include' })
       if (res.ok) {
         const data = await res.json()
         if (data?.isValid) {
