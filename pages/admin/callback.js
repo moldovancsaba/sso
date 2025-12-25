@@ -37,6 +37,8 @@ export default function AdminCallbackPage() {
     // HOW: Call our backend endpoint that handles token exchange + session creation
     async function completeLogin() {
       try {
+        console.log('[Admin Callback] Starting login completion with code:', code.substring(0, 8) + '...')
+        
         const response = await fetch('/api/admin/complete-oauth-login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -44,16 +46,24 @@ export default function AdminCallbackPage() {
           credentials: 'include', // Important: include cookies
         })
 
+        console.log('[Admin Callback] Response status:', response.status)
+
         if (!response.ok) {
-          const data = await response.json()
-          setError(data.error || 'Failed to complete login')
+          const data = await response.json().catch(() => ({ error: 'Unknown error' }))
+          console.error('[Admin Callback] Error response:', data)
+          setError(data.error || `Failed to complete login (${response.status})`)
           setLoading(false)
           return
         }
 
+        const data = await response.json()
+        console.log('[Admin Callback] Success:', data)
+
         // Session created successfully - redirect to dashboard
+        console.log('[Admin Callback] Redirecting to dashboard')
         router.push('/admin/dashboard')
       } catch (err) {
+        console.error('[Admin Callback] Exception:', err)
         setError('Network error: ' + err.message)
         setLoading(false)
       }

@@ -19,12 +19,21 @@ import { validateAndConsumeCode } from '../../../lib/oauth/codes.mjs'
 import { createPublicSession } from '../../../lib/publicSessions.mjs'
 import logger from '../../../lib/logger.mjs'
 import cookie from 'cookie'
+import { runCors } from '../../../lib/cors.mjs'
 
 export default async function handler(req, res) {
+  // Apply CORS
+  if (runCors(req, res)) return
+
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST')
     return res.status(405).json({ error: 'Method not allowed' })
   }
+
+  logger.info('Complete OAuth login request', {
+    event: 'admin_oauth_complete_start',
+    hasCode: !!req.body.code,
+  })
 
   const { code } = req.body
 
