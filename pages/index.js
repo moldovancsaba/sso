@@ -4,11 +4,11 @@ import styles from '../styles/home.module.css';
 
 export default function Home() {
   const [publicUser, setPublicUser] = useState(null);
+  const [hasAdminAccess, setHasAdminAccess] = useState(false);
 
   useEffect(() => {
-    // WHAT: Check ONLY public user session on homepage
-    // WHY: Homepage is for SSO service users, NOT system administrators
-    // NOTE: Admins have separate /admin portal, never shown on public pages
+    // WHAT: Check public user session and admin permissions
+    // WHY: Show admin button only if user has admin access
     (async () => {
       try {
         const publicRes = await fetch('/api/public/session', { credentials: 'include' });
@@ -16,6 +16,15 @@ export default function Home() {
           const data = await publicRes.json();
           if (data?.isValid) {
             setPublicUser(data.user);
+            
+            // WHAT: Check if user has admin access
+            // WHY: Show SSO Admin button conditionally
+            try {
+              const adminRes = await fetch('/api/admin/check-access', { credentials: 'include' });
+              if (adminRes.ok) {
+                setHasAdminAccess(true);
+              }
+            } catch {}
           }
         }
       } catch {}
@@ -37,6 +46,9 @@ export default function Home() {
             <p className={styles.sessionInfo}>Your session is active and secure.</p>
             <div className={styles.apiLinks}>
               <Link href="/account" className={styles.primaryButton}>My Account</Link>
+              {hasAdminAccess && (
+                <Link href="/admin" className={styles.adminButton}>SSO Admin</Link>
+              )}
               <Link href="/logout" className={styles.secondaryButton}>Logout</Link>
             </div>
           </div>

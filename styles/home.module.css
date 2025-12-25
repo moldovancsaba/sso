@@ -84,7 +84,8 @@
 }
 
 .primaryButton,
-.secondaryButton {
+.secondaryButton,
+.adminButton {
   padding: var(--space-3) var(--space-6);
   border-radius: var(--radius-md);
   font-weight: var(--font-semibold);
@@ -125,6 +126,21 @@
 }
 
 .secondaryButton:active {
+  transform: translateY(0);
+}
+
+.adminButton {
+  background: linear-gradient(135deg, #c77700 0%, #ff9500 100%);
+  color: var(--text-inverse);
+  box-shadow: 0 4px 12px rgba(199, 119, 0, 0.3);
+}
+
+.adminButton:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(199, 119, 0, 0.4);
+}
+
+.adminButton:active {
   transform: translateY(0);
 }
 
@@ -191,7 +207,8 @@
   }
 
   .primaryButton,
-  .secondaryButton {
+  .secondaryButton,
+  .adminButton {
     width: 100%;
     text-align: center;
   }
