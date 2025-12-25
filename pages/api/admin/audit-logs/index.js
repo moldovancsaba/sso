@@ -8,8 +8,8 @@ import { requireUnifiedAdmin } from '../../../../lib/auth.mjs'
 import { getAuditLogs, getAuditStats } from '../../../../lib/auditLog.mjs'
 
 export default async function handler(req, res) {
-  const admin = await getAdminUser(req)
-  if (!admin) return res.status(401).json({ error: 'Unauthorized' })
+  const admin = await requireUnifiedAdmin(req, res)
+  if (!admin) return // requireUnifiedAdmin already sent error response
 
   if (req.method === 'GET') {
     try {

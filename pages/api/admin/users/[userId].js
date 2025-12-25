@@ -10,8 +10,8 @@ import { auditLog } from '../../../../lib/adminHelpers.mjs'
 import { AuditAction } from '../../../../lib/auditLog.mjs'
 
 export default async function handler(req, res) {
-  const admin = await getAdminUser(req)
-  if (!admin) return res.status(401).json({ error: 'Unauthorized' })
+  const admin = await requireUnifiedAdmin(req, res)
+  if (!admin) return // requireUnifiedAdmin already sent error response
 
   const { userId } = req.query || {}
   if (!userId) return res.status(400).json({ error: 'Missing userId' })
