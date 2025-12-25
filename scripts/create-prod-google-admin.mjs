@@ -1,37 +1,35 @@
 /**
- * Script to create an admin user that can login with Google OAuth
- * 
- * Usage: node scripts/create-google-admin.mjs
+ * Create admin user directly in PRODUCTION database (sso, not sso_database)
  */
 
 import dotenv from 'dotenv'
-import { getDb } from '../lib/db.mjs'
+import { MongoClient } from 'mongodb'
 import { randomUUID } from 'crypto'
 
-// Load environment variables
 dotenv.config()
 
+const MONGODB_URI = process.env.MONGODB_URI
 const ADMIN_EMAIL = 'moldovancsaba@gmail.com'
 const ADMIN_NAME = 'Csaba Moldovan'
 const ADMIN_ROLE = 'super-admin'
 
 async function createGoogleAdmin() {
+  const client = new MongoClient(MONGODB_URI)
+  
   try {
-    // IMPORTANT: Production uses database name 'sso', not 'sso_database'
-    // Override MONGODB_DB environment variable
-    const originalDbName = process.env.MONGODB_DB
-    process.env.MONGODB_DB = 'sso'
+    await client.connect()
     
-    const db = await getDb()
+    // CRITICAL: Use production database name 'sso', not local 'sso_database'
+    const db = client.db('sso')
     const usersCollection = db.collection('users')
     
-    console.log(`✅ Connected to database: ${db.databaseName}`)
+    console.log(`Connected to database: ${db.databaseName}`)
     
     // Check if user already exists
     const existing = await usersCollection.findOne({ email: ADMIN_EMAIL })
     
     if (existing) {
-      console.log('✅ Admin user already exists:')
+      console.log('✅ Admin user already exists in production:')
       console.log({
         id: existing.id,
         email: existing.email,
@@ -56,19 +54,20 @@ async function createGoogleAdmin() {
     
     await usersCollection.insertOne(adminUser)
     
-    console.log('✅ Admin user created successfully!')
+    console.log('✅ Admin user created in PRODUCTION database!')
     console.log({
       id: adminUser.id,
       email: adminUser.email,
       name: adminUser.name,
       role: adminUser.role,
     })
-    console.log('\n🔐 You can now login to /admin with your Google account')
+    console.log('\n🔐 You can now login to https://sso.doneisbetter.com/admin with your Google account')
     
   } catch (error) {
     console.error('❌ Error creating admin user:', error.message)
     process.exit(1)
   } finally {
+    await client.close()
     process.exit(0)
   }
 }
