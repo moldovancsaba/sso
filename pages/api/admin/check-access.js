@@ -16,11 +16,28 @@ export default async function handler(req, res) {
   }
 
   try {
+    console.log('[check-access] Starting admin access check')
+    console.log('[check-access] Cookie header:', req.headers.cookie ? 'present' : 'missing')
+    
+    if (req.headers.cookie) {
+      const cookies = req.headers.cookie.split(';').map(c => c.trim())
+      const publicSession = cookies.find(c => c.startsWith('public-session='))
+      console.log('[check-access] public-session cookie:', publicSession ? 'found' : 'NOT FOUND')
+    }
+    
     // WHAT: Check if user has admin access via unified system
     // WHY: Validates public session + checks appPermissions
     const result = await getPublicUserWithAdminCheck(req)
+    
+    console.log('[check-access] getPublicUserWithAdminCheck result:', result ? 'user found' : 'NO USER')
+    if (result) {
+      console.log('[check-access] User ID:', result.user?.id)
+      console.log('[check-access] User email:', result.user?.email)
+      console.log('[check-access] Admin permission:', result.adminPermission?.role)
+    }
 
     if (!result) {
+      console.log('[check-access] Returning 401 - no admin access')
       // WHAT: Return 401 if not logged in or no admin access
       // WHY: Frontend needs to know user needs to login
       return res.status(401).json({
