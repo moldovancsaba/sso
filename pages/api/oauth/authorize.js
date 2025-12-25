@@ -210,6 +210,45 @@ export default async function handler(req, res) {
     })
 
     const db = await getDb()
+    
+    // WHAT: Check appPermissions for internal/restricted clients (like admin dashboard)
+    // WHY: Some clients require explicit permission grants, not just user consent
+    // HOW: Query appPermissions - if client is internal, require approved permission
+    if (client.internal) {
+      const permission = await db.collection('appPermissions').findOne({
+        userId: user.id,
+        clientId: client_id,
+      })
+      
+      // WHAT: For internal clients, user MUST have explicit permission
+      // WHY: Admin dashboard should only be accessible to authorized users
+      if (!permission || !permission.hasAccess || permission.status !== 'approved') {
+        logger.warn('Authorization request: internal client access denied', {
+          client_id,
+          client_name: client.name,
+          user_id: user.id,
+          email: user.email,
+          has_permission: !!permission,
+          has_access: permission?.hasAccess,
+          status: permission?.status,
+        })
+        return respondWithError(
+          res,
+          redirect_uri,
+          state,
+          'access_denied',
+          'Admin access not granted'
+        )
+      }
+      
+      logger.info('Authorization request: internal client permission verified', {
+        client_id,
+        client_name: client.name,
+        user_id: user.id,
+        role: permission.role,
+      })
+    }
+    
     const existingConsent = await db.collection('userConsents').findOne({
       user_id: user.id,
       client_id,
