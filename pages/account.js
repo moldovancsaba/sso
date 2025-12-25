@@ -18,6 +18,7 @@ import styles from '../styles/home.module.css'
 export async function getServerSideProps(context) {
   const { getPublicUserFromRequest } = await import('../lib/publicSessions.mjs')
   const { getUserLoginMethods } = await import('../lib/accountLinking.mjs')
+  const { getDb } = await import('../lib/db.mjs')
   
   try {
     const user = await getPublicUserFromRequest(context.req)
@@ -32,9 +33,15 @@ export async function getServerSideProps(context) {
       }
     }
     
+    // WHAT: Get user WITH passwordHash to check login methods
+    // WHY: getPublicUserFromRequest() strips passwordHash for security,
+    //      but we need it to determine if Email+Password is linked
+    const db = await getDb()
+    const fullUser = await db.collection('publicUsers').findOne({ id: user.id })
+    
     // WHAT: Get user's linked login methods
     // WHY: Show user which login methods they can use (account linking feature)
-    const loginMethods = getUserLoginMethods(user)
+    const loginMethods = getUserLoginMethods(fullUser || user)
     
     // Pass user data to page
     return {
