@@ -187,8 +187,9 @@ async function handlePut(req, res) {
       })
     }
 
-    // WHAT: Validate role and status values
-    const validRoles = ['user', 'admin', 'superadmin']
+    // WHAT: Validate role and status values (aligned with SSO v5.28.0+ role system)
+    // WHY: guest/user/admin/owner hierarchy replaces old user/admin/superadmin
+    const validRoles = ['guest', 'user', 'admin', 'owner']
     const validStatuses = ['pending', 'approved', 'revoked']
 
     if (!validRoles.includes(role)) {
