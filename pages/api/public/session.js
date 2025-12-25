@@ -6,6 +6,7 @@
 
 import { getPublicUserFromRequest } from '../../../lib/publicSessions.mjs'
 import { runCors } from '../../../lib/cors.mjs'
+import { getUserLoginMethods } from '../../../lib/accountLinking.mjs'
 import logger from '../../../lib/logger.mjs'
 
 export default async function handler(req, res) {
@@ -31,6 +32,10 @@ export default async function handler(req, res) {
 
     // WHAT: Return sanitized user info (no sensitive data)
     // WHY: Client needs to know who is logged in but shouldn't see passwords, etc.
+    // WHAT: Include loginMethods array for account management UI
+    // WHY: Account page needs to show which login methods are linked
+    const loginMethods = getUserLoginMethods(user)
+    
     return res.status(200).json({
       isValid: true,
       user: {
@@ -40,6 +45,7 @@ export default async function handler(req, res) {
         role: user.role || 'user',
         status: user.status,
         emailVerified: user.emailVerified !== false, // Treat undefined as verified
+        loginMethods, // ['password', 'facebook', 'google']
       }
     })
   } catch (error) {
