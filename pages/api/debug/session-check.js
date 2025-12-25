@@ -26,9 +26,30 @@ export default async function handler(req, res) {
     
     // Check permission
     const db = await getDb()
+    
+    logger.info('Debug: Checking permission', {
+      userId: user.id,
+      clientId: 'sso-admin-dashboard',
+    })
+    
     const permission = await db.collection('appPermissions').findOne({
       userId: user.id,
       clientId: 'sso-admin-dashboard',
+    })
+    
+    logger.info('Debug: Permission query result', {
+      found: !!permission,
+      permission: permission,
+    })
+    
+    // Also try to find ANY permission for this user
+    const anyPermission = await db.collection('appPermissions').findOne({
+      userId: user.id,
+    })
+    
+    logger.info('Debug: Any permission for user', {
+      found: !!anyPermission,
+      anyPermission: anyPermission,
     })
     
     // Check all sessions for this user
@@ -49,6 +70,12 @@ export default async function handler(req, res) {
         role: permission.role,
         status: permission.status,
         clientId: permission.clientId,
+      } : null,
+      anyPermission: anyPermission ? {
+        hasAccess: anyPermission.hasAccess,
+        role: anyPermission.role,
+        status: anyPermission.status,
+        clientId: anyPermission.clientId,
       } : null,
       sessionCount: sessions.length,
       cookies: Object.keys(req.cookies || {}),
