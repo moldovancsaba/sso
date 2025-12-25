@@ -215,9 +215,30 @@ export default async function handler(req, res) {
     // WHY: Some clients require explicit permission grants, not just user consent
     // HOW: Query appPermissions - if client is internal, require approved permission
     if (client.internal) {
+      logger.info('Authorization request: checking internal client permission', {
+        client_id,
+        client_name: client.name,
+        user_id: user.id,
+        email: user.email,
+        client_internal: client.internal,
+      })
+      
       const permission = await db.collection('appPermissions').findOne({
         userId: user.id,
         clientId: client_id,
+      })
+      
+      logger.info('Authorization request: permission query result', {
+        client_id,
+        user_id: user.id,
+        found_permission: !!permission,
+        permission_data: permission ? {
+          userId: permission.userId,
+          clientId: permission.clientId,
+          hasAccess: permission.hasAccess,
+          status: permission.status,
+          role: permission.role,
+        } : null,
       })
       
       // WHAT: For internal clients, user MUST have explicit permission
@@ -231,6 +252,9 @@ export default async function handler(req, res) {
           has_permission: !!permission,
           has_access: permission?.hasAccess,
           status: permission?.status,
+          rejection_reason: !permission ? 'no_permission_record' : 
+            !permission.hasAccess ? 'hasAccess_false' : 
+            permission.status !== 'approved' ? `status_${permission.status}` : 'unknown',
         })
         return respondWithError(
           res,
