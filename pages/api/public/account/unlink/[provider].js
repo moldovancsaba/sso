@@ -10,6 +10,7 @@
 
 import { getPublicUserFromRequest } from '../../../../../lib/publicSessions.mjs'
 import { unlinkLoginMethod, removePassword, validateUnlinking, getUserLoginMethods } from '../../../../../lib/accountLinking.mjs'
+import { getDb } from '../../../../../lib/db.mjs'
 import { logAuditEvent, AuditAction } from '../../../../../lib/auditLog.mjs'
 import logger from '../../../../../lib/logger.mjs'
 
@@ -39,9 +40,19 @@ export default async function handler(req, res) {
       })
     }
 
+    // WHAT: Query DB directly to get full user object WITH passwordHash
+    // WHY: getPublicUserFromRequest() strips passwordHash for security,
+    //      but validateUnlinking() needs it to check if Email+Password is available
+    // CRITICAL: Without this, safety validation would fail and allow account lockout
+    const db = await getDb()
+    const fullUser = await db.collection('publicUsers').findOne({ id: user.id })
+    if (!fullUser) {
+      return res.status(404).json({ error: 'User not found' })
+    }
+
     // WHAT: Safety validation - prevent account lockout
     // WHY: User must always have at least one login method
-    const validation = validateUnlinking(user, provider)
+    const validation = validateUnlinking(fullUser, provider)
     if (!validation.valid) {
       return res.status(400).json({
         error: 'Cannot unlink',
@@ -50,7 +61,7 @@ export default async function handler(req, res) {
       })
     }
 
-    const currentMethods = getUserLoginMethods(user)
+    const currentMethods = getUserLoginMethods(fullUser)
     let updatedUser
 
     // WHAT: Call appropriate unlink function based on provider type
