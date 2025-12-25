@@ -3,7 +3,7 @@
  * WHAT: API endpoint to enable/disable PIN verification for login
  * WHY: Allow super-admins to toggle PIN verification without changing environment variables
  */
-import { requireAdmin } from '../../../../lib/auth.mjs'
+import { requireUnifiedAdmin } from '../../../../lib/auth.mjs'
 import { getDb } from '../../../../lib/db.mjs'
 
 const SETTINGS_COLLECTION = 'systemSettings'
@@ -57,9 +57,9 @@ async function updateSetting(key, value) {
 }
 
 export default async function handler(req, res) {
-  // WHAT: Verify admin authentication
-  // WHY: Only admins should be able to view/change system settings
-  const admin = await requireAdmin(req, res)
+  // WHAT: Verify admin authentication via unified system
+  // WHY: Only users with admin permissions should be able to view/change system settings
+  const admin = await requireUnifiedAdmin(req, res)
   if (!admin) return
   
   try {

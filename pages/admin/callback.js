@@ -7,7 +7,10 @@ import Link from 'next/link'
  * 
  * WHAT: Handles OAuth authorization code callback for admin dashboard
  * WHY: Complete the OAuth flow after user authorizes admin access
- * HOW: Exchange code for token, store session, redirect to dashboard
+ * HOW: Exchange code for token, create public session, redirect to dashboard
+ * 
+ * CRITICAL: This creates a public session cookie so the homepage
+ * can check admin status and show the SSO Admin button.
  */
 
 export default function AdminCallbackPage() {
@@ -29,11 +32,35 @@ export default function AdminCallbackPage() {
       return
     }
 
-    // WHAT: Code received - redirect to dashboard
-    // WHY: OAuth flow complete, user is authorized
-    // NOTE: The OAuth endpoint already created the session
-    router.push('/admin/dashboard')
-  }, [router.query])
+    // WHAT: Exchange authorization code for session
+    // WHY: Need to create public session cookie for homepage integration
+    // HOW: Call our backend endpoint that handles token exchange + session creation
+    async function completeLogin() {
+      try {
+        const response = await fetch('/api/admin/complete-oauth-login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code }),
+          credentials: 'include', // Important: include cookies
+        })
+
+        if (!response.ok) {
+          const data = await response.json()
+          setError(data.error || 'Failed to complete login')
+          setLoading(false)
+          return
+        }
+
+        // Session created successfully - redirect to dashboard
+        router.push('/admin/dashboard')
+      } catch (err) {
+        setError('Network error: ' + err.message)
+        setLoading(false)
+      }
+    }
+
+    completeLogin()
+  }, [router.query, router])
 
   if (error) {
     return (
