@@ -18,6 +18,7 @@
  */
 
 import { getPublicUserFromRequest } from '../../../lib/publicSessions.mjs'
+import { getAuthenticatedUser } from '../../../lib/unifiedAuth.mjs'
 import { getClient, validateRedirectUri, validateClientScopes } from '../../../lib/oauth/clients.mjs'
 import { validateScopes, ensureRequiredScopes } from '../../../lib/oauth/scopes.mjs'
 import { createAuthorizationCode } from '../../../lib/oauth/codes.mjs'
@@ -134,11 +135,12 @@ export default async function handler(req, res) {
       return respondWithError(res, redirect_uri, state, 'invalid_scope', 'One or more scopes not allowed for this client')
     }
 
-    // WHAT: Check if user is authenticated (public user session ONLY)
-    // WHY: OAuth flows should be isolated from admin sessions
-    // HOW: Only check public user session - admin UI is separate
-    // CRITICAL: Admin sessions must NOT interfere with public OAuth flows
-    const user = await getPublicUserFromRequest(req)
+    // WHAT: Check if user is authenticated (admin OR public session)
+    // WHY: Admin users need to access sso-admin-dashboard via OAuth too
+    // HOW: Use unified auth to check both admin and public sessions
+    // FIX: This prevents infinite redirect loop for admin dashboard access
+    const auth = await getAuthenticatedUser(req)
+    const user = auth ? auth.user : null
     
     // WHAT: Handle prompt=login - force re-authentication even if user has session
     // WHY: When user logs out from 3rd party app, they should be asked to login again
