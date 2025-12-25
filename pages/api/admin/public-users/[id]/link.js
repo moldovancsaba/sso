@@ -23,10 +23,8 @@ export default async function handler(req, res) {
   try {
     // WHAT: Verify admin authentication
     // WHY: Only admins should be able to manually link accounts
-    const admin = await getAdminUser(req)
-    if (!admin) {
-      return res.status(401).json({ error: 'Authentication required' })
-    }
+    const admin = await requireUnifiedAdmin(req, res)
+    if (!admin) return // requireUnifiedAdmin already sent error response
 
     const { id: userId } = req.query
     const { provider, providerData } = req.body

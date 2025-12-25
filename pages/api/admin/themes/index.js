@@ -14,10 +14,8 @@ export default async function handler(req, res) {
   try {
     // WHAT: Admin authentication required
     // WHY: Only admins can manage themes
-    const admin = await getAdminUser(req)
-    if (!admin) {
-      return res.status(401).json({ error: 'Unauthorized' })
-    }
+    const admin = await requireUnifiedAdmin(req, res)
+    if (!admin) return // requireUnifiedAdmin already sent error response
 
     const db = await getDb()
 
