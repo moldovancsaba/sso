@@ -16,6 +16,9 @@
 
 import { exchangeCodeForToken, getGoogleUserProfile, linkOrCreateUser } from '../../../../lib/google.mjs'
 import { createPublicSession, setPublicSessionCookie } from '../../../../lib/publicSessions.mjs'
+import { findUserByEmail } from '../../../../lib/users.mjs'
+import { createSession } from '../../../../lib/sessions.mjs'
+import { setAdminSessionCookie } from '../../../../lib/auth.mjs'
 import logger from '../../../../lib/logger.mjs'
 
 export default async function handler(req, res) {
@@ -42,18 +45,21 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'State parameter is required' })
     }
 
-    // WHAT: Decode state parameter to extract CSRF token and OAuth request
-    // WHY: State contains both CSRF protection and OAuth flow context
+    // WHAT: Decode state parameter to extract CSRF token, OAuth request, and admin login flag
+    // WHY: State contains CSRF protection, OAuth flow context, and admin login indicator
     let stateData
     let oauthRequest = null
+    let isAdminLogin = false
     try {
       const stateJson = Buffer.from(state, 'base64url').toString('utf-8')
       stateData = JSON.parse(stateJson)
       oauthRequest = stateData.oauth_request || null
+      isAdminLogin = stateData.admin_login === true
       
       logger.info('Google callback state decoded', {
         hasCsrf: !!stateData.csrf,
         hasOAuthRequest: !!oauthRequest,
+        isAdminLogin,
       })
     } catch (err) {
       logger.error('Failed to decode Google state', { error: err.message })
@@ -63,9 +69,17 @@ export default async function handler(req, res) {
     // TODO: Validate CSRF token (stateData.csrf) against session
     // For now, we just verify it exists
 
+    // WHAT: Determine redirect URI based on environment
+    // WHY: Must match the redirect URI used in the authorization request
+    const host = req.headers.host || ''
+    const protocol = host.includes('localhost') ? 'http' : 'https'
+    const redirectUri = host.includes('localhost') 
+      ? `${protocol}://${host}/api/auth/google/callback`
+      : process.env.GOOGLE_REDIRECT_URI
+
     // WHAT: Exchange authorization code for access token
     // WHY: Need access token to fetch user profile from Google
-    const tokenData = await exchangeCodeForToken(code)
+    const tokenData = await exchangeCodeForToken(code, redirectUri)
     
     if (!tokenData.access_token) {
       throw new Error('Failed to obtain access token from Google')
@@ -80,6 +94,58 @@ export default async function handler(req, res) {
       return res.redirect(`/?error=google_no_email&message=${encodeURIComponent('Google account must have a verified email address')}`)
     }
 
+    // WHAT: Check if this is an admin login attempt
+    // WHY: Allow admin users to login with Google OAuth
+    if (isAdminLogin) {
+      // Check if the Google email matches an admin user
+      const adminUser = await findUserByEmail(googleProfile.email)
+      
+      if (!adminUser) {
+        logger.warn('Admin login attempt with non-admin Google account', {
+          email: googleProfile.email,
+          googleId: googleProfile.id,
+        })
+        return res.redirect('/admin?error=not_admin&message=' + encodeURIComponent('This Google account is not authorized for admin access'))
+      }
+      
+      // WHAT: Create admin session in MongoDB
+      // WHY: Track admin sessions with server-side management
+      const metadata = {
+        ip: req.headers['x-forwarded-for'] || req.connection?.remoteAddress || 'unknown',
+        userAgent: req.headers['user-agent'] || 'unknown',
+        loginMethod: 'google',
+      }
+      
+      const sessionData = await createSession(
+        adminUser.id,
+        adminUser.email,
+        adminUser.role,
+        4 * 60 * 60, // 4 hours
+        metadata
+      )
+      
+      // WHAT: Set admin session cookie
+      const tokenData = {
+        token: sessionData.token,
+        expiresAt: sessionData.expiresAt,
+        userId: adminUser.id,
+        role: adminUser.role,
+      }
+      const signedToken = Buffer.from(JSON.stringify(tokenData)).toString('base64')
+      setAdminSessionCookie(res, signedToken, 4 * 60 * 60)
+      
+      logger.info('Admin Google login successful', {
+        userId: adminUser.id,
+        email: adminUser.email,
+        role: adminUser.role,
+        googleId: googleProfile.id,
+      })
+      
+      // Redirect to admin dashboard
+      return res.redirect(302, '/admin/dashboard')
+    }
+    
+    // Regular public user login
     // WHAT: Link Google account to existing user or create new user
     // WHY: Maintain single user identity across login methods
     const { user, isNewUser } = await linkOrCreateUser(googleProfile)

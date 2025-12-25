@@ -6,6 +6,13 @@ import DocsLayout from '../../../components/DocsLayout';
 import styles from '../../../styles/docs.module.css';
 import packageJson from '../../../package.json';
 
+// WHAT: Disable SSG for this page to prevent NextRouter errors
+// WHY: DocsLayout uses useRouter() which requires runtime router context
+// HOW: getServerSideProps forces server-side rendering instead of static generation
+export async function getServerSideProps() {
+  return { props: {} }
+}
+
 export default function SecurityBestPractices() {
   return (
     <DocsLayout>

@@ -1,6 +1,12 @@
 import { useState } from 'react'
 import Link from 'next/link'
 
+// WHAT: Disable SSG for this page to prevent NextRouter errors during build
+// WHY: Admin pages should be server-rendered for security and dynamic content
+export async function getServerSideProps() {
+  return { props: {} }
+}
+
 export default function AdminForgotPassword() {
   const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(false)
