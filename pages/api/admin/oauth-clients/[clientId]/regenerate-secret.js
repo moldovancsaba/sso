@@ -16,7 +16,7 @@
  * - Existing refresh tokens remain valid (only token endpoint affected)
  */
 
-import { requireUnifiedAdmin } from '../../../../lib/auth.mjs'
+import { requireUnifiedAdmin } from '../../../../../lib/auth.mjs'
 import { regenerateClientSecret } from '../../../../../lib/oauth/clients.mjs'
 import logger from '../../../../../lib/logger.mjs'
 import { runCors } from '../../../../../lib/cors.mjs'

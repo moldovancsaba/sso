@@ -3,7 +3,7 @@
  * WHAT: Allows signing in with email only when ADMIN_DEV_BYPASS is enabled and not in production.
  * WHY: Speed up development without weakening production security.
  */
-import { setAdminSessionCookie, clearAdminSessionCookie } from '../../../../lib/auth.mjs'
+import { setAdminSessionCookie, clearAdminSessionCookie } from '../../../lib/auth.mjs'
 import { findUserByEmail, createUser, ensureUserUuid } from '../../../lib/users.mjs'
 import { generateMD5StylePassword } from '../../../lib/resourcePasswords.mjs'
 import { createSession } from '../../../lib/sessions.mjs'

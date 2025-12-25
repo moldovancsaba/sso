@@ -4,7 +4,7 @@
  * WHY: Production-ready authentication with brute force protection and session revocation.
  */
 import { findUserByEmail, ensureUserUuid } from '../../../lib/users.mjs'
-import { setAdminSessionCookie, clearAdminSessionCookie, getCookie, decodeSessionToken } from '../../../../lib/auth.mjs'
+import { setAdminSessionCookie, clearAdminSessionCookie, getCookie, decodeSessionToken } from '../../../lib/auth.mjs'
 import { createSession, revokeSession } from '../../../lib/sessions.mjs'
 import { logLoginSuccess, logLoginFailure, logLogout } from '../../../lib/logger.mjs'
 import { adminLoginRateLimiter } from '../../../lib/middleware/rateLimit.mjs'

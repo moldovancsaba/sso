@@ -8,7 +8,7 @@
 
 import { getAppPermission, updateAppPermission, deleteAppPermission } from '../../../../../../../lib/appPermissions.mjs'
 import { logPermissionChange } from '../../../../../../../lib/appAccessLogs.mjs'
-import { requireUnifiedAdmin } from '../../../../lib/auth.mjs'
+import { requireUnifiedAdmin } from '../../../../../../../lib/auth.mjs'
 import { getDb } from '../../../../../../../lib/db.mjs'
 import logger from '../../../../../../../lib/logger.mjs'
 
