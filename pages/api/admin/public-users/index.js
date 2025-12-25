@@ -5,7 +5,7 @@
  * WHY: Admins need to view and manage registered users
  */
 
-import { getAdminUser } from '../../../../lib/auth.mjs'
+import { requireUnifiedAdmin } from '../../../../lib/auth.mjs'
 import { getDb } from '../../../../lib/db.mjs'
 import logger from '../../../../lib/logger.mjs'
 

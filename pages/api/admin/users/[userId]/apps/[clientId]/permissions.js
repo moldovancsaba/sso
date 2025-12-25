@@ -8,7 +8,7 @@
 
 import { getAppPermission, updateAppPermission, deleteAppPermission } from '../../../../../../../lib/appPermissions.mjs'
 import { logPermissionChange } from '../../../../../../../lib/appAccessLogs.mjs'
-import { getAdminUser } from '../../../../../../../lib/auth.mjs'
+import { requireUnifiedAdmin } from '../../../../lib/auth.mjs'
 import { getDb } from '../../../../../../../lib/db.mjs'
 import logger from '../../../../../../../lib/logger.mjs'
 
@@ -59,13 +59,8 @@ export default async function handler(req, res) {
 
     // WHAT: Validate admin session
     // WHY: Only authenticated admins can modify permissions
-    const adminUser = await getAdminUser(req)
-    if (!adminUser) {
-      return res.status(401).json({
-        error: 'Unauthorized',
-        message: 'Valid admin session required',
-      })
-    }
+    const adminUser = await requireUnifiedAdmin(req, res)
+
 
     // WHAT: Get full admin user details from database
     // WHY: Need to check isSsoSuperadmin flag

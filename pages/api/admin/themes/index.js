@@ -7,7 +7,7 @@
  */
 
 import { getDb } from '../../../../lib/db.mjs'
-import { getAdminUser } from '../../../../lib/auth.mjs'
+import { requireUnifiedAdmin } from '../../../../lib/auth.mjs'
 import { getAllThemes, createTheme, validateTheme } from '../../../../lib/styleThemes.mjs'
 
 export default async function handler(req, res) {

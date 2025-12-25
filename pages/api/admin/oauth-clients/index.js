@@ -8,7 +8,7 @@
  * Authorization: super-admin for POST, admin for GET
  */
 
-import { getAdminUser } from '../../../../lib/auth.mjs'
+import { requireUnifiedAdmin } from '../../../../lib/auth.mjs'
 import { registerClient, listClients } from '../../../../lib/oauth/clients.mjs'
 import logger from '../../../../lib/logger.mjs'
 import { runCors } from '../../../../lib/cors.mjs'
@@ -17,12 +17,9 @@ export default async function handler(req, res) {
   // Apply CORS
   if (runCors(req, res)) return
 
-
-  // Authenticate admin user
-  const adminUser = await getAdminUser(req)
-  if (!adminUser) {
-    return res.status(401).json({ error: 'Unauthorized' })
-  }
+  // Authenticate admin user via unified system
+  const adminUser = await requireUnifiedAdmin(req, res)
+  if (!adminUser) return // requireUnifiedAdmin already sent 401/403
 
   try {
     if (req.method === 'GET') {

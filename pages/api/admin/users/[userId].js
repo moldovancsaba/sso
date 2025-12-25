@@ -3,7 +3,7 @@
  * WHAT: Manage individual users; role updates limited to super-admins.
  * WHY: Fine-grained admin user management aligned with DB-backed sessions.
  */
-import { getAdminUser } from '../../../../lib/auth.mjs'
+import { requireUnifiedAdmin } from '../../../../lib/auth.mjs'
 import { deleteUser, findUserById, updateUser, updateUserPassword } from '../../../../lib/users.mjs'
 import { generateMD5StylePassword } from '../../../../lib/resourcePasswords.mjs'
 import { auditLog } from '../../../../lib/adminHelpers.mjs'
