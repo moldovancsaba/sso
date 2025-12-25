@@ -12,34 +12,9 @@ import Link from 'next/link'
 import { useRouter } from 'next/router'
 import styles from '../../styles/home.module.css'
 
-// Server-side admin authentication check
-export async function getServerSideProps(context) {
-  const { getAdminUser } = await import('../../lib/auth.mjs')
-  
-  const admin = await getAdminUser(context.req)
-  
-  if (!admin) {
-    return {
-      redirect: {
-        destination: '/admin?redirect=/admin/users',
-        permanent: false
-      }
-    }
-  }
-  
-  return {
-    props: {
-      admin: {
-        id: admin.id,
-        email: admin.email,
-        role: admin.role
-      }
-    }
-  }
-}
-
-export default function AdminUsersPage({ admin }) {
+export default function AdminUsersPage() {
   const router = useRouter()
+  const [admin, setAdmin] = useState(null)
   const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
@@ -72,10 +47,35 @@ export default function AdminUsersPage({ admin }) {
   // WHY: Admin can unlink login methods from user accounts
   const [unlinkLoading, setUnlinkLoading] = useState(false)
 
-  // Fetch users
+  // Check session and fetch users
   useEffect(() => {
-    fetchUsers()
-  }, [filter, sortBy, sortOrder])
+    checkSession()
+  }, [])
+  
+  useEffect(() => {
+    if (admin) {
+      fetchUsers()
+    }
+  }, [filter, sortBy, sortOrder, admin])
+  
+  async function checkSession() {
+    try {
+      const res = await fetch('/api/sso/validate', { credentials: 'include' })
+      if (res.ok) {
+        const data = await res.json()
+        if (data?.isValid) {
+          setAdmin(data.user)
+        } else {
+          router.push('/admin')
+        }
+      } else {
+        router.push('/admin')
+      }
+    } catch (e) {
+      console.error('Session check error:', e)
+      router.push('/admin')
+    }
+  }
 
   // WHAT: Lifecycle management for app permissions
   // WHY: Fetch on modal open, clear on close to prevent stale/cross-user state
@@ -459,6 +459,15 @@ export default function AdminUsersPage({ admin }) {
     }
   }
 
+  // Show loading while checking session
+  if (!admin) {
+    return (
+      <div className={styles.container} style={{ paddingTop: '2rem', paddingBottom: '4rem', textAlign: 'center' }}>
+        <p>Loading...</p>
+      </div>
+    )
+  }
+
   return (
     <>
       <Head>
@@ -471,8 +480,8 @@ export default function AdminUsersPage({ admin }) {
           <div style={{ marginBottom: '2rem' }}>
             <h1 style={{ fontSize: '32px', fontWeight: 'bold', marginBottom: '8px' }}>User Management</h1>
             <p style={{ color: '#666', fontSize: '14px' }}>Manage all public users registered in the SSO system</p>
-            <Link href="/admin" style={{ fontSize: '13px', color: '#667eea', textDecoration: 'none' }}>
-              ← Back to Admin
+            <Link href="/admin/dashboard" style={{ fontSize: '13px', color: '#667eea', textDecoration: 'none' }}>
+              ← Back to Dashboard
             </Link>
           </div>
 
