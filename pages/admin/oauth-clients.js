@@ -73,6 +73,15 @@ export default function OAuthClientsPage() {
         throw new Error('At least one redirect URI is required')
       }
 
+      // Client-side URL validation
+      for (const uri of redirectUris) {
+        try {
+          new URL(uri)
+        } catch (err) {
+          throw new Error(`Invalid redirect URI: "${uri}" - Must be a valid URL (e.g., https://example.com/callback)`)
+        }
+      }
+
       // Parse scopes (space-separated)
       const allowedScopes = formData.allowed_scopes
         .split(/\s+/)
@@ -249,6 +258,15 @@ export default function OAuthClientsPage() {
         throw new Error('At least one redirect URI is required')
       }
 
+      // Client-side URL validation
+      for (const uri of redirectUris) {
+        try {
+          new URL(uri)
+        } catch (err) {
+          throw new Error(`Invalid redirect URI: "${uri}" - Must be a valid URL (e.g., https://example.com/callback)`)
+        }
+      }
+
       // Parse scopes (space-separated)
       const allowedScopes = formData.allowed_scopes
         .split(/\s+/)
@@ -325,7 +343,16 @@ export default function OAuthClientsPage() {
 
         {/* Message */}
         {message && (
-          <div style={{ marginBottom: '1rem', padding: '0.75rem', background: '#0e1733', border: '1px solid #24306b', borderRadius: 8, color: '#e6e8f2' }}>
+          <div style={{ 
+            marginBottom: '1rem', 
+            padding: '0.75rem', 
+            background: message.includes('Error') || message.includes('Failed') || message.includes('Invalid') ? '#2d1818' : '#0e1733', 
+            border: `1px solid ${message.includes('Error') || message.includes('Failed') || message.includes('Invalid') ? '#8b3333' : '#24306b'}`, 
+            borderRadius: 8, 
+            color: message.includes('Error') || message.includes('Failed') || message.includes('Invalid') ? '#ffb3b3' : '#e6e8f2',
+            whiteSpace: 'pre-wrap',
+            wordBreak: 'break-word'
+          }}>
             {message}
           </div>
         )}
@@ -370,7 +397,13 @@ export default function OAuthClientsPage() {
               </label>
 
               <label style={{ display: 'grid', gap: 6 }}>
-                <span style={{ fontSize: 12, opacity: 0.8, color: '#e6e8f2' }}>Redirect URIs * (one per line)</span>
+                <span style={{ fontSize: 12, opacity: 0.8, color: '#e6e8f2' }}>
+                  Redirect URIs * (one per line)
+                  <br />
+                  <span style={{ fontSize: 11, opacity: 0.6, color: '#e6e8f2' }}>
+                    Full URLs only. Example: https://example.com/auth/callback
+                  </span>
+                </span>
                 <textarea
                   value={formData.redirect_uris}
                   onChange={e => setFormData({ ...formData, redirect_uris: e.target.value })}
@@ -457,7 +490,13 @@ export default function OAuthClientsPage() {
               </label>
 
               <label style={{ display: 'grid', gap: 6 }}>
-                <span style={{ fontSize: 12, opacity: 0.8, color: '#e6e8f2' }}>Redirect URIs * (one per line)</span>
+                <span style={{ fontSize: 12, opacity: 0.8, color: '#e6e8f2' }}>
+                  Redirect URIs * (one per line)
+                  <br />
+                  <span style={{ fontSize: 11, opacity: 0.6, color: '#e6e8f2' }}>
+                    Full URLs only. Example: https://example.com/auth/callback
+                  </span>
+                </span>
                 <textarea
                   value={formData.redirect_uris}
                   onChange={e => setFormData({ ...formData, redirect_uris: e.target.value })}

@@ -3,10 +3,10 @@
  * WHAT: Allows signing in with email only when ADMIN_DEV_BYPASS is enabled and not in production.
  * WHY: Speed up development without weakening production security.
  */
-import crypto from 'crypto'
 import { setAdminSessionCookie, clearAdminSessionCookie } from '../../../lib/auth.mjs'
 import { findUserByEmail, createUser, ensureUserUuid } from '../../../lib/users.mjs'
 import { generateMD5StylePassword } from '../../../lib/resourcePasswords.mjs'
+import { createSession } from '../../../lib/sessions.mjs'
 
 function devBypassEnabled() {
   const flag = (process.env.ADMIN_DEV_BYPASS || '').toLowerCase()
@@ -39,17 +39,29 @@ export default async function handler(req, res) {
 
       user = await ensureUserUuid(user)
 
-      // Issue session cookie (7 days) — same shape as normal login
-      const token = crypto.randomBytes(32).toString('hex')
-      const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+      // Create session in database (stores hashed token, enables revocation)
+      const metadata = {
+        ip: req.headers['x-forwarded-for'] || req.socket?.remoteAddress || null,
+        userAgent: req.headers['user-agent'] || null,
+      }
+      
+      const sessionData = await createSession(
+        user.id,
+        user.email,
+        user.role || 'super-admin',
+        4 * 60 * 60, // 4 hours (consistent with security hardening)
+        metadata
+      )
+
+      // Create cookie with session token
       const tokenData = {
-        token,
-        expiresAt: expiresAt.toISOString(),
-        userId: user?.id,
-        role: user?.role || 'super-admin',
+        token: sessionData.token,
+        expiresAt: sessionData.expiresAt,
+        userId: user.id,
+        role: user.role || 'super-admin',
       }
       const signedToken = Buffer.from(JSON.stringify(tokenData)).toString('base64')
-      setAdminSessionCookie(res, signedToken, 7 * 24 * 60 * 60)
+      setAdminSessionCookie(res, signedToken, 4 * 60 * 60)
 
       return res.status(200).json({ success: true, devBypass: true, message: 'Dev bypass login successful' })
     } catch (error) {

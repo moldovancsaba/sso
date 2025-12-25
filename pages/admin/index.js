@@ -31,15 +31,21 @@ export default function AdminLoginPage() {
           }
         } else {
           setAdmin(null)
-          setMessage('No active admin session')
+          // Don't show error message - this is normal when not logged in
         }
+      } else if (res.status === 401) {
+        setAdmin(null)
+        // 401 is expected when not logged in - don't show error
       } else {
         setAdmin(null)
         setMessage(`Session check failed (${res.status})`)
       }
     } catch (e) {
       setAdmin(null)
-      setMessage(`Session check error: ${e?.message || 'unknown'}`)
+      // Don't show error on initial load - only show if there's a real error
+      if (e.message !== 'Failed to fetch') {
+        setMessage(`Session check error: ${e?.message || 'unknown'}`)
+      }
     }
   }
 
@@ -83,6 +89,13 @@ export default function AdminLoginPage() {
   useEffect(() => {
     checkSession()
   }, [])
+
+  // Redirect to dashboard if already logged in
+  useEffect(() => {
+    if (admin && !router.query.oauth_request) {
+      router.push('/admin/dashboard')
+    }
+  }, [admin, router.query.oauth_request])
 
   // WHAT: Check if there's an oauth_request parameter after login
   // WHY: When users are redirected to admin login during OAuth flow, 
@@ -216,6 +229,9 @@ export default function AdminLoginPage() {
               <Link href="/admin/users" style={{ padding: '0.5rem 0.75rem', background: '#c77700', color: 'white', borderRadius: 6, textDecoration: 'none', fontWeight: '600' }}>👥 Users</Link>
               <Link href="/admin/activity" style={{ padding: '0.5rem 0.75rem', background: '#6a1b9a', color: 'white', borderRadius: 6, textDecoration: 'none' }}>📊 Activity</Link>
               <Link href="/admin/oauth-clients" style={{ padding: '0.5rem 0.75rem', background: '#4054d6', color: 'white', borderRadius: 6, textDecoration: 'none' }}>OAuth Clients</Link>
+              {admin.role === 'super-admin' && (
+                <Link href="/admin/style-editor" style={{ padding: '0.5rem 0.75rem', background: '#e91e63', color: 'white', borderRadius: 6, textDecoration: 'none' }}>🎨 Style Editor</Link>
+              )}
               <Link href="/docs" style={{ padding: '0.5rem 0.75rem', background: '#1e895a', color: 'white', borderRadius: 6, textDecoration: 'none' }}>Docs</Link>
               <button onClick={handleLogout} disabled={loading} style={{ padding: '0.5rem 0.75rem', background: '#24306b', color: 'white', border: 0, borderRadius: 6, cursor: 'pointer' }}>Logout</button>
             </div>
@@ -296,12 +312,97 @@ export default function AdminLoginPage() {
                   {magicLinkLoading ? '✉️ Sending...' : '🔗 Login with Magic Link'}
                 </button>
 
+                {/* Google Login Button */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    const state = btoa(JSON.stringify({ csrf: Math.random().toString(36), admin_login: true })).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
+                    window.location.href = `/api/auth/google/login?state=${state}`
+                  }}
+                  disabled={loading}
+                  style={{
+                    width: '100%',
+                    padding: '0.65rem 0.75rem',
+                    background: 'white',
+                    color: '#444',
+                    border: '1px solid #dadce0',
+                    borderRadius: 6,
+                    cursor: loading ? 'not-allowed' : 'pointer',
+                    fontWeight: '500',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 8,
+                    opacity: loading ? 0.5 : 1
+                  }}
+                >
+                  <svg width="18" height="18" viewBox="0 0 18 18">
+                    <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/>
+                    <path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z"/>
+                    <path fill="#FBBC05" d="M3.964 10.707c-.18-.54-.282-1.117-.282-1.707s.102-1.167.282-1.707V4.961H.957C.347 6.175 0 7.55 0 9s.348 2.825.957 4.039l3.007-2.332z"/>
+                    <path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.961L3.964 7.293C4.672 5.163 6.656 3.58 9 3.58z"/>
+                  </svg>
+                  Continue with Google
+                </button>
+
                 {/* Forgot Password Link */}
                 <div style={{ textAlign: 'center', marginTop: 8 }}>
                   <Link href="/admin/forgot-password" style={{ fontSize: 12, color: '#8b9dc3', textDecoration: 'none' }}>
                     Forgot password?
                   </Link>
                 </div>
+
+                {/* Dev Login Button (only in development) */}
+                {process.env.NEXT_PUBLIC_ADMIN_DEV_BYPASS === 'true' && (
+                  <>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 16 }}>
+                      <div style={{ flex: 1, height: 1, background: '#22284a' }} />
+                      <span style={{ fontSize: 11, color: '#8b9dc3', opacity: 0.7 }}>DEV MODE</span>
+                      <div style={{ flex: 1, height: 1, background: '#22284a' }} />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        setLoading(true)
+                        setMessage('Using dev bypass...')
+                        try {
+                          const res = await fetch('/api/admin/dev-login', {
+                            method: 'POST',
+                            credentials: 'include',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ email: email || 'dev@admin.local' })
+                          })
+                          if (res.ok) {
+                            setMessage('Dev login successful! Refreshing...')
+                            // Reload page to show admin dashboard
+                            setTimeout(() => window.location.reload(), 500)
+                          } else {
+                            const data = await res.json()
+                            setMessage(data.error || 'Dev login failed')
+                          }
+                        } catch (err) {
+                          setMessage(err.message)
+                        } finally {
+                          setLoading(false)
+                        }
+                      }}
+                      disabled={loading}
+                      style={{
+                        width: '100%',
+                        padding: '0.65rem 0.75rem',
+                        background: '#2d5016',
+                        color: '#b8e986',
+                        border: '1px solid #4a7c27',
+                        borderRadius: 6,
+                        cursor: loading ? 'not-allowed' : 'pointer',
+                        fontWeight: '600',
+                        opacity: loading ? 0.5 : 1
+                      }}
+                    >
+                      🔓 Dev Login (Super Admin)
+                    </button>
+                  </>
+                )}
             </>
           </form>
         )}
