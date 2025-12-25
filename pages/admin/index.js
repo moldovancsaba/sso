@@ -19,7 +19,7 @@ export default function AdminLoginPage() {
       response_type: 'code',
       client_id: 'sso-admin-dashboard',
       redirect_uri: `${window.location.origin}/admin/callback`,
-      scope: 'openid profile email admin:users admin:clients admin:settings',
+      scope: 'openid profile email',
       state: Math.random().toString(36).substring(7),
     })
     
