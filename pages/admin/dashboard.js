@@ -42,7 +42,7 @@ export default function AdminDashboard() {
     try {
       // Load basic stats from APIs
       const [usersRes, clientsRes] = await Promise.all([
-        fetch('/api/admin/users', { credentials: 'include' }),
+        fetch('/api/admin/public-users', { credentials: 'include' }),
         fetch('/api/admin/oauth-clients', { credentials: 'include' }),
       ])
 
