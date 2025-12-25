@@ -6,7 +6,7 @@
  * HOW: Admin-only endpoint that allows viewing, granting, revoking, and updating user app permissions
  */
 
-import { requireAdmin } from '../../../../lib/auth.mjs'
+import { requireUnifiedAdmin } from '../../../../lib/auth.mjs'
 import { getAllClients } from '../../../../lib/oauth/clients.mjs'
 import {
   getUserAppPermissions,
@@ -22,10 +22,10 @@ import logger from '../../../../lib/logger.mjs'
  * All require admin authentication via HttpOnly cookie (Domain=.doneisbetter.com)
  */
 export default async function handler(req, res) {
-  // WHAT: Enforce admin authentication for all methods
+  // WHAT: Enforce admin authentication via unified system for all methods
   // WHY: Only SSO admins should manage cross-app permissions (security)
-  const adminUser = await requireAdmin(req, res)
-  if (!adminUser) return // requireAdmin already sent 401/403
+  const adminUser = await requireUnifiedAdmin(req, res)
+  if (!adminUser) return // requireUnifiedAdmin already sent 401/403
 
   const { userId } = req.query
 
