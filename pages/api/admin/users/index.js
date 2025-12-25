@@ -3,7 +3,7 @@
  * WHAT: Admin CRUD endpoint for users collection.
  * WHY: Manage admin accounts with roles and passwords (32-hex tokens).
  */
-import { getAdminUser } from '../../../../lib/auth.mjs'
+import { requireUnifiedAdmin } from '../../../../lib/auth.mjs'
 import { createUser, listUsers } from '../../../../lib/users.mjs'
 import { generateMD5StylePassword } from '../../../../lib/resourcePasswords.mjs'
 import { auditLog } from '../../../../lib/adminHelpers.mjs'

@@ -8,7 +8,7 @@
  * Security: Admin-only, same safety checks as user-initiated unlinking
  */
 
-import { getAdminUser } from '../../../../../../lib/auth.mjs'
+import { requireUnifiedAdmin } from '../../../../lib/auth.mjs'
 import { unlinkLoginMethod, removePassword, validateUnlinking, getUserLoginMethods } from '../../../../../../lib/accountLinking.mjs'
 import { getDb } from '../../../../../../lib/db.mjs'
 import { logAuditEvent, AuditAction } from '../../../../../../lib/auditLog.mjs'

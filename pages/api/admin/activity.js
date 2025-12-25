@@ -8,7 +8,7 @@
  * Features: Time range filtering, event type filtering, user search, app filtering, pagination
  */
 
-import { getAdminUser } from '../../../lib/auth.mjs'
+import { requireUnifiedAdmin } from '../../../../lib/auth.mjs'
 import { getDb } from '../../../lib/db.mjs'
 import logger from '../../../lib/logger.mjs'
 

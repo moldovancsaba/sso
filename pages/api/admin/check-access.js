@@ -8,7 +8,7 @@
  * HOW: Validate public session → check appPermissions for SSO Admin client
  */
 
-import { getPublicUserWithAdminCheck } from '../../../lib/auth.mjs'
+import { getPublicUserWithAdminCheck } from '../../../../lib/auth.mjs'
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') {

@@ -9,7 +9,7 @@
  * Authorization: super-admin required for PATCH/DELETE
  */
 
-import { getAdminUser } from '../../../../lib/auth.mjs'
+import { requireUnifiedAdmin } from '../../../../lib/auth.mjs'
 import { getClient, updateClient, deleteClient } from '../../../../lib/oauth/clients.mjs'
 import logger from '../../../../lib/logger.mjs'
 import { runCors } from '../../../../lib/cors.mjs'
@@ -19,10 +19,8 @@ export default async function handler(req, res) {
   if (runCors(req, res)) return
 
   // Authenticate admin user
-  const adminUser = await getAdminUser(req)
-  if (!adminUser) {
-    return res.status(401).json({ error: 'Unauthorized' })
-  }
+  const adminUser = await requireUnifiedAdmin(req, res)
+
 
   const { clientId } = req.query
 

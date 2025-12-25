@@ -4,7 +4,7 @@
  * WHY: Provides visibility into all admin actions and changes
  * HOW: Uses getAuditLogs with pagination and filtering
  */
-import { getAdminUser } from '../../../../lib/auth.mjs'
+import { requireUnifiedAdmin } from '../../../../lib/auth.mjs'
 import { getAuditLogs, getAuditStats } from '../../../../lib/auditLog.mjs'
 
 export default async function handler(req, res) {

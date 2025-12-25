@@ -5,7 +5,7 @@
  */
 import { consumeMagicToken } from '../../../lib/magic.mjs'
 import { findUserByEmail, ensureUserUuid } from '../../../lib/users.mjs'
-import { setAdminSessionCookie } from '../../../lib/auth.mjs'
+import { setAdminSessionCookie } from '../../../../lib/auth.mjs'
 import crypto from 'crypto'
 
 export default async function handler(req, res) {

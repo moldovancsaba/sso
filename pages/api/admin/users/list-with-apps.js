@@ -6,7 +6,7 @@
  * HOW: Joins users/publicUsers with appPermissions collection
  */
 
-import { getAdminUser } from '../../../../lib/auth.mjs'
+import { requireUnifiedAdmin } from '../../../../lib/auth.mjs'
 import { getUserAppPermissions } from '../../../../lib/appPermissions.mjs'
 import { getDb } from '../../../../lib/db.mjs'
 import logger from '../../../../lib/logger.mjs'
@@ -21,13 +21,8 @@ export default async function handler(req, res) {
   try {
     // WHAT: Validate admin session
     // WHY: Only authenticated admins can view user list
-    const adminUser = await getAdminUser(req)
-    if (!adminUser) {
-      return res.status(401).json({
-        error: 'Unauthorized',
-        message: 'Valid admin session required',
-      })
-    }
+    const adminUser = await requireUnifiedAdmin(req, res)
+
 
     // WHAT: Parse query parameters for pagination and filtering
     // WHY: Large user bases need pagination and search
