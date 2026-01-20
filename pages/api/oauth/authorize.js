@@ -40,6 +40,7 @@ export default async function handler(req, res) {
     redirect_uri,
     scope,
     state,
+    nonce, // OIDC nonce parameter: random value to prevent replay attacks
     code_challenge,
     code_challenge_method = 'S256',
     prompt, // OIDC prompt parameter: 'none', 'login', 'consent', 'select_account'
@@ -306,6 +307,7 @@ export default async function handler(req, res) {
         redirect_uri,
         scope: finalScope,
         state,
+        nonce, // Include nonce in consent request
         code_challenge,
         code_challenge_method,
         client_name: client.name,
@@ -325,6 +327,7 @@ export default async function handler(req, res) {
       user_id: user.id,
       redirect_uri,
       scope: finalScope,
+      nonce, // Store nonce with authorization code
       code_challenge,
       code_challenge_method,
     })
