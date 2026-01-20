@@ -47,34 +47,46 @@ Last updated: 2026-01-20T12:00:00.000Z
   - GET/PATCH/DELETE /api/admin/orgs/[orgId]/users/[id]
 
 5) Public Users (End-User Authentication)
-- Collection: publicUsers { id: uuid, email, name, password?, status: 'active'|'disabled', emailVerified: boolean, socialProviders?: { facebook?: {...}, google?: {...} }, createdAt, updatedAt, lastLoginAt }
+- Collection: publicUsers { id: uuid, email, name, password?, role: 'user'|'admin', status: 'active'|'disabled', emailVerified: boolean, socialProviders?: { facebook?: {...}, google?: {...} }, createdAt, updatedAt, lastLoginAt }
+- **Role Values**: `user` (default), `admin` (full access to all integrated apps)
 - Session: HttpOnly cookie 'public-session' (SHA-256 hashed token stored in publicSessions collection)
 - Authentication Methods:
   - Email + Password
   - Magic Link (passwordless)
+  - PIN Verification (6-digit code on 5th-10th login)
   - Facebook Login (OAuth 2.0)
+  - Google Sign-In (OAuth 2.0)
 - Endpoints:
   - POST /api/public/login — email/password login
   - POST /api/public/register — create account
   - POST /api/public/request-magic-link — request passwordless login link
   - GET /api/public/magic-login?token=... — consume magic link and login
+  - POST /api/public/verify-pin — verify 6-digit PIN
   - GET /api/auth/facebook/login — initiate Facebook OAuth
   - GET /api/auth/facebook/callback — Facebook OAuth callback
+  - GET /api/auth/google/login — initiate Google Sign-In
+  - GET /api/auth/google/callback — Google OAuth callback
   - POST /api/public/logout — logout and clear session
 
 6) OAuth2 Server (Third-Party App Integration)
 - Collection: oauthClients { client_id: uuid, client_secret: bcrypt-hash, name, redirect_uris, allowed_scopes, status, require_pkce, created_at, updated_at }
-- Collection: appPermissions { userId: uuid, clientId: uuid, hasAccess: boolean, role, status, grantedAt, grantedBy }
+- Collection: appPermissions { userId: uuid, clientId: uuid, hasAccess: boolean, role: 'none'|'user'|'admin', status, grantedAt, grantedBy }
+- **Standard OIDC Scopes**: `openid`, `profile`, `email`, `offline_access`
+- **Role Claims**: User role included in ID token when `profile` scope is requested
+- **Nonce Support**: Full OIDC nonce support for replay attack prevention
 - Endpoints:
-  - GET /api/oauth/authorize — authorization endpoint (OAuth 2.0 flow start)
-  - POST /api/oauth/token — token endpoint (exchange code for access token)
+  - GET /api/oauth/authorize — authorization endpoint (OAuth 2.0 flow start, with nonce support)
+  - POST /api/oauth/token — token endpoint (exchange code for access token + ID token)
+  - GET /api/oauth/userinfo — OIDC UserInfo endpoint
   - GET /api/oauth/logout?post_logout_redirect_uri=... — logout from SSO
   - POST /api/oauth/revoke — revoke refresh tokens
+  - GET /.well-known/openid-configuration — OIDC discovery endpoint
+  - GET /.well-known/jwks.json — JWKS endpoint for token verification
   - GET /api/admin/oauth-clients — list OAuth clients (admin)
-  - POST /api/admin/oauth-clients — create OAuth client (super-admin)
-  - PATCH /api/admin/oauth-clients/[clientId] — update client (super-admin)
-  - POST /api/admin/oauth-clients/[clientId]/regenerate-secret — regenerate client secret
-  - DELETE /api/admin/oauth-clients/[clientId] — delete client (super-admin)
+  - POST /api/admin/oauth-clients — create OAuth client (admin only)
+  - PATCH /api/admin/oauth-clients/[clientId] — update client (admin only)
+  - POST /api/admin/oauth-clients/[clientId]/regenerate-secret — regenerate client secret (admin only)
+  - DELETE /api/admin/oauth-clients/[clientId] — delete client (admin only)
 
 7) Validation
 - GET /api/sso/validate — validates admin OR public cookie session and returns sanitized user info
