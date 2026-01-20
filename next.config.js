@@ -9,8 +9,8 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true
   },
-  // WHAT: Rewrite .well-known endpoints to /api/.well-known
-  // WHY: OIDC standard requires /.well-known/jwks.json but Next.js serves from /api
+  // WHAT: Rewrite .well-known endpoints and OAuth endpoints to /api
+  // WHY: OIDC standard requires /.well-known and OAuth standard expects /authorize, /token at root
   async rewrites() {
     return [
       {
@@ -20,6 +20,18 @@ const nextConfig = {
       {
         source: '/.well-known/openid-configuration',
         destination: '/api/.well-known/openid-configuration',
+      },
+      {
+        source: '/authorize',
+        destination: '/api/oauth/authorize',
+      },
+      {
+        source: '/token',
+        destination: '/api/oauth/token',
+      },
+      {
+        source: '/userinfo',
+        destination: '/api/oauth/userinfo',
       },
     ]
   },
