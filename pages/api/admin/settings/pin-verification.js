@@ -1,7 +1,7 @@
 /**
  * pages/api/admin/settings/pin-verification.js
  * WHAT: API endpoint to enable/disable PIN verification for login
- * WHY: Allow super-admins to toggle PIN verification without changing environment variables
+ * WHY: Allow admins to toggle PIN verification without changing environment variables
  */
 import { requireUnifiedAdmin } from '../../../../lib/auth.mjs'
 import { getDb } from '../../../../lib/db.mjs'
@@ -80,13 +80,13 @@ export default async function handler(req, res) {
     }
     
     if (req.method === 'POST') {
-      // WHAT: Require super-admin role for changing settings
+      // WHAT: Require admin role for changing settings
       // WHY: Security-critical setting that affects all users
-      if (admin.role !== 'super-admin') {
+      if (admin.role !== 'admin') {
         return res.status(403).json({
           error: {
             code: 'FORBIDDEN',
-            message: 'Super-admin role required to change settings',
+            message: 'Admin role required to change settings',
           },
         })
       }

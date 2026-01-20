@@ -32,7 +32,7 @@ export default async function handler(req, res) {
       let user = await findUserByEmail(email)
       if (!user) {
         const name = email.split('@')[0]
-        const role = (process.env.ADMIN_DEV_ROLE || 'super-admin').trim() || 'super-admin'
+        const role = (process.env.ADMIN_DEV_ROLE || 'admin').trim() || 'admin'
         const password = generateMD5StylePassword()
         user = await createUser({ email, name, role, password })
       }
@@ -48,7 +48,7 @@ export default async function handler(req, res) {
       const sessionData = await createSession(
         user.id,
         user.email,
-        user.role || 'super-admin',
+        user.role || 'admin',
         4 * 60 * 60, // 4 hours (consistent with security hardening)
         metadata
       )
@@ -58,7 +58,7 @@ export default async function handler(req, res) {
         token: sessionData.token,
         expiresAt: sessionData.expiresAt,
         userId: user.id,
-        role: user.role || 'super-admin',
+        role: user.role || 'admin',
       }
       const signedToken = Buffer.from(JSON.stringify(tokenData)).toString('base64')
       setAdminSessionCookie(res, signedToken, 4 * 60 * 60)

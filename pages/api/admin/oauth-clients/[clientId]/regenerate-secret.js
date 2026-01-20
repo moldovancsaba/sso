@@ -8,7 +8,7 @@
  * HOW: Calls regenerateClientSecret() which generates UUID, hashes it, updates DB
  * 
  * Authentication: Requires valid admin session
- * Authorization: super-admin role required
+ * Authorization: admin role required
  * 
  * Security:
  * - Old secret becomes invalid immediately
@@ -34,13 +34,13 @@ export default async function handler(req, res) {
   const adminUser = await requireUnifiedAdmin(req, res)
 
 
-  // Require super-admin role
-  if (adminUser.role !== 'super-admin') {
+  // Require admin role
+  if (adminUser.role !== 'admin') {
     logger.warn('OAuth client secret regeneration denied: insufficient permissions', {
       adminId: adminUser.id,
       role: adminUser.role,
     })
-    return res.status(403).json({ error: 'Forbidden: super-admin role required' })
+    return res.status(403).json({ error: 'Forbidden: admin role required' })
   }
 
   const { clientId } = req.query

@@ -333,7 +333,7 @@ export default function OAuthClientsPage() {
           </div>
           <div style={{ display: 'flex', gap: 12 }}>
             <Link href="/admin" style={{ padding: '0.5rem 0.75rem', background: '#24306b', color: 'white', borderRadius: 6, textDecoration: 'none' }}>← Admin Home</Link>
-            {admin.role === 'super-admin' && (
+            {admin.role === 'admin' && (
               <button onClick={() => setShowCreateForm(!showCreateForm)} style={{ padding: '0.5rem 0.75rem', background: '#4054d6', color: 'white', border: 0, borderRadius: 6, cursor: 'pointer' }}>
                 {showCreateForm ? 'Cancel' : '+ New Client'}
               </button>
@@ -366,12 +366,12 @@ export default function OAuthClientsPage() {
               <code style={{ flex: 1, padding: '0.5rem', background: '#0b1021', borderRadius: 6, overflowX: 'auto' }}>{newClientSecret}</code>
               <button onClick={() => copyToClipboard(newClientSecret)} style={{ padding: '0.5rem 0.75rem', background: '#24306b', color: 'white', border: 0, borderRadius: 6, cursor: 'pointer' }}>Copy</button>
             </div>
-            <button onClick={() => setNewClientSecret(null)} style={{ marginTop: '0.5rem', padding: '0.25rem 0.5rem', background: '#8a6d3b', color: 'white', border: 0, borderRadius: 6, cursor: 'pointer', fontSize: '0.875rem' }}>I've saved it, close this</button>
+            <button onClick={() => setNewClientSecret(null)} style={{ marginTop: '0.5rem', padding: '0.25rem 0.5rem', background: '#8a6d3b', color: 'white', border: 0, borderRadius: 6, cursor: 'pointer', fontSize: '0.875rem' }}>I&apos;ve saved it, close this</button>
           </div>
         )}
 
         {/* Edit Form */}
-        {editingClientId && admin.role === 'super-admin' && (
+        {editingClientId && admin.role === 'admin' && (
           <div style={{ marginBottom: '2rem', padding: '1.5rem', background: '#12172b', border: '1px solid #22284a', borderRadius: 12 }}>
             <h2 style={{ margin: '0 0 1rem 0', fontSize: '1.25rem', color: '#e6e8f2' }}>Edit OAuth Client</h2>
             <form onSubmit={handleUpdateClient} style={{ display: 'grid', gap: 12 }}>
@@ -464,7 +464,7 @@ export default function OAuthClientsPage() {
         )}
 
         {/* Create Form */}
-        {showCreateForm && admin.role === 'super-admin' && (
+        {showCreateForm && admin.role === 'admin' && (
           <div style={{ marginBottom: '2rem', padding: '1.5rem', background: '#12172b', border: '1px solid #22284a', borderRadius: 12 }}>
             <h2 style={{ margin: '0 0 1rem 0', fontSize: '1.25rem', color: '#e6e8f2' }}>Create OAuth Client</h2>
             <form onSubmit={handleCreateClient} style={{ display: 'grid', gap: 12 }}>
@@ -590,7 +590,7 @@ export default function OAuthClientsPage() {
                         )}
                       </div>
                     </div>
-                    {admin.role === 'super-admin' && (
+                    {admin.role === 'admin' && (
                       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                         <button onClick={() => handleStartEdit(client)} style={{ padding: '0.25rem 0.5rem', background: '#24306b', color: 'white', border: 0, borderRadius: 6, cursor: 'pointer', fontSize: '0.875rem' }}>
                           Edit

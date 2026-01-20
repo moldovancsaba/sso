@@ -1,5 +1,5 @@
 // pages/api/admin/bootstrap.js
-// WHAT: One-time bootstrap endpoint to create the first super-admin user safely.
+// WHAT: One-time bootstrap endpoint to create the first admin user safely.
 // WHY: Allows initializing the system when the users collection is empty, without CLI access.
 // SECURITY: Will only perform insert if users collection is empty. Otherwise 403.
 
@@ -15,9 +15,9 @@ export default async function handler(req, res) {
     const db = await getDb()
     const col = db.collection('users')
 
-    // Allow bootstrap if there is no existing super-admin.
+    // Allow bootstrap if there is no existing admin.
     // This supports legacy collections with other schemas/documents.
-    const hasAdmin = await col.findOne({ role: 'super-admin' })
+    const hasAdmin = await col.findOne({ role: 'admin' })
 
     const body = await parseBody(req)
     const email = (body?.email || '').toLowerCase().trim()
@@ -32,7 +32,7 @@ export default async function handler(req, res) {
     }
 
     if (hasAdmin) {
-      // If a super-admin already exists, do not allow creating another via bootstrap
+      // If an admin already exists, do not allow creating another via bootstrap
       return res.status(403).json({ error: 'Already initialized' })
     }
 
@@ -46,7 +46,7 @@ export default async function handler(req, res) {
     await col.insertOne({
       email,
       name,
-      role: 'super-admin',
+      role: 'admin',
       password, // 32-hex admin token (by convention)
       createdAt: now,
       updatedAt: now,

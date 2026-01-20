@@ -52,7 +52,7 @@ export default async function handler(req, res) {
       token: tokenStr,
       expiresAt: expiresAt.toISOString(),
       userId: user.id,
-      role: user.role || 'super-admin',
+      role: user.role || 'admin',
     }
     const signedToken = Buffer.from(JSON.stringify(tokenData)).toString('base64')
 

@@ -1,6 +1,6 @@
 /**
  * pages/api/admin/users/[userId].js — Admin-only get/update/delete user
- * WHAT: Manage individual users; role updates limited to super-admins.
+ * WHAT: Manage individual users; role updates for admins.
  * WHY: Fine-grained admin user management aligned with DB-backed sessions.
  */
 import { requireUnifiedAdmin } from '../../../../lib/auth.mjs'
@@ -36,8 +36,8 @@ export default async function handler(req, res) {
     try {
       const { name, role, password } = req.body || {}
 
-      // Role updates are restricted to super-admins
-      if (role && admin.role !== 'super-admin') {
+      // Role updates are restricted to admins
+      if (role && admin.role !== 'admin') {
         return res.status(403).json({ error: 'Forbidden' })
       }
 
@@ -96,8 +96,8 @@ export default async function handler(req, res) {
 
   if (req.method === 'DELETE') {
     try {
-      // Only super-admins can delete users
-      if (admin.role !== 'super-admin') {
+      // Only admins can delete users
+      if (admin.role !== 'admin') {
         return res.status(403).json({ error: 'Forbidden' })
       }
 
