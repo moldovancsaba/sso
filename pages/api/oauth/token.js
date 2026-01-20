@@ -201,7 +201,7 @@ async function handleAuthorizationCodeGrant(req, res) {
     })
   }
 
-  const { user_id, scope } = codeData
+  const { user_id, scope, nonce } = codeData
 
   // Generate access token
   const accessToken = await generateAccessToken({
@@ -223,6 +223,7 @@ async function handleAuthorizationCodeGrant(req, res) {
       userId: user_id,
       clientId: client_id,
       scope,
+      nonce, // Include nonce from authorization request
     })
 
     response.id_token = idToken.token
