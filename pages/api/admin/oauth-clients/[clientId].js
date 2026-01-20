@@ -6,7 +6,7 @@
  * DELETE /api/admin/oauth-clients/[clientId] - Delete client
  * 
  * Authentication: Requires valid admin session
- * Authorization: super-admin required for PATCH/DELETE
+ * Authorization: admin required for PATCH/DELETE
  */
 
 import { requireUnifiedAdmin } from '../../../../lib/auth.mjs'
@@ -49,14 +49,14 @@ export default async function handler(req, res) {
     }
 
     if (req.method === 'PATCH') {
-      // Update client (super-admin only)
-      if (adminUser.role !== 'super-admin') {
+      // Update client (admin only)
+      if (adminUser.role !== 'admin') {
         logger.warn('OAuth client update denied: insufficient permissions', {
           adminId: adminUser.id,
           role: adminUser.role,
           clientId,
         })
-        return res.status(403).json({ error: 'Forbidden: super-admin role required' })
+        return res.status(403).json({ error: 'Forbidden: admin role required' })
       }
 
       const updates = req.body
@@ -81,14 +81,14 @@ export default async function handler(req, res) {
     }
 
     if (req.method === 'DELETE') {
-      // Delete client (super-admin only)
-      if (adminUser.role !== 'super-admin') {
+      // Delete client (admin only)
+      if (adminUser.role !== 'admin') {
         logger.warn('OAuth client deletion denied: insufficient permissions', {
           adminId: adminUser.id,
           role: adminUser.role,
           clientId,
         })
-        return res.status(403).json({ error: 'Forbidden: super-admin role required' })
+        return res.status(403).json({ error: 'Forbidden: admin role required' })
       }
 
       const deleted = await deleteClient(clientId)

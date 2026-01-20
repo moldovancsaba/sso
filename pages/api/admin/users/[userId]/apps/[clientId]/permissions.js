@@ -2,7 +2,7 @@
  * pages/api/admin/users/[userId]/apps/[clientId]/permissions.js
  * 
  * WHAT: Admin endpoint to grant/update/revoke user app permissions
- * WHY: App superadmins and SSO superadmins need to manage user access
+ * WHY: App admins and SSO admins need to manage user access
  * HOW: PUT to grant/update, DELETE to revoke
  */
 
@@ -15,23 +15,23 @@ import logger from '../../../../../../../lib/logger.mjs'
 /**
  * checkAdminAuthorization
  * WHAT: Checks if admin has permission to modify this app's permissions
- * WHY: Only SSO superadmins or app-specific superadmins can grant access
+ * WHY: Only SSO admins or app-specific admins can grant access
  * 
  * @param {Object} adminUser - Admin user from session
  * @param {string} clientId - OAuth client ID
  * @returns {Promise<boolean>} True if authorized
  */
 async function checkAdminAuthorization(adminUser, clientId) {
-  // WHAT: SSO superadmins can manage all apps
-  // WHY: Cross-app administration capability
-  if (adminUser.isSsoSuperadmin) {
+  // WHAT: All SSO admins can manage all apps
+  // WHY: Simplified role system - admin role has full access
+  if (adminUser.role === 'admin') {
     return true
   }
 
-  // WHAT: Check if admin is superadmin of this specific app
-  // WHY: App superadmins can only manage their own app's users
+  // WHAT: Check if user is admin of this specific app
+  // WHY: App admins can manage their own app's users
   const permission = await getAppPermission(adminUser.id, clientId)
-  if (permission && permission.role === 'superadmin' && permission.hasAccess) {
+  if (permission && permission.role === 'admin' && permission.hasAccess) {
     return true
   }
 
@@ -118,10 +118,10 @@ export default async function handler(req, res) {
         })
       }
 
-      if (!['none', 'user', 'admin', 'superadmin'].includes(role)) {
+      if (!['none', 'user', 'admin'].includes(role)) {
         return res.status(400).json({
           error: 'Invalid request',
-          message: 'role must be one of: none, user, admin, superadmin',
+          message: 'role must be one of: none, user, admin',
         })
       }
 

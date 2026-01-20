@@ -43,13 +43,13 @@ export default async function handler(req, res) {
     }
 
     if (req.method === 'POST') {
-      // Create new OAuth client (super-admin only)
-      if (adminUser.role !== 'super-admin') {
+      // Create new OAuth client (admin only)
+      if (adminUser.role !== 'admin') {
         logger.warn('OAuth client creation denied: insufficient permissions', {
           adminId: adminUser.id,
           role: adminUser.role,
         })
-        return res.status(403).json({ error: 'Forbidden: super-admin role required' })
+        return res.status(403).json({ error: 'Forbidden: admin role required' })
       }
 
       const {

@@ -992,7 +992,6 @@ export default function AdminUsersPage() {
                             >
                               <option value="user">User</option>
                               <option value="admin">Admin</option>
-                              <option value="superadmin">Superadmin</option>
                             </select>
                             <button
                               onClick={() => handleGrantAccess(selectedUser.id, app.clientId, currentRole)}
@@ -1031,7 +1030,6 @@ export default function AdminUsersPage() {
                             >
                               <option value="user">User</option>
                               <option value="admin">Admin</option>
-                              <option value="superadmin">Superadmin</option>
                             </select>
                             <button
                               onClick={() => handleGrantAccess(selectedUser.id, app.clientId, currentRole)}
@@ -1070,7 +1068,6 @@ export default function AdminUsersPage() {
                             >
                               <option value="user">User</option>
                               <option value="admin">Admin</option>
-                              <option value="superadmin">Superadmin</option>
                             </select>
                             <button
                               onClick={() => handleRevokeAccess(selectedUser.id, app.clientId, app.name)}

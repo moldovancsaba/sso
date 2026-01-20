@@ -34,8 +34,8 @@ export default async function handler(req, res) {
 
   if (req.method === 'POST') {
     try {
-      // Only super-admins can create users
-      if (admin.role !== 'super-admin') {
+      // Only admins can create users
+      if (admin.role !== 'admin') {
         return res.status(403).json({ error: 'Forbidden' })
       }
 
