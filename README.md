@@ -20,7 +20,8 @@ A production-ready OAuth2/OIDC authentication server for sso.doneisbetter.com wi
 - **Authorization Code Flow**: With optional PKCE (configurable per client)
 - **JWT Tokens**: RS256-signed access tokens with JWKS endpoint
 - **Refresh Token Rotation**: Automatic rotation on every use for enhanced security
-- **Complete Scopes Support**: `openid`, `profile`, `email`, `offline_access`, `roles`
+- **Standard OIDC Scopes**: `openid`, `profile`, `email`, `offline_access`
+- **Role Claims**: User roles included in ID token when `profile` scope is requested
 - **Nonce Support**: Full OIDC nonce parameter support for replay attack prevention
 - **Discovery Endpoints**: `/.well-known/openid-configuration` and `/.well-known/jwks.json`
 
@@ -199,7 +200,7 @@ Response:
   "expires_in": 3600,
   "refresh_token": "new-refresh-token",
   "id_token": "eyJhbGci...",
-  "scope": "openid profile email roles"
+  "scope": "openid profile email offline_access"
 }
 ```
 
@@ -232,7 +233,7 @@ Response:
   "email_verified": true,
   "picture": "https://...",
   "user_type": "public",
-  "role": "user"  // if 'roles' scope requested
+  "role": "user"  // Included when 'profile' scope is requested
 }
 ```
 

@@ -50,6 +50,72 @@ The SSO Service (sso.doneisbetter.com) provides comprehensive OAuth2/OIDC authen
 
 Complete OAuth2/OIDC integration for external applications.
 
+### ⚠️ Common Integration Issues & Solutions
+
+**Before you start**, review these common issues to avoid integration problems:
+
+#### 1. invalid_scope Error
+
+**Problem:** Requesting non-standard OIDC scopes  
+**Symptoms:** Error page shows `invalid_scope`  
+**Solution:** Use **only** standard OIDC scopes:
+```
+openid profile email offline_access
+```
+**❌ DO NOT USE:** `roles` scope (not a standard OIDC scope)  
+**✅ INSTEAD:** Role information is included in ID token's `role` claim when `profile` scope is requested
+
+#### 2. Empty/Blank Authorization Page
+
+**Problem:** Authorization page shows empty white screen  
+**Possible Causes:**
+- `prompt=login` parameter not supported by provider
+- Redirect URI not whitelisted exactly
+- Client ID incorrect
+
+**Solution:**
+- Remove `prompt=login` parameter from authorization request
+- Verify redirect URI matches exactly (case-sensitive, no trailing slashes)
+- Confirm client ID and application is active
+
+#### 3. Redirect URI Mismatch
+
+**Problem:** Error says redirect_uri doesn't match  
+**Requirements:**
+- ✅ Exact match required (case-sensitive)
+- ✅ Include protocol (`https://`)
+- ✅ No trailing slashes
+- ✅ Whitelist both `amanoba.com` and `www.amanoba.com` if using both
+
+**Example correct URIs:**
+```
+https://www.amanoba.com/api/auth/sso/callback
+https://amanoba.com/api/auth/sso/callback
+http://localhost:3000/api/auth/sso/callback
+```
+
+#### 4. Nonce Validation Fails
+
+**Problem:** `invalid_nonce` error during login  
+**Cause:** SSO provider not returning nonce in ID token claims  
+**Solution:** Implement lenient nonce validation (see Step 2.4)  
+**Best Practice:** SSO provider should return nonce if sent in authorization request
+
+#### 5. Role Information Missing
+
+**Problem:** User role is always 'user', even for admins  
+**Causes:**
+- `profile` scope not requested
+- SSO provider not including `role` claim in ID token
+- Client app not extracting role from claims correctly
+
+**Solution:**
+- ✅ Request `profile` scope
+- ✅ Check for `role` claim in ID token (`claims.role` or `claims.roles`)
+- ✅ Preserve database role if SSO returns default 'user'
+
+---
+
 ### Step 1: Register Your OAuth Client
 
 #### Via Admin UI
@@ -66,7 +132,7 @@ Redirect URIs (one per line):
   https://yourapp.com/auth/callback
   https://yourapp.com/api/oauth/callback
   http://localhost:3000/api/auth/callback
-Allowed Scopes: openid profile email offline_access roles
+Allowed Scopes: openid profile email offline_access
 Homepage URL: https://yourapp.com
 Require PKCE: false (for server-side apps) or true (for mobile/SPA)
 ```
@@ -95,8 +161,8 @@ SSO_USERINFO_URL=https://sso.doneisbetter.com/userinfo
 SSO_JWKS_URL=https://sso.doneisbetter.com/.well-known/jwks.json
 SSO_ISSUER=https://sso.doneisbetter.com
 
-# Scopes (space-separated)
-SSO_SCOPES=openid profile email offline_access roles
+# Scopes (space-separated) - Use only standard OIDC scopes
+SSO_SCOPES=openid profile email offline_access
 ```
 
 **⚠️ Never commit credentials to git!**
@@ -168,12 +234,14 @@ function initiateOAuthLogin(returnTo = '/dashboard') {
     response_type: 'code',
     client_id: process.env.SSO_CLIENT_ID,
     redirect_uri: process.env.SSO_REDIRECT_URI,
-    scope: 'openid profile email offline_access roles',  // Include 'roles' for user role
+    // ⚠️ CRITICAL: Use only standard OIDC scopes
+    // Role information is included in 'profile' scope
+    scope: 'openid profile email offline_access',
     state: sessionStorage.getItem('oauth_state'),
     nonce: sessionStorage.getItem('oauth_nonce'),        // Required for OIDC
     code_challenge: codeChallenge,                       // Optional if client requires PKCE
     code_challenge_method: 'S256',
-    // prompt: 'login',  // Uncomment to force re-authentication
+    // prompt: 'login',  // ⚠️ Some providers don't support this - may cause blank page
   });
   
   // Store return URL for post-login redirect
@@ -226,8 +294,16 @@ app.get('/auth/callback', async (req, res) => {
     const storedNonce = req.session.oauth_nonce;
     const idTokenClaims = parseIdToken(tokens.id_token);
     
-    if (idTokenClaims.nonce !== storedNonce) {
-      throw new Error('Nonce mismatch - possible replay attack');
+    // ⚠️ IMPORTANT: SSO provider should return nonce in ID token
+    // If provider doesn't return nonce, log warning but allow login for compatibility
+    if (storedNonce && idTokenClaims.nonce) {
+      // Both present - must match
+      if (idTokenClaims.nonce !== storedNonce) {
+        throw new Error('Nonce mismatch - possible replay attack');
+      }
+    } else if (storedNonce && !idTokenClaims.nonce) {
+      // Nonce sent but not returned - log warning
+      console.warn('Nonce was sent but not returned by SSO provider');
     }
 
     // 6. Store tokens securely (server-side session only)
