@@ -156,7 +156,14 @@ export default function AdminDashboard() {
 
         {/* Quick Actions */}
         <div style={{ background: '#12172b', border: '1px solid #22284a', borderRadius: 12, padding: '1.5rem' }}>
-          <h2 style={{ margin: '0 0 1rem 0', fontSize: '1.25rem' }}>Quick Actions</h2>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+            <h2 style={{ margin: 0, fontSize: '1.25rem' }}>Quick Actions</h2>
+            {admin.role === 'admin' && (
+              <Link href="/admin/oauth-clients?create=true" style={{ padding: '0.5rem 1rem', background: '#4054d6', color: 'white', borderRadius: 6, textDecoration: 'none', fontSize: 14, fontWeight: 600 }}>
+                + New OAuth Client
+              </Link>
+            )}
+          </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12 }}>
             <Link href="/admin/users" style={{ padding: '0.75rem', background: '#0b1021', border: '1px solid #22284a', borderRadius: 8, textDecoration: 'none', color: '#e6e8f2', textAlign: 'center' }}>
               👥 Manage Users

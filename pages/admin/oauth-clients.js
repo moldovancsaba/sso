@@ -28,12 +28,35 @@ export default function OAuthClientsPage() {
 
   async function checkSession() {
     try {
-      const res = await fetch('/api/sso/validate', { credentials: 'include' })
+      // WHAT: Check public session (unified admin system uses publicUsers + appPermissions)
+      // WHY: Modern admin system uses OAuth flow which creates public sessions
+      const res = await fetch('/api/public/session', { credentials: 'include' })
       if (res.ok) {
         const data = await res.json()
-        if (data?.isValid) {
-          setAdmin(data.user)
+        console.log('[OAuth Clients] Session data:', data)
+        if (data?.isValid && data?.user) {
+          console.log('[OAuth Clients] User:', data.user)
+          
+          // WHAT: Check if user has admin access to sso-admin-dashboard
+          // WHY: Admin access is managed via appPermissions, not user.role
+          const checkRes = await fetch('/api/admin/check-access', { credentials: 'include' })
+          if (checkRes.ok) {
+            const checkData = await checkRes.json()
+            console.log('[OAuth Clients] Admin check:', checkData)
+            if (checkData?.success && checkData?.user) {
+              console.log('[OAuth Clients] Admin user set:', checkData.user)
+              setAdmin(checkData.user)
+            } else {
+              console.warn('[OAuth Clients] User does not have admin access')
+            }
+          } else {
+            console.warn('[OAuth Clients] Admin check failed:', checkRes.status)
+          }
+        } else {
+          console.warn('[OAuth Clients] Session not valid')
         }
+      } else {
+        console.warn('[OAuth Clients] Session check failed:', res.status)
       }
     } catch (e) {
       console.error('Session check error:', e)
@@ -332,11 +355,21 @@ export default function OAuthClientsPage() {
             <p style={{ marginTop: '0.5rem', opacity: 0.8, color: '#e6e8f2' }}>Manage OAuth2 client applications</p>
           </div>
           <div style={{ display: 'flex', gap: 12 }}>
-            <Link href="/admin" style={{ padding: '0.5rem 0.75rem', background: '#24306b', color: 'white', borderRadius: 6, textDecoration: 'none' }}>← Admin Home</Link>
-            {admin.role === 'admin' && (
+            <Link href="/admin/dashboard" style={{ padding: '0.5rem 0.75rem', background: '#24306b', color: 'white', borderRadius: 6, textDecoration: 'none' }}>← Dashboard</Link>
+            {admin && admin.role === 'admin' && (
               <button onClick={() => setShowCreateForm(!showCreateForm)} style={{ padding: '0.5rem 0.75rem', background: '#4054d6', color: 'white', border: 0, borderRadius: 6, cursor: 'pointer' }}>
                 {showCreateForm ? 'Cancel' : '+ New Client'}
               </button>
+            )}
+            {admin && admin.role !== 'admin' && (
+              <div style={{ padding: '0.5rem 0.75rem', background: '#8b1919', color: 'white', borderRadius: 6, fontSize: '0.875rem' }}>
+                Admin role required (current: {admin.role})
+              </div>
+            )}
+            {!admin && (
+              <div style={{ padding: '0.5rem 0.75rem', background: '#8b1919', color: 'white', borderRadius: 6, fontSize: '0.875rem' }}>
+                Not logged in - Please refresh
+              </div>
             )}
           </div>
         </div>
