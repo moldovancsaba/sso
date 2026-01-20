@@ -35,6 +35,7 @@ export default async function handler(req, res) {
     redirect_uri,
     scope,
     state,
+    nonce, // OIDC nonce parameter
     code_challenge,
     code_challenge_method,
   } = req.body
@@ -54,6 +55,7 @@ export default async function handler(req, res) {
       user_id: user.id,
       redirect_uri,
       scope,
+      nonce, // Include nonce for OIDC ID token validation
       code_challenge,
       code_challenge_method: code_challenge_method || 'S256',
     })
