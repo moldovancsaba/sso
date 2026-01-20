@@ -1,255 +1,548 @@
 # SSO Service — Production-Ready Authentication with Advanced Security
 
-Version: 5.29.0
-Last updated: 2025-12-21T12:00:00.000Z
+Version: 5.30.0
+Last updated: 2026-01-20T12:00:00.000Z
 
-A production-ready authentication backend for sso.doneisbetter.com with comprehensive security and user-friendly authentication options:
-- **Multiple authentication methods**: Password, Forgot Password, Magic Links, Random PIN verification
-- Admin login via email + 32-hex token (cookie-based sessions with server-side validation)
-- Public user authentication with bcrypt-hashed passwords
-- Email infrastructure (Nodemailer + Resend) for password recovery
-- OAuth2/OIDC authorization server for external applications
-- Subdomain SSO support (*.doneisbetter.com)
-- Rate limiting, CSRF protection, and structured audit logging
-- Server-side session management with MongoDB
-
-## Features
-- **🔒 Security Hardened**:
-  - Server-side session management with revocation
-  - Rate limiting (brute force protection)
-  - CSRF protection (double-submit cookie + HMAC)
-  - Structured audit logging with Winston
-  - Subdomain SSO support (*.doneisbetter.com)
-- **🔑 Authentication Options** (v5.29.0):
-  - Password-based login (admin + public users)
-  - **Forgot password with email** (auto-generates secure passwords)
-  - **Magic link authentication** (passwordless login for admin + public users)
-  - **Random PIN verification** (6-digit PIN on 5th-10th login for enhanced security)
-- **📧 Email System** (v5.29.0):
-  - Dual provider support (Nodemailer + Resend)
-  - Password reset via email
-  - Email verification
-  - Forgot password flow
-- **OAuth2/OIDC** (v5.29.0):
-  - Authorization Code Flow with **optional PKCE** (configurable per client)
-  - JWT access tokens (RS256)
-  - Refresh token rotation
-  - OIDC discovery and JWKS endpoints
-  - Confidential clients (server-side) can skip PKCE
-  - Public clients (mobile/SPA) require PKCE
-- Admin authentication (HttpOnly cookie with Domain attribute)
-- Admin users CRUD (roles: admin, super-admin) — UUID identifiers
-- Public user registration and authentication
-- Resource password generation/validation (MD5-style 32-hex token)
-- CORS per SSO_ALLOWED_ORIGINS
-
-## User Account Management (v5.29.0)
-- **Account Page**: `/account` — Comprehensive user dashboard
-  - View and edit profile (name, email)
-  - See connected services (OAuth apps)
-  - Change password securely
-  - Revoke access to individual services
-  - Delete account permanently
-- **Session Duration**: 30 days with sliding expiration (extends on each access)
-- **After Login**: Users are automatically redirected to `/account` page
-
-## Third-Party Integration
-
-**For complete integration documentation, see: `docs/THIRD_PARTY_INTEGRATION_GUIDE.md`**
-
-Integrate your application with SSO using one of three methods:
-
-### Method 1: OAuth2/OIDC (External Domains)
-- **Best for**: External domains (e.g., narimato.com, yourapp.com), mobile apps, SPAs
-- **Features**: Full OAuth2 Authorization Code Flow with PKCE, JWT access tokens, refresh tokens
-- **Setup**: Register OAuth client in admin panel, implement OAuth flow
-- **Docs**: `docs/THIRD_PARTY_INTEGRATION_GUIDE.md` (Method 1)
-
-### Method 2: Cookie-Based SSO (Subdomain Only)
-- **Best for**: Internal tools on *.doneisbetter.com subdomains
-- **Features**: Shared session cookie, simple validation, no OAuth complexity
-- **Setup**: Call validation endpoint with forwarded cookies
-- **Docs**: `docs/THIRD_PARTY_INTEGRATION_GUIDE.md` (Method 2)
-
-### Method 3: Social Login Integration
-- **Best for**: Adding Facebook/Google/Apple login to your app
-- **Features**: Users authenticate via social provider, automatic account creation
-- **Current**: Facebook Login & Google Sign-In available, Apple coming soon
-- **Docs**: `docs/THIRD_PARTY_INTEGRATION_GUIDE.md` (Method 3)
+A production-ready OAuth2/OIDC authentication server for sso.doneisbetter.com with comprehensive security and user-friendly authentication options:
+- **OAuth2/OIDC**: Authorization Code Flow with PKCE, JWT access tokens (RS256), refresh token rotation
+- **Multiple authentication methods**: Password, Forgot Password, Magic Links, PIN verification, Social Login (Facebook, Google)
+- **3-Role Permission System**: Simplified role hierarchy (none, user, admin) across all applications
+- **Multi-App Authorization**: Centralized SSO with per-app permissions
+- **Enterprise Security**: Rate limiting, CSRF protection, audit logging, session management
+- **Developer-Friendly**: Complete OAuth2/OIDC compliance with comprehensive documentation
 
 ---
 
-## API Endpoints
+## ✨ Key Features
 
-**Complete API reference**: `docs/THIRD_PARTY_INTEGRATION_GUIDE.md`
+### 🔐 OAuth2/OIDC Server (Production Ready)
+- **Standards Compliant**: Full OAuth 2.0 + OpenID Connect implementation
+- **Authorization Code Flow**: With optional PKCE (configurable per client)
+- **JWT Tokens**: RS256-signed access tokens with JWKS endpoint
+- **Refresh Token Rotation**: Automatic rotation on every use for enhanced security
+- **Complete Scopes Support**: `openid`, `profile`, `email`, `offline_access`, `roles`
+- **Nonce Support**: Full OIDC nonce parameter support for replay attack prevention
+- **Discovery Endpoints**: `/.well-known/openid-configuration` and `/.well-known/jwks.json`
 
-### Admin Endpoints
-- POST /api/admin/login — body: { email, password }
-- DELETE /api/admin/login — clears cookie session
-- GET /api/admin/users — list admin users
-- POST /api/admin/users — create user (super-admin)
-- GET/PATCH/DELETE /api/admin/users/[id] — manage admin user
-- GET/POST /api/admin/orgs — list/create organizations (UUID)
-- GET/PATCH/DELETE /api/admin/orgs/[id] — manage organization
-- GET/POST /api/admin/orgs/[orgId]/users — list/create org users (UUID)
-- GET/PATCH/DELETE /api/admin/orgs/[orgId]/users/[id] — manage org user
-- GET /api/admin/oauth-clients — list OAuth clients
-- POST /api/admin/oauth-clients — create OAuth client
-- GET/PATCH/DELETE /api/admin/oauth-clients/[clientId] — manage OAuth client
+### 👥 Simplified 3-Role System (Updated: 2026-01-20)
+**Unified across all applications:**
+- **`none`** - No access to the application
+- **`user`** - Standard user access (read data, create own content)
+- **`admin`** - Full administrative access (all permissions, manage users, app settings)
 
-### OAuth2/OIDC Endpoints
-- GET /api/oauth/authorize — OAuth2 authorization endpoint
-- POST /api/oauth/token — Token exchange (authorization_code, refresh_token)
-- POST /api/oauth/revoke — Token revocation
-- GET /api/oauth/logout — Logout with redirect
-- GET /.well-known/openid-configuration — OIDC discovery
-- GET /.well-known/jwks.json — Public keys for JWT verification
+**Migration Complete:** All legacy roles (`super-admin`, `owner`, `superadmin`) consolidated to `admin`.
 
-### Public User Endpoints (v5.29.0)
-- POST /api/public/register — Create new user account
-- POST /api/public/login — Authenticate user
-- POST /api/public/verify-pin — Verify PIN during login
-- POST /api/public/request-magic-link — Request passwordless login
-- GET /api/public/magic-login — Consume magic link token
-- POST /api/public/forgot-password — Request password reset
-- GET /api/public/session — Check session status
-- GET /api/public/validate — Validate session (for subdomain SSO)
-- PATCH /api/public/profile — Update user profile
-- POST /api/public/change-password — Change password
-- DELETE /api/public/account — Delete user account
-- GET /api/public/authorizations — List connected OAuth services
-- DELETE /api/public/authorizations/[id] — Revoke service access
+### 🎯 Multi-App Permission Management
+- **Centralized SSO**: Single sign-on across all integrated applications
+- **Per-App Authorization**: Users have different roles in different apps
+- **Admin Approval Workflow**: New users request access, admins grant with specific role
+- **Real-Time Sync**: Permission changes reflected immediately across apps
+- **Comprehensive Audit Trail**: All permission changes logged with before/after state
+
+### 🔒 Enterprise-Grade Security (5 Layers)
+1. **Rate Limiting**: Brute force protection (3 attempts/15min for admin)
+2. **Security Headers**: HSTS, CSP, X-Frame-Options, X-XSS-Protection, etc.
+3. **Input Validation**: Zod schemas, HTML sanitization, filename sanitization
+4. **Session Security**: 4-hour sessions, device fingerprinting, sliding expiration
+5. **Audit Logging**: Complete audit trail in MongoDB for SOC 2/GDPR compliance
+
+### 🚀 Authentication Methods
+- **Email + Password**: bcrypt-hashed (12 rounds), minimum 8 characters
+- **Magic Links**: Passwordless authentication via email (15-minute expiry)
+- **Social Login**: Facebook and Google OAuth (Apple coming soon)
+- **PIN Verification**: 6-digit PIN on 5th-10th login for enhanced security
+- **Forgot Password**: Secure password reset via email
+
+### 🔗 Account Linking
+- **One Person, One Account**: Multiple login methods linked to single email
+- **Automatic Linking**: Social and password logins automatically link by email
+- **Manual Unlinking**: Users can remove login methods (prevents lockout with 2+ method requirement)
+- **Cross-Method Security**: Email verification inherited across linked methods
+
+---
+
+## 📚 Documentation for Developers
+
+### For Third-Party Integrators
+**[→ docs/THIRD_PARTY_INTEGRATION_GUIDE.md](docs/THIRD_PARTY_INTEGRATION_GUIDE.md)**
+Complete guide for integrating your application with SSO:
+- OAuth2/OIDC flow implementation (with PKCE)
+- Cookie-based SSO for subdomains
+- Social login integration
+- Code examples and best practices
+
+### For Internal Teams
+**[→ ARCHITECTURE.md](ARCHITECTURE.md)**
+Technical architecture, database schemas, security layers, API reference
+
+**[→ docs/MULTI_APP_PERMISSIONS.md](docs/MULTI_APP_PERMISSIONS.md)**
+Multi-app permission system design and implementation
+
+**[→ ROLE_SYSTEM_MIGRATION.md](ROLE_SYSTEM_MIGRATION.md)**
+Role system consolidation details and migration guide
+
+---
+
+## 🚀 Quick Start
+
+### Environment Variables
+
+Required environment variables (`.env.local` or Vercel):
+
+```bash
+# Database
+MONGODB_URI=mongodb+srv://user:pass@cluster.mongodb.net/?retryWrites=true&w=majority
+MONGODB_DB=sso
+
+# Security
+SESSION_SECRET=<generate with: openssl rand -base64 32>
+CSRF_SECRET=<optional, falls back to SESSION_SECRET>
+
+# SSO Configuration
+SSO_COOKIE_DOMAIN=.doneisbetter.com
+SSO_BASE_URL=https://sso.doneisbetter.com
+SSO_ALLOWED_ORIGINS=https://sso.doneisbetter.com,https://doneisbetter.com,https://yourapp.com
+
+# Session Configuration
+ADMIN_SESSION_COOKIE=admin-session
+PUBLIC_SESSION_COOKIE=public-session
+
+# Email (for password reset, magic links)
+EMAIL_PROVIDER=resend  # or 'nodemailer'
+RESEND_API_KEY=re_...
+EMAIL_FROM=noreply@doneisbetter.com
+
+# Optional: Rate Limiting
+RATE_LIMIT_LOGIN_MAX=5
+RATE_LIMIT_LOGIN_WINDOW=900000  # 15 minutes in ms
+
+# Optional: Social Login
+FACEBOOK_APP_ID=...
+FACEBOOK_APP_SECRET=...
+FACEBOOK_REDIRECT_URI=https://sso.doneisbetter.com/api/auth/facebook/callback
+
+GOOGLE_CLIENT_ID=...
+GOOGLE_CLIENT_SECRET=...
+GOOGLE_REDIRECT_URI=https://sso.doneisbetter.com/api/auth/google/callback
+```
+
+### Installation
+
+```bash
+npm install
+npm run dev
+```
+
+### Create First Admin User
+
+```bash
+# Option 1: Bootstrap endpoint (one-time use)
+curl -X POST https://sso.doneisbetter.com/api/admin/bootstrap \
+  -H "Content-Type: application/json" \
+  -d '{"email":"admin@example.com","password":"your-secure-password","name":"Admin User"}'
+
+# Option 2: Magic link (development)
+node scripts/generate-magic-link.mjs
+```
+
+---
+
+## 📖 API Endpoints
+
+### OAuth2/OIDC Endpoints (Public)
+
+#### Authorization
+```http
+GET /authorize
+GET /api/oauth/authorize
+
+Query Parameters:
+- response_type: "code" (required)
+- client_id: OAuth client UUID (required)
+- redirect_uri: Callback URL (required)
+- scope: Space-separated scopes (required)
+  Available: openid, profile, email, offline_access, roles
+- state: CSRF token (required)
+- nonce: Replay attack prevention (required for OIDC)
+- code_challenge: PKCE challenge (optional, configurable per client)
+- code_challenge_method: "S256" or "plain"
+- prompt: "none" | "login" | "consent" | "select_account" (optional)
+```
+
+#### Token Exchange
+```http
+POST /token
+POST /api/oauth/token
+
+Body (Authorization Code):
+{
+  "grant_type": "authorization_code",
+  "code": "authorization-code",
+  "redirect_uri": "https://yourapp.com/callback",
+  "client_id": "client-uuid",
+  "client_secret": "client-secret",
+  "code_verifier": "pkce-verifier"  // if PKCE used
+}
+
+Body (Refresh Token):
+{
+  "grant_type": "refresh_token",
+  "refresh_token": "refresh-token",
+  "client_id": "client-uuid",
+  "client_secret": "client-secret"
+}
+
+Response:
+{
+  "access_token": "eyJhbGci...",
+  "token_type": "Bearer",
+  "expires_in": 3600,
+  "refresh_token": "new-refresh-token",
+  "id_token": "eyJhbGci...",
+  "scope": "openid profile email roles"
+}
+```
+
+#### Token Revocation
+```http
+POST /api/oauth/revoke
+
+Body:
+{
+  "token": "refresh-token",
+  "token_type_hint": "refresh_token",
+  "client_id": "client-uuid",
+  "client_secret": "client-secret"
+}
+```
+
+#### User Info
+```http
+GET /userinfo
+GET /api/oauth/userinfo
+
+Headers:
+Authorization: Bearer <access_token>
+
+Response:
+{
+  "sub": "user-uuid",
+  "email": "user@example.com",
+  "name": "User Name",
+  "email_verified": true,
+  "picture": "https://...",
+  "user_type": "public",
+  "role": "user"  // if 'roles' scope requested
+}
+```
+
+#### Discovery & JWKS
+```http
+GET /.well-known/openid-configuration
+GET /.well-known/jwks.json
+```
+
+#### Logout
+```http
+GET /api/oauth/logout?post_logout_redirect_uri=https://yourapp.com
+```
+
+---
+
+### Admin Endpoints (Protected)
+
+#### OAuth Client Management
+```http
+GET    /api/admin/oauth-clients              # List clients
+POST   /api/admin/oauth-clients              # Create client (admin only)
+GET    /api/admin/oauth-clients/:id          # Get client details
+PATCH  /api/admin/oauth-clients/:id          # Update client (admin only)
+DELETE /api/admin/oauth-clients/:id          # Delete client (admin only)
+POST   /api/admin/oauth-clients/:id/regenerate-secret  # Regenerate secret (admin only)
+```
+
+#### User Management
+```http
+GET    /api/admin/users                      # List all users
+POST   /api/admin/users                      # Create admin user (admin only)
+GET    /api/admin/users/:id                  # Get user details
+PATCH  /api/admin/users/:id                  # Update user (admin only)
+DELETE /api/admin/users/:id                  # Delete user (admin only)
+```
+
+#### App Permission Management
+```http
+GET    /api/admin/users/:userId/apps/:clientId/permissions  # Get permission
+PUT    /api/admin/users/:userId/apps/:clientId/permissions  # Grant/update (admin only)
+DELETE /api/admin/users/:userId/apps/:clientId/permissions  # Revoke (admin only)
+```
+
+#### Audit Logs
+```http
+GET    /api/admin/audit-logs                 # Query audit logs (admin only)
+```
+
+---
+
+### Public User Endpoints
+
+```http
+POST   /api/public/register                  # Create account
+POST   /api/public/login                     # Email+password login
+POST   /api/public/logout                    # Logout
+GET    /api/public/session                   # Check session status
+GET    /api/public/validate                  # Validate session (for subdomain SSO)
+POST   /api/public/request-magic-link        # Request passwordless login
+GET    /api/public/magic-login               # Consume magic link
+POST   /api/public/forgot-password           # Request password reset
+POST   /api/public/verify-pin                # Verify 6-digit PIN
+PATCH  /api/public/profile                   # Update profile
+POST   /api/public/change-password           # Change password
+DELETE /api/public/account                   # Delete account
+GET    /api/public/authorizations            # List connected OAuth apps
+DELETE /api/public/authorizations/:id        # Revoke app access
+```
+
+---
 
 ### Social Login Endpoints
-- GET /api/auth/facebook/login — Initiate Facebook OAuth
-- GET /api/auth/facebook/callback — Facebook OAuth callback
-- GET /api/auth/google/login — Initiate Google Sign-In
-- GET /api/auth/google/callback — Google OAuth callback
 
-### Resource & Validation
-- POST /api/resource-passwords — { resourceId, resourceType, regenerate? } -> token + shareableLink
-- PUT /api/resource-passwords — { resourceId, resourceType, password } -> validate
-- GET /api/sso/validate — Admin session validation
+```http
+GET    /api/auth/facebook/login              # Initiate Facebook OAuth
+GET    /api/auth/facebook/callback           # Facebook callback
 
-Deprecated/Removed:
-- /api/auth/login, /api/auth/logout, /api/users/register, /api/users/logout, /api/users/[userId]
+GET    /api/auth/google/login                # Initiate Google Sign-In
+GET    /api/auth/google/callback             # Google callback
+```
 
-## Quick Start
-1) Configure environment (.env or Vercel env):
-- MONGODB_URI, MONGODB_DB
-- **SSO_COOKIE_DOMAIN=.doneisbetter.com** (NEW: Required for subdomain SSO)
-- ADMIN_SESSION_COOKIE=admin-session
-- SSO_ADMIN_ALIAS_EMAIL=sso@doneisbetter.com
-- SSO_ALLOWED_ORIGINS=https://sso.doneisbetter.com,https://doneisbetter.com
-- SSO_BASE_URL=https://sso.doneisbetter.com
-- SESSION_SECRET=<generate with: openssl rand -base64 32>
-- CSRF_SECRET=<optional, falls back to SESSION_SECRET>
-- RATE_LIMIT_LOGIN_MAX=5 (optional, default: 5)
-- RATE_LIMIT_LOGIN_WINDOW=900000 (optional, default: 15 minutes)
+---
 
-**Social Login (Optional):**
-- FACEBOOK_APP_ID, FACEBOOK_APP_SECRET, FACEBOOK_REDIRECT_URI
-- GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REDIRECT_URI
+## 🎯 OAuth2 Scopes
 
-2) Install deps and run dev:
-- npm install
-- npm run dev
+| Scope | Description | Claims Included |
+|-------|-------------|-----------------|
+| `openid` | Required for OIDC | sub (user UUID) |
+| `profile` | User profile information | name, picture, updated_at, user_type, role |
+| `email` | Email address | email, email_verified |
+| `offline_access` | Refresh token | - |
+| `roles` | User role information | role (in profile if requested) |
 
-3) Create first super-admin user:
-- Call POST /api/admin/users with an authenticated super-admin (seed via DB insert if first-time)
+**Note:** The `roles` scope includes the user's role in the `id_token` and `/userinfo` response. Role values: `user`, `admin`.
 
-## Deployment
-- Hosting: Vercel
-- Database: MongoDB Atlas
-- Domain: sso.doneisbetter.com
-- Set all env vars in Vercel Project Settings
+---
 
-## Security Notes
+## 🔑 ID Token Claims
 
-### 🔒 Enterprise-Grade Security Hardening (v5.29.0) ✅ COMPLETE
+When `openid` scope is requested, the ID token includes:
 
-**Multi-layered defense-in-depth architecture with 5 security phases:**
+```json
+{
+  "iss": "https://sso.doneisbetter.com",
+  "sub": "user-uuid",
+  "aud": "client-id",
+  "exp": 1737468000,
+  "iat": 1737464400,
+  "nonce": "client-provided-nonce",
+  "email": "user@example.com",
+  "email_verified": true,
+  "name": "User Name",
+  "picture": "https://...",
+  "user_type": "public",
+  "role": "user"
+}
+```
 
-#### Layer 1: Enhanced Rate Limiting
-- Admin login: **3 attempts per 15 minutes** (stricter than public)
-- Admin mutations: **20 requests per minute**
-- Admin queries: **100 requests per minute**
-- Automated brute force protection
+---
 
-#### Layer 2: Security Headers (All Routes)
-- **X-Frame-Options**: Prevents clickjacking
-- **X-Content-Type-Options**: Prevents MIME sniffing
-- **X-XSS-Protection**: XSS attack mitigation
-- **HSTS**: Enforces HTTPS in production
-- **Content-Security-Policy**: Restricts resource loading
-- **Permissions-Policy**: Disables 20+ browser features (camera, mic, geolocation, etc.)
+## 🛠️ Developer Tools
 
-#### Layer 3: Input Validation
-- **Zod** type-safe validation on all admin endpoints
-- HTML and filename sanitization
-- UUID, email, password validation
-- Protection against injection attacks
+### Generate Magic Link (Development)
+```bash
+# Set environment variables
+export MONGODB_URI="..."
+export ADMIN_MAGIC_SECRET="your-secret"
+export SSO_BASE_URL="https://sso.doneisbetter.com"
+export NEW_MAGIC_EMAIL="admin@example.com"
 
-#### Layer 4: Session Security
-- **4-hour admin session timeout** (reduced from 30 days)
-- **Device fingerprinting** (SHA-256 of IP + User-Agent)
-- Device change detection and alerting
-- HttpOnly, SameSite, Secure cookies
-- Sliding expiration on activity
+# Generate link
+node scripts/generate-magic-link.mjs
 
-#### Layer 5: Comprehensive Audit Logging
-- All admin actions logged to MongoDB
-- Before/after state tracking
-- Automatic password/token sanitization
-- Query API for compliance: `/api/admin/audit-logs`
-- Failed action detection
-- SOC 2, GDPR, OWASP compliant
+# Output: { url: "https://...", expiresAt: "..." }
+```
 
-**Attack Vectors Mitigated:**
-- ✅ Brute force attacks
-- ✅ Clickjacking
-- ✅ XSS attacks
-- ✅ MIME sniffing
-- ✅ Man-in-the-middle attacks
-- ✅ Session hijacking
-- ✅ SQL/NoSQL injection
-- ✅ Credential theft
+### Dev Bypass (Development Only)
+```bash
+# In .env.local
+ADMIN_DEV_BYPASS=true
 
-**Compliance:**
-- ✅ OWASP Top 10 coverage
-- ✅ SOC 2 audit trail
-- ✅ GDPR logging requirements
-- ✅ Defense in depth architecture
+# Visit /admin and enter email only (no password required)
+# Hard-disabled in production
+```
 
-### Additional Security Features
-- Server-side session revocation
-- CSRF protection (double-submit cookie)
-- Subdomain SSO (*.doneisbetter.com)
-- Tokens are random 32-hex strings by convention (not password hashes), per team policy
-- ISO 8601 timestamps with milliseconds in UTC across DB and docs
-- CORS strict to production domains
-- No tests included (MVP policy)
+---
 
-## Dev Bypass (no password in development)
-- To speed up local/dev work, enable passwordless admin login:
-  - Server: ADMIN_DEV_BYPASS=true
-  - Client: NEXT_PUBLIC_ADMIN_DEV_BYPASS=true
-- Then, on /admin, you’ll see an email-only form. Submitting it will create a session via /api/admin/dev-login.
-- Notes:
-  - Dev bypass is hard-disabled in production, even if misconfigured.
-  - A matching user will be created automatically if missing (role defaults to super-admin).
+## 🔒 Security
 
-## Magic Link (one-time admin access)
-- Generate a one-time URL for a specific admin email (expires default in 15 minutes):
-  - Set env locally (do not print secrets):
-    - MONGODB_URI, ADMIN_MAGIC_SECRET, SSO_BASE_URL
-    - NEW_MAGIC_EMAIL (e.g., nimdasuper@doneisbetter.com)
-  - Run:
-    - node scripts/generate-magic-link.mjs
-  - Output JSON contains { url, expiresAt }. Open the URL to get redirected to /admin with a valid session.
-- To restrict magic links, set ADMIN_MAGIC_ALLOWED_EMAILS to a comma-separated list of allowed emails.
+### Authentication
+- **Password Hashing**: bcrypt with 12 rounds
+- **Session Management**: Server-side with MongoDB, HttpOnly cookies
+- **Device Fingerprinting**: SHA-256 of IP + User-Agent
+- **Session Timeout**: 4 hours for admin, 30 days for public (sliding)
 
-## Troubleshooting
-- 401 from /api/sso/validate → no admin cookie; login via POST /api/admin/login
-- CORS errors → verify SSO_ALLOWED_ORIGINS matches caller origin exactly
-- MongoDB timeouts → check MONGODB_URI and network allowlist
+### Authorization
+- **3-Role System**: none, user, admin
+- **Per-App Permissions**: Centralized SSO, distributed authorization
+- **Admin Checks**: Every protected endpoint validates role
+- **Audit Logging**: All permission changes logged
+
+### Security Headers (All Routes)
+```http
+X-Frame-Options: DENY
+X-Content-Type-Options: nosniff
+X-XSS-Protection: 1; mode=block
+Strict-Transport-Security: max-age=31536000; includeSubDomains
+Content-Security-Policy: ...
+Permissions-Policy: camera=(), microphone=(), geolocation=(), ...
+```
+
+### Rate Limiting
+- **Admin Login**: 3 attempts per 15 minutes
+- **Public Login**: 5 attempts per 15 minutes
+- **Admin Mutations**: 20 requests per minute
+- **Admin Queries**: 100 requests per minute
+
+### OIDC Security
+- **PKCE Support**: S256 or plain, configurable per client
+- **State Validation**: CSRF protection required
+- **Nonce Support**: Replay attack prevention
+- **Token Rotation**: Refresh tokens rotated on every use
+- **Signature Verification**: RS256 with JWKS
+
+---
+
+## 📊 Deployment
+
+### Hosting: Vercel
+- **Production**: https://sso.doneisbetter.com
+- **Database**: MongoDB Atlas
+- **Environment Variables**: Set in Vercel Project Settings
+
+### Required Secrets
+1. `MONGODB_URI` - MongoDB connection string
+2. `SESSION_SECRET` - Session encryption key
+3. `ADMIN_MAGIC_SECRET` - Magic link signing secret (optional)
+4. Social login credentials (optional)
+
+### Deployment Checklist
+- [ ] All environment variables set in Vercel
+- [ ] MongoDB IP allowlist updated
+- [ ] CORS origins configured (`SSO_ALLOWED_ORIGINS`)
+- [ ] Email provider configured (Resend or Nodemailer)
+- [ ] Admin user created via bootstrap or magic link
+- [ ] OAuth clients registered for integrated apps
+- [ ] Security headers verified
+- [ ] Rate limiting tested
+
+---
+
+## 🧪 Testing OAuth Integration
+
+### Test Authorization Flow
+```bash
+# Generate PKCE challenge
+code_verifier=$(openssl rand -base64 32 | tr -d '=' | tr '+/' '-_')
+code_challenge=$(echo -n "$code_verifier" | openssl dgst -binary -sha256 | openssl base64 | tr -d '=' | tr '+/' '-_')
+
+# Visit authorization URL (in browser)
+https://sso.doneisbetter.com/authorize?\
+  response_type=code&\
+  client_id=YOUR_CLIENT_ID&\
+  redirect_uri=https://yourapp.com/callback&\
+  scope=openid%20profile%20email%20roles&\
+  state=random-state-value&\
+  nonce=random-nonce-value&\
+  code_challenge=$code_challenge&\
+  code_challenge_method=S256
+
+# After redirect, exchange code for tokens
+curl -X POST https://sso.doneisbetter.com/token \
+  -H "Content-Type: application/json" \
+  -d '{
+    "grant_type": "authorization_code",
+    "code": "AUTHORIZATION_CODE",
+    "redirect_uri": "https://yourapp.com/callback",
+    "client_id": "YOUR_CLIENT_ID",
+    "client_secret": "YOUR_CLIENT_SECRET",
+    "code_verifier": "'$code_verifier'"
+  }'
+
+# Verify ID token at https://jwt.io
+```
+
+---
+
+## 📝 Change Log
+
+### v5.30.0 (2026-01-20) - Role System Consolidation & OIDC Compliance
+**BREAKING CHANGES:**
+- **3-Role System**: All roles consolidated to `none`, `user`, `admin`
+  - Removed: `super-admin`, `owner`, `superadmin`
+  - Migration: All previous admin variants → `admin`
+- **OIDC Compliance**: Added full `nonce` parameter support
+- **Scopes Update**: Added `roles` scope to SCOPE_DEFINITIONS
+
+**New Features:**
+- Full nonce support across authorization flow
+- Simplified permission checks (single `admin` role)
+- Updated admin UI to reflect 3-role system
+
+**Fixed:**
+- `invalid_scope` error when requesting `roles` scope
+- `invalid_nonce` error due to missing nonce in ID tokens
+- Blank `/authorize` page (added Next.js rewrites)
+
+**Documentation:**
+- Complete rewrite of THIRD_PARTY_INTEGRATION_GUIDE.md
+- Updated README.md with current features and API
+- Created ROLE_SYSTEM_MIGRATION.md
+
+### v5.29.0 (2025-12-21) - Enterprise Security Hardening
+- 5-layer security architecture
+- Comprehensive audit logging
+- Account linking and unlinking
+- Session device fingerprinting
+
+### v5.24.0 (2025-11-10) - Multi-App Permissions
+- Centralized app permission management
+- Per-app role assignment
+- Admin approval workflow
+
+### v5.0.0 (2025-10-02) - OAuth2/OIDC Foundation
+- Full OAuth 2.0 + OIDC implementation
+- PKCE support
+- JWT access tokens with RS256
+- Refresh token rotation
+
+---
+
+## 🆘 Support & Resources
+
+- **Admin Portal**: https://sso.doneisbetter.com/admin
+- **User Account**: https://sso.doneisbetter.com/account
+- **Documentation**: `/docs` directory
+- **OAuth 2.0 RFC**: https://tools.ietf.org/html/rfc6749
+- **PKCE RFC**: https://tools.ietf.org/html/rfc7636
+- **OIDC Core**: https://openid.net/specs/openid-connect-core-1_0.html
+- **OIDC Discovery**: https://openid.net/specs/openid-connect-discovery-1_0.html
+
+---
+
+## 📄 License
+
+Proprietary - Done Is Better
+
+---
+
+**Production Status**: ✅ Ready  
+**Last Major Update**: 2026-01-20 (Role System Consolidation)  
+**Maintainer**: Done Is Better Team
