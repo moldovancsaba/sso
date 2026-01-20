@@ -1,12 +1,18 @@
 # Multi-App User Permission System
 
-**Version**: 1.0.0  
+**Version**: 2.0.0  
 **Created**: 2025-01-13T23:15:00.000Z  
-**Status**: Design Phase
+**Updated**: 2026-01-20T14:00:00.000Z  
+**Status**: Production (Updated for 3-Role System)
 
 ## Overview
 
-This document defines the architecture for managing user permissions across multiple applications (launchmass, sso, messmass, cardmass, blockmass) with centralized SSO authentication and per-app authorization.
+This document defines the architecture for managing user permissions across multiple applications (Amanoba, launchmass, messmass, cardmass, blockmass) with centralized SSO authentication and per-app authorization.
+
+**Updated for 3-Role System (2026-01-20):**
+- Simplified from 5 roles to 3 roles: `none`, `user`, `admin`
+- Removed `superadmin` and `org-admin` roles
+- `admin` role now encompasses all administrative permissions
 
 ---
 
@@ -70,7 +76,7 @@ This document defines the architecture for managing user permissions across mult
   passwordHash: "bcrypt-hash",
   role: "user",                     // SSO role (not app-specific)
   status: "active" | "disabled",
-  isSsoSuperadmin: false,           // NEW: Cross-app superadmin flag
+  role: "user" | "admin",           // User's global SSO role (simplified 3-role system)
   emailVerified: true,
   emailVerifiedAt: "ISO-8601",
   createdAt: "ISO-8601",
@@ -83,7 +89,7 @@ This document defines the architecture for managing user permissions across mult
 **Indexes**:
 - `{ email: 1 }` unique
 - `{ id: 1 }` unique
-- `{ isSsoSuperadmin: 1 }`
+- `{ role: 1 }` for admin queries
 
 ---
 
@@ -101,7 +107,7 @@ Stores per-user, per-app access rights.
   // Permission details
   hasAccess: true,
   status: "active" | "pending" | "revoked",
-  role: "none" | "user" | "admin" | "superadmin",
+  role: "none" | "user" | "admin",
   
   // Audit trail
   requestedAt: "ISO-8601",          // First login attempt
@@ -128,11 +134,12 @@ Stores per-user, per-app access rights.
 - `active` - User has active access
 - `revoked` - Access was granted then revoked
 
-**Role Values**:
+**Role Values** (Updated 2026-01-20):
 - `none` - No access (used with status: pending/revoked)
-- `user` - Basic app access
-- `admin` - Organization-level admin (app-specific meaning)
-- `superadmin` - App superadmin (can manage all app users)
+- `user` - Basic app access (can read data, create own content)
+- `admin` - Full administrative access (can manage all users, app settings, permissions)
+
+**Note:** The `superadmin` and `org-admin` roles have been consolidated into `admin`.
 
 ---
 
@@ -189,7 +196,7 @@ Local cache of users who have accessed launchmass.
   ssoRole: "user",
   
   // App-specific permissions (synced from SSO on each login)
-  appRole: "none" | "user" | "admin" | "superadmin",
+  appRole: "none" | "user" | "admin",
   appStatus: "pending" | "active" | "revoked",
   hasAccess: false,                 // Quick boolean check
   
@@ -295,12 +302,12 @@ Response 200:
 }
 ```
 
-#### Grant/Update App Permission (SSO Admin or App Superadmin)
+#### Grant/Update App Permission (SSO Admin Only)
 
 ```
 PUT /api/admin/users/{userId}/apps/{clientId}/permissions
 Authorization: Admin session cookie
-Role Required: SSO Admin OR App Superadmin (for their app)
+Role Required: admin
 
 Body:
 {
@@ -351,7 +358,7 @@ Response 200:
 ```
 GET /api/admin/users?status=pending&page=1
 Authorization: OAuth session cookie
-Role Required: Superadmin
+Role Required: admin
 
 Response 200:
 {
@@ -370,16 +377,16 @@ Response 200:
 }
 ```
 
-#### Grant Access (Launchmass Superadmin)
+#### Grant Access (App Admin)
 
 ```
 POST /api/admin/users/{ssoUserId}/grant-access
 Authorization: OAuth session cookie
-Role Required: Superadmin
+Role Required: admin
 
 Body:
 {
-  "role": "user" | "admin" | "superadmin"
+  "role": "user" | "admin"
 }
 
 Response 200:
@@ -419,7 +426,7 @@ Response 200:
    ```
    User: john@example.com
    Status: Active
-   SSO Superadmin: No
+   SSO Role: user
    Email Verified: Yes
    Created: 2025-01-01
    Last Login: 2025-01-13
@@ -435,14 +442,16 @@ Response 200:
    │ blockmass   │ -        │ -          │ Never accessed      │
    └─────────────┴──────────┴────────────┴─────────────────────┘
    
-   [Edit App Permissions] [Make SSO Superadmin] [Disable User]
+   [Edit App Permissions] [Change SSO Role] [Disable User]
    ```
 
 3. **App Permission Editor**
    - Select app from dropdown
    - Toggle access: Pending / Active / Revoked
-   - Select role: None / User / Admin / Superadmin
+   - Select role: None / User / Admin
    - Save button → Calls SSO API
+   
+**Note:** Removed Superadmin option - `admin` role now has all permissions.
 
 ---
 
@@ -474,9 +483,8 @@ Response 200:
    Grant Access to john@example.com
    
    Select Role:
-   ( ) User - Basic access
-   ( ) Admin - Organization management
-   ( ) Superadmin - Full app access
+   ( ) User - Basic access (read data, create own content)
+   ( ) Admin - Full administrative access (manage users, app settings)
    
    [Cancel] [Grant Access]
    ```
@@ -545,10 +553,11 @@ Need help? Contact support@doneisbetter.com
 
 ## Security Considerations
 
-1. **Authorization Hierarchy**:
-   - SSO Superadmin > App Superadmin > App Admin > User
-   - SSO superadmin can manage all users across all apps
-   - App superadmin can only manage users in their app
+1. **Authorization Hierarchy** (Updated 2026-01-20):
+   - SSO Admin > App Admin > User
+   - SSO admin (global) can manage all users across all apps
+   - App admin can manage users in their specific app
+   - Simplified from previous 5-role hierarchy
 
 2. **Permission Sync**:
    - Permissions cached in launchmass for performance
@@ -598,11 +607,11 @@ Need help? Contact support@doneisbetter.com
 
 ## Questions & Decisions
 
-### Q1: Where to store app superadmin list?
-**Decision**: In `appPermissions` with `role: 'superadmin'`
+### Q1: Where to store app admin list?
+**Decision**: In `appPermissions` with `role: 'admin'`
 
-### Q2: Can app superadmin manage themselves?
-**Decision**: No, only SSO superadmin or another app superadmin can modify their role
+### Q2: Can app admin manage themselves?
+**Decision**: No, only SSO admin or another app admin can modify their role
 
 ### Q3: What happens when user loses access while logged in?
 **Decision**: 
@@ -617,13 +626,14 @@ Need help? Contact support@doneisbetter.com
 
 ## Migration Plan
 
-### Existing Users
-- All current launchmass users have `isAdmin: true`
+### Existing Users (Updated 2026-01-20)
+- All current launchmass users with admin access
 - Migration script should:
-  1. Find all users in launchmass.users
+  1. Find all users in launchmass.users with `isAdmin: true`
   2. Create `appPermissions` record for each
-  3. Set: `hasAccess: true`, `role: 'superadmin'`, `status: 'active'`
+  3. Set: `hasAccess: true`, `role: 'admin'`, `status: 'active'`
   4. Set `grantedAt` to their `createdAt`, `grantedBy: null`
+  5. Consolidate any existing `superadmin` roles to `admin`
 
 ### OAuth Clients
 - Need to add `appName` field to `oauthClients` collection
