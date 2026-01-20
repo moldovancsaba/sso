@@ -1,21 +1,32 @@
-# Architecture — SSO (v5.29.0)
+# Architecture — SSO (v5.30.0)
 
-Last updated: 2025-12-21T14:00:00.000Z
+Last updated: 2026-01-20T12:00:00.000Z
 
 ## Stack
 - Next.js (Pages Router)
 - Node.js >= 18, ESM modules
 - MongoDB Atlas
 
+## 3-Role Permission System (Updated: 2026-01-20)
+
+**Unified across all applications:**
+- `none` - No access to application
+- `user` - Standard user access
+- `admin` - Full administrative access (consolidated from super-admin, owner, superadmin)
+
+**Migration Complete:** All legacy roles consolidated to `admin` role.
+
 ## Components
-1) Admin Authentication (DB-backed)
-- Collection: users { id: uuid, email, name, role: 'admin'|'super-admin', password, createdAt, updatedAt }  // id is a UUID; legacy Mongo _id retained internally
+
+### 1) Admin Authentication (DB-backed)
+- Collection: users { id: uuid, email, name, role: 'admin', password, createdAt, updatedAt }  // id is a UUID; legacy Mongo _id retained internally
 - Session: HttpOnly cookie 'admin-session' (base64 JSON: token, expiresAt, userId, role) // userId is UUID
+- **Role Values**: Only `admin` (legacy `super-admin` removed)
 - Endpoints:
-  - POST /api/admin/login — login with email + 32-hex token (MD5-style)
+  - POST /api/admin/login — login with email + password
   - DELETE /api/admin/login — logout (clear cookie)
-  - GET/POST /api/admin/users — list/create users (super-admin to create)
-  - GET/PATCH/DELETE /api/admin/users/[id] — manage user (update name/role/password, delete)
+  - GET/POST /api/admin/users — list/create users (admin only)
+  - GET/PATCH/DELETE /api/admin/users/[id] — manage user (admin only)
 
 2) Resource Passwords (page-specific analogue)
 - Collection: resourcePasswords { resourceId, resourceType, password, createdAt, expiresAt?, usageCount, lastUsedAt? }
