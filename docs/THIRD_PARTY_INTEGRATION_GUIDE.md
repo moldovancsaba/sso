@@ -241,6 +241,8 @@ function initiateOAuthLogin(returnTo = '/dashboard') {
     nonce: sessionStorage.getItem('oauth_nonce'),        // Required for OIDC
     code_challenge: codeChallenge,                       // Optional if client requires PKCE
     code_challenge_method: 'S256',
+    provider: 'google',                                  // Optional: direct social provider handoff
+    login_hint: currentUserEmail || '',                  // Optional: prefill account chooser
     // prompt: 'login',  // ⚠️ Some providers don't support this - may cause blank page
   });
   
@@ -251,10 +253,15 @@ function initiateOAuthLogin(returnTo = '/dashboard') {
 }
 ```
 
+**Provider Hinting (Recommended for fewer steps):**
+- `provider=google` or `provider=facebook`: skips the intermediate SSO login chooser and goes directly to that provider.
+- `login_hint=<email>`: helps pre-select the account when the provider supports it.
+- Keep `provider` optional if you want to keep a generic provider chooser flow.
+
 **Available Prompt Values:**
 - `login` - Force re-authentication (useful after logout)
 - `consent` - Force consent screen
-- `select_account` - Show account selection
+- `select_account` - Show account selection (Google; use only when explicitly needed)
 - `none` - No UI, error if interaction required
 
 #### 2.4 Handle OAuth Callback
