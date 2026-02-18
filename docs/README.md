@@ -168,6 +168,8 @@ Query Parameters:
 - code_challenge: PKCE challenge (optional, configurable per client)
 - code_challenge_method: "S256" or "plain"
 - prompt: "none" | "login" | "consent" | "select_account" (optional)
+- provider: "google" | "facebook" (optional; direct provider handoff)
+- login_hint: Email hint for provider account selection (optional)
 ```
 
 #### Token Exchange
