@@ -26,6 +26,18 @@ import { getDb } from '../../../lib/db.mjs'
 import logger from '../../../lib/logger.mjs'
 import { runCors } from '../../../lib/cors.mjs'
 
+function normalizeProvider(value) {
+  const source = Array.isArray(value) ? value[0] : value
+  if (!source || typeof source !== 'string') return null
+
+  const provider = source.trim().toLowerCase()
+  if (provider === 'google' || provider === 'facebook') {
+    return provider
+  }
+
+  return null
+}
+
 export default async function handler(req, res) {
   // Apply CORS
   if (runCors(req, res)) return
@@ -44,9 +56,14 @@ export default async function handler(req, res) {
     code_challenge,
     code_challenge_method = 'S256',
     prompt, // OIDC prompt parameter: 'none', 'login', 'consent', 'select_account'
+    provider, // Optional login provider hint: 'google' | 'facebook'
+    login_hint, // Optional login hint (email) forwarded to provider login
   } = req.query
 
   try {
+    const requestedProvider = normalizeProvider(provider)
+    const loginHint = Array.isArray(login_hint) ? login_hint[0] : login_hint
+
     // Validate required parameters
     if (!response_type || response_type !== 'code') {
       return respondWithError(res, redirect_uri, state, 'invalid_request', 'response_type must be "code"')
@@ -160,14 +177,34 @@ export default async function handler(req, res) {
         redirect_uri,
         scope: finalScope,
         state,
+        nonce,
         code_challenge,
         code_challenge_method,
+        prompt,
+        provider: requestedProvider,
+        login_hint: loginHint,
         client_name: client.name,
         client_homepage: client.homepage_uri,
         client_logo: client.logo_uri,
       }
 
       const encodedRequest = Buffer.from(JSON.stringify(authRequest)).toString('base64url')
+
+      if (requestedProvider) {
+        const directProviderParams = new URLSearchParams({
+          oauth_request: encodedRequest,
+        })
+
+        if (requestedProvider === 'google' && prompt === 'login') {
+          directProviderParams.set('prompt', 'select_account')
+        }
+        if (requestedProvider === 'google' && loginHint) {
+          directProviderParams.set('login_hint', loginHint)
+        }
+
+        return res.redirect(302, `/api/auth/${requestedProvider}/login?${directProviderParams.toString()}`)
+      }
+
       // Add force_login flag to tell login page to show credentials form
       const loginUrl = `/login?oauth_request=${encodedRequest}&force_login=true`
 
@@ -188,8 +225,12 @@ export default async function handler(req, res) {
         redirect_uri,
         scope: finalScope,
         state,
+        nonce,
         code_challenge,
         code_challenge_method,
+        prompt,
+        provider: requestedProvider,
+        login_hint: loginHint,
         client_name: client.name,
         client_homepage: client.homepage_uri,
         client_logo: client.logo_uri,
@@ -199,6 +240,20 @@ export default async function handler(req, res) {
       // WHY: Users need to register/login with email+password, not admin token
       // HOW: Redirect to /login (public) instead of /admin (admin token form)
       const encodedRequest = Buffer.from(JSON.stringify(authRequest)).toString('base64url')
+
+      if (requestedProvider) {
+        const directProviderParams = new URLSearchParams({
+          oauth_request: encodedRequest,
+        })
+
+        if (requestedProvider === 'google' && loginHint) {
+          directProviderParams.set('login_hint', loginHint)
+        }
+
+        const directLoginUrl = `/api/auth/${requestedProvider}/login?${directProviderParams.toString()}`
+        return res.redirect(302, directLoginUrl)
+      }
+
       const loginUrl = `/login?oauth_request=${encodedRequest}`
 
       return res.redirect(302, loginUrl)

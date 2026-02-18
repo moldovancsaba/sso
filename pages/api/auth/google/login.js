@@ -21,7 +21,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { oauth_request, state } = req.query
+    const { oauth_request, state, prompt, login_hint } = req.query
 
     // WHAT: Generate CSRF protection state token
     // WHY: Prevent CSRF attacks by validating state on callback
@@ -48,7 +48,15 @@ export default async function handler(req, res) {
       } catch {}
     }
 
-    let googleAuthUrl = getGoogleAuthUrl(csrfToken, oauth_request, redirectUri)
+    const googleOptions = {}
+    if (typeof prompt === 'string' && prompt.trim()) {
+      googleOptions.prompt = prompt.trim()
+    }
+    if (typeof login_hint === 'string' && login_hint.trim()) {
+      googleOptions.loginHint = login_hint.trim()
+    }
+
+    let googleAuthUrl = getGoogleAuthUrl(csrfToken, oauth_request, redirectUri, googleOptions)
     
     // Add admin_login flag to state if needed
     if (adminLogin) {
@@ -63,6 +71,8 @@ export default async function handler(req, res) {
     logger.info('Initiating Google login', {
       csrf: csrfToken,
       hasOAuthRequest: !!oauth_request,
+      prompt: googleOptions.prompt || null,
+      hasLoginHint: !!googleOptions.loginHint,
     })
 
     // WHAT: Redirect user to Google OAuth page

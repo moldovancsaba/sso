@@ -200,18 +200,30 @@ export default async function handler(req, res) {
           scope: decoded.scope,
           state: decoded.state,
         })
-        
+
+        if (decoded.nonce) {
+          params.set('nonce', decoded.nonce)
+        }
+
         // Add PKCE parameters if present
         if (decoded.code_challenge) {
           params.set('code_challenge', decoded.code_challenge)
           params.set('code_challenge_method', decoded.code_challenge_method || 'S256')
         }
-        
+
         // Add prompt parameter if present
         if (decoded.prompt) {
           params.set('prompt', decoded.prompt)
         }
-        
+
+        if (decoded.provider) {
+          params.set('provider', decoded.provider)
+        }
+
+        if (decoded.login_hint) {
+          params.set('login_hint', decoded.login_hint)
+        }
+
         const authUrl = `/api/oauth/authorize?${params.toString()}`
         return res.redirect(302, authUrl)
       } catch (err) {
