@@ -242,12 +242,26 @@ export default function LoginPage({ initialRedirect, initialOAuthRequest }) {
               scope: decoded.scope,
               state: decoded.state,
             })
+
+            if (decoded.nonce) {
+              params.set('nonce', decoded.nonce)
+            }
             
             // WHAT: Only add code_challenge if it exists
             // WHY: LaunchMass might send code_challenge_method without code_challenge
             if (decoded.code_challenge) {
               params.set('code_challenge', decoded.code_challenge)
               params.set('code_challenge_method', decoded.code_challenge_method || 'S256')
+            }
+
+            if (decoded.prompt) {
+              params.set('prompt', decoded.prompt)
+            }
+            if (decoded.provider) {
+              params.set('provider', decoded.provider)
+            }
+            if (decoded.login_hint) {
+              params.set('login_hint', decoded.login_hint)
             }
             
             const authorizeUrl = `/api/oauth/authorize?${params.toString()}`
@@ -364,12 +378,26 @@ export default function LoginPage({ initialRedirect, initialOAuthRequest }) {
               scope: decoded.scope,
               state: decoded.state,
             })
+
+            if (decoded.nonce) {
+              params.set('nonce', decoded.nonce)
+            }
             
             // WHAT: Only add code_challenge if it exists
             // WHY: LaunchMass might send code_challenge_method without code_challenge
             if (decoded.code_challenge) {
               params.set('code_challenge', decoded.code_challenge)
               params.set('code_challenge_method', decoded.code_challenge_method || 'S256')
+            }
+
+            if (decoded.prompt) {
+              params.set('prompt', decoded.prompt)
+            }
+            if (decoded.provider) {
+              params.set('provider', decoded.provider)
+            }
+            if (decoded.login_hint) {
+              params.set('login_hint', decoded.login_hint)
             }
             
             const authorizeUrl = `/api/oauth/authorize?${params.toString()}`
