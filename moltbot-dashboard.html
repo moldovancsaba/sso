@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🦞 Moltbot — Personal AI Assistant</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0a0a0a;
+            color: #ffffff;
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 60px;
+            padding: 40px 0;
+        }
+        
+        .header h1 {
+            font-size: 4rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #ff6b6b, #ffa500, #ff6b6b);
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: gradient 3s ease infinite;
+        }
+        
+        @keyframes gradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        .header p {
+            font-size: 1.4rem;
+            color: #888;
+            margin-bottom: 30px;
+        }
+        
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 60px;
+        }
+        
+        .status-card {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 12px;
+            padding: 24px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .status-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #ff6b6b, #ffa500);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .status-card.running::before {
+            opacity: 1;
+        }
+        
+        .status-card:hover {
+            transform: translateY(-5px);
+            border-color: #555;
+            box-shadow: 0 10px 30px rgba(255, 107, 107, 0.1);
+        }
+        
+        .status-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 12px;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        
+        .status-running {
+            background: #4ade80;
+            box-shadow: 0 0 20px rgba(74, 222, 128, 0.3);
+        }
+        
+        .status-stopped {
+            background: #f87171;
+            box-shadow: 0 0 20px rgba(248, 113, 113, 0.3);
+        }
+        
+        .status-card h3 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #fff;
+        }
+        
+        .status-card p {
+            color: #888;
+            font-size: 0.9rem;
+            margin-bottom: 16px;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #ff6b6b, #ffa500);
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 500;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(255, 107, 107, 0.3);
+        }
+        
+        .btn.secondary {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        }
+        
+        .btn.secondary:hover {
+            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.3);
+        }
+        
+        .testimonials {
+            margin: 60px 0;
+        }
+        
+        .testimonials h2 {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 40px;
+            color: #fff;
+        }
+        
+        .testimonial-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+        }
+        
+        .testimonial {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 12px;
+            padding: 24px;
+            transition: all 0.3s ease;
+        }
+        
+        .testimonial:hover {
+            border-color: #555;
+            transform: translateY(-2px);
+        }
+        
+        .testimonial-text {
+            color: #ccc;
+            font-style: italic;
+            margin-bottom: 16px;
+            line-height: 1.6;
+        }
+        
+        .testimonial-author {
+            color: #ff6b6b;
+            font-weight: 600;
+        }
+        
+        .management-section {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 12px;
+            padding: 40px;
+            margin-top: 60px;
+        }
+        
+        .management-section h2 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #fff;
+        }
+        
+        .terminal {
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 20px;
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+            font-size: 14px;
+            margin: 20px 0;
+            overflow-x: auto;
+        }
+        
+        .terminal .command {
+            color: #7c3aed;
+            margin-bottom: 8px;
+        }
+        
+        .terminal .comment {
+            color: #6b7280;
+        }
+        
+        .terminal .output {
+            color: #10b981;
+        }
+        
+        .crab-emoji {
+            font-size: 1.5em;
+            margin-right: 8px;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 80px;
+            padding: 40px 0;
+            border-top: 1px solid #333;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🦞 Moltbot — Personal AI Assistant</h1>
+            <p>Your hackable, self-improving AI companion that lives on your machine</p>
+        </div>
+        
+        <div class="status-grid">
+            <div class="status-card running" id="moltbot-card">
+                <div class="status-header">
+                    <span class="status-indicator status-running" id="moltbot-status"></span>
+                    <h3><span class="crab-emoji">🦞</span>Moltbot UI</h3>
+                </div>
+                <p>Web interface for managing your Clawdbot gateway and Ollama models. The control center for your personal AI.</p>
+                <a href="http://localhost:4000" class="btn" target="_blank">Open Moltbot UI</a>
+            </div>
+            
+            <div class="status-card running" id="clawdbot-card">
+                <div class="status-header">
+                    <span class="status-indicator status-running" id="clawdbot-status"></span>
+                    <h3><span class="crab-emoji">🤖</span>Clawdbot Gateway</h3>
+                </div>
+                <p>Main dashboard for your Clawdbot gateway. Monitor connections, view logs, and manage your AI assistant.</p>
+                <a href="http://localhost:18789/?token=6b138f6653587f36f7a54fa0e681cddf2b1bdf8b4656e2bf" class="btn secondary" target="_blank">Open Dashboard</a>
+            </div>
+            
+            <div class="status-card running" id="control-card">
+                <div class="status-header">
+                    <span class="status-indicator status-running" id="control-status"></span>
+                    <h3><span class="crab-emoji">⚙️</span>Control Interface</h3>
+                </div>
+                <p>Advanced control interface for fine-tuning your Clawdbot settings and configurations.</p>
+                <a href="http://localhost:18791/?token=6b138f6653587f36f7a54fa0e681cddf2b1bdf8b4656e2bf" class="btn" target="_blank">Open Control UI</a>
+            </div>
+            
+            <div class="status-card running" id="ollama-card">
+                <div class="status-header">
+                    <span class="status-indicator status-running" id="ollama-status"></span>
+                    <h3><span class="crab-emoji">🧠</span>Ollama Engine</h3>
+                </div>
+                <p>Local AI model server powering your assistant. Running models locally for privacy and control.</p>
+                <a href="https://www.molt.bot" class="btn secondary" target="_blank">Visit Molt.bot</a>
+            </div>
+        </div>
+        
+        <div class="testimonials">
+            <h2>What People Are Saying</h2>
+            <div class="testimonial-grid">
+                <div class="testimonial">
+                    <div class="testimonial-text">"Setup @openclaw yesterday. All I have to say is, wow. The fact that claw can just keep building upon itself just by talking to it is crazy. The future is already here"</div>
+                    <div class="testimonial-author">@jonahships_</div>
+                </div>
+                
+                <div class="testimonial">
+                    <div class="testimonial-text">"I've been saying for months that even if LLMs suddenly stopped improving, we could spend years discovering new transformative uses. @openclaw feels like that kind of leap forward."</div>
+                    <div class="testimonial-author">@markjaquith</div>
+                </div>
+                
+                <div class="testimonial">
+                    <div class="testimonial-text">"At this point I don't even know what to call @openclaw. It is something new. This is the first time I have felt like I am living in the future since ChatGPT."</div>
+                    <div class="testimonial-author">@davemorin</div>
+                </div>
+                
+                <div class="testimonial">
+                    <div class="testimonial-text">"After years of AI hype, I thought nothing could faze me. Then I installed @openclaw. AI as teammate, not tool. The endgame of digital employees is here."</div>
+                    <div class="testimonial-author">@lycfyi</div>
+                </div>
+                
+                <div class="testimonial">
+                    <div class="testimonial-text">"Using @openclaw for a week and it genuinely feels like early AGI. The gap between 'what I can imagine' and 'what actually works' has never been smaller."</div>
+                    <div class="testimonial-author">@tobi_bsf</div>
+                </div>
+                
+                <div class="testimonial">
+                    <div class="testimonial-text">"Everything Siri was supposed to be. And it goes so much further. This lobster is gonna take over the world."</div>
+                    <div class="testimonial-author">@crossiBuilds</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="management-section">
+            <h2>🛠️ Management Commands</h2>
+            <p style="text-align: center; color: #888; margin-bottom: 30px;">Use these terminal commands to manage your Moltbot services:</p>
+            
+            <div class="terminal">
+<span class="comment"># Check status of all services</span>
+<span class="command">cd /Users/moldovancsaba/Projects/sso</span>
+<span class="command">node moltbot-status-checker.cjs</span>
+
+<span class="comment"># Start all services</span>
+<span class="command">node moltbot-manager.cjs start-all</span>
+
+<span class="comment"># Stop services (keeps Ollama running)</span>
+<span class="command">node moltbot-manager.cjs stop-all</span>
+
+<span class="comment"># Individual service management</span>
+<span class="command">node moltbot-manager.cjs start-ollama</span>
+<span class="command">node moltbot-manager.cjs start-clawdbot</span>
+<span class="command">node moltbot-manager.cjs start-ui</span>
+
+<span class="comment"># Access Moltbot UI</span>
+<span class="command">open http://localhost:4000</span>
+            </div>
+            
+            <div style="text-align: center; margin-top: 30px;">
+                <a href="file:///Users/moldovancsaba/Projects/sso" class="btn">Open Project Folder</a>
+                <a href="file:///Users/moldovancsaba/Projects/moltbot" class="btn secondary">Open Moltbot Folder</a>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>🦞 Moltbot Dashboard — Your Personal AI Assistant Control Center</p>
+            <p>Built with ❤️ for the future of personal AI</p>
+        </div>
+    </div>
+    
+    <script>
+        // Auto-refresh status indicators every 30 seconds
+        async function updateStatus() {
+            try {
+                // Check Moltbot UI
+                const moltbotResponse = await fetch('http://localhost:4000');
+                const moltbotCard = document.getElementById('moltbot-card');
+                const moltbotStatus = document.getElementById('moltbot-status');
+                if (moltbotResponse.ok) {
+                    moltbotCard.classList.add('running');
+                    moltbotStatus.className = 'status-indicator status-running';
+                } else {
+                    moltbotCard.classList.remove('running');
+                    moltbotStatus.className = 'status-indicator status-stopped';
+                }
+            } catch (e) {
+                const moltbotCard = document.getElementById('moltbot-card');
+                const moltbotStatus = document.getElementById('moltbot-status');
+                moltbotCard.classList.remove('running');
+                moltbotStatus.className = 'status-indicator status-stopped';
+            }
+            
+            try {
+                // Check Clawdbot Dashboard
+                const clawdbotResponse = await fetch('http://localhost:18789/?token=6b138f6653587f36f7a54fa0e681cddf2b1bdf8b4656e2bf');
+                const clawdbotCard = document.getElementById('clawdbot-card');
+                const clawdbotStatus = document.getElementById('clawdbot-status');
+                if (clawdbotResponse.ok) {
+                    clawdbotCard.classList.add('running');
+                    clawdbotStatus.className = 'status-indicator status-running';
+                } else {
+                    clawdbotCard.classList.remove('running');
+                    clawdbotStatus.className = 'status-indicator status-stopped';
+                }
+            } catch (e) {
+                const clawdbotCard = document.getElementById('clawdbot-card');
+                const clawdbotStatus = document.getElementById('clawdbot-status');
+                clawdbotCard.classList.remove('running');
+                clawdbotStatus.className = 'status-indicator status-stopped';
+            }
+            
+            try {
+                // Check Clawdbot Control
+                const controlResponse = await fetch('http://localhost:18791/?token=6b138f6653587f36f7a54fa0e681cddf2b1bdf8b4656e2bf');
+                const controlCard = document.getElementById('control-card');
+                const controlStatus = document.getElementById('control-status');
+                if (controlResponse.ok) {
+                    controlCard.classList.add('running');
+                    controlStatus.className = 'status-indicator status-running';
+                } else {
+                    controlCard.classList.remove('running');
+                    controlStatus.className = 'status-indicator status-stopped';
+                }
+            } catch (e) {
+                const controlCard = document.getElementById('control-card');
+                const controlStatus = document.getElementById('control-status');
+                controlCard.classList.remove('running');
+                controlStatus.className = 'status-indicator status-stopped';
+            }
+        }
+        
+        // Initial status check
+        updateStatus();
+        
+        // Update every 30 seconds
+        setInterval(updateStatus, 30000);
+    </script>
+</body>
+</html>
