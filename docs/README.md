@@ -1,11 +1,11 @@
 # SSO Service — Production-Ready Authentication with Advanced Security
 
 Version: 5.30.0
-Last updated: 2026-01-20T12:00:00.000Z
+Last updated: 2026-03-13T12:00:00.000Z
 
 A production-ready OAuth2/OIDC authentication server for sso.doneisbetter.com with comprehensive security and user-friendly authentication options:
 - **OAuth2/OIDC**: Authorization Code Flow with PKCE, JWT access tokens (RS256), refresh token rotation
-- **Multiple authentication methods**: Password, Forgot Password, Magic Links, PIN verification, Social Login (Facebook, Google)
+- **Multiple authentication methods**: Password, Forgot Password, Magic Links, PIN verification, Social Login (Google, Facebook)
 - **3-Role Permission System**: Simplified role hierarchy (none, user, admin) across all applications
 - **Multi-App Authorization**: Centralized SSO with per-app permissions
 - **Enterprise Security**: Rate limiting, CSRF protection, audit logging, session management
@@ -51,6 +51,8 @@ A production-ready OAuth2/OIDC authentication server for sso.doneisbetter.com wi
 - **Email + Password**: bcrypt-hashed (12 rounds), minimum 8 characters
 - **Magic Links**: Passwordless authentication via email (15-minute expiry)
 - **Social Login**: Facebook and Google OAuth (Apple coming soon)
+- **Hosted Login UI**: `https://sso.doneisbetter.com/login` includes Google sign-in and can continue OAuth requests
+- **Direct Provider Handoff**: Apps can send `provider=google` on `/authorize` to skip the intermediate chooser
 - **PIN Verification**: 6-digit PIN on 5th-10th login for enhanced security
 - **Forgot Password**: Secure password reset via email
 
@@ -162,7 +164,7 @@ Query Parameters:
 - client_id: OAuth client UUID (required)
 - redirect_uri: Callback URL (required)
 - scope: Space-separated scopes (required)
-  Available: openid, profile, email, offline_access, roles
+  Available: openid, profile, email, offline_access
 - state: CSRF token (required)
 - nonce: Replay attack prevention (required for OIDC)
 - code_challenge: PKCE challenge (optional, configurable per client)
@@ -314,7 +316,7 @@ DELETE /api/public/authorizations/:id        # Revoke app access
 GET    /api/auth/facebook/login              # Initiate Facebook OAuth
 GET    /api/auth/facebook/callback           # Facebook callback
 
-GET    /api/auth/google/login                # Initiate Google Sign-In
+GET    /api/auth/google/login                # Initiate Google Sign-In (supports prompt, login_hint)
 GET    /api/auth/google/callback             # Google callback
 ```
 
@@ -328,9 +330,8 @@ GET    /api/auth/google/callback             # Google callback
 | `profile` | User profile information | name, picture, updated_at, user_type, role |
 | `email` | Email address | email, email_verified |
 | `offline_access` | Refresh token | - |
-| `roles` | User role information | role (in profile if requested) |
 
-**Note:** The `roles` scope includes the user's role in the `id_token` and `/userinfo` response. Role values: `user`, `admin`.
+**Note:** Role information is included in the ID token and `/userinfo` when `profile` is requested. Role values: `user`, `admin`.
 
 ---
 
@@ -461,7 +462,7 @@ https://sso.doneisbetter.com/authorize?\
   response_type=code&\
   client_id=YOUR_CLIENT_ID&\
   redirect_uri=https://yourapp.com/callback&\
-  scope=openid%20profile%20email%20roles&\
+  scope=openid%20profile%20email%20offline_access&\
   state=random-state-value&\
   nonce=random-nonce-value&\
   code_challenge=$code_challenge&\
@@ -492,7 +493,7 @@ curl -X POST https://sso.doneisbetter.com/token \
   - Removed: `super-admin`, `owner`, `superadmin`
   - Migration: All previous admin variants → `admin`
 - **OIDC Compliance**: Added full `nonce` parameter support
-- **Scopes Update**: Added `roles` scope to SCOPE_DEFINITIONS
+- **Scopes Update**: Standardized integrations on `openid profile email offline_access`
 
 **New Features:**
 - Full nonce support across authorization flow
