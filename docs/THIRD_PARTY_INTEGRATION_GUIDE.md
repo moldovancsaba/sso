@@ -1,7 +1,7 @@
 # Third-Party Integration Guide — SSO Service
 
 **Version**: 5.30.0  
-**Last Updated**: 2026-01-20T12:00:00.000Z  
+**Last Updated**: 2026-03-13T12:00:00.000Z  
 **Service URL**: https://sso.doneisbetter.com  
 **Status**: Production Ready
 
@@ -28,7 +28,7 @@ The SSO Service (sso.doneisbetter.com) provides comprehensive OAuth2/OIDC authen
 ### What You Get
 
 - ✅ **Single Sign-On**: Users login once, access all integrated apps
-- ✅ **Multiple Auth Methods**: Password, Magic Link, PIN verification, Social Login (Facebook, Google)
+- ✅ **Multiple Auth Methods**: Password, Magic Link, PIN verification, Social Login (Google, Facebook)
 - ✅ **OAuth2/OIDC Compliance**: Standards-based authentication
 - ✅ **3-Role Permission System**: Simplified roles (none, user, admin)
 - ✅ **Per-App Authorization**: Centralized SSO with distributed app permissions
@@ -43,6 +43,17 @@ The SSO Service (sso.doneisbetter.com) provides comprehensive OAuth2/OIDC authen
 | **OAuth2/OIDC** | External domains, mobile apps, SPAs | Any domain | Medium |
 | **Cookie-Based SSO** | Subdomain apps only | *.doneisbetter.com | Low |
 | **Social Login** | Adding Facebook/Google login | Any domain | Low |
+
+### Google-First UX (Recommended)
+
+If your product mainly expects Google users, use a Google-first sign-in entry in your app and send users into SSO with a provider hint:
+
+- App-owned sign-in page: show `Continue with Google` as the primary button.
+- Primary path: redirect to `/authorize` with `provider=google`.
+- Secondary path: keep a generic `Sign in another way` button without `provider`.
+- Always preserve the page where the user started (`callbackUrl` or `returnTo`) and restore it after your callback handler completes.
+
+This avoids an extra provider-picker step and matches the hosted SSO login experience at `https://sso.doneisbetter.com/login`, where Google sign-in is available directly.
 
 ---
 
@@ -258,6 +269,58 @@ function initiateOAuthLogin(returnTo = '/dashboard') {
 - `login_hint=<email>`: helps pre-select the account when the provider supports it.
 - Keep `provider` optional if you want to keep a generic provider chooser flow.
 
+**Recommended consumer UX pattern:**
+- `Continue with Google`: send `provider=google`
+- `Sign in another way`: omit `provider`
+- Use `select_account` only when the user explicitly asks to switch Google accounts
+
+#### 2.3.1 Example: Google-First Sign-In Page
+
+```javascript
+function buildSsoLoginUrl({ returnTo, emailHint } = {}) {
+  const params = new URLSearchParams({
+    response_type: 'code',
+    client_id: process.env.SSO_CLIENT_ID,
+    redirect_uri: process.env.SSO_REDIRECT_URI,
+    scope: 'openid profile email offline_access',
+    state: sessionStorage.getItem('oauth_state'),
+    nonce: sessionStorage.getItem('oauth_nonce'),
+    provider: 'google',
+  });
+
+  if (emailHint) {
+    params.set('login_hint', emailHint);
+  }
+
+  sessionStorage.setItem('oauth_return_to', returnTo || window.location.pathname);
+  return `${process.env.SSO_AUTH_URL}?${params.toString()}`;
+}
+
+function onContinueWithGoogle() {
+  window.location.href = buildSsoLoginUrl({
+    returnTo: window.location.pathname + window.location.search,
+  });
+}
+
+function onSignInAnotherWay() {
+  const params = new URLSearchParams({
+    response_type: 'code',
+    client_id: process.env.SSO_CLIENT_ID,
+    redirect_uri: process.env.SSO_REDIRECT_URI,
+    scope: 'openid profile email offline_access',
+    state: sessionStorage.getItem('oauth_state'),
+    nonce: sessionStorage.getItem('oauth_nonce'),
+  });
+
+  sessionStorage.setItem(
+    'oauth_return_to',
+    window.location.pathname + window.location.search
+  );
+
+  window.location.href = `${process.env.SSO_AUTH_URL}?${params.toString()}`;
+}
+```
+
 **Available Prompt Values:**
 - `login` - Force re-authentication (useful after logout)
 - `consent` - Force consent screen
@@ -324,7 +387,7 @@ app.get('/auth/callback', async (req, res) => {
       email: idTokenClaims.email,
       name: idTokenClaims.name,
       emailVerified: idTokenClaims.email_verified,
-      role: idTokenClaims.role,  // 'user' or 'admin' if 'roles' scope requested
+      role: idTokenClaims.role,  // 'user' or 'admin' when 'profile' scope is requested
     };
     
     req.session.user = userInfo;
@@ -378,7 +441,7 @@ async function exchangeCodeForTokens(code, codeVerifier) {
     "expires_in": 3600,
     "refresh_token": "a1b2c3d4...",
     "id_token": "eyJhbGciOiJSUzI1NiIs...",
-    "scope": "openid profile email offline_access roles"
+    "scope": "openid profile email offline_access"
   }
   */
 }
@@ -413,7 +476,7 @@ function parseIdToken(idToken) {
     
     // SSO-specific claims
     user_type: decoded.user_type,  // 'admin' or 'public'
-    role: decoded.role,            // 'user' or 'admin' (if 'roles' scope requested)
+    role: decoded.role,            // 'user' or 'admin' (if 'profile' scope requested)
   };
 }
 
@@ -893,6 +956,17 @@ No additional setup needed:
 3. Access token includes their SSO user ID and profile
 4. User data available via ID token claims
 
+### Google-First Consumer Apps
+
+For consumer products that want the fewest steps:
+
+1. Show `Continue with Google` on your own sign-in page.
+2. Redirect to `/authorize?...&provider=google`.
+3. Keep a secondary generic entry point without `provider`.
+4. Preserve `returnTo` in local session/cookie state and restore it after callback.
+
+This pattern lets SSO stay the identity provider while your app controls the first screen and branding.
+
 ### For Subdomain Apps
 
 Cookie-based SSO works automatically:
@@ -916,12 +990,14 @@ Parameters:
 - client_id: Client UUID (required)
 - redirect_uri: Callback URL (required)
 - scope: Space-separated scopes (required)
-  Available: openid, profile, email, offline_access, roles
+  Available: openid, profile, email, offline_access
 - state: CSRF token (required)
 - nonce: Replay attack prevention (required)
 - code_challenge: PKCE challenge (optional)
 - code_challenge_method: "S256" or "plain"
 - prompt: "login" | "consent" | "none" | "select_account"
+- provider: "google" | "facebook" (optional)
+- login_hint: Email hint for provider account selection (optional)
 
 Response: 302 redirect with code and state
 ```
@@ -967,7 +1043,6 @@ Response:
 | `profile` | name, picture, updated_at, user_type, role |
 | `email` | email, email_verified |
 | `offline_access` | Enables refresh token |
-| `roles` | role (in profile claims) |
 
 ### ID Token Claims
 
