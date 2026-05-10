@@ -5,9 +5,10 @@
  */
 
 import { findPublicUserByEmail } from '../../../lib/publicUsers.mjs'
-import { createPublicSession } from '../../../lib/publicSessions.mjs'
+import { ensurePublicUserId } from '../../../lib/publicUsers.mjs'
+import { createPublicSession, setPublicSessionCookie } from '../../../lib/publicSessions.mjs'
+import { resolveSafeRedirect } from '../../../lib/redirects.mjs'
 import logger from '../../../lib/logger.mjs'
-import cookie from 'cookie'
 import crypto from 'crypto'
 import { getDb } from '../../../lib/db.mjs'
 
@@ -86,48 +87,6 @@ async function consumePublicMagicToken(token) {
   }
 }
 
-/**
- * Validate redirect_uri for security
- * WHAT: Ensures redirect URI is safe and matches allowed domains
- * WHY: Prevents open redirect vulnerabilities
- */
-function validateRedirectUri(uri) {
-  if (!uri) return null
-  
-  try {
-    const url = new URL(uri)
-    
-    // Allow localhost domains
-    if (url.hostname === 'localhost' || url.hostname.endsWith('.localhost')) {
-      return true
-    }
-    
-    // Allow domains in allowed origins list
-    const allowedOrigins = process.env.SSO_ALLOWED_ORIGINS?.split(',') || []
-    const isAllowed = allowedOrigins.some(origin => {
-      try {
-        const originUrl = new URL(origin)
-        return url.hostname === url.hostname && 
-               url.protocol === url.protocol &&
-               (!url.port || url.port === originUrl.port)
-      } catch {
-        return false
-      }
-    })
-    
-    if (isAllowed) {
-      return true
-    }
-    
-    // Default: deny
-    logger.warn('Invalid redirect URI for magic link', { url: uri })
-    return false
-  } catch (error) {
-    logger.warn('Invalid redirect URI format for magic link', { error: error.message })
-    return false
-  }
-}
-
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
     res.setHeader('Allow', 'GET')
@@ -144,26 +103,10 @@ export default async function handler(req, res) {
     // Consume the magic token (validates and marks as used)
     const { email, redirectUri: tokenRedirectUri } = await consumePublicMagicToken(token)
     
-    // Determine final redirect destination
-    let finalRedirect = '/'
-    
-    // Priority: return_to query param → redirect_uri from token → fallback
-    if (return_to) {
-      // Validate return_to parameter (from original request)
-      if (validateRedirectUri(return_to)) {
-        finalRedirect = return_to
-      }
-    } else if (tokenRedirectUri) {
-      // Use redirect_uri stored in token (from original request when token was generated)
-      if (validateRedirectUri(tokenRedirectUri)) {
-        finalRedirect = tokenRedirectUri
-      }
-    } else if (redirect_uri) {
-      // Use direct redirect_uri parameter (current request)
-      if (validateRedirectUri(redirect_uri)) {
-        finalRedirect = redirect_uri
-      }
-    }
+    const finalRedirect = resolveSafeRedirect(
+      [return_to, tokenRedirectUri, redirect_uri],
+      '/'
+    )
 
     // Find public user
     const user = await findPublicUserByEmail(email)
@@ -176,29 +119,16 @@ export default async function handler(req, res) {
       return res.status(401).json({ error: 'Invalid or expired magic link' })
     }
 
-    // Create public session
-    const sessionToken = await createPublicSession(user._id.toString(), user.email)
-
-    // Set secure session cookie
-    const cookieName = process.env.PUBLIC_SESSION_COOKIE || 'public-session'
-    const isProduction = process.env.NODE_ENV === 'production'
-    const domain = process.env.SSO_COOKIE_DOMAIN
-
-    res.setHeader(
-      'Set-Cookie',
-      cookie.serialize(cookieName, sessionToken, {
-        httpOnly: true,
-        secure: isProduction,
-        sameSite: isProduction ? 'none' : 'lax',
-        path: '/',
-        maxAge: 30 * 24 * 60 * 60, // 30 days
-        ...(domain && { domain }),
-      })
-    )
+    const normalizedUser = await ensurePublicUserId(user)
+    const sessionToken = await createPublicSession(normalizedUser.id, {
+      ip: req.headers['x-forwarded-for'] || req.socket?.remoteAddress || 'unknown',
+      userAgent: req.headers['user-agent'] || 'unknown',
+    })
+    setPublicSessionCookie(res, sessionToken)
 
     logger.info('Public magic login successful', {
       event: 'public_magic_login_success',
-      userId: user._id.toString(),
+      userId: normalizedUser.id,
       email: user.email,
       redirect: finalRedirect,
     })

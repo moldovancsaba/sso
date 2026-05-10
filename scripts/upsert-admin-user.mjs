@@ -14,7 +14,8 @@ async function main() {
   try {
     const email = (process.env.UPSERT_EMAIL || 'nimdasuper@doneisbetter.com').trim().toLowerCase()
     const name = (process.env.UPSERT_NAME || 'Nimda Super').toString().trim()
-    const role = (process.env.UPSERT_ROLE || 'super-admin').toString().trim()
+    const requestedRole = (process.env.UPSERT_ROLE || 'admin').toString().trim().toLowerCase()
+    const role = requestedRole === 'super-admin' ? 'admin' : requestedRole
     const password = (process.env.UPSERT_PASSWORD || '').toString().trim()
 
     if (!email || !email.includes('@')) {

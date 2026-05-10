@@ -5,7 +5,7 @@
  * POST /api/admin/oauth-clients - Register new OAuth client
  * 
  * Authentication: Requires valid admin session
- * Authorization: super-admin for POST, admin for GET
+ * Authorization: admin
  */
 
 import { requireUnifiedAdmin } from '../../../../lib/auth.mjs'

@@ -4,10 +4,9 @@
  * WHY: Users have right to delete their account and data (GDPR compliance)
  */
 
-import { getPublicUserFromRequest } from '../../../lib/publicSessions.mjs'
+import { clearPublicSessionCookie, getPublicUserFromRequest } from '../../../lib/publicSessions.mjs'
 import { getDb } from '../../../lib/db.mjs'
 import logger from '../../../lib/logger.mjs'
-import cookie from 'cookie'
 
 export default async function handler(req, res) {
   if (req.method !== 'DELETE') {
@@ -69,18 +68,7 @@ export default async function handler(req, res) {
       email: user.email
     })
 
-    // Clear session cookie
-    const cookieName = process.env.PUBLIC_SESSION_COOKIE || 'public-session'
-    res.setHeader(
-      'Set-Cookie',
-      cookie.serialize(cookieName, '', {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-        path: '/',
-        maxAge: 0 // Expire immediately
-      })
-    )
+    clearPublicSessionCookie(res)
 
     return res.status(200).json({
       success: true,

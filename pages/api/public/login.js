@@ -5,15 +5,14 @@
  * Enhanced: Provides helpful guidance for social-only accounts
  */
 
-import { findPublicUserByEmail } from '../../../lib/publicUsers.mjs'
-import { createPublicSession } from '../../../lib/publicSessions.mjs'
+import { ensurePublicUserId } from '../../../lib/publicUsers.mjs'
+import { createPublicSession, setPublicSessionCookie } from '../../../lib/publicSessions.mjs'
 import { shouldTriggerPin, issuePin, ensurePinIndexes } from '../../../lib/loginPin.mjs'
 import { sendEmail } from '../../../lib/email.mjs'
 import { buildLoginPinEmail } from '../../../lib/emailTemplates.mjs'
 import { getDb } from '../../../lib/db.mjs'
 import logger from '../../../lib/logger.mjs'
 import bcrypt from 'bcryptjs'
-import cookie from 'cookie'
 import { getUserLoginMethods, canLoginWithPassword } from '../../../lib/accountLinking.mjs'
 
 export default async function handler(req, res) {
@@ -117,19 +116,7 @@ export default async function handler(req, res) {
 
     // WHAT: Ensure user has UUID identifier before PIN flow
     // WHY: PIN system uses UUID as userId
-    if (!user.id) {
-      const { randomUUID } = await import('crypto')
-      const uuid = randomUUID()
-      await db.collection('publicUsers').updateOne(
-        { _id: user._id },
-        { $set: { id: uuid } }
-      )
-      user.id = uuid
-      logger.info('Added UUID to legacy public user', {
-        userId: uuid,
-        email: user.email
-      })
-    }
+    Object.assign(user, await ensurePublicUserId(user))
     
     // Check if PIN should be triggered (now async - checks database settings)
     if (await shouldTriggerPin(loginCount)) {
@@ -183,40 +170,14 @@ export default async function handler(req, res) {
     // No PIN required - proceed with normal login
     // WHAT: Ensure user has UUID identifier (for backward compatibility with old users)
     // WHY: Sessions need stable UUID, not MongoDB ObjectId
-    if (!user.id) {
-      // Legacy user without UUID - add one
-      const { randomUUID } = await import('crypto')
-      const uuid = randomUUID()
-      await db.collection('publicUsers').updateOne(
-        { _id: user._id },
-        { $set: { id: uuid } }
-      )
-      user.id = uuid
-      logger.info('Added UUID to legacy public user', {
-        userId: uuid,
-        email: user.email
-      })
-    }
+    Object.assign(user, await ensurePublicUserId(user))
     
     // Create session with UUID
-    const sessionToken = await createPublicSession(user.id, user.email)
-
-    // Set session cookie
-    const cookieName = process.env.PUBLIC_SESSION_COOKIE || 'public-session'
-    const isProduction = process.env.NODE_ENV === 'production'
-    const domain = process.env.SSO_COOKIE_DOMAIN
-
-    res.setHeader(
-      'Set-Cookie',
-      cookie.serialize(cookieName, sessionToken, {
-        httpOnly: true,
-        secure: isProduction,
-        sameSite: isProduction ? 'none' : 'lax',
-        path: '/',
-        maxAge: 30 * 24 * 60 * 60, // 30 days
-        ...(domain && { domain }),
-      })
-    )
+    const sessionToken = await createPublicSession(user.id, {
+      ip: req.headers['x-forwarded-for'] || req.socket?.remoteAddress || 'unknown',
+      userAgent: req.headers['user-agent'] || 'unknown',
+    })
+    setPublicSessionCookie(res, sessionToken)
 
     logger.info('Public login successful', {
       event: 'public_login_success',

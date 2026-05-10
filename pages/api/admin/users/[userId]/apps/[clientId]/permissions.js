@@ -6,7 +6,16 @@
  * HOW: PUT to grant/update, DELETE to revoke
  */
 
-import { getAppPermission, updateAppPermission, deleteAppPermission } from '../../../../../../../lib/appPermissions.mjs'
+import {
+  getAppPermission,
+  updateAppPermission,
+  isValidPermissionRole,
+  isValidPermissionStatus,
+  mapPermissionToDTO,
+  normalizePermissionRole,
+  normalizePermissionStatus,
+  permissionHasAccess,
+} from '../../../../../../../lib/appPermissions.mjs'
 import { logPermissionChange } from '../../../../../../../lib/appAccessLogs.mjs'
 import { requireUnifiedAdmin } from '../../../../../../../lib/auth.mjs'
 import { getDb } from '../../../../../../../lib/db.mjs'
@@ -118,19 +127,23 @@ export default async function handler(req, res) {
         })
       }
 
-      if (!['none', 'user', 'admin'].includes(role)) {
+      if (!isValidPermissionRole(role)) {
         return res.status(400).json({
           error: 'Invalid request',
           message: 'role must be one of: none, user, admin',
         })
       }
 
-      if (!['pending', 'active', 'revoked'].includes(status)) {
+      if (!isValidPermissionStatus(status)) {
         return res.status(400).json({
           error: 'Invalid request',
-          message: 'status must be one of: pending, active, revoked',
+          message: 'status must be one of: pending, approved, revoked',
         })
       }
+
+      const normalizedRole = normalizePermissionRole(role)
+      const normalizedStatus = normalizePermissionStatus(status)
+      const normalizedHasAccess = permissionHasAccess(normalizedStatus, normalizedRole, hasAccess)
 
       // WHAT: Get existing permission to determine if this is grant or update
       // WHY: Need previous state for audit logging
@@ -142,10 +155,11 @@ export default async function handler(req, res) {
       const updatedPermission = await updateAppPermission({
         userId,
         clientId,
-        hasAccess,
-        status,
-        role,
+        hasAccess: normalizedHasAccess,
+        status: normalizedStatus,
+        role: normalizedRole,
         grantedBy: fullAdminUser.id,
+        appName,
       })
 
       // WHAT: Log permission change for audit trail
@@ -162,7 +176,7 @@ export default async function handler(req, res) {
         appName,
         eventType,
         previousRole,
-        newRole: role,
+        newRole: normalizedRole,
         changedBy: fullAdminUser.id,
         message: `Permission ${eventType} by ${fullAdminUser.email}`,
       })
@@ -171,9 +185,9 @@ export default async function handler(req, res) {
         userId,
         clientId,
         appName,
-        hasAccess,
-        role,
-        status,
+        hasAccess: normalizedHasAccess,
+        role: normalizedRole,
+        status: normalizedStatus,
         adminId: fullAdminUser.id,
         adminEmail: fullAdminUser.email,
       })
@@ -182,14 +196,7 @@ export default async function handler(req, res) {
         success: true,
         message: 'Permission updated successfully',
         permission: {
-          userId: updatedPermission.userId,
-          clientId: updatedPermission.clientId,
-          appName: updatedPermission.appName,
-          hasAccess: updatedPermission.hasAccess,
-          status: updatedPermission.status,
-          role: updatedPermission.role,
-          grantedAt: updatedPermission.grantedAt,
-          grantedBy: updatedPermission.grantedBy,
+          ...mapPermissionToDTO(updatedPermission),
         },
       })
     }

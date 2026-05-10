@@ -5,10 +5,9 @@
  */
 
 import { verifyPin } from '../../../lib/loginPin.mjs'
-import { createPublicSession } from '../../../lib/publicSessions.mjs'
-import { findPublicUserByEmail } from '../../../lib/publicUsers.mjs'
+import { createPublicSession, setPublicSessionCookie } from '../../../lib/publicSessions.mjs'
+import { ensurePublicUserId, findPublicUserByEmail } from '../../../lib/publicUsers.mjs'
 import logger from '../../../lib/logger.mjs'
-import cookie from 'cookie'
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -60,28 +59,16 @@ export default async function handler(req, res) {
     }
 
     // PIN verified successfully - create session
-    const sessionToken = await createPublicSession(user._id.toString(), user.email)
-
-    // Set session cookie
-    const cookieName = process.env.PUBLIC_SESSION_COOKIE || 'public-session'
-    const isProduction = process.env.NODE_ENV === 'production'
-    const domain = process.env.SSO_COOKIE_DOMAIN
-
-    res.setHeader(
-      'Set-Cookie',
-      cookie.serialize(cookieName, sessionToken, {
-        httpOnly: true,
-        secure: isProduction,
-        sameSite: isProduction ? 'none' : 'lax',
-        path: '/',
-        maxAge: 30 * 24 * 60 * 60, // 30 days
-        ...(domain && { domain }),
-      })
-    )
+    const normalizedUser = await ensurePublicUserId(user)
+    const sessionToken = await createPublicSession(normalizedUser.id, {
+      ip: req.headers['x-forwarded-for'] || req.socket?.remoteAddress || 'unknown',
+      userAgent: req.headers['user-agent'] || 'unknown',
+    })
+    setPublicSessionCookie(res, sessionToken)
 
     logger.info('Public user PIN login successful', {
       event: 'public_pin_login_success',
-      userId: user._id.toString(),
+      userId: normalizedUser.id,
       email: user.email,
     })
 

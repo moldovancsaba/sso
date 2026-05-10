@@ -11,9 +11,9 @@
  * - redirect_after_login: URL to redirect user after successful login (optional)
  */
 
-import { randomBytes } from 'crypto'
 import { getFacebookAuthUrl } from '../../../../lib/facebook.mjs'
 import logger from '../../../../lib/logger.mjs'
+import { ensureCsrfToken } from '../../../../lib/middleware/csrf.mjs'
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
@@ -23,9 +23,8 @@ export default async function handler(req, res) {
   try {
     const { oauth_request } = req.query
 
-    // WHAT: Generate CSRF protection state token
-    // WHY: Prevent CSRF attacks by validating state on callback
-    const csrfToken = randomBytes(16).toString('hex')
+    await new Promise((resolve) => ensureCsrfToken(req, res, resolve))
+    const csrfToken = req.csrfToken
 
     // WHAT: Build Facebook OAuth authorization URL with OAuth request
     // WHY: Need to preserve OAuth flow context through Facebook redirect

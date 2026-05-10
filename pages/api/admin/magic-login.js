@@ -7,6 +7,7 @@
 import { consumeMagicToken } from '../../../lib/magic.mjs'
 import { findUserByEmail } from '../../../lib/users.mjs'
 import { createSession } from '../../../lib/sessions.mjs'
+import { resolveSafeRedirect } from '../../../lib/redirects.mjs'
 import logger from '../../../lib/logger.mjs'
 import cookie from 'cookie'
 
@@ -66,15 +67,10 @@ export default async function handler(req, res) {
     // WHAT: Determine final redirect destination
     // WHY: User should return to where they originally requested authentication
     // Priority: return_to query param → redirect_uri from query → redirectUri from token → fallback
-    let finalRedirect = '/admin'
-    
-    if (return_to) {
-      finalRedirect = return_to
-    } else if (redirect_uri) {
-      finalRedirect = redirect_uri
-    } else if (tokenRedirectUri) {
-      finalRedirect = tokenRedirectUri
-    }
+    const finalRedirect = resolveSafeRedirect(
+      [return_to, redirect_uri, tokenRedirectUri],
+      '/admin'
+    )
 
     logger.info('Admin magic login successful', {
       event: 'magic_login_success',

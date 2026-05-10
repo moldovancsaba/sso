@@ -27,8 +27,8 @@ export async function getServerSideProps(context) {
     }
   }
   
-  // Only super-admins can edit themes
-  if (admin.role !== 'super-admin') {
+  // Theme editing is restricted to admins in the consolidated role model.
+  if (admin.role !== 'admin') {
     return {
       redirect: {
         destination: '/admin',
