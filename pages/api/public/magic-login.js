@@ -4,8 +4,9 @@
  * WHY: Completes passwordless authentication flow for public users
  */
 
-import { findPublicUserByEmail } from '../../../lib/publicUsers.mjs'
+import { ensurePublicUserId, findPublicUserByEmail } from '../../../lib/publicUsers.mjs'
 import { createPublicSession, setPublicSessionCookie } from '../../../lib/publicSessions.mjs'
+import { resolveSafeRedirect } from '../../../lib/redirects.mjs'
 import logger from '../../../lib/logger.mjs'
 import crypto from 'crypto'
 import { getDb } from '../../../lib/db.mjs'
@@ -114,11 +115,12 @@ export default async function handler(req, res) {
 
     // WHAT: Create public session using user UUID (not MongoDB ObjectId)
     // WHY: createPublicSession expects UUID for consistency with other auth methods
+    const normalizedUser = await ensurePublicUserId(user)
     const metadata = {
       ip: req.headers['x-forwarded-for'] || req.connection?.remoteAddress || 'unknown',
       userAgent: req.headers['user-agent'] || 'unknown',
     }
-    const sessionToken = await createPublicSession(user.id, metadata)
+    const sessionToken = await createPublicSession(normalizedUser.id, metadata)
 
     // WHAT: Set secure session cookie using helper function
     // WHY: Ensures consistent cookie attributes (domain, secure, etc.) across all auth methods
@@ -127,19 +129,14 @@ export default async function handler(req, res) {
     // WHAT: Determine final redirect destination
     // WHY: User should return to where they originally requested authentication
     // Priority: return_to query param → redirect_uri from query → redirectUri from token → fallback
-    let finalRedirect = '/'
-    
-    if (return_to) {
-      finalRedirect = return_to
-    } else if (redirect_uri) {
-      finalRedirect = redirect_uri
-    } else if (tokenRedirectUri) {
-      finalRedirect = tokenRedirectUri
-    }
+    const finalRedirect = resolveSafeRedirect(
+      [return_to, redirect_uri, tokenRedirectUri],
+      '/'
+    )
 
     logger.info('Public magic login successful', {
       event: 'public_magic_login_success',
-      userId: user.id,
+      userId: normalizedUser.id,
       email: user.email,
       redirect: finalRedirect,
     })

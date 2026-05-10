@@ -10,6 +10,7 @@ import { getAppPermission, createAppPermission } from '../../../../../../lib/app
 import { logAccessAttempt } from '../../../../../../lib/appAccessLogs.mjs'
 import { getDb } from '../../../../../../lib/db.mjs'
 import logger from '../../../../../../lib/logger.mjs'
+import { requireOAuthToken } from '../../../../../../lib/oauth/middleware.mjs'
 
 export default async function handler(req, res) {
   // WHAT: Only POST method allowed
@@ -30,18 +31,39 @@ export default async function handler(req, res) {
       })
     }
 
-    // WHAT: Validate bearer token (OAuth access token)
-    // WHY: Only authenticated users can request access
-    const authHeader = req.headers.authorization
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({
-        error: 'Unauthorized',
-        message: 'Bearer token required',
+    const tokenData = await requireOAuthToken(req, res)
+    if (!tokenData) return
+
+    if (!tokenData.userId) {
+      return res.status(403).json({
+        error: 'Forbidden',
+        message: 'User-bound access token required',
       })
     }
 
-    // TODO: Validate access token properly
-    // For now, we trust the token since it's from OAuth callback
+    if (tokenData.userId !== userId) {
+      logger.warn('Access request denied: token subject mismatch', {
+        tokenUserId: tokenData.userId,
+        requestedUserId: userId,
+        clientId,
+      })
+      return res.status(403).json({
+        error: 'Forbidden',
+        message: 'Access token user does not match requested user',
+      })
+    }
+
+    if (tokenData.clientId !== clientId) {
+      logger.warn('Access request denied: token client mismatch', {
+        tokenClientId: tokenData.clientId,
+        requestedClientId: clientId,
+        userId,
+      })
+      return res.status(403).json({
+        error: 'Forbidden',
+        message: 'Access token client does not match requested client',
+      })
+    }
 
     // WHAT: Check if permission already exists
     // WHY: Don't create duplicates

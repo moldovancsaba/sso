@@ -16,9 +16,8 @@
 
 import { getDb } from '../../../lib/db.mjs'
 import { validateAndConsumeCode } from '../../../lib/oauth/codes.mjs'
-import { createPublicSession } from '../../../lib/publicSessions.mjs'
+import { createPublicSession, setPublicSessionCookie } from '../../../lib/publicSessions.mjs'
 import logger from '../../../lib/logger.mjs'
-import cookie from 'cookie'
 import { runCors } from '../../../lib/cors.mjs'
 
 export default async function handler(req, res) {
@@ -97,25 +96,11 @@ export default async function handler(req, res) {
     // WHAT: Create public session (same as email+password login does)
     // WHY: Homepage and admin APIs expect public session cookie
     // HOW: Use the same createPublicSession function as regular login
-    const sessionToken = await createPublicSession(user_id, user.email)
-
-    // WHAT: Set session cookie with same attributes as /api/public/login
-    // WHY: Consistency with regular login flow
-    const cookieName = process.env.PUBLIC_SESSION_COOKIE || 'public-session'
-    const isProduction = process.env.NODE_ENV === 'production'
-    const domain = process.env.SSO_COOKIE_DOMAIN
-
-    res.setHeader(
-      'Set-Cookie',
-      cookie.serialize(cookieName, sessionToken, {
-        httpOnly: true,
-        secure: isProduction,
-        sameSite: isProduction ? 'none' : 'lax',
-        path: '/',
-        maxAge: 30 * 24 * 60 * 60, // 30 days
-        ...(domain && { domain }),
-      })
-    )
+    const sessionToken = await createPublicSession(user_id, {
+      ip: req.headers['x-forwarded-for'] || req.socket?.remoteAddress || 'unknown',
+      userAgent: req.headers['user-agent'] || 'unknown',
+    })
+    setPublicSessionCookie(res, sessionToken)
 
     logger.info('Admin OAuth login completed', {
       event: 'admin_oauth_login_success',

@@ -1,5 +1,5 @@
 // scripts/bootstrap-admin.mjs
-// WHAT: One-time bootstrap to create or update the first super-admin user in MongoDB Atlas.
+// WHAT: One-time bootstrap to create or update the first admin user in MongoDB Atlas.
 // HOW: Run with NEW_ADMIN_TOKEN env var (32-hex). MONGODB_URI is loaded from .env.local or env.
 // SECURITY: Does not print secrets. Idempotent via upsert.
 
@@ -43,7 +43,7 @@ async function main() {
         $setOnInsert: {
           email: email.toLowerCase(),
           name: 'Owner',
-          role: 'super-admin',
+          role: 'admin',
           createdAt: now,
         },
         $set: {

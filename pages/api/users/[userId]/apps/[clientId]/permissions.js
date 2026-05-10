@@ -15,14 +15,22 @@
 import { 
   getAppPermission, 
   updateAppPermission,
-  upsertPermissionForAdmin, 
-  revokePermissionForAdmin 
+  revokePermissionForAdmin,
+  isValidPermissionRole,
+  isValidPermissionStatus,
+  mapPermissionToDTO,
+  normalizePermissionRole,
+  normalizePermissionStatus,
+  permissionHasAccess,
 } from '../../../../../../lib/appPermissions.mjs'
 import { logAccessAttempt, logPermissionChange } from '../../../../../../lib/appAccessLogs.mjs'
 import { getAdminUser } from '../../../../../../lib/auth.mjs'
+import { getDb } from '../../../../../../lib/db.mjs'
 import { 
   requireOAuthToken, 
-  canManagePermissionsFor 
+  canManagePermissionsFor,
+  hasScope,
+  validateAccessToken,
 } from '../../../../../../lib/oauth/middleware.mjs'
 import logger from '../../../../../../lib/logger.mjs'
 
@@ -69,17 +77,40 @@ async function handleGet(req, res) {
     // WHY: This endpoint can be called by OAuth callback (with token) or admin UI (with session)
     const authHeader = req.headers.authorization
     let isAuthorized = false
+    let authorizedVia = null
 
     // Option 1: OAuth token authentication (Phase 4C implementation)
     if (authHeader && authHeader.startsWith('Bearer ')) {
-      const { validateAccessToken } = await import('../../../../../../lib/oauth/middleware.mjs')
       const tokenData = await validateAccessToken(req)
       if (tokenData) {
-        isAuthorized = true
-        logger.debug('Permission GET authorized via OAuth token', {
-          clientId: tokenData.clientId,
-          userId: req.query.userId,
-        })
+        const canReadOwnPermission =
+          tokenData.userId === userId &&
+          tokenData.clientId === clientId
+
+        const canManageForClient =
+          canManagePermissionsFor(tokenData, clientId) &&
+          hasScope(tokenData, 'manage_permissions')
+
+        if (canReadOwnPermission || canManageForClient) {
+          isAuthorized = true
+          authorizedVia = canManageForClient ? 'oauth_manage_permissions' : 'oauth_self'
+          logger.debug('Permission GET authorized via OAuth token', {
+            clientId: tokenData.clientId,
+            userId: req.query.userId,
+            authorizedVia,
+          })
+        } else {
+          logger.warn('Permission GET denied for OAuth token', {
+            tokenClientId: tokenData.clientId,
+            tokenUserId: tokenData.userId,
+            requestedClientId: clientId,
+            requestedUserId: userId,
+          })
+          return res.status(403).json({
+            error: 'Forbidden',
+            message: 'Access token cannot read this permission record',
+          })
+        }
       }
     }
 
@@ -88,6 +119,7 @@ async function handleGet(req, res) {
       const adminUser = await getAdminUser(req)
       if (adminUser) {
         isAuthorized = true
+        authorizedVia = 'admin_session'
         logger.debug('Permission GET authorized via admin session', {
           adminId: adminUser.id,
           userId: req.query.userId,
@@ -127,20 +159,10 @@ async function handleGet(req, res) {
       hasAccess: permission.hasAccess,
       status: permission.status,
       role: permission.role,
+      authorizedVia,
     })
 
-    return res.status(200).json({
-      userId: permission.userId,
-      clientId: permission.clientId,
-      appName: permission.appName,
-      hasAccess: permission.hasAccess,
-      status: permission.status,
-      role: permission.role,
-      requestedAt: permission.requestedAt,
-      grantedAt: permission.grantedAt,
-      grantedBy: permission.grantedBy,
-      lastAccessedAt: permission.lastAccessedAt,
-    })
+    return res.status(200).json(mapPermissionToDTO(permission))
   } catch (error) {
     logger.error('Error getting app permission', {
       error: error.message,
@@ -189,20 +211,17 @@ async function handlePut(req, res) {
 
     // WHAT: Validate role and status values (aligned with SSO v5.28.0+ role system)
     // WHY: guest/user/admin/owner hierarchy replaces old user/admin/superadmin
-    const validRoles = ['guest', 'user', 'admin', 'owner']
-    const validStatuses = ['pending', 'approved', 'revoked']
-
-    if (!validRoles.includes(role)) {
+    if (!isValidPermissionRole(role)) {
       return res.status(400).json({
         error: 'Invalid role',
-        message: `role must be one of: ${validRoles.join(', ')}`,
+        message: 'role must be one of: none, user, admin',
       })
     }
 
-    if (!validStatuses.includes(status)) {
+    if (!isValidPermissionStatus(status)) {
       return res.status(400).json({
         error: 'Invalid status',
-        message: `status must be one of: ${validStatuses.join(', ')}`,
+        message: 'status must be one of: pending, approved, revoked',
       })
     }
 
@@ -226,14 +245,20 @@ async function handlePut(req, res) {
 
     // WHAT: Upsert permission record
     // WHY: Create new or update existing permission
-    const hasAccess = status === 'approved'
+    const normalizedRole = normalizePermissionRole(role)
+    const normalizedStatus = normalizePermissionStatus(status)
+    const hasAccess = permissionHasAccess(normalizedStatus, normalizedRole)
+    const existingPermission = await getAppPermission(userId, clientId)
+    const db = await getDb()
+    const client = await db.collection('oauthClients').findOne({ client_id: clientId })
     const permission = await updateAppPermission({
       userId,
       clientId,
       hasAccess,
-      status,
-      role,
+      status: normalizedStatus,
+      role: normalizedRole,
       grantedBy: grantedBy || `app:${tokenData.clientId}`,
+      appName: client?.appName || client?.name || existingPermission?.appName || clientId,
     })
 
     // WHAT: Log permission change for audit trail
@@ -242,31 +267,24 @@ async function handlePut(req, res) {
       clientId,
       appName: permission.appName || clientId,
       eventType: 'role_changed',
-      previousRole: permission.role || 'none',
-      newRole: role,
+      previousRole: existingPermission?.role || 'none',
+      newRole: normalizedRole,
       changedBy: `app:${tokenData.clientId}`,
-      message: `Permission updated via app API: ${status}`,
+      message: `Permission updated via app API: ${normalizedStatus}`,
     })
 
     logger.info('Permission updated via app API', {
       userId,
       clientId,
-      role,
-      status,
+      role: normalizedRole,
+      status: normalizedStatus,
       updatedBy: tokenData.clientId,
     })
 
     return res.status(200).json({
       success: true,
       permission: {
-        userId: permission.userId,
-        clientId: permission.clientId,
-        appName: permission.appName,
-        hasAccess: permission.hasAccess,
-        status: permission.status,
-        role: permission.role,
-        grantedAt: permission.grantedAt,
-        grantedBy: permission.grantedBy,
+        ...mapPermissionToDTO(permission),
       },
     })
   } catch (error) {

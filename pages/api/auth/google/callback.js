@@ -20,6 +20,8 @@ import { findUserByEmail } from '../../../../lib/users.mjs'
 import { createSession } from '../../../../lib/sessions.mjs'
 import { setAdminSessionCookie } from '../../../../lib/auth.mjs'
 import logger from '../../../../lib/logger.mjs'
+import { validateStateCsrfToken } from '../../../../lib/middleware/csrf.mjs'
+import { parseOAuthCallbackState } from '../../../../lib/oauth/callbackState.mjs'
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
@@ -51,8 +53,7 @@ export default async function handler(req, res) {
     let oauthRequest = null
     let isAdminLogin = false
     try {
-      const stateJson = Buffer.from(state, 'base64url').toString('utf-8')
-      stateData = JSON.parse(stateJson)
+      stateData = parseOAuthCallbackState(state)
       oauthRequest = stateData.oauth_request || null
       isAdminLogin = stateData.admin_login === true
       
@@ -66,8 +67,21 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Invalid state parameter' })
     }
     
-    // TODO: Validate CSRF token (stateData.csrf) against session
-    // For now, we just verify it exists
+    const csrfValidation = validateStateCsrfToken(req, stateData.csrf)
+    if (!csrfValidation.valid) {
+      logger.warn('Google callback state validation failed', {
+        reason: csrfValidation.reason,
+        hasOAuthRequest: !!oauthRequest,
+        isAdminLogin,
+      })
+
+      const message = encodeURIComponent('Login session expired or state is invalid. Please try again.')
+      const errorCode = 'google_invalid_state'
+      if (isAdminLogin) {
+        return res.redirect(`/admin?error=${errorCode}&message=${message}`)
+      }
+      return res.redirect(`/?error=${errorCode}&message=${message}`)
+    }
 
     // WHAT: Determine redirect URI based on environment
     // WHY: Must match the redirect URI used in the authorization request

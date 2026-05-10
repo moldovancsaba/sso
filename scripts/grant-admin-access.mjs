@@ -12,7 +12,7 @@
  *   ADMIN_EMAIL="user@example.com" node scripts/grant-admin-access.mjs
  * 
  * Examples:
- *   node scripts/grant-admin-access.mjs sso@doneisbetter.com super-admin
+ *   node scripts/grant-admin-access.mjs sso@doneisbetter.com admin
  *   ADMIN_EMAIL="sso@doneisbetter.com" node scripts/grant-admin-access.mjs
  */
 
@@ -25,7 +25,8 @@ async function grantAdminAccess() {
   try {
     // WHAT: Get email from env or command line
     const email = process.env.ADMIN_EMAIL || process.argv[2]
-    const role = process.argv[3] || 'super-admin' // Default to super-admin
+    const requestedRole = (process.argv[3] || 'admin').trim().toLowerCase()
+    const role = requestedRole === 'super-admin' ? 'admin' : requestedRole
 
     if (!email) {
       console.error('❌ Error: Email is required')
@@ -34,12 +35,12 @@ async function grantAdminAccess() {
       console.error('  node scripts/grant-admin-access.mjs EMAIL [ROLE]')
       console.error('  ADMIN_EMAIL="user@example.com" node scripts/grant-admin-access.mjs')
       console.error('')
-      console.error('Role options: admin, super-admin (default: super-admin)')
+      console.error('Role options: admin (default: admin)')
       process.exit(1)
     }
 
-    if (!['admin', 'super-admin'].includes(role)) {
-      console.error(`❌ Error: Invalid role "${role}". Must be "admin" or "super-admin"`)
+    if (role !== 'admin') {
+      console.error(`❌ Error: Invalid role "${requestedRole}". Must be "admin"`)
       process.exit(1)
     }
 

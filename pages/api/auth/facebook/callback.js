@@ -17,6 +17,8 @@
 import { exchangeCodeForToken, getFacebookUserProfile, linkOrCreateUser } from '../../../../lib/facebook.mjs'
 import { createPublicSession, setPublicSessionCookie } from '../../../../lib/publicSessions.mjs'
 import logger from '../../../../lib/logger.mjs'
+import { validateStateCsrfToken } from '../../../../lib/middleware/csrf.mjs'
+import { parseOAuthCallbackState } from '../../../../lib/oauth/callbackState.mjs'
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
@@ -47,8 +49,7 @@ export default async function handler(req, res) {
     let stateData
     let oauthRequest = null
     try {
-      const stateJson = Buffer.from(state, 'base64url').toString('utf-8')
-      stateData = JSON.parse(stateJson)
+      stateData = parseOAuthCallbackState(state)
       oauthRequest = stateData.oauth_request || null
       
       logger.info('Facebook callback state decoded', {
@@ -60,8 +61,14 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Invalid state parameter' })
     }
     
-    // TODO: Validate CSRF token (stateData.csrf) against session
-    // For now, we just verify it exists
+    const csrfValidation = validateStateCsrfToken(req, stateData.csrf)
+    if (!csrfValidation.valid) {
+      logger.warn('Facebook callback state validation failed', {
+        reason: csrfValidation.reason,
+        hasOAuthRequest: !!oauthRequest,
+      })
+      return res.redirect('/?error=facebook_invalid_state&message=' + encodeURIComponent('Login session expired or state is invalid. Please try again.'))
+    }
 
     // WHAT: Exchange authorization code for access token
     // WHY: Need access token to fetch user profile from Facebook

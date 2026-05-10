@@ -18,6 +18,7 @@
  */
 
 import { getPublicUserFromRequest } from '../../../lib/publicSessions.mjs'
+import { normalizePermissionRecord, permissionHasAccess } from '../../../lib/appPermissions.mjs'
 import { getAuthenticatedUser } from '../../../lib/unifiedAuth.mjs'
 import { getClient, validateRedirectUri, validateClientScopes } from '../../../lib/oauth/clients.mjs'
 import { validateScopes, ensureRequiredScopes } from '../../../lib/oauth/scopes.mjs'
@@ -281,10 +282,10 @@ export default async function handler(req, res) {
         client_internal: client.internal,
       })
       
-      const permission = await db.collection('appPermissions').findOne({
+      const permission = normalizePermissionRecord(await db.collection('appPermissions').findOne({
         userId: user.id,
         clientId: client_id,
-      })
+      }))
       
       logger.info('Authorization request: permission query result', {
         client_id,
@@ -301,7 +302,7 @@ export default async function handler(req, res) {
       
       // WHAT: For internal clients, user MUST have explicit permission
       // WHY: Admin dashboard should only be accessible to authorized users
-      if (!permission || !permission.hasAccess || permission.status !== 'approved') {
+      if (!permission || !permissionHasAccess(permission.status, permission.role, permission.hasAccess)) {
         logger.warn('Authorization request: internal client access denied', {
           client_id,
           client_name: client.name,
@@ -310,9 +311,8 @@ export default async function handler(req, res) {
           has_permission: !!permission,
           has_access: permission?.hasAccess,
           status: permission?.status,
-          rejection_reason: !permission ? 'no_permission_record' : 
-            !permission.hasAccess ? 'hasAccess_false' : 
-            permission.status !== 'approved' ? `status_${permission.status}` : 'unknown',
+          rejection_reason: !permission ? 'no_permission_record' :
+            !permissionHasAccess(permission.status, permission.role, permission.hasAccess) ? `status_${permission.status}` : 'unknown',
         })
         return respondWithError(
           res,

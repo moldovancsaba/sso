@@ -84,7 +84,7 @@ async function grantAdminPermission() {
       {
         $set: {
           hasAccess: true,
-          role: 'super-admin',
+          role: 'admin',
           status: 'approved',
           grantedAt: now,
           grantedBy: 'system-script',
@@ -101,7 +101,7 @@ async function grantAdminPermission() {
     
     console.log(`\n✅ Admin permission granted!`)
     console.log(`   Operation: ${result.upsertedCount ? 'Created' : 'Updated'}`)
-    console.log(`   Role: super-admin`)
+    console.log(`   Role: admin`)
     console.log(`   Status: approved`)
     console.log(`   Access: granted`)
     

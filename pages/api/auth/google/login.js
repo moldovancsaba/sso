@@ -11,9 +11,10 @@
  * - oauth_request: Base64-encoded OAuth request (optional)
  */
 
-import { randomBytes } from 'crypto'
 import { getGoogleAuthUrl } from '../../../../lib/google.mjs'
 import logger from '../../../../lib/logger.mjs'
+import { ensureCsrfToken } from '../../../../lib/middleware/csrf.mjs'
+import { buildOAuthCallbackState, parseOAuthCallbackState } from '../../../../lib/oauth/callbackState.mjs'
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
@@ -23,9 +24,8 @@ export default async function handler(req, res) {
   try {
     const { oauth_request, state, prompt, login_hint } = req.query
 
-    // WHAT: Generate CSRF protection state token
-    // WHY: Prevent CSRF attacks by validating state on callback
-    const csrfToken = randomBytes(16).toString('hex')
+    await new Promise((resolve) => ensureCsrfToken(req, res, resolve))
+    const csrfToken = req.csrfToken
 
     // WHAT: Determine redirect URI based on environment
     // WHY: Support localhost testing while keeping production secure
@@ -42,8 +42,7 @@ export default async function handler(req, res) {
     let adminLogin = false
     if (state) {
       try {
-        const stateJson = Buffer.from(state, 'base64url').toString('utf-8')
-        const stateData = JSON.parse(stateJson)
+        const stateData = parseOAuthCallbackState(state)
         adminLogin = stateData.admin_login === true
       } catch {}
     }
@@ -61,10 +60,11 @@ export default async function handler(req, res) {
     // Add admin_login flag to state if needed
     if (adminLogin) {
       const url = new URL(googleAuthUrl)
-      const existingState = url.searchParams.get('state')
-      const stateData = JSON.parse(Buffer.from(existingState, 'base64url').toString('utf-8'))
-      stateData.admin_login = true
-      url.searchParams.set('state', Buffer.from(JSON.stringify(stateData)).toString('base64url'))
+      url.searchParams.set('state', buildOAuthCallbackState({
+        csrfToken,
+        oauthRequest: oauth_request || null,
+        adminLogin: true,
+      }))
       googleAuthUrl = url.toString()
     }
 
