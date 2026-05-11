@@ -1,73 +1,92 @@
 # SSO Service
 
 Version: 5.29.0  
-Last updated: 2026-05-10T00:00:00.000Z
+Last updated: 2026-05-11T12:00:00.000Z
 
-This repository provides the SSO service for `sso.doneisbetter.com`. It acts as:
+This repository provides the SSO service for `https://sso.doneisbetter.com`.
+
+It currently acts as:
 
 - an OAuth 2.0 / OpenID Connect authorization server
 - a hosted login surface for public users
-- an admin system for user, client, and permission management
-- a centralized per-app authorization service
+- a centralized per-app authorization layer
+- an admin interface and API for users, clients, permissions, and audit operations
 
 ## Current Runtime Contract
 
 ### Authentication methods
+
 - Email and password
 - Magic links
-- PIN verification
+- PIN verification during selected login attempts
 - Google login
 - Facebook login
 
-Apple Sign In is planned and not implemented yet.
+Planned, not implemented:
 
-### Admin roles
-- Canonical admin role: `admin`
-- Legacy `super-admin` input is normalized to `admin` in runtime compatibility paths
+- Apple Sign In
+- Passkeys
+- enterprise federation features such as SAML and SCIM
 
-### App permission roles
+### Canonical roles and statuses
+
+Admin role:
+
+- `admin`
+
+App permission roles:
+
 - `none`
 - `user`
 - `admin`
 
-### App permission statuses
+App permission statuses:
+
 - `pending`
 - `approved`
 - `revoked`
 
-Legacy permission values are normalized in runtime:
+Legacy compatibility inputs are normalized in runtime:
+
 - `active` -> `approved`
 - `guest` -> `none`
 - `owner`, `superadmin`, `super-admin` -> `admin`
 
 ### Session model
+
 - Admin sessions use the `admin-session` cookie
 - Public user sessions use the `public-session` cookie
-- Public session tokens are hashed at rest in `publicSessions`
-- In production public session cookies use `SameSite=None`, `Secure`, and the configured cross-subdomain cookie domain
+- Public session tokens are hashed at rest in the `publicSessions` collection
+- Production public sessions use `SameSite=None`, `Secure`, and the configured shared cookie domain when cross-subdomain SSO is enabled
 
-## What Was Recently Hardened
+### OAuth / OIDC contract
 
-The May 2026 remediation pass shipped these runtime fixes:
+- Primary flow: Authorization Code
+- PKCE supported for public clients
+- Standard scopes: `openid`, `profile`, `email`, `offline_access`
+- OIDC discovery available at `/.well-known/openid-configuration`
+- JWKS available at `/.well-known/jwks.json`
 
-- Removed duplicate and credential-bearing backup routes from the active tree
-- Added canonical social callback state parsing and CSRF validation
-- Enforced real bearer-token validation in app access request flows
-- Unified public session cookie behavior across login paths
-- Normalized admin roles and app permission roles/statuses across runtime code
-- Tightened redirect validation in magic-link and related flows
+## Operational Notes
 
-## Developer References
+The May 2026 hardening pass delivered these changes:
+
+- duplicate and credential-bearing route files removed from the active tree
+- canonical social callback state parsing and CSRF validation
+- callback-state replay reduction by consuming the CSRF cookie after successful social callback validation
+- real bearer-token validation for access-request flows
+- normalized app-permission and admin-role handling in runtime compatibility paths
+- repository guardrails and documentation-maintenance checks
+
+## Recommended Reading
 
 - [docs/ARCHITECTURE.md](/Users/moldovancsaba/Projects/sso/docs/ARCHITECTURE.md): runtime architecture and core contracts
-- [docs/MULTI_APP_PERMISSIONS.md](/Users/moldovancsaba/Projects/sso/docs/MULTI_APP_PERMISSIONS.md): permission model and API contract
-- [docs/ROLE_SYSTEM_MIGRATION.md](/Users/moldovancsaba/Projects/sso/docs/ROLE_SYSTEM_MIGRATION.md): role consolidation and compatibility notes
-- [docs/TASKLIST.md](/Users/moldovancsaba/Projects/sso/docs/TASKLIST.md): current implementation backlog
-- [docs/ROADMAP.md](/Users/moldovancsaba/Projects/sso/docs/ROADMAP.md): delivered phases and upcoming work
+- [docs/THIRD_PARTY_INTEGRATION_GUIDE.md](/Users/moldovancsaba/Projects/sso/docs/THIRD_PARTY_INTEGRATION_GUIDE.md): integration guide for app teams
+- [docs/MULTI_APP_PERMISSIONS.md](/Users/moldovancsaba/Projects/sso/docs/MULTI_APP_PERMISSIONS.md): app-permission semantics and workflows
+- [docs/ROLE_SYSTEM_MIGRATION.md](/Users/moldovancsaba/Projects/sso/docs/ROLE_SYSTEM_MIGRATION.md): compatibility notes for legacy roles
+- [docs/TASKLIST.md](/Users/moldovancsaba/Projects/sso/docs/TASKLIST.md): current backlog
 
-## Environment
-
-Important environment variables:
+## Important Environment Variables
 
 ```bash
 MONGODB_URI=...
@@ -99,6 +118,8 @@ npm install
 npm run setup
 npm run dev
 npm run type-check
+npm run test
 npm run build
-npm test
+npm run guard:repo
+npm run check:docs
 ```
