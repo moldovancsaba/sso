@@ -7,8 +7,17 @@
  */
 
 import { MongoClient } from 'mongodb';
+import * as dotenv from 'dotenv';
 
-const uri = 'mongodb+srv://moldovancsaba:togwa1-xyhcEp-mozceb@mongodb-thanperfect.zf2o0ix.mongodb.net/sso_database?retryWrites=true&w=majority';
+dotenv.config({ path: '.env.local' });
+
+const uri = process.env.MONGODB_URI;
+const dbName = process.env.MONGODB_DB || 'sso_database';
+const launchmassClientSecret = process.env.LAUNCHMASS_CLIENT_SECRET;
+
+if (!uri) {
+  throw new Error('MONGODB_URI must be set');
+}
 
 const client = new MongoClient(uri);
 
@@ -16,7 +25,7 @@ try {
   await client.connect();
   console.log('✅ Connected to MongoDB');
   
-  const db = client.db('sso_database');
+  const db = client.db(dbName);
   const oauthClients = db.collection('oauthClients');
   
   const clientId = '04dc2cc1-9fd3-4ffa-9813-450dca97af92';
@@ -47,9 +56,13 @@ try {
   } else {
     console.log('Creating new OAuth client...');
     
+    if (!launchmassClientSecret) {
+      throw new Error('LAUNCHMASS_CLIENT_SECRET must be set before creating the client')
+    }
+
     const newClient = {
       client_id: clientId,
-      client_secret: 'bc43d236-e6a8-4402-a1b8-39153e8a5cca', // Keep same secret
+      client_secret: launchmassClientSecret,
       name: 'launchmass',
       appName: 'launchmass',
       status: 'active',

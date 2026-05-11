@@ -9,9 +9,17 @@
  */
 
 import { MongoClient } from 'mongodb';
+import * as dotenv from 'dotenv';
 
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://moldovancsaba:togwa1-xyhcEp-mozceb@mongodb-thanperfect.zf2o0ix.mongodb.net/sso?retryWrites=true&w=majority&appName=mongodb-thanperfect';
+dotenv.config({ path: '.env.local' });
+
+const MONGODB_URI = process.env.MONGODB_URI;
+const MONGODB_DB = process.env.MONGODB_DB || 'sso';
 const LAUNCHMASS_CLIENT_ID = '6e85956d-5d80-4dcc-afe0-6f53e5c58316';
+
+if (!MONGODB_URI) {
+  throw new Error('MONGODB_URI must be set');
+}
 
 async function migrate() {
   const client = new MongoClient(MONGODB_URI);
@@ -20,7 +28,7 @@ async function migrate() {
     await client.connect();
     console.log('✅ Connected to MongoDB');
     
-    const db = client.db('sso');
+    const db = client.db(MONGODB_DB);
     const publicUsers = db.collection('publicUsers');
     const users = db.collection('users');
     const appPermissions = db.collection('appPermissions');

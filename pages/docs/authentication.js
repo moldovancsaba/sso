@@ -103,7 +103,7 @@ export default function Authentication() {
             </ul>
             <p><strong>Optional Parameters:</strong></p>
             <ul>
-              <li><code>state</code> - Random string to prevent CSRF attacks (recommended)</li>
+              <li><code>state</code> - Random string to prevent CSRF attacks (strongly recommended)</li>
               <li><code>code_challenge</code> - For PKCE (required for public clients)</li>
               <li><code>code_challenge_method</code> - Should be <code>S256</code></li>
             </ul>
@@ -114,6 +114,8 @@ export default function Authentication() {
               <li><strong>Email + Password</strong> - Traditional login</li>
               <li><strong>Magic Link</strong> - Passwordless email link (15 min expiry)</li>
               <li><strong>PIN Code</strong> - 6-digit time-based code</li>
+              <li><strong>Google</strong> - Social login</li>
+              <li><strong>Facebook</strong> - Social login</li>
             </ul>
 
             <h3>Step 3: Permission Check</h3>
@@ -124,7 +126,7 @@ export default function Authentication() {
 {
   userId: "user-uuid",
   clientId: "your-client-id",
-  status: "approved",  // Can be: approved, pending, revoked, none
+  status: "approved",  // Canonical values: approved, pending, revoked
   role: "admin"        // App-level role: user or admin
 }`}
               </pre>
@@ -133,7 +135,8 @@ export default function Authentication() {
             <ul>
               <li><code>approved</code> - User can access (proceed to step 4)</li>
               <li><code>pending</code> - SSO shows "Access Pending Approval" message</li>
-              <li><code>revoked</code> or <code>none</code> - SSO shows "Access Denied"</li>
+              <li><code>revoked</code> - SSO shows "Access Denied"</li>
+              <li><code>none</code> - Means no permission record or no granted role, not a canonical granted status</li>
             </ul>
             <p style={{ background: '#e8f5e9', padding: '12px', borderRadius: '6px', fontSize: '14px' }}>
               🔒 <strong>Security Note:</strong> Only SSO admins can approve/revoke app access. 
@@ -187,9 +190,13 @@ Content-Type: application/json
             <p>The <code>id_token</code> contains user identity and app-level role:</p>
             <div className={styles.codeBlock}>
               <pre>
-                {`// Decode JWT (no verification needed if received from /token directly)
+                {`// Verify JWT signature and claims before trusting it
 const jwt = require('jsonwebtoken');
-const userInfo = jwt.decode(id_token);
+const userInfo = jwt.verify(id_token, publicKey, {
+  algorithms: ['RS256'],
+  audience: 'YOUR_CLIENT_ID',
+  issuer: 'https://sso.doneisbetter.com'
+});
 
 // userInfo payload:
 {

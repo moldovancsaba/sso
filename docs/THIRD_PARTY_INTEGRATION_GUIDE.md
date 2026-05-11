@@ -1,9 +1,9 @@
 # Third-Party Integration Guide — SSO Service
 
-**Version**: 5.30.0  
-**Last Updated**: 2026-03-13T12:00:00.000Z  
+**Version**: 5.29.0  
+**Last Updated**: 2026-05-11T00:00:00.000Z  
 **Service URL**: https://sso.doneisbetter.com  
-**Status**: Production Ready
+**Status**: Current Runtime Guide
 
 ---
 
@@ -34,7 +34,8 @@ The SSO Service (sso.doneisbetter.com) provides comprehensive OAuth2/OIDC authen
 - ✅ **Per-App Authorization**: Centralized SSO with distributed app permissions
 - ✅ **Secure Token Management**: RS256-signed JWT access tokens
 - ✅ **User Profile Access**: Name, email, role, verified status
-- ✅ **30-Day Sessions**: With sliding expiration
+- ✅ **Public Sessions**: 30-day sliding expiration for public users
+- ✅ **Admin Sessions**: Short-lived admin session model
 
 ### Integration Methods
 
@@ -612,7 +613,7 @@ SSO provides centralized permission management with a simplified 3-role system.
 6. Response includes:
    - hasAccess: boolean
    - role: 'none' | 'user' | 'admin'
-   - status: 'pending' | 'active' | 'revoked'
+   - status: 'pending' | 'approved' | 'revoked'
 7. If hasAccess == false:
    → Show "Access Pending" page or auto-request access
 8. If hasAccess == true:
@@ -694,17 +695,27 @@ async function requestAppAccess(userId, accessToken) {
   return await response.json();
   /* Returns:
   {
-    "userId": "user-uuid",
-    "clientId": "your-client-id",
-    "appName": "YourApp",
-    "hasAccess": false,
-    "status": "pending",
-    "role": "none",
-    "requestedAt": "2026-01-20T14:00:00.000Z"
+    "message": "Access request created",
+    "permission": {
+      "userId": "user-uuid",
+      "clientId": "your-client-id",
+      "appName": "YourApp",
+      "hasAccess": false,
+      "status": "pending",
+      "role": "none",
+      "requestedAt": "2026-01-20T14:00:00.000Z"
+    }
   }
   */
 }
 ```
+
+Important request-access rules:
+
+- the bearer token must be a real validated access token
+- the token subject must match the `userId` in the path
+- the token client must match the `clientId` in the path
+- callers should treat `pending`, `approved`, and `revoked` as the canonical permission statuses
 
 ### Complete OAuth Callback with Permissions
 

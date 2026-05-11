@@ -1,5 +1,9 @@
 # Documentation Audit Report
 
+> Historical reference only.
+> This report predates the May 2026 reconciliation pass and is no longer a source of truth for current versioning, role, or feature-completion status.
+> Use [docs/README.md](/Users/moldovancsaba/Projects/sso/docs/README.md), [docs/ARCHITECTURE.md](/Users/moldovancsaba/Projects/sso/docs/ARCHITECTURE.md), and [docs/ROADMAP.md](/Users/moldovancsaba/Projects/sso/docs/ROADMAP.md) instead.
+
 **Version**: 5.28.0  
 **Audit Date**: 2025-12-21T10:00:00.000Z  
 **Auditor**: AI Agent  

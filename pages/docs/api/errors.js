@@ -279,8 +279,8 @@ Retry-After: 60
             <h3><code>INSUFFICIENT_ADMIN_PERMISSIONS</code></h3>
             <p><strong>HTTP 403 Forbidden</strong></p>
             <ul>
-              <li><strong>Cause:</strong> Operation requires super-admin, user is only admin</li>
-              <li><strong>Action:</strong> Contact super-admin for this operation</li>
+              <li><strong>Cause:</strong> Operation requires an authenticated admin session or an app-specific permission the caller does not have</li>
+              <li><strong>Action:</strong> Verify the caller is using the correct admin account or authorized app context</li>
             </ul>
 
             <h3><code>USER_NOT_FOUND</code></h3>

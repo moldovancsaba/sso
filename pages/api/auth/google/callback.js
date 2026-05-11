@@ -20,7 +20,7 @@ import { findUserByEmail } from '../../../../lib/users.mjs'
 import { createSession } from '../../../../lib/sessions.mjs'
 import { setAdminSessionCookie } from '../../../../lib/auth.mjs'
 import logger from '../../../../lib/logger.mjs'
-import { validateStateCsrfToken } from '../../../../lib/middleware/csrf.mjs'
+import { clearCsrfCookie, validateStateCsrfToken } from '../../../../lib/middleware/csrf.mjs'
 import { parseOAuthCallbackState } from '../../../../lib/oauth/callbackState.mjs'
 
 export default async function handler(req, res) {
@@ -82,6 +82,8 @@ export default async function handler(req, res) {
       }
       return res.redirect(`/?error=${errorCode}&message=${message}`)
     }
+
+    clearCsrfCookie(res)
 
     // WHAT: Determine redirect URI based on environment
     // WHY: Must match the redirect URI used in the authorization request

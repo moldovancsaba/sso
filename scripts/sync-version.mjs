@@ -8,12 +8,12 @@ const root = process.cwd()
 const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf-8'))
 const version = pkg.version
 const files = [
-  'README.md',
-  'ARCHITECTURE.md',
-  'ROADMAP.md',
-  'TASKLIST.md',
-  'LEARNINGS.md',
-  'RELEASE_NOTES.md',
+  'docs/README.md',
+  'docs/ARCHITECTURE.md',
+  'docs/ROADMAP.md',
+  'docs/TASKLIST.md',
+  'docs/LEARNINGS.md',
+  'docs/RELEASE_NOTES.md',
   'WARP.DEV_AI_CONVERSATION.md',
 ].filter(f => fs.existsSync(path.join(root, f)))
 
@@ -26,4 +26,3 @@ for (const f of files) {
 }
 
 console.log(`[sync-version] Updated docs to v${version}`)
-

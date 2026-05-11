@@ -7,9 +7,17 @@
  */
 
 import { MongoClient } from 'mongodb';
+import * as dotenv from 'dotenv';
 
-const MONGODB_URI = 'mongodb+srv://moldovancsaba:togwa1-xyhcEp-mozceb@mongodb-thanperfect.zf2o0ix.mongodb.net/sso_database?retryWrites=true&w=majority';
+dotenv.config({ path: '.env.local' });
+
+const MONGODB_URI = process.env.MONGODB_URI;
+const MONGODB_DB = process.env.MONGODB_DB || 'sso_database';
 const LAUNCHMASS_CLIENT_ID = '04dc2cc1-9fd3-4ffa-9813-450dca97af92';
+
+if (!MONGODB_URI) {
+  throw new Error('MONGODB_URI must be set');
+}
 
 const SUPERADMIN_EMAILS = [
   'moldovancsaba@gmail.com',
@@ -23,7 +31,7 @@ async function fix() {
     await client.connect();
     console.log('✅ Connected to MongoDB');
     
-    const db = client.db('sso_database');
+    const db = client.db(MONGODB_DB);
     const publicUsers = db.collection('publicUsers');
     const users = db.collection('users');
     const appPermissions = db.collection('appPermissions');

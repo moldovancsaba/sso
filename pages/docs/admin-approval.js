@@ -411,22 +411,19 @@ for (const userId of users) {
             <h2>Multiple Admins & Delegation</h2>
             
             <h3>SSO Admin Roles</h3>
-            <p>SSO has two admin levels:</p>
+            <p>SSO currently uses a single canonical admin role:</p>
             <ul>
               <li>
                 <strong>admin</strong> - Can manage users and app permissions
               </li>
-              <li>
-                <strong>super-admin</strong> - Can manage users, permissions, AND create new SSO admins
-              </li>
             </ul>
 
-            <h3>Creating New Admins (Super-Admins Only)</h3>
+            <h3>Creating New Admins</h3>
             <ol>
-              <li>Login to admin panel as super-admin</li>
+              <li>Login to admin panel as an admin</li>
               <li>Navigate to Users tab</li>
               <li>Click "Create Admin User"</li>
-              <li>Enter email, name, select role (admin or super-admin)</li>
+              <li>Enter email, name, and assign role <code>admin</code></li>
               <li>System generates 32-hex password token</li>
               <li><strong>Copy and securely share token</strong> (shown only once!)</li>
               <li>New admin can login at https://sso.doneisbetter.com/admin</li>

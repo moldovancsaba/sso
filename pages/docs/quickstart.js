@@ -125,7 +125,7 @@ function base64URLEncode(buffer) {
               </li>
             </ul>
             <p>
-              <strong>Authentication Options:</strong> Users can login with email/password, magic link (passwordless), or <strong>social providers (Facebook, Google coming soon)</strong>.
+              <strong>Authentication Options:</strong> Users can login with email/password, magic link (passwordless), or <strong>social providers such as Google and Facebook</strong>.
             </p>
           </section>
 

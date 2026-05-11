@@ -1,5 +1,9 @@
 # Style Editor Guide
 
+> Historical guide with stale authorization wording.
+> The style editor still exists, but this document predates the admin-role consolidation and should not be treated as the source of truth for current role requirements.
+> Confirm runtime behavior in code before relying on this guide.
+
 **Document**: STYLE_EDITOR_GUIDE.md  
 **Version**: 5.28.0  
 **CreatedAt (UTC)**: 2025-12-22T16:26:56.000Z  

@@ -19,7 +19,8 @@ const __dirname = dirname(__filename);
 dotenv.config({ path: join(__dirname, '..', '.env.local') });
 
 // Use SSO MongoDB URI (from .env.local in SSO project)
-const uri = 'mongodb+srv://thanperfect:CuW54NNNFKnGQtt6@doneisbetter.49s2z.mongodb.net/?retryWrites=true&w=majority&appName=doneisbetter';
+const uri = process.env.MONGODB_URI;
+const dbName = process.env.MONGODB_DB || 'sso';
 
 console.log('🔧 Using SSO MongoDB cluster');
 
@@ -35,7 +36,6 @@ try {
   await client.connect();
   console.log('✅ Connected to MongoDB');
   
-  const dbName = 'sso'; // Always use SSO database
   const db = client.db(dbName);
   console.log(`📊 Using database: ${dbName}`);
   const oauthClients = db.collection('oauthClients');
@@ -93,19 +93,19 @@ try {
   
   const now = new Date().toISOString();
   
-  // Get a super-admin user to be the owner (or use a default)
+  // Get an admin user to be the owner (legacy super-admin values still tolerated if present)
   const users = db.collection('users');
   const allUsers = await users.find({}).limit(5).toArray();
   console.log('\n🔍 Sample users:', allUsers.map(u => ({ id: u.id, email: u.email, role: u.role })));
   
-  const superAdmin = await users.findOne({ role: 'super-admin' });
+  const superAdmin = await users.findOne({ role: { $in: ['admin', 'super-admin'] } });
   
   if (!superAdmin) {
-    console.error('❌ No super-admin user found. Please create one first.');
+    console.error('❌ No admin user found. Please create one first.');
     process.exit(1);
   }
   
-  console.log('\n✅ Found super-admin:', { id: superAdmin.id, email: superAdmin.email });
+  console.log('\n✅ Found admin owner:', { id: superAdmin.id, email: superAdmin.email, role: superAdmin.role });
   
   const newClient = {
     client_id: clientId,

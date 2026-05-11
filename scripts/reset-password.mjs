@@ -2,14 +2,23 @@
 
 import { MongoClient } from 'mongodb';
 import bcrypt from 'bcryptjs';
+import * as dotenv from 'dotenv';
 
-const uri = 'mongodb+srv://moldovancsaba:togwa1-xyhcEp-mozceb@mongodb-thanperfect.zf2o0ix.mongodb.net/sso_database?retryWrites=true&w=majority';
+dotenv.config({ path: '.env.local' });
+
+const uri = process.env.MONGODB_URI;
+const dbName = process.env.MONGODB_DB || 'sso_database';
+
+if (!uri) {
+  throw new Error('MONGODB_URI must be set');
+}
+
 const client = new MongoClient(uri);
 
 await client.connect();
 console.log('✅ Connected');
 
-const db = client.db('sso_database');
+const db = client.db(dbName);
 const user = await db.collection('publicUsers').findOne({ email: 'moldovancsaba@gmail.com' });
 
 if (!user) {
