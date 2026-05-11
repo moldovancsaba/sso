@@ -1,6 +1,7 @@
 import DocsLayout from '../../components/DocsLayout';
 import styles from '../../styles/docs.module.css';
 import Link from 'next/link';
+import packageJson from '../../package.json';
 
 export default function IntegrationGuidePage() {
   return (
@@ -8,7 +9,7 @@ export default function IntegrationGuidePage() {
       <div className={styles.container}>
         <header className={styles.header}>
           <h1>Third-Party Integration Guide</h1>
-          <p className={styles.version}>SSO v5.24.0</p>
+          <p className={styles.version}>SSO v{packageJson.version}</p>
           <p className={styles.subtitle}>Complete guide for integrating SSO into your application</p>
         </header>
 
@@ -20,23 +21,23 @@ export default function IntegrationGuidePage() {
             </p>
             <ul className={styles.featureList}>
               <li><strong>OAuth2/OIDC Integration</strong> - Complete authorization code flow with PKCE</li>
-              <li><strong>App-Level Permissions</strong> - NEW in v5.24.0: Manage user roles per app</li>
+              <li><strong>App-Level Permissions</strong> - Manage user roles per app</li>
               <li><strong>Cookie-Based SSO</strong> - Simple subdomain integration</li>
-              <li><strong>Social Login</strong> - Facebook, Google (coming soon)</li>
+              <li><strong>Social Login</strong> - Google and Facebook</li>
               <li><strong>Token Management</strong> - Access tokens, refresh tokens, ID tokens</li>
               <li><strong>Security Best Practices</strong> - PKCE, CSRF protection, token rotation</li>
             </ul>
           </section>
 
           <section className={styles.section}>
-            <h2>🎯 NEW: App-Level Permissions (v5.24.0)</h2>
+            <h2>🎯 App-Level Permissions</h2>
             <div className={styles.warningBox}>
               <p>
-                <strong>Multi-App Authorization is now available!</strong> SSO provides centralized permission management
+                <strong>Multi-App Authorization is available.</strong> SSO provides centralized permission management
                 for all integrated applications. Learn how to:
               </p>
               <ul>
-                <li>Query user's app-specific role (user/admin/superadmin)</li>
+                <li>Query a user's app-specific role (`none`, `user`, `admin`)</li>
                 <li>Store app permissions in your session</li>
                 <li>Control access based on roles</li>
                 <li>Sync permissions in real-time</li>
@@ -55,7 +56,7 @@ export default function IntegrationGuidePage() {
               <strong>Location:</strong> <code>/Users/moldovancsaba/Projects/sso/docs/THIRD_PARTY_INTEGRATION_GUIDE.md</code>
             </p>
             <p>
-              <strong>Version:</strong> 5.24.0 (Last updated: 2025-11-09)
+              <strong>Version:</strong> {packageJson.version}
             </p>
             <p>
               <strong>Size:</strong> ~900 lines | Comprehensive with code examples
@@ -137,7 +138,7 @@ const tokens = await exchangeCodeForToken(code, codeVerifier);
 // 2. Extract user from ID token
 const user = decodeIdToken(tokens.id_token);
 
-// 3. Query SSO for app permission (NEW in v5.24.0)
+// 3. Query SSO for app permission
 const permission = await getAppPermission(user.id, tokens.access_token);
 
 // 4. Check if user has access
@@ -152,7 +153,7 @@ if (!permission.hasAccess) {
 
 // 5. Store app role in session
 await createSession(user, tokens, {
-  appRole: permission.role,  // 'user', 'admin', or 'superadmin'
+  appRole: permission.role,  // 'none', 'user', or 'admin'
   appAccess: permission.hasAccess,
 });
 

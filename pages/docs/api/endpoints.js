@@ -144,15 +144,17 @@ Content-Type: application/json
   "issuer": "https://sso.doneisbetter.com",
   "authorization_endpoint": "https://sso.doneisbetter.com/api/oauth/authorize",
   "token_endpoint": "https://sso.doneisbetter.com/api/oauth/token",
+  "userinfo_endpoint": "https://sso.doneisbetter.com/api/oauth/userinfo",
   "revocation_endpoint": "https://sso.doneisbetter.com/api/oauth/revoke",
+  "introspection_endpoint": "https://sso.doneisbetter.com/api/oauth/introspect",
   "jwks_uri": "https://sso.doneisbetter.com/.well-known/jwks.json",
   "response_types_supported": ["code"],
   "grant_types_supported": ["authorization_code", "refresh_token"],
   "subject_types_supported": ["public"],
-  "id_token_signing_alg_values_supported": ["HS256"],
-  "scopes_supported": ["openid", "profile", "email"],
-  "token_endpoint_auth_methods_supported": ["client_secret_post"],
-  "code_challenge_methods_supported": ["S256"]
+  "id_token_signing_alg_values_supported": ["RS256"],
+  "scopes_supported": ["openid", "profile", "email", "offline_access"],
+  "token_endpoint_auth_methods_supported": ["client_secret_post", "client_secret_basic"],
+  "code_challenge_methods_supported": ["S256", "plain"]
 }`}
               </pre>
             </div>
@@ -255,39 +257,44 @@ Content-Type: application/json
             </div>
 
             <h3>GET /api/public/session</h3>
-            <p><strong>Validate Bearer token and get user info</strong></p>
+            <p><strong>Validate public session cookie and get user info</strong></p>
             <div className={styles.codeBlock}>
               <pre>
                 {`GET https://sso.doneisbetter.com/api/public/session
-Authorization: Bearer eyJhbGci...
+Cookie: public-session=...
 
 // Success Response (200 OK):
 {
-  "userId": "550e8400-e29b-41d4-a716-446655440000",
-  "email": "user@example.com",
-  "name": "John Doe",
-  "role": "admin"  // If accessed via OAuth with clientId
+  "isValid": true,
+  "user": {
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "email": "user@example.com",
+    "name": "John Doe",
+    "role": "user",
+    "status": "active",
+    "emailVerified": true,
+    "loginMethods": ["password", "google"]
+  }
 }
 
 // Error Response (401 Unauthorized):
 {
-  "error": {
-    "code": "INVALID_TOKEN",
-    "message": "Token is invalid or expired"
-  }
+  "isValid": false,
+  "message": "No active session found"
 }`}
               </pre>
             </div>
 
-            <h3>POST /api/public/magic-link</h3>
+            <h3>POST /api/public/request-magic-link</h3>
             <p><strong>Request passwordless magic link</strong></p>
             <div className={styles.codeBlock}>
               <pre>
-                {`POST https://sso.doneisbetter.com/api/public/magic-link
+                {`POST https://sso.doneisbetter.com/api/public/request-magic-link
 Content-Type: application/json
 
 {
-  "email": "user@example.com"
+  "email": "user@example.com",
+  "redirect_uri": "https://yourapp.com/after-login"  // optional
 }
 
 // Success Response (200 OK):
@@ -298,29 +305,27 @@ Content-Type: application/json
 }
 
 // User receives email with link:
-// https://sso.doneisbetter.com/api/admin/magic-link?t=MAGIC_TOKEN`}
+// https://sso.doneisbetter.com/api/public/magic-login?token=MAGIC_TOKEN`}
               </pre>
             </div>
 
-            <h3>POST /api/public/pin</h3>
-            <p><strong>Request PIN code authentication</strong></p>
+            <h3>POST /api/public/verify-pin</h3>
+            <p><strong>Verify a previously issued PIN code</strong></p>
             <div className={styles.codeBlock}>
               <pre>
-                {`POST https://sso.doneisbetter.com/api/public/pin
+                {`POST https://sso.doneisbetter.com/api/public/verify-pin
 Content-Type: application/json
 
 {
-  "email": "user@example.com"
+  "email": "user@example.com",
+  "pin": "123456"
 }
 
 // Success Response (200 OK):
 {
   "success": true,
-  "message": "PIN code sent to user@example.com",
-  "expiresIn": 300  // 5 minutes
-}
-
-// User receives 6-digit PIN code via email`}
+  "message": "Login successful"
+}`}
               </pre>
             </div>
           </section>
@@ -351,7 +356,7 @@ Content-Type: application/json
     "id": "admin-uuid",
     "email": "admin@doneisbetter.com",
     "name": "Admin Name",
-    "role": "super-admin"
+    "role": "admin"
   }
 }`}
               </pre>

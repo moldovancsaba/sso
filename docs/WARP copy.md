@@ -1,5 +1,8 @@
 # WARP.md
 
+> Historical duplicate.
+> This file is not the maintained current WARP guidance and should not be edited as an authoritative source.
+
 This file provides guidance to WARP (warp.dev) when working with code in this repository.
 
 ---

@@ -17,7 +17,7 @@
 import { exchangeCodeForToken, getFacebookUserProfile, linkOrCreateUser } from '../../../../lib/facebook.mjs'
 import { createPublicSession, setPublicSessionCookie } from '../../../../lib/publicSessions.mjs'
 import logger from '../../../../lib/logger.mjs'
-import { validateStateCsrfToken } from '../../../../lib/middleware/csrf.mjs'
+import { clearCsrfCookie, validateStateCsrfToken } from '../../../../lib/middleware/csrf.mjs'
 import { parseOAuthCallbackState } from '../../../../lib/oauth/callbackState.mjs'
 
 export default async function handler(req, res) {
@@ -69,6 +69,8 @@ export default async function handler(req, res) {
       })
       return res.redirect('/?error=facebook_invalid_state&message=' + encodeURIComponent('Login session expired or state is invalid. Please try again.'))
     }
+
+    clearCsrfCookie(res)
 
     // WHAT: Exchange authorization code for access token
     // WHY: Need access token to fetch user profile from Facebook

@@ -1,5 +1,9 @@
 # SSO Login Issue Diagnosis
 
+> Historical troubleshooting note.
+> This document reflects an older admin-access model and stale role assumptions.
+> Use the current runtime docs in [docs/README.md](/Users/moldovancsaba/Projects/sso/docs/README.md), [docs/ARCHITECTURE.md](/Users/moldovancsaba/Projects/sso/docs/ARCHITECTURE.md), and [docs/ROLE_SYSTEM_MIGRATION.md](/Users/moldovancsaba/Projects/sso/docs/ROLE_SYSTEM_MIGRATION.md) before following any procedure here.
+
 **Date:** 2025-12-25T13:53:00.000Z
 **Issue:** All login methods (Google, Facebook, Magic Link) redirect back to login page instead of admin dashboard
 

@@ -414,7 +414,7 @@ export default async function handler(req, res) {
 
             <h3>Issue: Return URL Lost After Registration</h3>
             <p><strong>Cause:</strong> SSO preserves OAuth parameters during registration flow</p>
-            <p><strong>Solution:</strong> This is now fixed in v5.24.0+. The return URL in state is preserved through registration.</p>
+            <p><strong>Solution:</strong> The current login and registration flow preserves the encoded return target through the auth round-trip. If this breaks, treat it as a regression.</p>
 
             <h3>Issue: Open Redirect Warning</h3>
             <p><strong>Cause:</strong> Not validating return URLs</p>

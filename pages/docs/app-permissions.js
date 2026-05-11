@@ -28,7 +28,8 @@ export default function AppPermissions() {
               <li><strong>Authentication</strong> - User proves their identity (login)</li>
               <li><strong>Authorization</strong> - SSO decides if user can access specific app</li>
               <li><strong>App Permission</strong> - Per-user, per-app access control record</li>
-              <li><strong>Permission Status</strong> - Current state: none, pending, approved, or revoked</li>
+              <li><strong>Permission Status</strong> - Canonical states: pending, approved, revoked</li>
+              <li><strong>No Record</strong> - Represented operationally as no permission record and surfaced as <code>status: "none"</code> in some read APIs</li>
               <li><strong>App Role</strong> - User's role within app: user or admin</li>
             </ul>
           </section>
@@ -241,17 +242,26 @@ app.get('/admin/users', requireAppAdmin, (req, res) => {
 async function validateAppAccess(req, res, next) {
   const accessToken = req.session.accessToken;
   
-  // Validate with SSO
-  const validation = await fetch('https://sso.doneisbetter.com/api/public/session', {
+  // Validate permission with SSO
+  const validation = await fetch(
+    \`https://sso.doneisbetter.com/api/users/\${req.session.userId}/apps/\${process.env.SSO_CLIENT_ID}/permissions\`,
+    {
     headers: {
       'Authorization': \`Bearer \${accessToken}\`
     }
-  });
+    }
+  );
   
   if (!validation.ok) {
-    // Permission revoked or token expired
+    // Permission lookup failed, token expired, or caller is no longer authorized
     req.session.destroy();
     return res.redirect('/login');
+  }
+
+  const permission = await validation.json();
+  if (!permission.hasAccess || permission.status !== 'approved') {
+    req.session.destroy();
+    return res.redirect('/access-pending');
   }
   
   next();

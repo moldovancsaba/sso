@@ -1,28 +1,26 @@
-# TASKLIST (v5.29.0)
+# Tasklist
 
-Last updated: 2025-12-21T21:34:00.000Z
+Version: 5.29.0  
+Last updated: 2026-05-11T12:00:00.000Z
 
 ## Active
-(No active tasks)
 
-## Pending
+- No active remediation tasks. The May 2026 security and documentation cleanup is complete.
 
-### P2 - High Priority
-1) **Add Apple Login** (required for iOS apps)
-   - Owner: Backend + Frontend
-   - Expected Delivery: Q1 2026
-   - Dependencies: Apple Developer Account ($99/year)
-   - See: ROADMAP.md for detailed 9-phase implementation plan
+## Next Implementation Priorities
 
-2) **Email notifications for app access approval/denial**
-   - Owner: Backend
-   - Expected Delivery: TBD
-   - Dependencies: Email service integration
+1. Apple Sign In
+   - Add Apple provider support to the social login surface
+   - Follow the same callback-state and CSRF contract as Google and Facebook
 
----
+2. Passkey design and implementation plan
+   - Define whether passkeys will be primary login, step-up auth, or both
+   - Document storage, recovery, and device-loss flows before coding
 
-**Note**: Completed tasks are documented in:
-- **RELEASE_NOTES.md** - What was built and when
-- **ARCHITECTURE.md** - Current system design
-- **LEARNINGS.md** - Problems solved and lessons learned
-- **WARP.md** - Development guidelines and patterns
+3. Provider expansion strategy
+   - Prioritize Microsoft, Apple, and GitHub before lower-value providers
+   - Avoid adding more providers until docs and operator guidance are aligned
+
+4. Enterprise federation groundwork
+   - Define the target approach for OIDC enterprise connections, SAML, and SCIM
+   - Separate this from consumer/social login work

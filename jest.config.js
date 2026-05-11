@@ -1,1 +1,9 @@
-export default {\n  testEnvironment: 'node',\n  transform: {},\n  extensionsToTreatAsEsm: ['.js'],\n  moduleNameMapper: {\n    '^(\\.{1,2}/.*)\\.js$': '$1',\n  },\n  testMatch: ['**/tests/**/*.test.js'],\n  setupFiles: ['./tests/setup.js'],\n};
+export default {
+  testEnvironment: 'node',
+  transform: {},
+  moduleNameMapper: {
+    '^(\\.{1,2}/.*)\\.js$': '$1',
+  },
+  testMatch: ['**/?(*.)+(spec|test).js'],
+  testPathIgnorePatterns: ['/node_modules/', '/tests/'],
+};
