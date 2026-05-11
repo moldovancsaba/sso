@@ -1,7 +1,3 @@
-// WHAT: API Reference landing page for OAuth 2.0 SSO
-// WHY: Developers need comprehensive API documentation for integration
-// HOW: Documents OAuth 2.0 endpoints, token structures, and error codes
-
 import DocsLayout from '../../../components/DocsLayout';
 import styles from '../../../styles/docs.module.css';
 import packageJson from '../../../package.json';
@@ -11,343 +7,86 @@ export default function ApiDocs() {
     <DocsLayout>
       <div className={styles.container}>
         <header className={styles.header}>
-          <h1>DoneIsBetter SSO API Reference</h1>
+          <h1>SSO API Reference</h1>
           <p className={styles.version}>API Version: {packageJson.version}</p>
         </header>
 
         <main className={styles.main}>
-          {/* WHAT: API overview and warning */}
-          {/* WHY: Set expectations about OAuth 2.0 */}
           <section className={styles.section}>
-            <h2>Getting Started</h2>
-            <div style={{ background: '#fff3e0', border: '1px solid #f57c00', borderRadius: '8px', padding: '16px', marginBottom: '1rem' }}>
-              <p style={{ margin: 0, fontSize: '14px', color: '#e65100' }}>
-                <strong>⚠️ OAuth 2.0 API</strong><br />
-                This SSO uses standard OAuth 2.0 Authorization Code Flow. No proprietary client library required.
+            <h2>Overview</h2>
+            <p>
+              The SSO API combines OAuth 2.0 / OpenID Connect endpoints, public-user authentication,
+              session-validation endpoints, and permission-management APIs.
+            </p>
+            <div className={styles.warningBox}>
+              <p>
+                <strong>Current contract:</strong> OAuth token issuance happens through <code>/api/oauth/*</code>.
+                Public login endpoints set a cookie-backed session and do not replace the OAuth token flow.
               </p>
             </div>
-            <p>
-              The DoneIsBetter SSO API is a fully OAuth 2.0 compliant authorization server.
-              This reference provides complete documentation for all endpoints, token structures,
-              and integration patterns.
-            </p>
-
-            <h3>Quick Start Example</h3>
-            <div className={styles.codeBlock}>
-              <pre>
-                {`// Step 1: Redirect user to authorization endpoint
-window.location.href = 
-  'https://sso.doneisbetter.com/api/oauth/authorize' +
-  '?client_id=YOUR_CLIENT_ID' +
-  '&redirect_uri=https://yourapp.com/auth/callback' +
-  '&response_type=code' +
-  '&scope=openid profile email';
-
-// Step 2: Exchange authorization code for tokens (server-side)
-const response = await fetch('https://sso.doneisbetter.com/api/oauth/token', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    grant_type: 'authorization_code',
-    code: authorizationCode,
-    client_id: process.env.SSO_CLIENT_ID,
-    client_secret: process.env.SSO_CLIENT_SECRET,
-    redirect_uri: 'https://yourapp.com/auth/callback'
-  })
-});
-
-const { access_token, id_token } = await response.json();`}
-              </pre>
-            </div>
           </section>
 
-          {/* WHAT: Main endpoint categories */}
-          {/* WHY: Quick reference to all API groups */}
           <section className={styles.section}>
-            <h2>API Endpoint Categories</h2>
-            
-            <h3>OAuth 2.0 Authorization</h3>
-            <p>Standard OAuth 2.0 endpoints with PKCE support for authentication and token management:</p>
-            <ul>
-              <li><code>GET /api/oauth/authorize</code> - Start OAuth flow, get authorization code (PKCE supported)</li>
-              <li><code>POST /api/oauth/token</code> - Exchange code for access/refresh tokens</li>
-              <li><code>POST /api/oauth/revoke</code> - Revoke access or refresh token</li>
-              <li><code>GET /api/oauth/logout</code> - Logout and clear SSO session with redirect</li>
-            </ul>
-            <p><a href="/docs/api/endpoints#oauth">View OAuth endpoints →</a></p>
+            <h2>API Areas</h2>
 
-            <h3>OpenID Connect Discovery</h3>
-            <p>Standard OIDC discovery endpoints:</p>
+            <h3>OAuth / OIDC</h3>
             <ul>
+              <li><code>GET /api/oauth/authorize</code> - start authorization-code flow</li>
+              <li><code>POST /api/oauth/token</code> - exchange code or refresh token</li>
+              <li><code>GET /api/oauth/userinfo</code> - get user claims from access token</li>
+              <li><code>POST /api/oauth/revoke</code> - revoke token</li>
+              <li><code>GET /api/oauth/logout</code> - logout from the hosted SSO session</li>
               <li><code>GET /.well-known/openid-configuration</code> - OIDC discovery document</li>
-              <li><code>GET /.well-known/jwks.json</code> - JSON Web Key Set for token verification</li>
-            </ul>
-            <p><a href="/docs/api/endpoints#oidc">View OIDC endpoints →</a></p>
-
-            <h3>Public User API</h3>
-            <p>User registration, login, and session management:</p>
-            <ul>
-              <li><code>POST /api/public/register</code> - Register new user account</li>
-              <li><code>POST /api/public/login</code> - Direct login (email + password)</li>
-              <li><code>GET /api/public/session</code> - Validate public session cookie</li>
-              <li><code>POST /api/public/request-magic-link</code> - Request passwordless magic link</li>
-              <li><code>GET /api/public/magic-login</code> - Consume magic link token</li>
-              <li><code>POST /api/public/verify-pin</code> - Verify PIN code during login</li>
-              <li><code>GET /api/sso/validate</code> - Validate session cookie for subdomain SSO</li>
-            </ul>
-            <p><a href="/docs/api/endpoints#public">View public endpoints →</a></p>
-            
-            <h3>Social Login API</h3>
-            <p>Social provider authentication:</p>
-            <ul>
-              <li><code>GET /api/auth/facebook/login</code> - Initiate Facebook OAuth flow</li>
-              <li><code>GET /api/auth/facebook/callback</code> - Facebook OAuth callback handler</li>
-              <li><code>GET /api/auth/google/login</code> - Initiate Google OAuth flow</li>
-              <li><code>GET /api/auth/google/callback</code> - Google OAuth callback handler</li>
-            </ul>
-            <p>Users authenticate via social provider, accounts created automatically with profile data.</p>
-
-            <h3>Admin API</h3>
-            <p>Administrative endpoints (requires SSO admin authentication):</p>
-            <ul>
-              <li><code>POST /api/admin/login</code> - Admin authentication</li>
-              <li><code>GET /api/admin/users</code> - List all admin users</li>
-              <li><code>GET /api/admin/public-users</code> - List public users with login methods</li>
-              <li><code>GET /api/admin/oauth-clients</code> - List OAuth clients</li>
-              <li><code>POST /api/admin/oauth-clients</code> - Create OAuth client (admin)</li>
-              <li><code>PATCH /api/admin/oauth-clients/[clientId]</code> - Update OAuth client</li>
-              <li><code>POST /api/admin/oauth-clients/[clientId]/regenerate-secret</code> - Regenerate client secret</li>
-              <li><code>GET /api/admin/app-permissions/[userId]</code> - Get user's app permissions</li>
-              <li><code>POST /api/admin/app-permissions/[userId]</code> - Grant app access</li>
-              <li><code>DELETE /api/admin/app-permissions/[userId]</code> - Revoke app access</li>
-            </ul>
-            <p><a href="/docs/api/endpoints#admin">View admin endpoints →</a></p>
-          </section>
-
-          {/* WHAT: Token structure reference */}
-          {/* WHY: Developers need to understand token payloads */}
-          <section className={styles.section}>
-            <h2>Token Structures</h2>
-            <p>SSO issues three types of tokens:</p>
-            
-            <h3>Access Token (JWT)</h3>
-            <p>Used for API authentication. Include in <code>Authorization: Bearer</code> header.</p>
-            <div className={styles.codeBlock}>
-              <pre>
-                {`// Decoded payload:
-{
-  "sub": "user-uuid",
-  "iss": "https://sso.doneisbetter.com",
-  "aud": "your-client-id",
-  "exp": 1234571490,
-  "iat": 1234567890
-}
-
-// Expiry: 1 hour
-// Usage: Authorization: Bearer <access_token>`}
-              </pre>
-            </div>
-
-            <h3>ID Token (JWT)</h3>
-            <p>Contains user identity including social login data. Decode to get user info.</p>
-            <div className={styles.codeBlock}>
-              <pre>
-                {`// Decoded payload:
-{
-  "sub": "user-uuid",
-  "email": "user@example.com",
-  "name": "John Doe",
-  "email_verified": true,
-  "picture": "https://...",  // Profile picture (if available)
-  "iss": "https://sso.doneisbetter.com",
-  "aud": "your-client-id",
-  "exp": 1234571490,
-  "iat": 1234567890
-}
-
-// Received once during token exchange
-// Works for all authentication methods (password, magic link, social login)`}
-              </pre>
-            </div>
-
-            <h3>Refresh Token (JWT)</h3>
-            <p>Used to obtain new access tokens without re-authentication.</p>
-            <div className={styles.codeBlock}>
-              <pre>
-                {`// Opaque to clients, don't decode
-// Expiry: 30 days of inactivity
-// Usage: POST /api/oauth/token with grant_type=refresh_token`}
-              </pre>
-            </div>
-            <p><a href="/docs/api/responses">View complete response formats →</a></p>
-          </section>
-
-          {/* WHAT: Error handling overview */}
-          {/* WHY: Guide developers to handle errors correctly */}
-          <section className={styles.section}>
-            <h2>Error Handling</h2>
-            <p>The API uses standard HTTP status codes and OAuth 2.0 error codes:</p>
-            
-            <h3>HTTP Status Codes</h3>
-            <ul>
-              <li><code>200 OK</code> - Request successful</li>
-              <li><code>400 Bad Request</code> - Invalid parameters or request body</li>
-              <li><code>401 Unauthorized</code> - Invalid or expired token, authentication required</li>
-              <li><code>403 Forbidden</code> - Valid auth but insufficient permissions</li>
-              <li><code>404 Not Found</code> - Resource doesn't exist</li>
-              <li><code>500 Internal Server Error</code> - Server error</li>
+              <li><code>GET /.well-known/jwks.json</code> - JWKS for token verification</li>
             </ul>
 
-            <h3>OAuth 2.0 Error Response</h3>
-            <div className={styles.codeBlock}>
-              <pre>
-                {`// Authorization endpoint errors (query params)
-https://yourapp.com/callback?error=access_denied&error_description=User+denied+authorization
-
-// Token endpoint errors (JSON)
-{
-  "error": "invalid_grant",
-  "error_description": "Authorization code expired or already used"
-}
-
-// API endpoint errors (JSON)
-{
-  "error": {
-    "code": "APP_PERMISSION_DENIED",
-    "message": "User does not have permission to access this application",
-    "status": "pending"
-  }
-}`}
-              </pre>
-            </div>
-            <p><a href="/docs/api/errors">View complete error reference →</a></p>
-          </section>
-
-          {/* WHAT: CORS configuration */}
-          {/* WHY: Critical for cross-origin OAuth flows */}
-          <section className={styles.section}>
-            <h2>CORS Configuration</h2>
-            <p>
-              OAuth authorization and token endpoints require proper CORS configuration.
-              Your OAuth client's redirect URIs are automatically whitelisted.
-            </p>
-            <div className={styles.codeBlock}>
-              <pre>
-                {`// Browser automatically includes:
-Origin: https://yourapp.com
-
-// SSO responds with:
-Access-Control-Allow-Origin: https://yourapp.com
-Access-Control-Allow-Credentials: true
-Access-Control-Allow-Methods: GET, POST, OPTIONS
-Access-Control-Allow-Headers: Content-Type, Authorization`}
-              </pre>
-            </div>
-            <p><strong>Note:</strong> Token exchange MUST happen server-side (no CORS issues).</p>
-          </section>
-
-          {/* WHAT: OAuth library recommendations */}
-          {/* WHY: Help developers choose appropriate OAuth libraries */}
-          <section className={styles.section}>
-            <h2>OAuth 2.0 Libraries</h2>
-            <p>
-              Use standard OAuth 2.0 libraries for your platform. No proprietary client library needed.
-            </p>
-
-            <h3>Recommended Libraries</h3>
+            <h3>Public Authentication</h3>
             <ul>
-              <li>
-                <strong>Node.js</strong>
-                <ul>
-                  <li><code>passport-oauth2</code> - Passport.js OAuth 2.0 strategy</li>
-                  <li><code>next-auth</code> - NextAuth.js with custom OAuth provider</li>
-                  <li><code>simple-oauth2</code> - Lightweight OAuth 2.0 client</li>
-                </ul>
-              </li>
-              <li>
-                <strong>Python</strong>
-                <ul>
-                  <li><code>authlib</code> - Comprehensive OAuth library</li>
-                  <li><code>requests-oauthlib</code> - OAuth for requests library</li>
-                </ul>
-              </li>
-              <li>
-                <strong>Go</strong>
-                <ul>
-                  <li><code>golang.org/x/oauth2</code> - Official Go OAuth 2.0 package</li>
-                </ul>
-              </li>
-              <li>
-                <strong>Java</strong>
-                <ul>
-                  <li><code>spring-security-oauth2</code> - Spring Security OAuth</li>
-                </ul>
-              </li>
+              <li><code>POST /api/public/register</code> - create account or add password to a social-only account</li>
+              <li><code>POST /api/public/login</code> - password login, sets <code>public-session</code></li>
+              <li><code>POST /api/public/request-magic-link</code> - request email magic link</li>
+              <li><code>GET /api/public/magic-login</code> - consume magic-link token</li>
+              <li><code>POST /api/public/verify-pin</code> - complete a PIN-gated login</li>
+              <li><code>GET /api/public/session</code> - validate public session cookie</li>
             </ul>
 
-            <h3>OpenID Connect Discovery</h3>
-            <p>Configure libraries using OIDC discovery endpoint:</p>
-            <div className={styles.codeBlock}>
-              <pre>
-                {`// Discovery URL
-https://sso.doneisbetter.com/.well-known/openid-configuration
-
-// Auto-configures all OAuth endpoints, JWKS URL, supported scopes, etc.`}
-              </pre>
-            </div>
-          </section>
-
-          {/* WHAT: Rate limiting information */}
-          {/* WHY: Developers need to handle rate limits */}
-          <section className={styles.section}>
-            <h2>Rate Limiting</h2>
-            <p>API endpoints are rate limited to ensure service stability:</p>
+            <h3>Social Login</h3>
             <ul>
-              <li><strong>OAuth endpoints:</strong> 10 requests per minute per IP</li>
-              <li><strong>Token validation:</strong> 60 requests per minute per token</li>
-              <li><strong>Admin API:</strong> 30 requests per minute per admin session</li>
-              <li><strong>Public registration:</strong> 5 requests per hour per IP</li>
+              <li><code>GET /api/auth/google/login</code></li>
+              <li><code>GET /api/auth/google/callback</code></li>
+              <li><code>GET /api/auth/facebook/login</code></li>
+              <li><code>GET /api/auth/facebook/callback</code></li>
             </ul>
-            <div className={styles.codeBlock}>
-              <pre>
-                {`// Rate limit headers in response
-X-RateLimit-Limit: 60
-X-RateLimit-Remaining: 58
-X-RateLimit-Reset: 1627399287  // Unix timestamp
 
-// 429 Too Many Requests response
-{
-  "error": "rate_limit_exceeded",
-  "error_description": "Too many requests. Retry after 60 seconds.",
-  "retry_after": 60
-}`}
-              </pre>
-            </div>
-          </section>
-
-          {/* WHAT: Related documentation links */}
-          {/* WHY: Guide users to specific docs */}
-          <section className={styles.section}>
-            <h2>Related Documentation</h2>
+            <h3>Permission APIs</h3>
             <ul>
-              <li><a href="/docs/api/endpoints">Complete Endpoint Reference</a> - All API endpoints with examples</li>
-              <li><a href="/docs/api/responses">Response Formats</a> - Token structures and response schemas</li>
-              <li><a href="/docs/api/errors">Error Reference</a> - All error codes and handling</li>
-              <li><a href="/docs/quickstart">Quick Start Guide</a> - Integration tutorial</li>
-              <li><a href="/docs/authentication">Authentication Guide</a> - OAuth 2.0 flow details</li>
-              <li><a href="/docs/app-permissions">App Permissions</a> - Permission system</li>
+              <li><code>GET /api/users/[userId]/apps/[clientId]/permissions</code> - read a permission record</li>
+              <li><code>PUT /api/users/[userId]/apps/[clientId]/permissions</code> - app-managed permission update</li>
+              <li><code>DELETE /api/users/[userId]/apps/[clientId]/permissions</code> - app-managed revoke</li>
+              <li><code>POST /api/users/[userId]/apps/[clientId]/request-access</code> - create pending access request</li>
+              <li><code>PUT /api/admin/users/[userId]/apps/[clientId]/permissions</code> - admin-managed permission update</li>
+              <li><code>DELETE /api/admin/users/[userId]/apps/[clientId]/permissions</code> - admin-managed revoke</li>
             </ul>
           </section>
 
-          {/* WHAT: Support information */}
-          {/* WHY: Help developers get assistance */}
           <section className={styles.section}>
-            <h2>Support</h2>
+            <h2>Important Behavior</h2>
             <ul>
-              <li>Email: <a href="mailto:sso@doneisbetter.com">sso@doneisbetter.com</a></li>
-              <li>Documentation: <a href="https://sso.doneisbetter.com/docs">https://sso.doneisbetter.com/docs</a></li>
-              <li>Admin Panel: <a href="https://sso.doneisbetter.com/admin">https://sso.doneisbetter.com/admin</a></li>
-              <li>GitHub: <a href="https://github.com/moldovancsaba/sso">https://github.com/moldovancsaba/sso</a></li>
+              <li>Canonical permission roles are <code>none</code>, <code>user</code>, and <code>admin</code>.</li>
+              <li>Canonical permission statuses are <code>pending</code>, <code>approved</code>, and <code>revoked</code>.</li>
+              <li>Public session validation is cookie-based.</li>
+              <li>OAuth-protected permission writes require a client token with <code>manage_permissions</code>.</li>
+              <li>Access-request creation requires a user-bound token whose subject and client both match the request target.</li>
+            </ul>
+          </section>
+
+          <section className={styles.section}>
+            <h2>See Also</h2>
+            <ul>
+              <li><a href="/docs/api/endpoints">Endpoint reference</a></li>
+              <li><a href="/docs/api/responses">Response formats</a></li>
+              <li><a href="/docs/api/errors">Error reference</a></li>
+              <li><a href="/docs/authentication">Authentication guide</a></li>
             </ul>
           </section>
         </main>
