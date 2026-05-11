@@ -31,7 +31,7 @@
   },
   "homepage": "https://sso.doneisbetter.com",
   "devDependencies": {
-    "@types/node": "^20.5.0",
+    "@types/node": "^20.19.40",
     "tsup": "^8.0.0",
     "typescript": "^5.0.0"
   },
