@@ -16,12 +16,15 @@ Last updated: 2026-05-10T00:00:00.000Z
 - Canonical role: `admin`
 - Legacy `super-admin` values are normalized to `admin`
 - Session cookie: `admin-session`
+- Session storage: `sessions`
+- Session timeout: 4 hours with server-side validation and sliding extension on activity
 
 ### Public users
 - Collection: `publicUsers`
 - Global roles used in public auth flows: `user`, `admin`
 - Session cookie: `public-session`
 - Session storage: `publicSessions` with hashed token storage
+- Session timeout: 30 days with sliding extension on activity
 
 ### OAuth clients
 - Collection: `oauthClients`

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Update sso@doneisbetter.com permission for Launchmass from superadmin to admin
+ * Normalize a legacy Launchmass permission from historical superadmin wording to canonical admin wording
  */
 
 import { MongoClient } from 'mongodb';

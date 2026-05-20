@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
  * scripts/approve-launchmass-access.mjs
- * WHAT: Approves user access to Launchmass by updating appPermissions
- * WHY: Grant superadmin access to specific user without using API
+ * WHAT: Legacy compatibility script for approving Launchmass access by updating appPermissions directly
+ * WHY: Preserves an older emergency workflow that still writes pre-normalized permission values
  */
 import dotenv from 'dotenv'
 import { getDb } from '../lib/db.mjs'

@@ -209,8 +209,8 @@ async function handlePut(req, res) {
       })
     }
 
-    // WHAT: Validate role and status values (aligned with SSO v5.28.0+ role system)
-    // WHY: guest/user/admin/owner hierarchy replaces old user/admin/superadmin
+    // WHAT: Validate canonical permission role and status values
+    // WHY: Current runtime only documents and accepts none/user/admin plus pending/approved/revoked
     if (!isValidPermissionRole(role)) {
       return res.status(400).json({
         error: 'Invalid role',

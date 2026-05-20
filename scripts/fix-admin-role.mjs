@@ -1,8 +1,8 @@
 /**
  * Fix Admin Role Script
  * 
- * WHAT: Updates user role to superadmin for sso-admin-dashboard
- * WHY: User accidentally changed their own role to 'user'
+ * WHAT: Legacy compatibility script that restores admin-dashboard access via direct appPermissions update
+ * WHY: This predates the consolidated admin role model and still uses historical role values in the stored record
  * HOW: Direct MongoDB update to appPermissions collection
  */
 

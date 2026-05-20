@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 
 /**
- * WHAT: Migration to grant SSO superadmins automatic access to launchmass
- * WHY: Superadmins need access to manage other users' permissions
- * HOW: Creates appPermission records with superadmin role for existing SSO superadmins
+ * WHAT: Historical migration to grant original SSO superadmin accounts automatic Launchmass access
+ * WHY: Preserved to document and reproduce the pre-canonical permission bootstrap
+ * HOW: Creates appPermission records with historical superadmin/active values for legacy records
  * 
  * Run: node scripts/migrations/2025-01-14-grant-superadmin-launchmass-access.mjs
  */
@@ -33,8 +33,8 @@ async function migrate() {
     const users = db.collection('users');
     const appPermissions = db.collection('appPermissions');
     
-    // WHAT: Find all SSO superadmins
-    // WHY: They need automatic access to all apps
+    // WHAT: Find all historically flagged SSO superadmin users
+    // WHY: This migration was written before the consolidated admin role model
     const superadminsPublic = await publicUsers.find({ isSsoSuperadmin: true }).toArray();
     const superadminsPrivate = await users.find({ isSsoSuperadmin: true }).toArray();
     
@@ -45,8 +45,8 @@ async function migrate() {
       console.log(`  - ${u.email} (${u.id})`);
     });
     
-    // WHAT: Grant each superadmin access to launchmass with superadmin role
-    // WHY: Superadmins need to manage other users
+    // WHAT: Grant each historical superadmin Launchmass access using the then-current role vocabulary
+    // WHY: The migration intentionally preserves the original stored values
     const now = new Date().toISOString();
     let created = 0;
     let skipped = 0;
@@ -84,7 +84,7 @@ async function migrate() {
         continue;
       }
       
-      // WHAT: Create new permission record
+      // WHAT: Create new legacy-format permission record
       const permission = {
         userId: superadmin.id,
         clientId: LAUNCHMASS_CLIENT_ID,

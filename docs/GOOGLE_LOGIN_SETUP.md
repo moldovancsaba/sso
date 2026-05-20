@@ -1,7 +1,7 @@
 # Google Sign-In Setup Guide
 
-Version: 5.26.0
-Last Updated: 2025-12-21
+Version: 5.29.0
+Last Updated: 2026-05-20
 
 This guide explains how to configure Google Sign-In for your SSO service.
 

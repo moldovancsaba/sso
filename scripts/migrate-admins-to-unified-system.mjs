@@ -114,7 +114,7 @@ async function migrateAdmins() {
           userId: publicUser.id,
           clientId: ADMIN_CLIENT_ID,
           hasAccess: true,
-          role: adminUser.role, // 'admin' or 'super-admin'
+          role: adminUser.role, // normalizeAdminRole() keeps this effectively canonical as 'admin'
           status: 'approved',
           grantedAt: now,
           grantedBy: 'migration-script',

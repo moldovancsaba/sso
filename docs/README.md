@@ -117,9 +117,13 @@ GOOGLE_REDIRECT_URI=https://sso.doneisbetter.com/api/auth/google/callback
 npm install
 npm run setup
 npm run dev
+npm run lint
 npm run type-check
 npm run test
 npm run build
 npm run guard:repo
 npm run check:docs
+npm run validate-config
+npm run test-connection
+npm run sync:version
 ```
