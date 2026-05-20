@@ -19,7 +19,7 @@ export default function LogoutPage() {
     const performLogout = async () => {
       try {
         // WHY: Call both logout endpoints to ensure all session types are cleared
-        // WHAT: Public users have user-session cookie, admins have admin-session cookie
+        // WHAT: Public users have public-session cookie, admins have admin-session cookie
         // HOW: Both endpoints are idempotent, so calling both is safe
         
         // Logout public user session
@@ -30,7 +30,7 @@ export default function LogoutPage() {
           console.error('[Logout] Public logout error:', err)
         })
         
-        // Logout admin session (legacy)
+        // Logout admin session via the legacy compatibility endpoint
         await fetch('/api/users/logout', {
           method: 'POST',
           credentials: 'include'

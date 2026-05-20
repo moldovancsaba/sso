@@ -1,9 +1,9 @@
 # Account Linking System
 
-**Version**: 5.28.0  
+**Version**: 5.29.0  
 **Status**: Production Ready  
 **Created**: 2025-12-21T00:00:00.000Z  
-**Updated**: 2025-12-21T00:00:00.000Z
+**Updated**: 2026-05-20T00:00:00.000Z
 
 ---
 

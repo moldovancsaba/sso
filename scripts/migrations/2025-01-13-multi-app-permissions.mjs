@@ -3,8 +3,8 @@
 /**
  * scripts/migrations/2025-01-13-multi-app-permissions.mjs
  * 
- * WHAT: Migrates existing system to multi-app permission architecture
- * WHY: Sets up initial SSO superadmins and migrates launchmass users to new permission system
+ * WHAT: Historical migration that introduced the multi-app permission architecture
+ * WHY: Captured the original setup of SSO superadmin flags and launchmass migration state
  * HOW: 
  *   1. Add isSsoSuperadmin field to publicUsers
  *   2. Set designated SSO superadmins
@@ -16,8 +16,8 @@ import 'dotenv/config'
 import { getDb } from '../../lib/db.mjs'
 import logger from '../../lib/logger.mjs'
 
-// WHAT: Configuration for initial SSO superadmins
-// WHY: Product owner specified these emails for cross-app admin access
+// WHAT: Configuration for the original SSO superadmin bootstrap
+// WHY: Preserved here for historical migration reproducibility
 const SSO_SUPERADMINS = [
   'moldovancsaba@gmail.com',
   'sso@doneisbetter.com',
@@ -49,8 +49,8 @@ async function migrate() {
     )
     console.log(`   ✅ Updated ${usersUpdateResult.modifiedCount} users with default isSsoSuperadmin: false`)
     
-    // WHAT: Set designated SSO superadmins
-    // WHY: Product owner specified moldovancsaba@gmail.com and sso@doneisbetter.com as initial superadmins
+    // WHAT: Set designated SSO superadmin flags
+    // WHY: This historical migration encoded the original bootstrap list
     for (const email of SSO_SUPERADMINS) {
       const result = await usersCol.updateOne(
         { email: email.toLowerCase() },
@@ -64,8 +64,8 @@ async function migrate() {
       }
     }
     
-    // WHAT: Create index on isSsoSuperadmin for efficient queries
-    // WHY: Admin UI needs to filter superadmins
+    // WHAT: Create index on isSsoSuperadmin for efficient historical queries
+    // WHY: Older admin flows filtered these flagged records directly
     await usersCol.createIndex({ isSsoSuperadmin: 1 })
     console.log('   ✅ Created index on isSsoSuperadmin\n')
     

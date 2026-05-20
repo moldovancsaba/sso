@@ -46,7 +46,7 @@ The unified admin system requires:
   - `clientId: 'sso-admin-dashboard'`
   - `status: 'approved'`
   - `hasAccess: true`
-  - `role: 'admin'` or `'super-admin'`
+  - `role: 'admin'`
 
 **This entry must be manually created** - there's no automatic admin permission grant!
 
@@ -105,7 +105,7 @@ db.appPermissions.insertOne({
   userId: userId,
   clientId: 'sso-admin-dashboard',
   hasAccess: true,
-  role: 'super-admin', // or 'admin'
+  role: 'admin',
   status: 'approved',
   grantedAt: new Date().toISOString(),
   grantedBy: null, // Manual grant
@@ -139,7 +139,7 @@ const result = await db.collection('appPermissions').insertOne({
   userId: user.id,
   clientId: 'sso-admin-dashboard',
   hasAccess: true,
-  role: 'super-admin',
+  role: 'admin',
   status: 'approved',
   grantedAt: new Date().toISOString(),
   grantedBy: null,
@@ -173,7 +173,7 @@ Create a bootstrap script that:
 1. Checks if any admin users exist
 2. If none exist, prompts for email
 3. Finds user in publicUsers (or creates one)
-4. Grants super-admin permission
+4. Grants admin permission
 5. Confirms success
 
 This mirrors the approach used in the old admin system's bootstrap script.

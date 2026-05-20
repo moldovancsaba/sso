@@ -1,21 +1,21 @@
 # Style Editor Guide
 
-> Historical guide with stale authorization wording.
-> The style editor still exists, but this document predates the admin-role consolidation and should not be treated as the source of truth for current role requirements.
-> Confirm runtime behavior in code before relying on this guide.
+> Historical guide.
+> The style editor still exists, but this document predates the admin-role consolidation and is no longer the source of truth for current runtime behavior.
+> Confirm current behavior in [`/Users/moldovancsaba/Projects/sso/pages/admin/style-editor.js`](/Users/moldovancsaba/Projects/sso/pages/admin/style-editor.js) and [`/Users/moldovancsaba/Projects/sso/pages/api/admin/themes/index.js`](/Users/moldovancsaba/Projects/sso/pages/api/admin/themes/index.js) before relying on this guide.
 
 **Document**: STYLE_EDITOR_GUIDE.md  
-**Version**: 5.28.0  
+**Version**: 5.29.0  
 **CreatedAt (UTC)**: 2025-12-22T16:26:56.000Z  
-**LastUpdated (UTC)**: 2025-12-22T16:26:56.000Z  
+**LastUpdated (UTC)**: 2026-05-20T00:00:00.000Z  
 **Maintainer**: moldovancsaba  
-**Status**: Authoritative Source of Truth
+**Status**: Historical Reference
 
 ---
 
 ## Overview
 
-The Style Editor is a comprehensive theme management system that allows super-admins to customize all colors and styling across SSO admin pages. With 65+ customizable color elements organized into logical categories, the system provides complete visual control over the admin interface.
+The Style Editor is a theme-management interface for customizing colors across SSO admin pages. The feature remains available, but this guide is historical and some implementation details here may lag behind the active code.
 
 ## Key Features
 
@@ -31,7 +31,7 @@ The Style Editor is a comprehensive theme management system that allows super-ad
 ## Access & Permissions
 
 - **URL**: `https://sso.doneisbetter.com/admin/style-editor`
-- **Required Role**: `super-admin` only
+- **Required Role**: `admin`
 - **Authentication**: Admin session required
 - **Navigation**: Accessible from Admin Home page (🎨 Style Editor button)
 
@@ -455,7 +455,7 @@ export default withTheme(MyPage)
 
 ## Security Considerations
 
-- **Admin Only**: Theme editing restricted to super-admin role
+- **Admin Only**: Theme editing restricted to admin role
 - **Validation**: All color values validated before saving
 - **SQL Injection**: MongoDB parameterized queries prevent injection
 - **XSS Prevention**: Color values validated against pattern whitelist

@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 
 /**
- * WHAT: Set SSO superadmin flags and grant launchmass access
- * WHY: Initial migration may not have run - ensuring superadmins are set up
- * HOW: Updates user records and creates app permissions
+ * WHAT: Historical repair script for missing SSO superadmin bootstrap state
+ * WHY: Initial legacy migrations may not have run, so this backfills the old flags and permissions
+ * HOW: Updates user records and creates legacy-format app permissions
  */
 
 import { MongoClient } from 'mongodb';

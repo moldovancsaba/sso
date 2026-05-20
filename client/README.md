@@ -1,9 +1,20 @@
 # @doneisbetter/sso-client
 
-Cookie-based SSO authentication client for `*.doneisbetter.com` subdomains.
+Browser-oriented TypeScript client for interacting with the DoneIsBetter SSO service.
 
 **Version:** 5.1.0  
-**Last Updated:** 2025-10-04
+**Last Updated:** 2026-05-20
+
+## What This Package Exports
+
+The package exports a single primary class:
+
+- `SSOClient`
+
+It also re-exports:
+
+- public TypeScript types from [`/Users/moldovancsaba/Projects/sso/src/types.ts`](/Users/moldovancsaba/Projects/sso/src/types.ts)
+- constants from [`/Users/moldovancsaba/Projects/sso/src/constants.ts`](/Users/moldovancsaba/Projects/sso/src/constants.ts)
 
 ## Installation
 
@@ -11,142 +22,89 @@ Cookie-based SSO authentication client for `*.doneisbetter.com` subdomains.
 npm install @doneisbetter/sso-client
 ```
 
-## Requirements
+## Basic Usage
 
-- Your app MUST be on a `*.doneisbetter.com` subdomain
-- Node.js >= 18.0.0
-- Next.js (for server-side rendering)
+```ts
+import { SSOClient } from '@doneisbetter/sso-client';
 
-## Quick Start
+const sso = new SSOClient({
+  serverUrl: 'https://sso.doneisbetter.com',
+});
 
-### 1. Set Environment Variable
+const session = await sso.validateSession();
 
-⚠️ **CRITICAL**: Use `printf` (NOT `echo`) to avoid trailing newlines!
-
-```bash
-# Good - No newline
-printf "https://sso.doneisbetter.com" | vercel env add SSO_SERVER_URL production
-
-# Bad - Adds newline (causes 500 errors!)
-echo "https://sso.doneisbetter.com" | vercel env add SSO_SERVER_URL production
-```
-
-### 2. Protect Your Pages
-
-```typescript
-import { validateSsoSession, getSsoLoginUrl } from '@doneisbetter/sso-client';
-
-export async function getServerSideProps(context) {
-  const { isValid, user } = await validateSsoSession(context.req);
-  
-  if (!isValid) {
-    const loginUrl = getSsoLoginUrl(
-      `https://yourapp.doneisbetter.com${context.resolvedUrl}`
-    );
-    
-    return {
-      redirect: {
-        destination: loginUrl,
-        permanent: false,
-      },
-    };
-  }
-  
-  return {
-    props: { user },
-  };
-}
-
-export default function ProtectedPage({ user }) {
-  return <div>Welcome, {user.name}!</div>;
+if (!session.isValid) {
+  sso.redirectToLogin(window.location.href);
 }
 ```
 
 ## API
 
-### `validateSsoSession(req, options?)`
+### `new SSOClient(config)`
 
-Validates SSO session by forwarding cookies to SSO service.
+Configuration:
 
-**Parameters:**
-- `req` - Next.js request object with `headers.cookie`
-- `options` - Optional configuration
-  - `ssoServerUrl` - Override SSO server URL
-  - `cookieHeader` - Override cookie header
-  - `userAgent` - Override user agent
-
-**Returns:** `Promise<SSOValidationResponse>`
-```typescript
+```ts
 {
-  isValid: boolean;
-  user?: {
-    id: string;
-    email: string;
-    name: string;
-    role: string;
-    status: string;
-  };
-  message?: string;
+  serverUrl: 'https://sso.doneisbetter.com',
+  paths?: {
+    login?: string;
+    logout?: string;
+    validate?: string;
+  },
+  headers?: Record<string, string>;
 }
 ```
 
-### `getSsoLoginUrl(returnUrl, ssoServerUrl?)`
+Notes:
 
-Generates SSO login URL with redirect parameter.
+- `serverUrl` is required.
+- `paths` lets you override endpoint paths if your deployment uses non-default routing.
+- The client sends requests with `credentials: 'include'`.
 
-**Parameters:**
-- `returnUrl` - URL to redirect back to after login
-- `ssoServerUrl` - Optional SSO server URL override
+### `validateSession()`
 
-**Returns:** `string` - Full login URL
+Calls the configured validation endpoint and returns a `Promise<SessionResponse>`.
 
-### `getSsoLogoutUrl(ssoServerUrl?)`
+### `redirectToLogin(returnUrl?)`
 
-Gets SSO logout endpoint URL.
+Redirects the browser to the configured login endpoint. When provided, `returnUrl` is appended as a query parameter.
 
-**Parameters:**
-- `ssoServerUrl` - Optional SSO server URL override
+### `signOut()`
 
-**Returns:** `string` - Logout URL
+Calls the configured logout endpoint with `POST`.
 
-## Common Issues
+### `enableSessionMonitoring(config?)`
 
-### 500 Error on Protected Pages
+Starts periodic session validation.
 
-**Cause:** Environment variable has trailing newline
+```ts
+const stopMonitoring = sso.enableSessionMonitoring({
+  interval: 60_000,
+  onInvalidSession: () => {
+    window.location.href = '/login';
+  },
+  onError: (error) => {
+    console.error(error);
+  },
+});
 
-**Solution:**
-```bash
-vercel env rm SSO_SERVER_URL production
-printf "https://sso.doneisbetter.com" | vercel env add SSO_SERVER_URL production
-git commit --allow-empty -m "fix: Redeploy with clean SSO_SERVER_URL"
-git push origin main
+// later
+stopMonitoring();
 ```
 
-### Session Not Validating
+## Important Notes
 
-**Cause:** Cookies not being forwarded
+- This package is a thin browser client. It does not implement the OAuth authorization-code exchange for you.
+- For new third-party integrations, the recommended default remains OAuth 2.0 Authorization Code flow plus OIDC claims.
+- Shared-domain cookie-session integrations should validate the hosted SSO session instead of assuming local auth state.
 
-**Solution:** Ensure you're passing `context.req` to `validateSsoSession`:
-```typescript
-// ✅ Correct
-const { isValid } = await validateSsoSession(context.req);
+## Documentation
 
-// ❌ Wrong
-const { isValid } = await validateSsoSession(req); // undefined
-```
-
-## Complete Integration Guide
-
-For a comprehensive guide with troubleshooting, see:
-https://github.com/moldovancsaba/sso/blob/main/docs/SSO_INTEGRATION_GUIDE.md
+- Runtime integration guide: [docs/THIRD_PARTY_INTEGRATION_GUIDE.md](/Users/moldovancsaba/Projects/sso/docs/THIRD_PARTY_INTEGRATION_GUIDE.md)
+- Authentication guide: [docs/README.md](/Users/moldovancsaba/Projects/sso/docs/README.md)
+- Source exports: [`/Users/moldovancsaba/Projects/sso/src/index.ts`](/Users/moldovancsaba/Projects/sso/src/index.ts)
 
 ## License
 
 MIT
-
-## Support
-
-- Documentation: https://sso.doneisbetter.com/docs
-- GitHub: https://github.com/moldovancsaba/sso
-- Issues: https://github.com/moldovancsaba/sso/issues
