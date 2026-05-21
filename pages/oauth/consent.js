@@ -1,6 +1,21 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/router'
-import Link from 'next/link'
+import {
+  Alert,
+  Anchor,
+  Badge,
+  Box,
+  Button,
+  Center,
+  Container,
+  Group,
+  Loader,
+  Paper,
+  Stack,
+  Text,
+  Title,
+} from '@mantine/core'
+import { IconAlertCircle, IconCheck, IconShieldCheck } from '@tabler/icons-react'
 
 // WHAT: Server-side render to ensure request param is immediately available
 // WHY: useRouter().query can be empty on first render, breaking OAuth flow
@@ -15,7 +30,6 @@ export async function getServerSideProps(context) {
 
 export default function ConsentPage({ initialRequest }) {
   const router = useRouter()
-  // Use prop as primary source, fallback to router.query
   const requestParam = initialRequest || router.query.request
   const [authRequest, setAuthRequest] = useState(null)
   const [scopeDetails, setScopeDetails] = useState([])
@@ -25,7 +39,6 @@ export default function ConsentPage({ initialRequest }) {
   const [error, setError] = useState(null)
 
   const fetchScopeDetails = useCallback(async (scopes) => {
-    // Map scopes to their details (hardcoded for now, could be fetched from API)
     const scopeMap = {
       openid: { name: 'OpenID', description: 'Required for authentication. Provides your user ID.', category: 'authentication' },
       profile: { name: 'Profile', description: 'Access to your basic profile information (name, picture).', category: 'user_info' },
@@ -40,38 +53,27 @@ export default function ConsentPage({ initialRequest }) {
       'write:games': { name: 'Manage Games', description: 'Create and update game sessions.', category: 'playmass' },
     }
 
-    return scopes.map(scope => scopeMap[scope] || { name: scope, description: scope, category: 'other' })
+    return scopes.map((scope) => (
+      scopeMap[scope] || { name: scope, description: scope, category: 'other' }
+    ))
   }, [])
 
   const checkSessionAndLoadRequest = useCallback(async () => {
     try {
-      // WHAT: Check if user is authenticated (public or admin)
-      // WHY: OAuth consent requires an authenticated user session
-      // HOW: Redirect to public login page, not admin (users shouldn't see admin)
       const res = await fetch('/api/sso/validate', { credentials: 'include' })
       if (!res.ok) {
-        // Not authenticated - redirect to public login page with OAuth request preserved
-        if (requestParam) {
-          router.push(`/login?oauth_request=${encodeURIComponent(requestParam)}`)
-        } else {
-          router.push('/login')
-        }
+        router.push(requestParam ? `/login?oauth_request=${encodeURIComponent(requestParam)}` : '/login')
         return
       }
 
       const data = await res.json()
       if (!data?.isValid) {
-        if (requestParam) {
-          router.push(`/login?oauth_request=${encodeURIComponent(requestParam)}`)
-        } else {
-          router.push('/login')
-        }
+        router.push(requestParam ? `/login?oauth_request=${encodeURIComponent(requestParam)}` : '/login')
         return
       }
 
       setUser(data.user)
 
-      // Decode authorization request
       if (!requestParam) {
         setError('Missing authorization request')
         setLoading(false)
@@ -79,20 +81,15 @@ export default function ConsentPage({ initialRequest }) {
       }
 
       try {
-        // WHAT: Decode base64url-encoded request
-        // WHY: Browser doesn't have Buffer API, must use atob with base64url conversion
-        // HOW: Convert base64url to base64, then decode with atob
         const base64 = requestParam.replace(/-/g, '+').replace(/_/g, '/')
         const jsonString = atob(base64)
         const decodedRequest = JSON.parse(jsonString)
-        console.log('[Consent] Decoded auth request:', decodedRequest)
         setAuthRequest(decodedRequest)
 
-        // Fetch scope details
         const scopes = decodedRequest.scope.split(' ')
         const details = await fetchScopeDetails(scopes)
         setScopeDetails(details)
-      } catch (err) {
+      } catch {
         setError('Invalid authorization request')
       }
 
@@ -114,8 +111,7 @@ export default function ConsentPage({ initialRequest }) {
     setError(null)
 
     try {
-      // Store user consent
-      const res = await fetch('/api/oauth/consent', {
+      const consentRes = await fetch('/api/oauth/consent', {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
@@ -126,12 +122,11 @@ export default function ConsentPage({ initialRequest }) {
         }),
       })
 
-      if (!res.ok) {
-        const data = await res.json()
+      if (!consentRes.ok) {
+        const data = await consentRes.json()
         throw new Error(data.error || 'Failed to store consent')
       }
 
-      // Generate authorization code
       const codeRes = await fetch('/api/oauth/authorize/approve', {
         method: 'POST',
         credentials: 'include',
@@ -152,12 +147,9 @@ export default function ConsentPage({ initialRequest }) {
       }
 
       const codeData = await codeRes.json()
-
-      // Redirect back to client with authorization code
       const redirectUrl = new URL(authRequest.redirect_uri)
       redirectUrl.searchParams.set('code', codeData.code)
       redirectUrl.searchParams.set('state', authRequest.state)
-
       window.location.href = redirectUrl.toString()
     } catch (err) {
       setError(err.message)
@@ -165,21 +157,16 @@ export default function ConsentPage({ initialRequest }) {
     }
   }
 
-  async function handleDeny() {
+  function handleDeny() {
     if (!authRequest) return
 
-    // Redirect back to client with error
     const redirectUrl = new URL(authRequest.redirect_uri)
     redirectUrl.searchParams.set('error', 'access_denied')
     redirectUrl.searchParams.set('error_description', 'User denied authorization')
     redirectUrl.searchParams.set('state', authRequest.state)
-
     window.location.href = redirectUrl.toString()
   }
 
-  // WHAT: Switch account - logout and redirect back to login with OAuth request preserved
-  // WHY: Users may want to authorize with a different account
-  // HOW: Logout current session, then redirect to login with oauth_request parameter
   async function handleSwitchAccount() {
     if (!authRequest || !requestParam) return
 
@@ -187,22 +174,18 @@ export default function ConsentPage({ initialRequest }) {
     setError(null)
 
     try {
-      // Logout current user
       await fetch('/api/public/logout', {
         method: 'POST',
         credentials: 'include',
       })
 
-      // Redirect to login page with OAuth request preserved
-      // This ensures the user returns to the same authorization flow after login
       window.location.href = `/login?oauth_request=${encodeURIComponent(requestParam)}`
-    } catch (err) {
+    } catch {
       setError('Failed to switch account')
       setSubmitting(false)
     }
   }
 
-  // Group scopes by category
   const groupedScopes = scopeDetails.reduce((acc, scope) => {
     const category = scope.category || 'other'
     if (!acc[category]) {
@@ -223,147 +206,141 @@ export default function ConsentPage({ initialRequest }) {
 
   if (loading) {
     return (
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem', background: '#0b1021' }}>
-        <div style={{ color: '#e6e8f2' }}>Loading...</div>
-      </div>
+      <Center mih="100vh" px="md" py="xl" bg="gray.0">
+        <Stack align="center" gap="sm">
+          <Loader color="brand" type="dots" />
+          <Text c="dimmed" size="sm">
+            Loading authorization request...
+          </Text>
+        </Stack>
+      </Center>
     )
   }
 
   if (error || !authRequest) {
     return (
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem', background: '#0b1021' }}>
-        <div style={{ maxWidth: 480, background: '#12172b', border: '1px solid #22284a', borderRadius: 12, padding: '1.5rem', color: '#e6e8f2' }}>
-          <h1 style={{ margin: 0, fontSize: '1.5rem', color: '#e74c3c' }}>Authorization Error</h1>
-          <p style={{ marginTop: '0.5rem' }}>{error || 'Invalid authorization request'}</p>
-          <p style={{ marginTop: '1rem', fontSize: '0.875rem', opacity: 0.8 }}>
-            This authorization link is invalid or has expired. Please return to the application you were trying to access and try again.
-          </p>
-        </div>
-      </div>
+      <Center mih="100vh" px="md" py="xl" bg="gray.0">
+        <Container size={560} w="100%">
+          <Paper p="xl" radius="xl" shadow="lg" withBorder>
+            <Stack gap="md">
+              <Group gap="sm">
+                <IconAlertCircle color="var(--mantine-color-red-6)" size={28} />
+                <Title c="red.7" order={1}>
+                  Authorization Error
+                </Title>
+              </Group>
+              <Alert color="red" icon={<IconAlertCircle size={18} />} title="Request could not be loaded" variant="light">
+                {error || 'Invalid authorization request'}
+              </Alert>
+              <Text c="dimmed" size="sm">
+                This authorization link is invalid or has expired. Return to the application you were trying to access and start the flow again.
+              </Text>
+            </Stack>
+          </Paper>
+        </Container>
+      </Center>
     )
   }
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem', background: '#0b1021' }}>
-      <div style={{ width: '100%', maxWidth: 600, background: '#12172b', border: '1px solid #22284a', borderRadius: 12, padding: '2rem', color: '#e6e8f2' }}>
-        {/* Header */}
-        <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-          {authRequest.client_logo && (
-            // Third-party client logos are runtime-provided URLs, so the native img element is intentional here.
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={authRequest.client_logo} alt={authRequest.client_name} style={{ width: 64, height: 64, marginBottom: '1rem' }} />
-          )}
-          <h1 style={{ margin: '0 0 0.5rem 0', fontSize: '1.5rem' }}>Authorize Access</h1>
-          <p style={{ margin: 0, opacity: 0.8 }}>
-            <strong>{authRequest.client_name}</strong> is requesting access to your account
-          </p>
-          {authRequest.client_homepage && (
-            <a href={authRequest.client_homepage} target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.875rem', color: '#4da6ff', marginTop: '0.25rem', display: 'inline-block' }}>
-              {authRequest.client_homepage}
-            </a>
-          )}
-        </div>
+    <Center mih="100vh" px="md" py="xl" bg="gray.0">
+      <Container size={680} w="100%">
+        <Paper p="xl" radius="xl" shadow="lg" withBorder>
+          <Stack gap="xl">
+            <Stack align="center" gap="sm">
+              {authRequest.client_logo ? (
+                // Third-party client logos are runtime-provided URLs, so the native img element is intentional here.
+                // eslint-disable-next-line @next/next/no-img-element
+                <img alt={authRequest.client_name} src={authRequest.client_logo} style={{ width: 64, height: 64 }} />
+              ) : (
+                <Box>
+                  <IconShieldCheck color="var(--mantine-color-brand-6)" size={40} stroke={1.8} />
+                </Box>
+              )}
+              <Stack align="center" gap={4}>
+                <Title order={1} ta="center">
+                  Authorize Access
+                </Title>
+                <Text c="dimmed" ta="center">
+                  <Text component="span" fw={600}>
+                    {authRequest.client_name}
+                  </Text>{' '}
+                  is requesting access to your account.
+                </Text>
+                {authRequest.client_homepage ? (
+                  <Anchor href={authRequest.client_homepage} rel="noopener noreferrer" size="sm" target="_blank">
+                    {authRequest.client_homepage}
+                  </Anchor>
+                ) : null}
+              </Stack>
+            </Stack>
 
-        {/* User Info */}
-        {user && (
-          <div style={{ marginBottom: '1.5rem', padding: '0.75rem', background: '#0e1733', border: '1px solid #24306b', borderRadius: 8, fontSize: '0.875rem' }}>
-            <div>Logged in as <strong>{user.email}</strong></div>
-            <button
-              onClick={handleSwitchAccount}
-              disabled={submitting}
-              style={{
-                marginTop: '0.5rem',
-                padding: 0,
-                background: 'transparent',
-                color: '#4da6ff',
-                border: 0,
-                cursor: submitting ? 'not-allowed' : 'pointer',
-                fontSize: '0.875rem',
-                textDecoration: 'underline',
-                opacity: submitting ? 0.5 : 1,
-              }}
-            >
-              Not you? Switch account
-            </button>
-          </div>
-        )}
+            {user ? (
+              <Paper bg="gray.0" p="md" radius="lg" withBorder>
+                <Stack gap="xs">
+                  <Text size="sm">
+                    Logged in as <Text component="span" fw={600}>{user.email}</Text>
+                  </Text>
+                  <Anchor
+                    component="button"
+                    disabled={submitting}
+                    onClick={handleSwitchAccount}
+                    size="sm"
+                    type="button"
+                  >
+                    Not you? Switch account
+                  </Anchor>
+                </Stack>
+              </Paper>
+            ) : null}
 
-        {/* Permissions */}
-        <div style={{ marginBottom: '1.5rem' }}>
-          <h2 style={{ margin: '0 0 1rem 0', fontSize: '1.125rem' }}>This application will be able to:</h2>
-          
-          {Object.entries(groupedScopes).map(([category, scopes]) => (
-            <div key={category} style={{ marginBottom: '1rem' }}>
-              <div style={{ fontSize: '0.875rem', fontWeight: 'bold', opacity: 0.8, marginBottom: '0.5rem' }}>
-                {categoryNames[category] || category}
-              </div>
-              <div style={{ display: 'grid', gap: 8 }}>
-                {scopes.map((scope, idx) => (
-                  <div key={idx} style={{ display: 'flex', gap: 12, padding: '0.75rem', background: '#0b1021', border: '1px solid #22284a', borderRadius: 6 }}>
-                    <div style={{ fontSize: '1.25rem' }}>✓</div>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontWeight: '500' }}>{scope.name}</div>
-                      <div style={{ fontSize: '0.875rem', opacity: 0.7, marginTop: '0.25rem' }}>{scope.description}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
+            <Stack gap="md">
+              <Title order={2}>This application will be able to:</Title>
+              {Object.entries(groupedScopes).map(([category, scopes]) => (
+                <Stack gap="xs" key={category}>
+                  <Badge color="brand" radius="sm" variant="light" w="fit-content">
+                    {categoryNames[category] || category}
+                  </Badge>
+                  <Stack gap="xs">
+                    {scopes.map((scope, idx) => (
+                      <Paper key={idx} p="md" radius="lg" withBorder>
+                        <Group align="flex-start" gap="sm" wrap="nowrap">
+                          <IconCheck color="var(--mantine-color-green-6)" size={20} style={{ marginTop: 2 }} />
+                          <Stack flex={1} gap={2}>
+                            <Text fw={600}>{scope.name}</Text>
+                            <Text c="dimmed" size="sm">
+                              {scope.description}
+                            </Text>
+                          </Stack>
+                        </Group>
+                      </Paper>
+                    ))}
+                  </Stack>
+                </Stack>
+              ))}
+            </Stack>
 
-        {/* Error Message */}
-        {error && (
-          <div style={{ marginBottom: '1rem', padding: '0.75rem', background: '#211a0b', border: '1px solid #8b1919', borderRadius: 8, color: '#e74c3c' }}>
-            {error}
-          </div>
-        )}
+            {error ? (
+              <Alert color="red" icon={<IconAlertCircle size={18} />} title="Authorization failed" variant="light">
+                {error}
+              </Alert>
+            ) : null}
 
-        {/* Actions */}
-        <div style={{ display: 'flex', gap: 12 }}>
-          <button
-            onClick={handleApprove}
-            disabled={submitting}
-            style={{
-              flex: 1,
-              padding: '0.75rem 1rem',
-              background: '#1e895a',
-              color: 'white',
-              border: 0,
-              borderRadius: 8,
-              cursor: submitting ? 'not-allowed' : 'pointer',
-              fontSize: '1rem',
-              fontWeight: '500',
-              opacity: submitting ? 0.6 : 1,
-            }}
-          >
-            {submitting ? 'Authorizing...' : 'Authorize'}
-          </button>
-          <button
-            onClick={handleDeny}
-            disabled={submitting}
-            style={{
-              flex: 1,
-              padding: '0.75rem 1rem',
-              background: '#24306b',
-              color: 'white',
-              border: 0,
-              borderRadius: 8,
-              cursor: submitting ? 'not-allowed' : 'pointer',
-              fontSize: '1rem',
-              fontWeight: '500',
-              opacity: submitting ? 0.6 : 1,
-            }}
-          >
-            Deny
-          </button>
-        </div>
+            <Group grow>
+              <Button loading={submitting} onClick={handleApprove} size="md">
+                Authorize
+              </Button>
+              <Button color="gray" disabled={submitting} onClick={handleDeny} size="md" variant="default">
+                Deny
+              </Button>
+            </Group>
 
-        {/* Footer */}
-        <div style={{ marginTop: '1.5rem', padding: '0.75rem', background: '#0e1733', border: '1px solid #24306b', borderRadius: 8, fontSize: '0.875rem', opacity: 0.8 }}>
-          By authorizing, you allow this application to access the information listed above. You can revoke access at any time from your account settings.
-        </div>
-      </div>
-    </div>
+            <Text c="dimmed" size="sm">
+              By authorizing, you allow this application to access the information listed above. You can revoke access later from your account settings.
+            </Text>
+          </Stack>
+        </Paper>
+      </Container>
+    </Center>
   )
 }

@@ -10,7 +10,28 @@ import { useState, useEffect } from 'react'
 import Head from 'next/head'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
-import styles from '../styles/login.module.css'
+import {
+  Alert,
+  Anchor,
+  Box,
+  Button,
+  Divider,
+  Group,
+  Modal,
+  Paper,
+  PasswordInput,
+  Stack,
+  Text,
+  TextInput,
+} from '@mantine/core'
+import {
+  IconAlertCircle,
+  IconBrandFacebook,
+  IconCircleCheck,
+  IconLink,
+  IconLock,
+} from '@tabler/icons-react'
+import AuthSurface from '../components/AuthSurface'
 
 // WHAT: Make page server-rendered to ensure query params are available immediately
 // WHY: useRouter().query can be empty on first render, causing OAuth params to be lost
@@ -39,8 +60,6 @@ export default function LoginPage({ initialRedirect, initialOAuthRequest }) {
   const [errors, setErrors] = useState({})
   const [loading, setLoading] = useState(false)
   const [serverError, setServerError] = useState('')
-  const [mounted, setMounted] = useState(false)
-  const [redirectAttempted, setRedirectAttempted] = useState(false)
   const [magicLinkSent, setMagicLinkSent] = useState(false)
   const [magicLinkLoading, setMagicLinkLoading] = useState(false)
   const [pinRequired, setPinRequired] = useState(false)
@@ -50,11 +69,18 @@ export default function LoginPage({ initialRedirect, initialOAuthRequest }) {
   const [pinEmailSent, setPinEmailSent] = useState(false)
   const [resendingPin, setResendingPin] = useState(false)
   const [loginSuccess, setLoginSuccess] = useState(false)
+
+  const subtitle = redirect ? (() => {
+    try {
+      return `Logging in to access ${new URL(decodeURIComponent(redirect)).hostname}`
+    } catch {
+      return 'Sign in to your account'
+    }
+  })() : 'Sign in to your account'
   
-  // WHAT: Track when component is mounted and log OAuth params
-  // WHY: Prevent redirects during SSR/hydration to avoid React errors, debug OAuth flow
+  // WHAT: Log OAuth-related params when the page loads
+  // WHY: Helpful when tracing public login continuation into OAuth authorization
   useEffect(() => {
-    setMounted(true)
     if (oauth_request) {
       console.log('[Login] Page loaded with oauth_request:', oauth_request)
     }
@@ -475,6 +501,15 @@ export default function LoginPage({ initialRedirect, initialOAuthRequest }) {
     }
   }
 
+  const handleSocialLogin = (provider) => {
+    const basePath = provider === 'facebook' ? '/api/auth/facebook/login' : '/api/auth/google/login'
+    const url = oauth_request
+      ? `${basePath}?oauth_request=${encodeURIComponent(oauth_request)}`
+      : basePath
+
+    window.location.href = url
+  }
+
   return (
     <>
       <Head>
@@ -482,281 +517,232 @@ export default function LoginPage({ initialRedirect, initialOAuthRequest }) {
         <meta name="description" content="Sign in to your SSO account" />
       </Head>
 
-      <div className={styles.pageContainer}>
-        <div className={styles.loginCard}>
-          {/* Logo */}
-          <div className={styles.header}>
-            <h1 className={styles.title}>Welcome Back</h1>
-            <p className={styles.subtitle}>
-              {redirect ? (() => {
-                try {
-                  return `Logging in to access ${new URL(decodeURIComponent(redirect)).hostname}`
-                } catch {
-                  return 'Sign in to your account'
-                }
-              })() : 'Sign in to your account'}
-            </p>
-          </div>
-
-          {/* Login Success */}
+      <AuthSurface
+        icon={IconLock}
+        title="Welcome Back"
+        description={subtitle}
+      >
+        <Stack gap="lg">
           {loginSuccess && (
-            <div className={styles.successBox}>
-              ✅ <strong>Login successful!</strong> Redirecting...
-            </div>
+            <Alert color="green" icon={<IconCircleCheck size={18} />} radius="md" variant="light">
+              <strong>Login successful.</strong> Redirecting now.
+            </Alert>
           )}
 
-          {/* Magic Link Success */}
           {magicLinkSent && !loginSuccess && (
-            <div className={styles.successBox}>
-              🔗 Magic link sent! Check your email and click the link to sign in instantly.
-            </div>
+            <Alert color="green" icon={<IconLink size={18} />} radius="md" variant="light">
+              Magic link sent. Check your email and follow the sign-in link.
+            </Alert>
           )}
 
-          {/* Server Error */}
           {serverError && (
-            <div className={styles.errorBox}>
+            <Alert color="red" icon={<IconAlertCircle size={18} />} radius="md" variant="light">
               {serverError}
-            </div>
+            </Alert>
           )}
 
-          {/* Login Form - CHANGED: Removed form wrapper to test if form submission is causing fetch to fail */}
-          <div>
-            {/* Email Field */}
-            <div className={styles.formGroup}>
-              <label className={styles.label}>Email Address</label>
-              <input
-                type="email"
+          <Paper withBorder p="lg" radius="lg">
+            <Stack gap="md">
+              <TextInput
+                label="Email address"
                 name="email"
+                type="email"
                 value={formData.email}
                 onChange={handleChange}
                 placeholder="Enter your email"
                 disabled={loading}
                 autoComplete="email"
-                className={`${styles.input} ${errors.email ? styles.error : ''}`}
+                error={errors.email || null}
+                size="md"
               />
-              {errors.email && (
-                <p className={styles.errorText}>{errors.email}</p>
-              )}
-            </div>
 
-            {/* Password Field */}
-            <div className={styles.formGroup}>
-              <label className={styles.label}>Password</label>
-              <input
-                type="password"
+              <PasswordInput
+                label="Password"
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
                 placeholder="Enter your password"
                 disabled={loading}
                 autoComplete="current-password"
-                className={`${styles.input} ${errors.password ? styles.error : ''}`}
+                error={errors.password || null}
+                size="md"
               />
-              {errors.password && (
-                <p className={styles.errorText}>{errors.password}</p>
-              )}
-            </div>
 
-            {/* Submit Button */}
-            <button
-              type="button"
-              onClick={handleSubmit}
-              disabled={loading}
-              className={styles.primaryButton}
-            >
-              {loading ? 'Signing in...' : 'Sign In'}
-            </button>
+              <Button fullWidth size="md" onClick={handleSubmit} loading={loading}>
+                Sign In
+              </Button>
 
-            {/* Divider */}
-            <div className={styles.divider}>
-              <div className={styles.dividerLine} />
-              <span className={styles.dividerText}>OR</span>
-              <div className={styles.dividerLine} />
-            </div>
+              <Divider label="OR" labelPosition="center" />
 
-            {/* Magic Link Button */}
-            <button
-              type="button"
-              onClick={handleMagicLink}
-              disabled={magicLinkLoading || loading}
-              className={styles.secondaryButton}
-            >
-              {magicLinkLoading ? '✉️ Sending...' : '🔗 Login with Magic Link'}
-            </button>
-
-            {/* Facebook Login Button */}
-            <button
-              type="button"
-              onClick={() => {
-                // WHAT: Redirect to Facebook OAuth login with oauth_request if present
-                // WHY: Preserve OAuth flow context through Facebook authentication
-                const fbLoginUrl = oauth_request 
-                  ? `/api/auth/facebook/login?oauth_request=${encodeURIComponent(oauth_request)}`
-                  : '/api/auth/facebook/login'
-                window.location.href = fbLoginUrl
-              }}
-              disabled={loading}
-              className={styles.facebookButton}
-            >
-              <svg 
-                width="20" 
-                height="20" 
-                viewBox="0 0 20 20" 
-                fill="currentColor" 
-                style={{ marginRight: '8px' }}
+              <Button
+                fullWidth
+                size="md"
+                variant="default"
+                onClick={handleMagicLink}
+                loading={magicLinkLoading}
+                leftSection={<IconLink size={18} />}
+                disabled={loading}
               >
-                <path d="M20 10c0-5.523-4.477-10-10-10S0 4.477 0 10c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V10h2.54V7.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V10h2.773l-.443 2.89h-2.33v6.988C16.343 19.128 20 14.991 20 10z" />
-              </svg>
-              Continue with Facebook
-            </button>
+                Login with Magic Link
+              </Button>
 
-            {/* Google Login Button */}
-            <button
-              type="button"
-              onClick={() => {
-                // WHAT: Redirect to Google OAuth login with oauth_request if present
-                // WHY: Preserve OAuth flow context through Google authentication
-                const googleLoginUrl = oauth_request 
-                  ? `/api/auth/google/login?oauth_request=${encodeURIComponent(oauth_request)}`
-                  : '/api/auth/google/login'
-                window.location.href = googleLoginUrl
-              }}
-              disabled={loading}
-              className={styles.googleButton}
-            >
-              <svg 
-                width="20" 
-                height="20" 
-                viewBox="0 0 24 24" 
-                style={{ marginRight: '8px' }}
+              <Button
+                fullWidth
+                size="md"
+                color="dark"
+                leftSection={<IconBrandFacebook size={18} />}
+                onClick={() => handleSocialLogin('facebook')}
+                disabled={loading}
               >
-                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-              </svg>
-              Continue with Google
-            </button>
+                Continue with Facebook
+              </Button>
 
-            {/* Forgot Password Link */}
-            <div className={styles.linkContainer}>
-              <Link href="/forgot-password" className={styles.link}>
+              <Button
+                fullWidth
+                size="md"
+                variant="default"
+                leftSection={
+                  <Box component="span" aria-hidden="true" style={{ display: 'inline-flex' }}>
+                    <svg width="18" height="18" viewBox="0 0 24 24">
+                      <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                      <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                      <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                      <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                    </svg>
+                  </Box>
+                }
+                onClick={() => handleSocialLogin('google')}
+                disabled={loading}
+              >
+                Continue with Google
+              </Button>
+
+              <Anchor component={Link} href="/forgot-password" ta="center" size="sm">
                 Forgot password?
-              </Link>
-            </div>
-          </div>
+              </Anchor>
+            </Stack>
+          </Paper>
 
-          {/* Register Link */}
-          <div className={styles.textContainer}>
-            Don't have an account?{' '}
-            <Link href={redirect ? `/register?redirect=${encodeURIComponent(redirect)}` : '/register'} className={styles.textContainerLink}>
+          <Text c="dimmed" size="sm" ta="center">
+            Don&apos;t have an account?{' '}
+            <Anchor
+              component={Link}
+              href={redirect ? `/register?redirect=${encodeURIComponent(redirect)}` : '/register'}
+              fw={600}
+            >
               Create one
-            </Link>
-          </div>
+            </Anchor>
+          </Text>
 
-          {/* Back to Home */}
-          <div className={styles.linkContainer}>
-            <Link href="/" className={styles.linkSmall}>
-              ← Back to home
-            </Link>
-          </div>
-        </div>
+          <Anchor component={Link} href="/" ta="center" size="xs" c="dimmed">
+            Back to home
+          </Anchor>
+        </Stack>
 
-        {/* PIN Verification Modal */}
-        {pinRequired && (
-          <div className={styles.modalOverlay}>
-            <div className={styles.modalContent}>
-              <h2 className={styles.modalTitle}>🔒 Verify Your Identity</h2>
-              <p className={styles.modalDescription}>
-                For additional security, we've sent a 6-digit PIN to:
-              </p>
-              <p className={styles.emailDisplay}>
-                <strong>{formData.email.toLowerCase().trim()}</strong>
-              </p>
-              <p className={styles.modalSubtext}>
-                Please check your email and enter the PIN below. The code expires in 5 minutes.
-              </p>
+        <Modal
+          opened={pinRequired}
+          onClose={() => {
+            if (pinLoading) return
+            setPinRequired(false)
+            setPin('')
+            setPinError('')
+            setPinEmailSent(false)
+          }}
+          title="Verify Your Identity"
+          centered
+          closeOnEscape={!pinLoading}
+          closeOnClickOutside={!pinLoading}
+          withCloseButton={!pinLoading}
+          radius="lg"
+        >
+          <Stack gap="md">
+            <Text size="sm" c="dimmed">
+              For additional security, we sent a 6-digit PIN to:
+            </Text>
 
-              {/* Email Sent Confirmation */}
-              {pinEmailSent && (
-                <div className={styles.successBox}>
-                  ✓ PIN sent to your email
-                </div>
-              )}
+            <Paper withBorder p="sm" radius="md" bg="var(--mantine-color-gray-0)">
+              <Text ff="monospace" fw={600} ta="center">
+                {formData.email.toLowerCase().trim()}
+              </Text>
+            </Paper>
 
-              {/* PIN Error */}
-              {pinError && (
-                <div className={styles.errorBox}>
-                  {pinError}
-                </div>
-              )}
+            <Text size="xs" c="dimmed">
+              Enter the code below. The PIN expires in 5 minutes.
+            </Text>
 
-              {/* PIN Input */}
-              <div className={styles.formGroup}>
-                <label className={styles.label}>Enter PIN</label>
-                <input
-                  type="text"
-                  value={pin}
-                  onChange={(e) => {
-                    const value = e.target.value.replace(/\D/g, '').slice(0, 6)
-                    setPin(value)
-                    setPinError('')
-                  }}
-                  placeholder="123456"
-                  maxLength={6}
-                  disabled={pinLoading}
-                  autoFocus
-                  className={`${styles.pinInput} ${pinError ? styles.error : ''}`}
-                  onKeyPress={(e) => {
-                    if (e.key === 'Enter' && pin.length === 6) {
-                      handlePinVerify()
-                    }
-                  }}
-                />
-              </div>
+            {pinEmailSent && (
+              <Alert color="green" icon={<IconCircleCheck size={18} />} radius="md" variant="light">
+                PIN sent to your email.
+              </Alert>
+            )}
 
-              <div className={styles.buttonGroup}>
-                {/* Verify Button */}
-                <button
-                  type="button"
-                  onClick={handlePinVerify}
-                  disabled={pinLoading || pin.length !== 6}
-                  className={styles.primaryButton}
-                >
-                  {pinLoading ? 'Verifying...' : 'Verify PIN'}
-                </button>
+            {pinError && (
+              <Alert color="red" icon={<IconAlertCircle size={18} />} radius="md" variant="light">
+                {pinError}
+              </Alert>
+            )}
 
-                {/* Cancel Button */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setPinRequired(false)
-                    setPin('')
-                    setPinError('')
-                    setPinEmailSent(false)
-                  }}
-                  disabled={pinLoading}
-                  className={styles.cancelButton}
-                >
-                  Cancel
-                </button>
-              </div>
+            <TextInput
+              label="Enter PIN"
+              value={pin}
+              onChange={(e) => {
+                const value = e.target.value.replace(/\D/g, '').slice(0, 6)
+                setPin(value)
+                setPinError('')
+              }}
+              placeholder="123456"
+              maxLength={6}
+              disabled={pinLoading}
+              autoFocus
+              error={pinError ? ' ' : null}
+              inputMode="numeric"
+              styles={{
+                input: {
+                  textAlign: 'center',
+                  letterSpacing: '0.3em',
+                  fontFamily: 'monospace',
+                  fontSize: '1.125rem',
+                },
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && pin.length === 6) {
+                  handlePinVerify()
+                }
+              }}
+            />
 
-              {/* Resend PIN Link */}
-              <div className={styles.resendContainer}>
-                <button
-                  type="button"
-                  onClick={handleResendPin}
-                  disabled={resendingPin || pinLoading}
-                  className={styles.resendLink}
-                >
-                  {resendingPin ? 'Sending...' : 'Didn\'t receive the PIN? Resend it'}
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
+            <Button fullWidth onClick={handlePinVerify} loading={pinLoading} disabled={pin.length !== 6}>
+              Verify PIN
+            </Button>
+
+            <Button
+              fullWidth
+              variant="default"
+              onClick={() => {
+                setPinRequired(false)
+                setPin('')
+                setPinError('')
+                setPinEmailSent(false)
+              }}
+              disabled={pinLoading}
+            >
+              Cancel
+            </Button>
+
+            <Group justify="center">
+              <Button
+                variant="subtle"
+                size="compact-sm"
+                onClick={handleResendPin}
+                loading={resendingPin}
+                disabled={pinLoading}
+              >
+                Didn&apos;t receive the PIN? Resend it
+              </Button>
+            </Group>
+          </Stack>
+        </Modal>
+      </AuthSurface>
     </>
   )
 }
