@@ -21,12 +21,12 @@ The single source of truth for design, UI, and UX lives in the shared directory:
 
 ## Local Adapter
 
-- Current UI foundation: Mantine root provider plus legacy CSS modules on unmigrated page surfaces
+- Current UI foundation: Mantine root provider plus narrow editorial CSS on docs surfaces
 - Target UI foundation: pure Mantine
 - Theme/provider path: `pages/_app.js`, `pages/_document.js`, and shared theme in `lib/ui/mantineTheme.js`
 - Wrapper components or primitive policy: Mantine primitives by default, with only thin approved wrappers where necessary
 - Notifications/modals setup: `pages/_app.js` via `@mantine/notifications` and `@mantine/modals`
-- Styling bridge or legacy layer: `styles/globals.css`, `styles/*.module.css`, and `components/ThemeProvider.js`
+- Styling bridge or legacy layer: `styles/globals.css` plus narrow docs/editorial CSS modules
 - UI validation commands: `npm run lint`, `npm run check:docs`
 
 ## Known Exceptions
@@ -35,14 +35,11 @@ The single source of truth for design, UI, and UX lives in the shared directory:
 |-------|--------|-------------|-------------------|
 | OAuth provider buttons | Must remain compliant with Google/Facebook branding rules | visual treatment may stay slightly custom during migration | replace with Mantine-hosted brand-compliant wrappers |
 | Docs/editorial surfaces | current docs pages rely on editorial CSS layout | docs remain partly legacy-styled until later migration phase | migrate `pages/docs/*` to Mantine layout and typography |
-| Style editor | current feature is built around the old theme model | blocks pure Mantine end state until rewritten or removed | decide rewrite vs removal in Phase 4 |
 
 ## Migration Backlog
 
-1. Migrate admin shell and CRUD flows.
-2. Decide rewrite or removal for the old style editor and theme provider.
-3. Migrate docs surfaces.
-4. Delete legacy design infrastructure after the Mantine surfaces are complete.
+1. Migrate docs surfaces.
+2. Delete remaining legacy editorial CSS after the Mantine docs surfaces are complete.
 
 ## Phase 1 Status
 
@@ -60,10 +57,28 @@ The single source of truth for design, UI, and UX lives in the shared directory:
 - `pages/oauth/consent.js` is Mantine-based
 - the old auth-page CSS module remains legacy inventory until the deletion phase
 
+## Phase 3 Status
+
+- `pages/admin/dashboard.js` is Mantine-based
+- `pages/admin/users.js` is Mantine-based
+- `pages/admin/oauth-clients.js` is Mantine-based
+- `pages/admin/activity.js` is Mantine-based
+- `pages/admin/forgot-password.js` is Mantine-based
+- `pages/account.js` is Mantine-based
+- `pages/index.js` is Mantine-based
+
+## Phase 4 Status
+
+- the legacy style editor was removed instead of being rewritten as a second theme system
+- `components/ThemeProvider.js` is removed
+- `lib/styleThemes.mjs` is removed
+- `pages/admin/style-editor.js` is removed
+- theme-management APIs under `pages/api/admin/themes/*` and `pages/api/themes/active.js` are removed
+
 ## Rules For This Repo During Migration
 
 - treat the shared directory as its own git-managed repository because multiple projects will read from and write to it
 - do not add new product UI CSS modules
 - do not add new product UI token systems outside Mantine
-- do not treat `styles/globals.css` or `components/ThemeProvider.js` as long-term sources of truth
+- do not treat `styles/globals.css` or docs/editorial CSS modules as long-term sources of truth
 - update the shared SSOT first if a reusable design rule changes

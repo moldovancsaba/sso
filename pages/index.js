@@ -1,88 +1,148 @@
-import { useEffect, useState } from 'react';
-import Link from 'next/link';
-import styles from '../styles/home.module.css';
+import { useEffect, useState } from 'react'
+import Link from 'next/link'
+import {
+  Button,
+  Card,
+  Code,
+  Container,
+  Group,
+  List,
+  SimpleGrid,
+  Stack,
+  Text,
+  Title,
+} from '@mantine/core'
+import { IconApps, IconLock, IconUser } from '@tabler/icons-react'
 
 export default function Home() {
-  const [publicUser, setPublicUser] = useState(null);
-  const [hasAdminAccess, setHasAdminAccess] = useState(false);
+  const [hasAdminAccess, setHasAdminAccess] = useState(false)
+  const [publicUser, setPublicUser] = useState(null)
 
   useEffect(() => {
-    // WHAT: Check public user session and admin permissions
-    // WHY: Show admin button only if user has admin access
-    (async () => {
+    ;(async () => {
       try {
-        const publicRes = await fetch('/api/public/session', { credentials: 'include' });
-        if (publicRes.ok) {
-          const data = await publicRes.json();
-          if (data?.isValid) {
-            setPublicUser(data.user);
-            
-            // WHAT: Check if user has admin access
-            // WHY: Show SSO Admin button conditionally
-            try {
-              const adminRes = await fetch('/api/admin/check-access', { credentials: 'include' });
-              if (adminRes.ok) {
-                setHasAdminAccess(true);
-              }
-            } catch {}
+        const publicRes = await fetch('/api/public/session', { credentials: 'include' })
+        if (!publicRes.ok) return
+
+        const data = await publicRes.json()
+        if (!data?.isValid) return
+
+        setPublicUser(data.user)
+
+        try {
+          const adminRes = await fetch('/api/admin/check-access', { credentials: 'include' })
+          if (adminRes.ok) {
+            setHasAdminAccess(true)
           }
-        }
+        } catch {}
       } catch {}
-    })();
-  }, []);
+    })()
+  }, [])
 
   return (
-    <div className={styles.container}>
-      <header className={styles.header}>
-        <h1>DoneIsBetter SSO</h1>
-        <p className={styles.subtitle}>Secure Single Sign-On Solution</p>
-      </header>
+    <Container py="xl" size="lg">
+      <Stack gap="xl">
+        <Stack align="center" gap="sm" py="xl">
+          <Title order={1} ta="center">
+            DoneIsBetter SSO
+          </Title>
+          <Text c="dimmed" maw={640} size="lg" ta="center">
+            Secure single sign-on for public users, admin operators, and third-party OAuth clients.
+          </Text>
+        </Stack>
 
-      <section className={styles.section}>
-        {publicUser ? (
-          <div className={styles.apiCard}>
-            <h2>✅ Logged In</h2>
-            <p>Welcome, <strong>{publicUser.email}</strong>!</p>
-            <p className={styles.sessionInfo}>Your session is active and secure.</p>
-            <div className={styles.apiLinks}>
-              <Link href="/account" className={styles.primaryButton}>My Account</Link>
-              {hasAdminAccess && (
-                <Link href="/admin" className={styles.adminButton}>SSO Admin</Link>
+        <SimpleGrid cols={{ base: 1, md: 2 }}>
+          <Card>
+            <Stack gap="md">
+              <Group>
+                <IconUser size={22} />
+                <Title order={2}>User Access</Title>
+              </Group>
+
+              {publicUser ? (
+                <>
+                  <Text>
+                    Welcome, <strong>{publicUser.email}</strong>.
+                  </Text>
+                  <Text c="dimmed" size="sm">
+                    Your session is active and available for account management.
+                  </Text>
+                  <Group>
+                    <Button component={Link} href="/account">
+                      My Account
+                    </Button>
+                    {hasAdminAccess ? (
+                      <Button color="yellow" component={Link} href="/admin" variant="filled">
+                        SSO Admin
+                      </Button>
+                    ) : null}
+                    <Button component={Link} href="/logout" variant="default">
+                      Logout
+                    </Button>
+                  </Group>
+                </>
+              ) : (
+                <>
+                  <Text>
+                    Sign in with password, magic link, social login, and PIN verification.
+                  </Text>
+                  <List size="sm">
+                    <List.Item>Email + Password</List.Item>
+                    <List.Item>Magic Link</List.Item>
+                    <List.Item>Facebook Login</List.Item>
+                    <List.Item>PIN Verification</List.Item>
+                  </List>
+                  <Group>
+                    <Button component={Link} href="/login">
+                      Sign In
+                    </Button>
+                    <Button component={Link} href="/register" variant="default">
+                      Create Account
+                    </Button>
+                  </Group>
+                </>
               )}
-              <Link href="/logout" className={styles.secondaryButton}>Logout</Link>
-            </div>
-          </div>
-        ) : (
-          <div className={styles.apiCard}>
-            <h2>🔐 User Login</h2>
-            <p>Sign in to access your account with multiple authentication options:</p>
-            <ul className={styles.featureList}>
-              <li>🔑 Email + Password</li>
-              <li>🔗 Magic Link (passwordless)</li>
-              <li>📱 Facebook Login</li>
-              <li>🔒 PIN Verification (enhanced security)</li>
-            </ul>
-            <div className={styles.apiLinks}>
-              <Link href="/login" className={styles.primaryButton}>Sign In</Link>
-              <Link href="/register" className={styles.secondaryButton}>Create Account</Link>
-            </div>
-          </div>
-        )}
+            </Stack>
+          </Card>
 
-        <div className={styles.apiCard}>
-          <h2>🔗 API Integration</h2>
-          <p>Ready to integrate SSO into your application?</p>
-          <div className={styles.apiLinks}>
-            <Link href="/docs/integration" className={styles.primaryButton}>Third-Party Integration Guide</Link>
-            <Link href="/docs/api" className={styles.secondaryButton}>API Documentation</Link>
-            <Link href="/docs/quickstart" className={styles.secondaryButton}>Quick Start Guide</Link>
-          </div>
-          <div className={styles.apiExample}>
-            <code>{`// Quick integration example\nconst sso = new SSOClient('https://sso.doneisbetter.com');\nconst session = await sso.validateSession();`}</code>
-          </div>
-        </div>
-      </section>
-    </div>
-  );
+          <Card>
+            <Stack gap="md">
+              <Group>
+                <IconApps size={22} />
+                <Title order={2}>API Integration</Title>
+              </Group>
+              <Text>
+                Integrate centralized authentication into your application with the documented OAuth and session APIs.
+              </Text>
+              <Group>
+                <Button component={Link} href="/docs/integration">
+                  Integration Guide
+                </Button>
+                <Button component={Link} href="/docs/api" variant="default">
+                  API Documentation
+                </Button>
+                <Button component={Link} href="/docs/quickstart" variant="default">
+                  Quick Start
+                </Button>
+              </Group>
+              <Code block>{`const sso = new SSOClient('https://sso.doneisbetter.com')
+const session = await sso.validateSession()`}</Code>
+            </Stack>
+          </Card>
+        </SimpleGrid>
+
+        <Card>
+          <Group mb="sm">
+            <IconLock size={22} />
+            <Title order={2}>Operational Model</Title>
+          </Group>
+          <Text c="dimmed">
+            This repo now uses Mantine as the live product UI foundation, while the shared design, UI, and UX contracts live in
+            {' '}
+            <Code>/Users/Shared/Projects/GENERAL_DESIGN_SYSTEM</Code>.
+          </Text>
+        </Card>
+      </Stack>
+    </Container>
+  )
 }
-
