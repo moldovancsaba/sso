@@ -1,3 +1,4 @@
+import { isValidElement } from 'react'
 import { Center, Container, Paper, Stack, Text, ThemeIcon, Title } from '@mantine/core'
 
 export default function AuthSurface({
@@ -8,6 +9,7 @@ export default function AuthSurface({
   title,
 }) {
   const Icon = icon
+  const iconNode = isValidElement(Icon) ? Icon : Icon ? <Icon size={28} stroke={1.8} /> : null
 
   return (
     <Center mih="100vh" px="md" py="xl" bg="gray.0">
@@ -15,9 +17,9 @@ export default function AuthSurface({
         <Paper p="xl" radius="xl" shadow="lg" withBorder>
           <Stack gap="lg">
             <Stack align="center" gap="sm">
-              {Icon ? (
+              {iconNode ? (
                 <ThemeIcon color="brand" radius="xl" size={56} variant="light">
-                  <Icon size={28} stroke={1.8} />
+                  {iconNode}
                 </ThemeIcon>
               ) : null}
               <Stack align="center" gap={4}>

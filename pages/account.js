@@ -1,49 +1,43 @@
-/**
- * User Account Management Page
- * 
- * WHAT: Comprehensive dashboard for users to manage their SSO account
- * WHY: Users need to see connected services, change password, update profile, and delete account
- * HOW: Fetch user data and authorizations, provide forms for updates, handle all account operations
- * Enhanced: Shows linked login methods (Email+Password, Facebook, Google) for account linking
- */
-
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import Head from 'next/head'
 import Link from 'next/link'
-import { useRouter } from 'next/router'
-import styles from '../styles/home.module.css'
+import {
+  Alert,
+  Badge,
+  Button,
+  Card,
+  Group,
+  Loader,
+  Modal,
+  PasswordInput,
+  Stack,
+  Text,
+  TextInput,
+} from '@mantine/core'
+import { IconAlertCircle, IconCircleCheck } from '@tabler/icons-react'
+import AccountShell from '../components/AccountShell'
 
-// WHAT: Server-side session validation before page renders
-// WHY: Ensure user is authenticated before showing account page
 export async function getServerSideProps(context) {
   const { getPublicUserFromRequest } = await import('../lib/publicSessions.mjs')
   const { getUserLoginMethods } = await import('../lib/accountLinking.mjs')
   const { getDb } = await import('../lib/db.mjs')
-  
+
   try {
     const user = await getPublicUserFromRequest(context.req)
-    
+
     if (!user) {
-      // Not logged in, redirect to login with return URL
       return {
         redirect: {
           destination: '/login?redirect=' + encodeURIComponent('/account'),
-          permanent: false
-        }
+          permanent: false,
+        },
       }
     }
-    
-    // WHAT: Get user WITH passwordHash to check login methods
-    // WHY: getPublicUserFromRequest() strips passwordHash for security,
-    //      but we need it to determine if Email+Password is linked
+
     const db = await getDb()
     const fullUser = await db.collection('publicUsers').findOne({ id: user.id })
-    
-    // WHAT: Get user's linked login methods
-    // WHY: Show user which login methods they can use (account linking feature)
     const loginMethods = getUserLoginMethods(fullUser || user)
-    
-    // Pass user data to page
+
     return {
       props: {
         initialUser: {
@@ -53,66 +47,71 @@ export async function getServerSideProps(context) {
           role: user.role || 'user',
           status: user.status,
           emailVerified: user.emailVerified !== false,
-          loginMethods: loginMethods
-        }
-      }
+          loginMethods,
+        },
+      },
     }
   } catch (error) {
     console.error('Account page session check error:', error)
     return {
       redirect: {
         destination: '/login',
-        permanent: false
-      }
+        permanent: false,
+      },
     }
   }
 }
 
+function loginMethodColor(method) {
+  switch (method) {
+    case 'facebook':
+      return 'blue'
+    case 'google':
+      return 'red'
+    case 'password':
+      return 'brand'
+    default:
+      return 'gray'
+  }
+}
+
+function loginMethodLabel(method) {
+  if (method === 'password') return 'Email + Password'
+  return method.charAt(0).toUpperCase() + method.slice(1)
+}
+
 export default function AccountPage({ initialUser }) {
-  const router = useRouter()
-  const [user, setUser] = useState(initialUser)
-  const [loading, setLoading] = useState(false)
   const [authorizations, setAuthorizations] = useState([])
   const [authsLoading, setAuthsLoading] = useState(true)
-  
-  // Profile editing
-  const [editingProfile, setEditingProfile] = useState(false)
-  const [profileData, setProfileData] = useState({ name: '' })
-  const [profileLoading, setProfileLoading] = useState(false)
-  const [profileError, setProfileError] = useState('')
-  const [profileSuccess, setProfileSuccess] = useState(false)
-  
-  // Password change
   const [changingPassword, setChangingPassword] = useState(false)
-  const [passwordData, setPasswordData] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' })
-  const [passwordLoading, setPasswordLoading] = useState(false)
-  const [passwordError, setPasswordError] = useState('')
-  const [passwordSuccess, setPasswordSuccess] = useState(false)
-  
-  // Account deletion
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [deleteConfirmEmail, setDeleteConfirmEmail] = useState('')
-  const [deleteLoading, setDeleteLoading] = useState(false)
   const [deleteError, setDeleteError] = useState('')
-  
-  // Account unlinking
+  const [deleteLoading, setDeleteLoading] = useState(false)
+  const [editingProfile, setEditingProfile] = useState(false)
+  const [passwordData, setPasswordData] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' })
+  const [passwordError, setPasswordError] = useState('')
+  const [passwordLoading, setPasswordLoading] = useState(false)
+  const [passwordSuccess, setPasswordSuccess] = useState(false)
+  const [profileData, setProfileData] = useState({ name: '' })
+  const [profileError, setProfileError] = useState('')
+  const [profileLoading, setProfileLoading] = useState(false)
+  const [profileSuccess, setProfileSuccess] = useState(false)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [unlinkError, setUnlinkError] = useState('')
   const [unlinkingProvider, setUnlinkingProvider] = useState(null)
   const [unlinkLoading, setUnlinkLoading] = useState(false)
-  const [unlinkError, setUnlinkError] = useState('')
+  const [user, setUser] = useState(initialUser)
 
-  // WHAT: Initialize profile data from server-provided user
-  // WHY: Server already validated session, no need to check again
   useEffect(() => {
     if (initialUser) {
       setProfileData({ name: initialUser.name || '' })
     }
   }, [initialUser])
 
-  // Fetch user's OAuth authorizations
   useEffect(() => {
     if (!user) return
-    
-    (async () => {
+
+    ;(async () => {
       try {
         const res = await fetch('/api/public/authorizations', { credentials: 'include' })
         if (res.ok) {
@@ -127,9 +126,14 @@ export default function AccountPage({ initialUser }) {
     })()
   }, [user])
 
-  // Handle profile update
-  const handleProfileUpdate = async (e) => {
-    e.preventDefault()
+  const resetDeleteModal = () => {
+    setShowDeleteConfirm(false)
+    setDeleteConfirmEmail('')
+    setDeleteError('')
+  }
+
+  const handleProfileUpdate = async (event) => {
+    event.preventDefault()
     setProfileLoading(true)
     setProfileError('')
     setProfileSuccess(false)
@@ -139,7 +143,7 @@ export default function AccountPage({ initialUser }) {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify(profileData)
+        body: JSON.stringify(profileData),
       })
 
       const data = await res.json()
@@ -162,14 +166,12 @@ export default function AccountPage({ initialUser }) {
     }
   }
 
-  // Handle password change
-  const handlePasswordChange = async (e) => {
-    e.preventDefault()
+  const handlePasswordChange = async (event) => {
+    event.preventDefault()
     setPasswordLoading(true)
     setPasswordError('')
     setPasswordSuccess(false)
 
-    // Validate passwords match
     if (passwordData.newPassword !== passwordData.confirmPassword) {
       setPasswordError('New passwords do not match')
       setPasswordLoading(false)
@@ -189,8 +191,8 @@ export default function AccountPage({ initialUser }) {
         credentials: 'include',
         body: JSON.stringify({
           currentPassword: passwordData.currentPassword,
-          newPassword: passwordData.newPassword
-        })
+          newPassword: passwordData.newPassword,
+        }),
       })
 
       const data = await res.json()
@@ -213,7 +215,6 @@ export default function AccountPage({ initialUser }) {
     }
   }
 
-  // Handle service revocation
   const handleRevokeService = async (authId, clientName) => {
     if (!confirm(`Are you sure you want to revoke access for "${clientName}"?`)) {
       return
@@ -222,11 +223,11 @@ export default function AccountPage({ initialUser }) {
     try {
       const res = await fetch(`/api/public/authorizations/${authId}`, {
         method: 'DELETE',
-        credentials: 'include'
+        credentials: 'include',
       })
 
       if (res.ok) {
-        setAuthorizations(authorizations.filter(auth => auth._id !== authId))
+        setAuthorizations(authorizations.filter((auth) => auth._id !== authId))
       } else {
         alert('Failed to revoke access')
       }
@@ -236,36 +237,32 @@ export default function AccountPage({ initialUser }) {
     }
   }
 
-  // Handle account unlinking
   const handleUnlinkProvider = async (provider) => {
     const providerName = provider === 'password' ? 'Email+Password' : provider.charAt(0).toUpperCase() + provider.slice(1)
-    
-    // WHAT: Check if this is the last login method
-    // WHY: Prevent account lockout
     const methodsCount = user.loginMethods?.length || 0
+
     if (methodsCount <= 1) {
       alert('Cannot unlink - you must have at least one login method')
       return
     }
-    
+
     if (!confirm(`Unlink ${providerName}? You can re-link it later by logging in with ${providerName}.`)) {
       return
     }
-    
+
     setUnlinkingProvider(provider)
     setUnlinkLoading(true)
     setUnlinkError('')
-    
+
     try {
       const res = await fetch(`/api/public/account/unlink/${provider}`, {
         method: 'DELETE',
-        credentials: 'include'
+        credentials: 'include',
       })
-      
+
       const data = await res.json()
-      
+
       if (res.ok) {
-        // Refresh page to show updated login methods
         window.location.reload()
       } else {
         setUnlinkError(data.details || data.error || 'Failed to unlink')
@@ -280,7 +277,6 @@ export default function AccountPage({ initialUser }) {
     }
   }
 
-  // Handle account deletion
   const handleDeleteAccount = async () => {
     if (deleteConfirmEmail.toLowerCase().trim() !== user.email.toLowerCase()) {
       setDeleteError('Email does not match')
@@ -293,11 +289,10 @@ export default function AccountPage({ initialUser }) {
     try {
       const res = await fetch('/api/public/account', {
         method: 'DELETE',
-        credentials: 'include'
+        credentials: 'include',
       })
 
       if (res.ok) {
-        // Account deleted, redirect to homepage
         window.location.href = '/?deleted=true'
       } else {
         const data = await res.json()
@@ -311,7 +306,6 @@ export default function AccountPage({ initialUser }) {
     }
   }
 
-  // User is guaranteed to exist because of server-side validation
   if (!user) {
     return null
   }
@@ -323,630 +317,295 @@ export default function AccountPage({ initialUser }) {
         <meta name="description" content="Manage your SSO account" />
       </Head>
 
-      <div className={styles.container} style={{ paddingTop: '2rem', paddingBottom: '4rem' }}>
-        <div style={{ maxWidth: '800px', margin: '0 auto' }}>
-          {/* Header */}
-          <div style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
-            <div>
-              <h1 style={{ fontSize: '32px', fontWeight: 'bold', marginBottom: '8px' }}>My Account</h1>
-              <p style={{ color: '#666', fontSize: '14px' }}>Manage your SSO profile and connected services</p>
-              <Link href="/" style={{ fontSize: '13px', color: '#667eea', textDecoration: 'none' }}>
-                ← Back to home
-              </Link>
-            </div>
-            <Link
-              href="/logout"
-              style={{
-                padding: '10px 20px',
-                fontSize: '14px',
-                color: '#666',
-                background: 'white',
-                border: '1px solid #ddd',
-                borderRadius: '6px',
-                textDecoration: 'none',
-                display: 'inline-block'
-              }}
-            >
-              🚪 Logout
-            </Link>
-          </div>
+      <AccountShell
+        actions={(
+          <Button component={Link} href="/logout" variant="default">
+            Logout
+          </Button>
+        )}
+        description="Manage your SSO profile, login methods, and connected services."
+        title="My Account"
+      >
+        <Card>
+          <Stack gap="md">
+            <Text fw={600} size="lg">Login Methods</Text>
+            <Text c="dimmed" size="sm">
+              You can use any linked method to access your account.
+            </Text>
+            <Group align="stretch" gap="sm" wrap="wrap">
+              {['password', 'facebook', 'google'].map((method) => {
+                const linked = user.loginMethods?.includes(method)
+                const disableUnlink = (user.loginMethods?.length || 0) <= 1
 
-          {/* Login Methods Section */}
-          <div className={styles.apiCard} style={{ marginBottom: '2rem' }}>
-            <h2 style={{ margin: 0, marginBottom: '4px' }}>🔑 Login Methods</h2>
-            <p style={{ margin: 0, marginBottom: '1rem', fontSize: '14px', color: '#666' }}>
-              You can use any of these methods to login to your account
-            </p>
-            
-            <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-              {/* Email+Password Badge */}
-              {user.loginMethods && user.loginMethods.includes('password') ? (
-                <div style={{
-                  padding: '12px 16px',
-                  border: '2px solid #667eea',
-                  borderRadius: '8px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  gap: '12px',
-                  background: '#f0f4ff',
-                  fontSize: '14px',
-                  minWidth: '240px'
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span style={{ fontSize: '18px' }}>✉️</span>
-                    <div>
-                      <div style={{ fontWeight: '600', color: '#667eea' }}>Email + Password</div>
-                      <div style={{ fontSize: '12px', color: '#666' }}>Linked ✓</div>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => handleUnlinkProvider('password')}
-                    disabled={unlinkLoading || (user.loginMethods?.length || 0) <= 1}
-                    title={(user.loginMethods?.length || 0) <= 1 ? 'Cannot unlink - at least one method required' : 'Unlink Email+Password'}
-                    style={{
-                      padding: '6px 12px',
-                      fontSize: '12px',
-                      fontWeight: '600',
-                      color: (user.loginMethods?.length || 0) <= 1 ? '#999' : '#d32f2f',
-                      background: 'white',
-                      border: `1px solid ${(user.loginMethods?.length || 0) <= 1 ? '#ddd' : '#d32f2f'}`,
-                      borderRadius: '4px',
-                      cursor: (unlinkLoading || (user.loginMethods?.length || 0) <= 1) ? 'not-allowed' : 'pointer',
-                      opacity: (user.loginMethods?.length || 0) <= 1 ? 0.5 : 1
-                    }}
-                  >
-                    {unlinkingProvider === 'password' ? 'Unlinking...' : 'Unlink'}
-                  </button>
-                </div>
-              ) : (
-                <div style={{
-                  padding: '12px 16px',
-                  border: '2px dashed #ddd',
-                  borderRadius: '8px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  background: '#f9f9f9',
-                  fontSize: '14px'
-                }}>
-                  <span style={{ fontSize: '18px', opacity: 0.5 }}>✉️</span>
-                  <div>
-                    <div style={{ fontWeight: '600', color: '#999' }}>Email + Password</div>
-                    <div style={{ fontSize: '12px', color: '#999' }}>Not linked</div>
-                  </div>
-                </div>
-              )}
+                return (
+                  <Card key={method} padding="md" style={{ minWidth: 230, flex: '1 1 230px' }}>
+                    <Stack gap="sm">
+                      <Group justify="space-between" align="flex-start">
+                        <Stack gap={2}>
+                          <Text fw={600}>{loginMethodLabel(method)}</Text>
+                          <Badge color={linked ? loginMethodColor(method) : 'gray'} variant={linked ? 'filled' : 'light'}>
+                            {linked ? 'Linked' : 'Not linked'}
+                          </Badge>
+                        </Stack>
+                        {linked ? (
+                          <Button
+                            color="red"
+                            disabled={unlinkLoading || disableUnlink}
+                            onClick={() => handleUnlinkProvider(method)}
+                            size="compact-sm"
+                            variant="light"
+                          >
+                            {unlinkingProvider === method ? 'Unlinking...' : 'Unlink'}
+                          </Button>
+                        ) : null}
+                      </Group>
+                    </Stack>
+                  </Card>
+                )
+              })}
+            </Group>
 
-              {/* Facebook Badge */}
-              {user.loginMethods && user.loginMethods.includes('facebook') ? (
-                <div style={{
-                  padding: '12px 16px',
-                  border: '2px solid #1877f2',
-                  borderRadius: '8px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  gap: '12px',
-                  background: '#e7f3ff',
-                  fontSize: '14px',
-                  minWidth: '240px'
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span style={{ fontSize: '18px' }}>📘</span>
-                    <div>
-                      <div style={{ fontWeight: '600', color: '#1877f2' }}>Facebook</div>
-                      <div style={{ fontSize: '12px', color: '#666' }}>Linked ✓</div>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => handleUnlinkProvider('facebook')}
-                    disabled={unlinkLoading || (user.loginMethods?.length || 0) <= 1}
-                    title={(user.loginMethods?.length || 0) <= 1 ? 'Cannot unlink - at least one method required' : 'Unlink Facebook'}
-                    style={{
-                      padding: '6px 12px',
-                      fontSize: '12px',
-                      fontWeight: '600',
-                      color: (user.loginMethods?.length || 0) <= 1 ? '#999' : '#d32f2f',
-                      background: 'white',
-                      border: `1px solid ${(user.loginMethods?.length || 0) <= 1 ? '#ddd' : '#d32f2f'}`,
-                      borderRadius: '4px',
-                      cursor: (unlinkLoading || (user.loginMethods?.length || 0) <= 1) ? 'not-allowed' : 'pointer',
-                      opacity: (user.loginMethods?.length || 0) <= 1 ? 0.5 : 1
-                    }}
-                  >
-                    {unlinkingProvider === 'facebook' ? 'Unlinking...' : 'Unlink'}
-                  </button>
-                </div>
-              ) : (
-                <div style={{
-                  padding: '12px 16px',
-                  border: '2px dashed #ddd',
-                  borderRadius: '8px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  background: '#f9f9f9',
-                  fontSize: '14px'
-                }}>
-                  <span style={{ fontSize: '18px', opacity: 0.5 }}>📘</span>
-                  <div>
-                    <div style={{ fontWeight: '600', color: '#999' }}>Facebook</div>
-                    <div style={{ fontSize: '12px', color: '#999' }}>Not linked</div>
-                  </div>
-                </div>
-              )}
-
-              {/* Google Badge */}
-              {user.loginMethods && user.loginMethods.includes('google') ? (
-                <div style={{
-                  padding: '12px 16px',
-                  border: '2px solid #db4437',
-                  borderRadius: '8px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  gap: '12px',
-                  background: '#ffebee',
-                  fontSize: '14px',
-                  minWidth: '240px'
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span style={{ fontSize: '18px' }}>🔍</span>
-                    <div>
-                      <div style={{ fontWeight: '600', color: '#db4437' }}>Google</div>
-                      <div style={{ fontSize: '12px', color: '#666' }}>Linked ✓</div>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => handleUnlinkProvider('google')}
-                    disabled={unlinkLoading || (user.loginMethods?.length || 0) <= 1}
-                    title={(user.loginMethods?.length || 0) <= 1 ? 'Cannot unlink - at least one method required' : 'Unlink Google'}
-                    style={{
-                      padding: '6px 12px',
-                      fontSize: '12px',
-                      fontWeight: '600',
-                      color: (user.loginMethods?.length || 0) <= 1 ? '#999' : '#d32f2f',
-                      background: 'white',
-                      border: `1px solid ${(user.loginMethods?.length || 0) <= 1 ? '#ddd' : '#d32f2f'}`,
-                      borderRadius: '4px',
-                      cursor: (unlinkLoading || (user.loginMethods?.length || 0) <= 1) ? 'not-allowed' : 'pointer',
-                      opacity: (user.loginMethods?.length || 0) <= 1 ? 0.5 : 1
-                    }}
-                  >
-                    {unlinkingProvider === 'google' ? 'Unlinking...' : 'Unlink'}
-                  </button>
-                </div>
-              ) : (
-                <div style={{
-                  padding: '12px 16px',
-                  border: '2px dashed #ddd',
-                  borderRadius: '8px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  background: '#f9f9f9',
-                  fontSize: '14px'
-                }}>
-                  <span style={{ fontSize: '18px', opacity: 0.5 }}>🔍</span>
-                  <div>
-                    <div style={{ fontWeight: '600', color: '#999' }}>Google</div>
-                    <div style={{ fontSize: '12px', color: '#999' }}>Not linked</div>
-                  </div>
-                </div>
-              )}
-            </div>
-            
-            {/* Unlink Error Message */}
-            {unlinkError && (
-              <div style={{
-                marginTop: '1rem',
-                background: '#fee',
-                border: '1px solid #fcc',
-                borderRadius: '6px',
-                padding: '10px',
-                color: '#c33',
-                fontSize: '13px'
-              }}>
+            {unlinkError ? (
+              <Alert color="red" icon={<IconAlertCircle size={18} />}>
                 {unlinkError}
-              </div>
-            )}
-            
-            <p style={{ margin: 0, marginTop: '1rem', fontSize: '12px', color: '#999' }}>
-              💡 Tip: Link multiple login methods to the same account by using the same email address when logging in
-            </p>
-          </div>
+              </Alert>
+            ) : null}
 
-          {/* Profile Section */}
-          <div className={styles.apiCard} style={{ marginBottom: '2rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '1rem' }}>
+            <Text c="dimmed" size="xs">
+              Link multiple login methods to the same account by using the same email address when logging in.
+            </Text>
+          </Stack>
+        </Card>
+
+        <Card>
+          <Stack gap="md">
+            <Group justify="space-between" align="flex-start">
               <div>
-                <h2 style={{ margin: 0, marginBottom: '4px' }}>👤 Profile</h2>
-                <p style={{ margin: 0, fontSize: '14px', color: '#666' }}>Your basic account information</p>
+                <Text fw={600} size="lg">Profile</Text>
+                <Text c="dimmed" size="sm">Your basic account information.</Text>
               </div>
-              {!editingProfile && (
-                <button
-                  onClick={() => setEditingProfile(true)}
-                  style={{
-                    padding: '8px 16px',
-                    fontSize: '14px',
-                    color: '#667eea',
-                    background: 'white',
-                    border: '1px solid #667eea',
-                    borderRadius: '6px',
-                    cursor: 'pointer'
-                  }}
-                >
+              {!editingProfile ? (
+                <Button onClick={() => setEditingProfile(true)} variant="default">
                   Edit
-                </button>
-              )}
-            </div>
+                </Button>
+              ) : null}
+            </Group>
 
             {editingProfile ? (
-              <form onSubmit={handleProfileUpdate}>
-                {profileError && (
-                  <div style={{ background: '#fee', border: '1px solid #fcc', borderRadius: '6px', padding: '10px', marginBottom: '1rem', color: '#c33', fontSize: '14px' }}>
+              <Stack component="form" gap="md" onSubmit={handleProfileUpdate}>
+                {profileError ? (
+                  <Alert color="red" icon={<IconAlertCircle size={18} />}>
                     {profileError}
-                  </div>
-                )}
-                {profileSuccess && (
-                  <div style={{ background: '#e8f5e9', border: '1px solid #81c784', borderRadius: '6px', padding: '10px', marginBottom: '1rem', color: '#2e7d32', fontSize: '14px' }}>
-                    ✅ Profile updated successfully!
-                  </div>
-                )}
+                  </Alert>
+                ) : null}
+                {profileSuccess ? (
+                  <Alert color="green" icon={<IconCircleCheck size={18} />}>
+                    Profile updated successfully.
+                  </Alert>
+                ) : null}
 
-                <div style={{ marginBottom: '1rem' }}>
-                  <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '600' }}>Name</label>
-                  <input
-                    type="text"
-                    value={profileData.name}
-                    onChange={(e) => setProfileData({ ...profileData, name: e.target.value })}
-                    style={{ width: '100%', padding: '10px', fontSize: '14px', border: '1px solid #ddd', borderRadius: '6px', boxSizing: 'border-box' }}
-                  />
-                </div>
+                <TextInput
+                  label="Name"
+                  onChange={(event) => setProfileData({ ...profileData, name: event.currentTarget.value })}
+                  value={profileData.name}
+                />
+                <TextInput
+                  disabled
+                  label="Email"
+                  value={user.email}
+                />
+                <Text c="dimmed" size="xs">Email cannot be changed.</Text>
 
-                <div style={{ marginBottom: '1rem' }}>
-                  <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '600' }}>Email</label>
-                  <input
-                    type="email"
-                    value={user.email}
-                    disabled
-                    style={{ width: '100%', padding: '10px', fontSize: '14px', border: '1px solid #ddd', borderRadius: '6px', background: '#f5f5f5', color: '#999', boxSizing: 'border-box' }}
-                  />
-                  <p style={{ fontSize: '12px', color: '#999', marginTop: '4px' }}>Email cannot be changed</p>
-                </div>
-
-                <div style={{ display: 'flex', gap: '8px' }}>
-                  <button
-                    type="submit"
-                    disabled={profileLoading}
-                    style={{
-                      padding: '10px 20px',
-                      fontSize: '14px',
-                      color: 'white',
-                      background: profileLoading ? '#999' : '#667eea',
-                      border: 'none',
-                      borderRadius: '6px',
-                      cursor: profileLoading ? 'not-allowed' : 'pointer'
-                    }}
-                  >
-                    {profileLoading ? 'Saving...' : 'Save Changes'}
-                  </button>
-                  <button
-                    type="button"
+                <Group>
+                  <Button loading={profileLoading} type="submit">
+                    Save Changes
+                  </Button>
+                  <Button
                     onClick={() => {
                       setEditingProfile(false)
                       setProfileData({ name: user.name || '' })
                       setProfileError('')
                     }}
-                    style={{
-                      padding: '10px 20px',
-                      fontSize: '14px',
-                      color: '#666',
-                      background: 'white',
-                      border: '1px solid #ddd',
-                      borderRadius: '6px',
-                      cursor: 'pointer'
-                    }}
+                    type="button"
+                    variant="default"
                   >
                     Cancel
-                  </button>
-                </div>
-              </form>
+                  </Button>
+                </Group>
+              </Stack>
             ) : (
-              <div>
-                <p style={{ margin: 0, marginBottom: '8px' }}><strong>Name:</strong> {user.name || 'Not set'}</p>
-                <p style={{ margin: 0 }}><strong>Email:</strong> {user.email}</p>
-              </div>
+              <Stack gap={4}>
+                <Text><strong>Name:</strong> {user.name || 'Not set'}</Text>
+                <Text><strong>Email:</strong> {user.email}</Text>
+              </Stack>
             )}
-          </div>
+          </Stack>
+        </Card>
 
-          {/* Connected Services Section */}
-          <div className={styles.apiCard} style={{ marginBottom: '2rem' }}>
-            <h2 style={{ margin: 0, marginBottom: '4px' }}>🔗 Connected Services</h2>
-            <p style={{ margin: 0, marginBottom: '1rem', fontSize: '14px', color: '#666' }}>
-              Services that have access to your SSO account
-            </p>
+        <Card>
+          <Stack gap="md">
+            <Text fw={600} size="lg">Connected Services</Text>
+            <Text c="dimmed" size="sm">Services that currently have access to your SSO account.</Text>
 
             {authsLoading ? (
-              <p style={{ fontSize: '14px', color: '#999' }}>Loading services...</p>
+              <Group justify="center" py="md">
+                <Loader size="sm" />
+              </Group>
             ) : authorizations.length === 0 ? (
-              <p style={{ fontSize: '14px', color: '#999' }}>No connected services yet</p>
+              <Text c="dimmed" size="sm">No connected services yet.</Text>
             ) : (
-              <div>
+              <Stack gap="sm">
                 {authorizations.map((auth) => (
-                  <div
-                    key={auth._id}
-                    style={{
-                      padding: '12px',
-                      border: '1px solid #e0e0e0',
-                      borderRadius: '8px',
-                      marginBottom: '12px',
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center'
-                    }}
-                  >
-                    <div>
-                      <p style={{ margin: 0, fontWeight: '600', fontSize: '14px' }}>{auth.clientName || auth.clientId}</p>
-                      <p style={{ margin: 0, fontSize: '12px', color: '#999' }}>
-                        Granted: {new Date(auth.createdAt).toLocaleDateString()}
-                      </p>
-                      {auth.scope && (
-                        <p style={{ margin: 0, fontSize: '12px', color: '#666', marginTop: '4px' }}>
-                          Scopes: {auth.scope}
-                        </p>
-                      )}
-                    </div>
-                    <button
-                      onClick={() => handleRevokeService(auth._id, auth.clientName || auth.clientId)}
-                      style={{
-                        padding: '8px 16px',
-                        fontSize: '13px',
-                        color: '#d32f2f',
-                        background: 'white',
-                        border: '1px solid #d32f2f',
-                        borderRadius: '6px',
-                        cursor: 'pointer'
-                      }}
-                    >
-                      Revoke
-                    </button>
-                  </div>
+                  <Card key={auth._id} withBorder>
+                    <Group justify="space-between" align="flex-start">
+                      <Stack gap={2}>
+                        <Text fw={600}>{auth.clientName || auth.clientId}</Text>
+                        <Text c="dimmed" size="xs">
+                          Granted: {new Date(auth.createdAt).toLocaleDateString()}
+                        </Text>
+                        {auth.scope ? (
+                          <Text c="dimmed" size="xs">
+                            Scopes: {auth.scope}
+                          </Text>
+                        ) : null}
+                      </Stack>
+                      <Button
+                        color="red"
+                        onClick={() => handleRevokeService(auth._id, auth.clientName || auth.clientId)}
+                        variant="light"
+                      >
+                        Revoke
+                      </Button>
+                    </Group>
+                  </Card>
                 ))}
-              </div>
+              </Stack>
             )}
-          </div>
+          </Stack>
+        </Card>
 
-          {/* Security Section */}
-          <div className={styles.apiCard} style={{ marginBottom: '2rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '1rem' }}>
+        <Card>
+          <Stack gap="md">
+            <Group justify="space-between" align="flex-start">
               <div>
-                <h2 style={{ margin: 0, marginBottom: '4px' }}>🔒 Security</h2>
-                <p style={{ margin: 0, fontSize: '14px', color: '#666' }}>Change your password</p>
+                <Text fw={600} size="lg">Security</Text>
+                <Text c="dimmed" size="sm">Change your password.</Text>
               </div>
-              {!changingPassword && (
-                <button
-                  onClick={() => setChangingPassword(true)}
-                  style={{
-                    padding: '8px 16px',
-                    fontSize: '14px',
-                    color: '#667eea',
-                    background: 'white',
-                    border: '1px solid #667eea',
-                    borderRadius: '6px',
-                    cursor: 'pointer'
-                  }}
-                >
+              {!changingPassword ? (
+                <Button onClick={() => setChangingPassword(true)} variant="default">
                   Change Password
-                </button>
-              )}
-            </div>
+                </Button>
+              ) : null}
+            </Group>
 
-            {changingPassword && (
-              <form onSubmit={handlePasswordChange}>
-                {passwordError && (
-                  <div style={{ background: '#fee', border: '1px solid #fcc', borderRadius: '6px', padding: '10px', marginBottom: '1rem', color: '#c33', fontSize: '14px' }}>
+            {changingPassword ? (
+              <Stack component="form" gap="md" onSubmit={handlePasswordChange}>
+                {passwordError ? (
+                  <Alert color="red" icon={<IconAlertCircle size={18} />}>
                     {passwordError}
-                  </div>
-                )}
-                {passwordSuccess && (
-                  <div style={{ background: '#e8f5e9', border: '1px solid #81c784', borderRadius: '6px', padding: '10px', marginBottom: '1rem', color: '#2e7d32', fontSize: '14px' }}>
-                    ✅ Password changed successfully!
-                  </div>
-                )}
+                  </Alert>
+                ) : null}
+                {passwordSuccess ? (
+                  <Alert color="green" icon={<IconCircleCheck size={18} />}>
+                    Password changed successfully.
+                  </Alert>
+                ) : null}
 
-                <div style={{ marginBottom: '1rem' }}>
-                  <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '600' }}>Current Password</label>
-                  <input
-                    type="password"
-                    value={passwordData.currentPassword}
-                    onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
-                    required
-                    style={{ width: '100%', padding: '10px', fontSize: '14px', border: '1px solid #ddd', borderRadius: '6px', boxSizing: 'border-box' }}
-                  />
-                </div>
+                <PasswordInput
+                  label="Current Password"
+                  onChange={(event) => setPasswordData({ ...passwordData, currentPassword: event.currentTarget.value })}
+                  value={passwordData.currentPassword}
+                />
+                <PasswordInput
+                  label="New Password"
+                  onChange={(event) => setPasswordData({ ...passwordData, newPassword: event.currentTarget.value })}
+                  value={passwordData.newPassword}
+                />
+                <PasswordInput
+                  label="Confirm New Password"
+                  onChange={(event) => setPasswordData({ ...passwordData, confirmPassword: event.currentTarget.value })}
+                  value={passwordData.confirmPassword}
+                />
 
-                <div style={{ marginBottom: '1rem' }}>
-                  <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '600' }}>New Password</label>
-                  <input
-                    type="password"
-                    value={passwordData.newPassword}
-                    onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
-                    required
-                    style={{ width: '100%', padding: '10px', fontSize: '14px', border: '1px solid #ddd', borderRadius: '6px', boxSizing: 'border-box' }}
-                  />
-                </div>
-
-                <div style={{ marginBottom: '1rem' }}>
-                  <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '600' }}>Confirm New Password</label>
-                  <input
-                    type="password"
-                    value={passwordData.confirmPassword}
-                    onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
-                    required
-                    style={{ width: '100%', padding: '10px', fontSize: '14px', border: '1px solid #ddd', borderRadius: '6px', boxSizing: 'border-box' }}
-                  />
-                </div>
-
-                <div style={{ display: 'flex', gap: '8px' }}>
-                  <button
-                    type="submit"
-                    disabled={passwordLoading}
-                    style={{
-                      padding: '10px 20px',
-                      fontSize: '14px',
-                      color: 'white',
-                      background: passwordLoading ? '#999' : '#667eea',
-                      border: 'none',
-                      borderRadius: '6px',
-                      cursor: passwordLoading ? 'not-allowed' : 'pointer'
-                    }}
-                  >
-                    {passwordLoading ? 'Changing...' : 'Change Password'}
-                  </button>
-                  <button
-                    type="button"
+                <Group>
+                  <Button loading={passwordLoading} type="submit">
+                    Change Password
+                  </Button>
+                  <Button
                     onClick={() => {
                       setChangingPassword(false)
                       setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' })
                       setPasswordError('')
                     }}
-                    style={{
-                      padding: '10px 20px',
-                      fontSize: '14px',
-                      color: '#666',
-                      background: 'white',
-                      border: '1px solid #ddd',
-                      borderRadius: '6px',
-                      cursor: 'pointer'
-                    }}
+                    type="button"
+                    variant="default"
                   >
                     Cancel
-                  </button>
-                </div>
-              </form>
-            )}
-          </div>
+                  </Button>
+                </Group>
+              </Stack>
+            ) : null}
+          </Stack>
+        </Card>
 
-          {/* Danger Zone */}
-          <div className={styles.apiCard} style={{ borderColor: '#d32f2f' }}>
-            <h2 style={{ margin: 0, marginBottom: '4px', color: '#d32f2f' }}>⚠️ Danger Zone</h2>
-            <p style={{ margin: 0, marginBottom: '1rem', fontSize: '14px', color: '#666' }}>
-              Permanently delete your account and all associated data
-            </p>
+        <Card border="red" withBorder>
+          <Stack gap="md">
+            <Text c="red" fw={700} size="lg">Danger Zone</Text>
+            <Text c="dimmed" size="sm">
+              Permanently delete your account and all associated data.
+            </Text>
+            <Group>
+              <Button color="red" onClick={() => setShowDeleteConfirm(true)}>
+                Delete Account
+              </Button>
+            </Group>
+          </Stack>
+        </Card>
 
-            <button
-              onClick={() => setShowDeleteConfirm(true)}
-              style={{
-                padding: '10px 20px',
-                fontSize: '14px',
-                color: 'white',
-                background: '#d32f2f',
-                border: 'none',
-                borderRadius: '6px',
-                cursor: 'pointer'
-              }}
-            >
-              Delete Account
-            </button>
-          </div>
-        </div>
-      </div>
+        <Modal
+          onClose={resetDeleteModal}
+          opened={showDeleteConfirm}
+          title="Delete Account"
+        >
+          <Stack gap="md">
+            <Alert color="red" icon={<IconAlertCircle size={18} />}>
+              This action cannot be undone. It permanently deletes your account, active sessions, connected services, and account history.
+            </Alert>
 
-      {/* Delete Confirmation Modal */}
-      {showDeleteConfirm && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: 'rgba(0, 0, 0, 0.7)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: '20px',
-          zIndex: 1000
-        }}>
-          <div style={{
-            background: 'white',
-            borderRadius: '16px',
-            padding: '32px',
-            maxWidth: '500px',
-            width: '100%',
-            boxShadow: '0 20px 60px rgba(0,0,0,0.5)'
-          }}>
-            <h2 style={{ margin: 0, marginBottom: '8px', color: '#d32f2f' }}>⚠️ Delete Account</h2>
-            <p style={{ margin: 0, marginBottom: '16px', fontSize: '14px', color: '#666' }}>
-              This action cannot be undone. This will permanently delete your account and remove all your data from our servers, including:
-            </p>
-            <ul style={{ marginBottom: '16px', fontSize: '14px', color: '#666', paddingLeft: '20px' }}>
-              <li>Your profile information</li>
-              <li>All active sessions</li>
-              <li>Connected services authorizations</li>
-              <li>Account history</li>
-            </ul>
-
-            {deleteError && (
-              <div style={{ background: '#fee', border: '1px solid #fcc', borderRadius: '6px', padding: '10px', marginBottom: '16px', color: '#c33', fontSize: '14px' }}>
+            {deleteError ? (
+              <Alert color="red" icon={<IconAlertCircle size={18} />}>
                 {deleteError}
-              </div>
-            )}
+              </Alert>
+            ) : null}
 
-            <p style={{ margin: 0, marginBottom: '8px', fontSize: '14px', fontWeight: '600' }}>
-              Type your email <strong>{user.email}</strong> to confirm:
-            </p>
-            <input
-              type="email"
-              value={deleteConfirmEmail}
-              onChange={(e) => {
-                setDeleteConfirmEmail(e.target.value)
+            <Text size="sm">
+              Type <strong>{user.email}</strong> to confirm.
+            </Text>
+            <TextInput
+              onChange={(event) => {
+                setDeleteConfirmEmail(event.currentTarget.value)
                 setDeleteError('')
               }}
               placeholder="Enter your email"
-              style={{ width: '100%', padding: '10px', fontSize: '14px', border: '1px solid #ddd', borderRadius: '6px', marginBottom: '16px', boxSizing: 'border-box' }}
+              value={deleteConfirmEmail}
             />
 
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <button
-                onClick={handleDeleteAccount}
-                disabled={deleteLoading || deleteConfirmEmail.toLowerCase().trim() !== user.email.toLowerCase()}
-                style={{
-                  padding: '10px 20px',
-                  fontSize: '14px',
-                  color: 'white',
-                  background: (deleteLoading || deleteConfirmEmail.toLowerCase().trim() !== user.email.toLowerCase()) ? '#999' : '#d32f2f',
-                  border: 'none',
-                  borderRadius: '6px',
-                  cursor: (deleteLoading || deleteConfirmEmail.toLowerCase().trim() !== user.email.toLowerCase()) ? 'not-allowed' : 'pointer'
-                }}
-              >
-                {deleteLoading ? 'Deleting...' : 'Delete My Account'}
-              </button>
-              <button
-                onClick={() => {
-                  setShowDeleteConfirm(false)
-                  setDeleteConfirmEmail('')
-                  setDeleteError('')
-                }}
-                disabled={deleteLoading}
-                style={{
-                  padding: '10px 20px',
-                  fontSize: '14px',
-                  color: '#666',
-                  background: 'white',
-                  border: '1px solid #ddd',
-                  borderRadius: '6px',
-                  cursor: deleteLoading ? 'not-allowed' : 'pointer'
-                }}
-              >
+            <Group justify="flex-end">
+              <Button onClick={resetDeleteModal} variant="default">
                 Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+              </Button>
+              <Button
+                color="red"
+                disabled={deleteConfirmEmail.toLowerCase().trim() !== user.email.toLowerCase()}
+                loading={deleteLoading}
+                onClick={handleDeleteAccount}
+              >
+                Delete My Account
+              </Button>
+            </Group>
+          </Stack>
+        </Modal>
+      </AccountShell>
     </>
   )
 }

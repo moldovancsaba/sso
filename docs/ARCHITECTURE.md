@@ -13,7 +13,7 @@ Last updated: 2026-05-21T00:00:00.000Z
 
 - Design, UI, and UX governance is defined outside this repo in [`/Users/Shared/Projects/GENERAL_DESIGN_SYSTEM`](/Users/Shared/Projects/GENERAL_DESIGN_SYSTEM)
 - The local pointer is [docs/DESIGN_SYSTEM.md](/Users/moldovancsaba/Projects/sso/docs/DESIGN_SYSTEM.md)
-- Current local CSS modules, `styles/globals.css`, and `components/ThemeProvider.js` are implementation artifacts, not the long-term design SSOT
+- Current local CSS modules and `styles/globals.css` are implementation artifacts, not the long-term design SSOT
 - Future UI work should migrate this repo toward the Mantine-first contracts in that shared directory
 
 ## Canonical Runtime Model

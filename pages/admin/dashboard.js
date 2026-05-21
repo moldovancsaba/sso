@@ -1,36 +1,73 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/router'
+import {
+  Alert,
+  Button,
+  Card,
+  Grid,
+  Loader,
+  SimpleGrid,
+  Stack,
+  Text,
+  ThemeIcon,
+} from '@mantine/core'
+import {
+  IconActivityHeartbeat,
+  IconAlertCircle,
+  IconApps,
+  IconChecklist,
+  IconUsers,
+} from '@tabler/icons-react'
+import AdminShell from '../../components/AdminShell'
 import { fetchAdminJson, isAuthRedirectError } from '../../lib/adminAuthFlow.js'
 
+function StatCard({ description, href, icon: Icon, title, value }) {
+  return (
+    <Card component={Link} href={href} shadow="sm" style={{ textDecoration: 'none' }}>
+      <Stack gap="sm">
+        <ThemeIcon color="brand" radius="xl" size={42} variant="light">
+          <Icon size={22} />
+        </ThemeIcon>
+        <div>
+          <Text c="dimmed" size="sm">
+            {title}
+          </Text>
+          <Text fw={700} size="xl">
+            {value}
+          </Text>
+        </div>
+        {description ? (
+          <Text c="dimmed" size="sm">
+            {description}
+          </Text>
+        ) : null}
+      </Stack>
+    </Card>
+  )
+}
+
 export default function AdminDashboard() {
-  const router = useRouter()
   const [admin, setAdmin] = useState(null)
+  const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
   const [stats, setStats] = useState({
     totalUsers: 0,
     totalClients: 0,
-    recentActivity: [],
   })
 
   const loadStats = useCallback(async () => {
-    try {
-      // Load basic stats from APIs
-      const [usersData, clientsData] = await Promise.all([
-        fetchAdminJson('/api/admin/public-users'),
-        fetchAdminJson('/api/admin/oauth-clients'),
-      ])
+    const [usersData, clientsData] = await Promise.all([
+      fetchAdminJson('/api/admin/public-users'),
+      fetchAdminJson('/api/admin/oauth-clients'),
+    ])
 
-      setStats(prev => ({ ...prev, totalUsers: usersData.users?.length || 0 }))
-      setStats(prev => ({ ...prev, totalClients: clientsData.clients?.length || 0 }))
-    } catch (e) {
-      if (!isAuthRedirectError(e)) {
-        console.error('Failed to load stats:', e)
-      }
-    }
+    setStats({
+      totalUsers: usersData.users?.length || 0,
+      totalClients: clientsData.clients?.length || 0,
+    })
   }, [])
 
-  const checkSession = useCallback(async () => {
+  const initializePage = useCallback(async () => {
     try {
       const data = await fetchAdminJson('/api/admin/session')
       if (data?.isValid) {
@@ -40,141 +77,123 @@ export default function AdminDashboard() {
     } catch (e) {
       if (!isAuthRedirectError(e)) {
         console.error('Session check error:', e)
-        router.push('/admin')
+        setError('Failed to load the admin dashboard.')
       }
     } finally {
       setLoading(false)
     }
-  }, [loadStats, router])
+  }, [loadStats])
 
   useEffect(() => {
-    checkSession()
-  }, [checkSession])
+    initializePage()
+  }, [initializePage])
 
   async function handleLogout() {
     try {
       await fetch('/api/admin/login', { method: 'DELETE', credentials: 'include' })
-      router.push('/admin')
+      window.location.href = '/admin'
     } catch (e) {
       console.error('Logout error:', e)
+      setError('Logout failed. Please try again.')
     }
   }
 
   if (loading) {
     return (
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0b1021' }}>
-        <div style={{ color: '#e6e8f2' }}>Loading...</div>
-      </div>
+      <AdminShell
+        description="Loading the current admin session."
+        title="Admin Dashboard"
+      >
+        <Stack align="center" py="xl">
+          <Loader />
+        </Stack>
+      </AdminShell>
     )
   }
 
   if (!admin) {
-    return null
+    return (
+      <AdminShell
+        description="Admin session is not available."
+        title="Admin Dashboard"
+      >
+        <Alert color="red" icon={<IconAlertCircle size={18} />}>
+          {error || 'Admin session is not available.'}
+        </Alert>
+      </AdminShell>
+    )
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: '#0b1021', color: '#e6e8f2' }}>
-      {/* Navigation Header */}
-      <nav style={{ background: '#12172b', borderBottom: '1px solid #22284a', padding: '1rem 2rem' }}>
-        <div style={{ maxWidth: 1400, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
-            <Link href="/admin/dashboard" style={{ fontSize: '1.25rem', fontWeight: '600', color: '#e6e8f2', textDecoration: 'none' }}>
-              SSO Admin
-            </Link>
-            <div style={{ display: 'flex', gap: 16 }}>
-              <Link href="/admin/dashboard" style={{ padding: '0.5rem 0.75rem', background: '#4054d6', color: 'white', borderRadius: 6, textDecoration: 'none', fontSize: 14 }}>
-                Dashboard
-              </Link>
-              <Link href="/admin/users" style={{ padding: '0.5rem 0.75rem', background: '#c77700', color: 'white', borderRadius: 6, textDecoration: 'none', fontSize: 14 }}>
-                Users
-              </Link>
-              <Link href="/admin/activity" style={{ padding: '0.5rem 0.75rem', background: '#6a1b9a', color: 'white', borderRadius: 6, textDecoration: 'none', fontSize: 14 }}>
-                Activity
-              </Link>
-              <Link href="/admin/oauth-clients" style={{ padding: '0.5rem 0.75rem', background: '#1e895a', color: 'white', borderRadius: 6, textDecoration: 'none', fontSize: 14 }}>
-                Clients
-              </Link>
-            </div>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <span style={{ fontSize: 14, opacity: 0.8 }}>
-              {admin.email} ({admin.role})
-            </span>
-            <button onClick={handleLogout} style={{ padding: '0.5rem 0.75rem', background: '#24306b', color: 'white', border: 0, borderRadius: 6, cursor: 'pointer', fontSize: 14 }}>
-              Logout
-            </button>
-          </div>
-        </div>
-      </nav>
+    <AdminShell
+      admin={admin}
+      description="Operational overview for public users, OAuth clients, and system access."
+      onLogout={handleLogout}
+      title="Admin Dashboard"
+    >
+      {error ? (
+        <Alert color="red" icon={<IconAlertCircle size={18} />}>
+          {error}
+        </Alert>
+      ) : null}
 
-      {/* Main Content */}
-      <div style={{ maxWidth: 1400, margin: '0 auto', padding: '2rem' }}>
-        <h1 style={{ margin: '0 0 1.5rem 0', fontSize: '2rem' }}>Admin Dashboard</h1>
+      <SimpleGrid cols={{ base: 1, md: 3 }}>
+        <StatCard
+          description="Registered public accounts managed by this SSO instance."
+          href="/admin/users"
+          icon={IconUsers}
+          title="Total Users"
+          value={stats.totalUsers}
+        />
+        <StatCard
+          description="OAuth applications currently configured for the platform."
+          href="/admin/oauth-clients"
+          icon={IconApps}
+          title="OAuth Clients"
+          value={stats.totalClients}
+        />
+        <StatCard
+          description="Centralized access and permission activity across the system."
+          href="/admin/activity"
+          icon={IconActivityHeartbeat}
+          title="System Status"
+          value="Operational"
+        />
+      </SimpleGrid>
 
-        {/* Stats Cards */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: 16, marginBottom: '2rem' }}>
-          <Link href="/admin/users" style={{ textDecoration: 'none' }}>
-            <div style={{ background: '#12172b', border: '1px solid #22284a', borderRadius: 12, padding: '1.5rem', cursor: 'pointer', transition: 'border-color 0.2s' }}
-                 onMouseEnter={(e) => e.currentTarget.style.borderColor = '#4054d6'}
-                 onMouseLeave={(e) => e.currentTarget.style.borderColor = '#22284a'}>
-              <div style={{ fontSize: 14, opacity: 0.8, marginBottom: 8, color: '#e6e8f2' }}>Total Users</div>
-              <div style={{ fontSize: '2rem', fontWeight: '600', color: '#e6e8f2' }}>{stats.totalUsers}</div>
-            </div>
-          </Link>
+      <Card>
+        <Stack gap="md">
+          <Text fw={600} size="lg">
+            Quick Actions
+          </Text>
+          <Grid>
+            <Grid.Col span={{ base: 12, sm: 6 }}>
+              <Button component={Link} fullWidth href="/admin/users" leftSection={<IconUsers size={18} />}>
+                Manage Users
+              </Button>
+            </Grid.Col>
+            <Grid.Col span={{ base: 12, sm: 6 }}>
+              <Button component={Link} fullWidth href="/admin/oauth-clients" leftSection={<IconApps size={18} />} variant="default">
+                Manage OAuth Clients
+              </Button>
+            </Grid.Col>
+            <Grid.Col span={{ base: 12, sm: 6 }}>
+              <Button component={Link} fullWidth href="/admin/activity" leftSection={<IconChecklist size={18} />} variant="default">
+                View Activity
+              </Button>
+            </Grid.Col>
+            <Grid.Col span={{ base: 12, sm: 6 }}>
+              <Button component={Link} fullWidth href="/docs" leftSection={<IconChecklist size={18} />} variant="default">
+                Open Documentation
+              </Button>
+            </Grid.Col>
+          </Grid>
+        </Stack>
+      </Card>
 
-          <Link href="/admin/oauth-clients" style={{ textDecoration: 'none' }}>
-            <div style={{ background: '#12172b', border: '1px solid #22284a', borderRadius: 12, padding: '1.5rem', cursor: 'pointer', transition: 'border-color 0.2s' }}
-                 onMouseEnter={(e) => e.currentTarget.style.borderColor = '#1e895a'}
-                 onMouseLeave={(e) => e.currentTarget.style.borderColor = '#22284a'}>
-              <div style={{ fontSize: 14, opacity: 0.8, marginBottom: 8, color: '#e6e8f2' }}>OAuth Clients</div>
-              <div style={{ fontSize: '2rem', fontWeight: '600', color: '#e6e8f2' }}>{stats.totalClients}</div>
-            </div>
-          </Link>
-
-          <Link href="/admin/activity" style={{ textDecoration: 'none' }}>
-            <div style={{ background: '#12172b', border: '1px solid #22284a', borderRadius: 12, padding: '1.5rem', cursor: 'pointer', transition: 'border-color 0.2s' }}
-                 onMouseEnter={(e) => e.currentTarget.style.borderColor = '#6a1b9a'}
-                 onMouseLeave={(e) => e.currentTarget.style.borderColor = '#22284a'}>
-              <div style={{ fontSize: 14, opacity: 0.8, marginBottom: 8, color: '#e6e8f2' }}>System Status</div>
-              <div style={{ fontSize: '2rem', fontWeight: '600', color: '#81c784' }}>●</div>
-              <div style={{ fontSize: 12, opacity: 0.8, marginTop: 4, color: '#e6e8f2' }}>All systems operational</div>
-            </div>
-          </Link>
-        </div>
-
-        {/* Quick Actions */}
-        <div style={{ background: '#12172b', border: '1px solid #22284a', borderRadius: 12, padding: '1.5rem' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-            <h2 style={{ margin: 0, fontSize: '1.25rem' }}>Quick Actions</h2>
-            {admin.role === 'admin' && (
-              <Link href="/admin/oauth-clients?create=true" style={{ padding: '0.5rem 1rem', background: '#4054d6', color: 'white', borderRadius: 6, textDecoration: 'none', fontSize: 14, fontWeight: 600 }}>
-                + New OAuth Client
-              </Link>
-            )}
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12 }}>
-            <Link href="/admin/users" style={{ padding: '0.75rem', background: '#0b1021', border: '1px solid #22284a', borderRadius: 8, textDecoration: 'none', color: '#e6e8f2', textAlign: 'center' }}>
-              👥 Manage Users
-            </Link>
-            <Link href="/admin/oauth-clients" style={{ padding: '0.75rem', background: '#0b1021', border: '1px solid #22284a', borderRadius: 8, textDecoration: 'none', color: '#e6e8f2', textAlign: 'center' }}>
-              🔑 Manage OAuth Clients
-            </Link>
-            <Link href="/admin/activity" style={{ padding: '0.75rem', background: '#0b1021', border: '1px solid #22284a', borderRadius: 8, textDecoration: 'none', color: '#e6e8f2', textAlign: 'center' }}>
-              📊 View Activity Logs
-            </Link>
-            <Link href="/docs" style={{ padding: '0.75rem', background: '#0b1021', border: '1px solid #22284a', borderRadius: 8, textDecoration: 'none', color: '#e6e8f2', textAlign: 'center' }}>
-              📚 API Documentation
-            </Link>
-          </div>
-        </div>
-
-        {/* Welcome Message */}
-        <div style={{ marginTop: '2rem', padding: '1rem', background: '#0e1733', border: '1px solid #24306b', borderRadius: 8 }}>
-          <p style={{ margin: 0, opacity: 0.9 }}>
-            Welcome back, <strong>{admin.name || admin.email}</strong>! You have <strong>{admin.role}</strong> access.
-          </p>
-        </div>
-      </div>
-    </div>
+      <Alert color="blue" icon={<IconChecklist size={18} />}>
+        Welcome back, <strong>{admin.name || admin.email}</strong>. Your current runtime role is <strong>{admin.role}</strong>.
+      </Alert>
+    </AdminShell>
   )
 }

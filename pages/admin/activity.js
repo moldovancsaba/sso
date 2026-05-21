@@ -1,122 +1,123 @@
-/**
- * Admin Activity Dashboard
- * 
- * WHAT: Cross-app activity monitoring and access log viewer
- * WHY: Admins need visibility into user access attempts, permission changes, and login events
- * HOW: Filterable timeline view with real-time data from appAccessLogs collection
- */
-
-import { useState, useEffect, useCallback } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import Head from 'next/head'
-import Link from 'next/link'
-import styles from '../../styles/home.module.css'
+import {
+  Alert,
+  Badge,
+  Button,
+  Card,
+  Grid,
+  Group,
+  Loader,
+  NativeSelect,
+  Stack,
+  Text,
+} from '@mantine/core'
+import { IconAlertCircle } from '@tabler/icons-react'
+import AdminShell from '../../components/AdminShell'
 
-// Server-side admin authentication check
 export async function getServerSideProps(context) {
   const { getAdminUser } = await import('../../lib/auth.mjs')
-  
+
   const admin = await getAdminUser(context.req)
-  
+
   if (!admin) {
     return {
       redirect: {
         destination: '/admin?redirect=/admin/activity',
-        permanent: false
-      }
+        permanent: false,
+      },
     }
   }
-  
+
   return {
     props: {
       admin: {
         id: admin.id,
         email: admin.email,
-        role: admin.role
-      }
-    }
+        role: admin.role,
+      },
+    },
+  }
+}
+
+const eventLabels = {
+  access_attempt: 'Access Attempt',
+  access_granted: 'Access Granted',
+  access_revoked: 'Access Revoked',
+  role_changed: 'Role Changed',
+  login_success: 'Login Success',
+  login_failed: 'Login Failed',
+}
+
+function eventColor(eventType, accessGranted) {
+  switch (eventType) {
+    case 'access_granted':
+      return 'green'
+    case 'access_revoked':
+      return 'red'
+    case 'role_changed':
+      return 'blue'
+    case 'access_attempt':
+      return accessGranted ? 'green' : 'yellow'
+    case 'login_failed':
+      return 'red'
+    default:
+      return 'gray'
   }
 }
 
 export default function ActivityDashboard({ admin }) {
-  const [logs, setLogs] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [timeRange, setTimeRange] = useState('7d')
+  const [expandedLog, setExpandedLog] = useState(null)
   const [eventType, setEventType] = useState('all')
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(true)
+  const [logs, setLogs] = useState([])
   const [pagination, setPagination] = useState({ total: 0, hasMore: false })
   const [skip, setSkip] = useState(0)
-  const [expandedLog, setExpandedLog] = useState(null)
+  const [timeRange, setTimeRange] = useState('7d')
 
-  // WHAT: Fetch activity logs with current filters
   const fetchLogs = useCallback(async () => {
     setLoading(true)
+    setError('')
     try {
       const params = new URLSearchParams({
         timeRange,
         eventType,
         limit: '50',
-        skip: skip.toString()
+        skip: skip.toString(),
       })
 
       const res = await fetch(`/api/admin/activity?${params}`, {
-        credentials: 'include'
+        credentials: 'include',
       })
 
-      if (res.ok) {
-        const data = await res.json()
-        setLogs(data.logs || [])
-        setPagination(data.pagination || { total: 0, hasMore: false })
-      } else {
-        console.error('Failed to load activity logs')
+      if (!res.ok) {
+        throw new Error('Failed to load activity logs')
       }
+
+      const data = await res.json()
+      setLogs(data.logs || [])
+      setPagination(data.pagination || { total: 0, hasMore: false })
     } catch (err) {
       console.error('Activity fetch error:', err)
+      setError(err.message || 'Failed to load activity logs')
     } finally {
       setLoading(false)
     }
-  }, [timeRange, eventType, skip])
+  }, [eventType, skip, timeRange])
 
   useEffect(() => {
     fetchLogs()
   }, [fetchLogs])
 
-  // WHAT: Format timestamp for display
   const formatTimestamp = (timestamp) => {
     const date = new Date(timestamp)
     return date.toLocaleString('en-US', {
       month: 'short',
       day: 'numeric',
       hour: '2-digit',
-      minute: '2-digit'
+      minute: '2-digit',
     })
-  }
-
-  // WHAT: Get badge color based on event type
-  const getEventBadgeColor = (eventType, accessGranted) => {
-    switch (eventType) {
-      case 'access_granted':
-        return '#4caf50' // Green
-      case 'access_revoked':
-        return '#f44336' // Red
-      case 'role_changed':
-        return '#2196f3' // Blue
-      case 'access_attempt':
-        return accessGranted ? '#4caf50' : '#ff9800' // Green if granted, orange if denied
-      default:
-        return '#999' // Gray
-    }
-  }
-
-  // WHAT: Get human-readable event label
-  const getEventLabel = (eventType) => {
-    const labels = {
-      access_attempt: 'Access Attempt',
-      access_granted: 'Access Granted',
-      access_revoked: 'Access Revoked',
-      role_changed: 'Role Changed',
-      login_success: 'Login Success',
-      login_failed: 'Login Failed'
-    }
-    return labels[eventType] || eventType
   }
 
   return (
@@ -125,228 +126,158 @@ export default function ActivityDashboard({ admin }) {
         <title>Activity Dashboard - SSO Admin</title>
       </Head>
 
-      <div className={styles.container} style={{ paddingTop: '2rem', paddingBottom: '4rem' }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-          
-          {/* Header */}
-          <div style={{ marginBottom: '2rem' }}>
-            <h1 style={{ fontSize: '32px', fontWeight: 'bold', marginBottom: '8px' }}>
-              📊 Activity Dashboard
-            </h1>
-            <p style={{ color: '#666', fontSize: '14px' }}>
-              Cross-app user access attempts, permission changes, and login events
-            </p>
-            <Link href="/admin" style={{ fontSize: '13px', color: '#667eea', textDecoration: 'none' }}>
-              ← Back to Admin
-            </Link>
-          </div>
+      <AdminShell
+        admin={admin}
+        description="Cross-app user access attempts, permission changes, and login events."
+        title="Activity Dashboard"
+      >
+        <Card>
+          <Grid>
+            <Grid.Col span={{ base: 12, md: 6 }}>
+              <NativeSelect
+                data={[
+                  { label: 'Last 24 hours', value: '24h' },
+                  { label: 'Last 7 days', value: '7d' },
+                  { label: 'Last 30 days', value: '30d' },
+                  { label: 'All time', value: 'all' },
+                ]}
+                label="Time Range"
+                onChange={(event) => {
+                  setTimeRange(event.currentTarget.value)
+                  setSkip(0)
+                }}
+                value={timeRange}
+              />
+            </Grid.Col>
+            <Grid.Col span={{ base: 12, md: 6 }}>
+              <NativeSelect
+                data={[
+                  { label: 'All Events', value: 'all' },
+                  { label: 'Access Attempts', value: 'access_attempts' },
+                  { label: 'Permission Changes', value: 'permission_changes' },
+                  { label: 'Login Events', value: 'login_events' },
+                ]}
+                label="Event Type"
+                onChange={(event) => {
+                  setEventType(event.currentTarget.value)
+                  setSkip(0)
+                }}
+                value={eventType}
+              />
+            </Grid.Col>
+          </Grid>
 
-          {/* Filters */}
-          <div className={styles.apiCard} style={{ marginBottom: '2rem' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-              
-              {/* Time Range Filter */}
-              <div>
-                <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '600' }}>
-                  Time Range
-                </label>
-                <select
-                  value={timeRange}
-                  onChange={(e) => {
-                    setTimeRange(e.target.value)
-                    setSkip(0) // Reset pagination
-                  }}
-                  style={{
-                    width: '100%',
-                    padding: '10px',
-                    fontSize: '14px',
-                    border: '1px solid #ddd',
-                    borderRadius: '6px',
-                    boxSizing: 'border-box'
-                  }}
-                >
-                  <option value="24h">Last 24 hours</option>
-                  <option value="7d">Last 7 days</option>
-                  <option value="30d">Last 30 days</option>
-                  <option value="all">All time</option>
-                </select>
-              </div>
+          <Text c="dimmed" mt="md" size="sm">
+            Showing {logs.length} of {pagination.total} total events.
+          </Text>
+        </Card>
 
-              {/* Event Type Filter */}
-              <div>
-                <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '600' }}>
-                  Event Type
-                </label>
-                <select
-                  value={eventType}
-                  onChange={(e) => {
-                    setEventType(e.target.value)
-                    setSkip(0) // Reset pagination
-                  }}
-                  style={{
-                    width: '100%',
-                    padding: '10px',
-                    fontSize: '14px',
-                    border: '1px solid #ddd',
-                    borderRadius: '6px',
-                    boxSizing: 'border-box'
-                  }}
-                >
-                  <option value="all">All Events</option>
-                  <option value="access_attempts">Access Attempts</option>
-                  <option value="permission_changes">Permission Changes</option>
-                  <option value="login_events">Login Events</option>
-                </select>
-              </div>
-            </div>
+        {error ? (
+          <Alert color="red" icon={<IconAlertCircle size={18} />}>
+            {error}
+          </Alert>
+        ) : null}
 
-            <div style={{ marginTop: '1rem', fontSize: '13px', color: '#666' }}>
-              Showing {logs.length} of {pagination.total} total events
-            </div>
-          </div>
-
-          {/* Timeline View */}
-          {loading ? (
-            <div style={{ textAlign: 'center', padding: '3rem', color: '#999' }}>
-              Loading activity logs...
-            </div>
-          ) : logs.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '3rem', color: '#999' }}>
-              No activity logs found for selected filters
-            </div>
-          ) : (
-            <div>
-              {logs.map((log) => (
-                <div
-                  key={log._id}
-                  className={styles.apiCard}
-                  style={{
-                    marginBottom: '1rem',
-                    cursor: 'pointer',
-                    borderLeft: `4px solid ${getEventBadgeColor(log.eventType, log.accessGranted)}`
-                  }}
-                  onClick={() => setExpandedLog(expandedLog === log._id ? null : log._id)}
-                >
-                  {/* Log Header */}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
-                    <div style={{ flex: 1 }}>
-                      {/* Event Badge and Type */}
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                        <span
-                          style={{
-                            padding: '4px 12px',
-                            borderRadius: '12px',
-                            fontSize: '12px',
-                            fontWeight: '600',
-                            color: 'white',
-                            background: getEventBadgeColor(log.eventType, log.accessGranted)
-                          }}
-                        >
-                          {getEventLabel(log.eventType)}
-                        </span>
-                        {log.accessGranted === false && (
-                          <span style={{ fontSize: '12px', color: '#f44336', fontWeight: '600' }}>
-                            DENIED
-                          </span>
-                        )}
-                      </div>
-
-                      {/* User and App Info */}
-                      <div style={{ fontSize: '14px', marginBottom: '4px' }}>
-                        <strong>{log.userName || log.userEmail}</strong>
-                        {' → '}
-                        <span style={{ color: '#667eea' }}>{log.appName}</span>
-                      </div>
-
-                      {/* Role Changes */}
-                      {log.eventType === 'role_changed' && (
-                        <div style={{ fontSize: '13px', color: '#666' }}>
-                          Role: {log.previousRole} → {log.newRole}
-                        </div>
-                      )}
-
-                      {/* Message */}
-                      {log.message && (
-                        <div style={{ fontSize: '13px', color: '#666', marginTop: '4px' }}>
+        {loading ? (
+          <Card>
+            <Stack align="center" py="xl">
+              <Loader />
+            </Stack>
+          </Card>
+        ) : logs.length === 0 ? (
+          <Card>
+            <Text c="dimmed" ta="center">
+              No activity logs found for the selected filters.
+            </Text>
+          </Card>
+        ) : (
+          <Stack gap="md">
+            {logs.map((log) => (
+              <Card
+                key={log._id}
+                onClick={() => setExpandedLog(expandedLog === log._id ? null : log._id)}
+                style={{ cursor: 'pointer' }}
+              >
+                <Stack gap="sm">
+                  <Group justify="space-between" align="flex-start">
+                    <Stack gap={6}>
+                      <Group gap="xs">
+                        <Badge color={eventColor(log.eventType, log.accessGranted)}>
+                          {eventLabels[log.eventType] || log.eventType}
+                        </Badge>
+                        {log.accessGranted === false ? (
+                          <Badge color="red" variant="light">
+                            Denied
+                          </Badge>
+                        ) : null}
+                      </Group>
+                      <Text size="sm">
+                        <strong>{log.userName || log.userEmail}</strong> {'->'} <strong>{log.appName}</strong>
+                      </Text>
+                      {log.eventType === 'role_changed' ? (
+                        <Text c="dimmed" size="sm">
+                          Role: {log.previousRole} {'->'} {log.newRole}
+                        </Text>
+                      ) : null}
+                      {log.message ? (
+                        <Text c="dimmed" size="sm">
                           {log.message}
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Timestamp */}
-                    <div style={{ fontSize: '12px', color: '#999', textAlign: 'right', whiteSpace: 'nowrap' }}>
+                        </Text>
+                      ) : null}
+                    </Stack>
+                    <Text c="dimmed" size="xs">
                       {formatTimestamp(log.timestamp)}
-                    </div>
-                  </div>
+                    </Text>
+                  </Group>
 
-                  {/* Expanded Details */}
-                  {expandedLog === log._id && (
-                    <div style={{
-                      marginTop: '1rem',
-                      paddingTop: '1rem',
-                      borderTop: '1px solid #eee',
-                      fontSize: '13px'
-                    }}>
-                      <div style={{ display: 'grid', gridTemplateColumns: '150px 1fr', gap: '8px', color: '#666' }}>
-                        <div><strong>User ID:</strong></div>
-                        <div style={{ fontFamily: 'monospace', fontSize: '12px' }}>{log.userId}</div>
-                        
-                        <div><strong>User Email:</strong></div>
-                        <div>{log.userEmail}</div>
-                        
-                        <div><strong>Client ID:</strong></div>
-                        <div style={{ fontFamily: 'monospace', fontSize: '12px' }}>{log.clientId}</div>
-                        
-                        {log.currentRole && (
-                          <>
-                            <div><strong>Role:</strong></div>
-                            <div>{log.currentRole}</div>
-                          </>
-                        )}
-                        
-                        {log.changedBy && (
-                          <>
-                            <div><strong>Changed By:</strong></div>
-                            <div>{log.changedBy}</div>
-                          </>
-                        )}
-                        
-                        {log.ip && (
-                          <>
-                            <div><strong>IP Address:</strong></div>
-                            <div style={{ fontFamily: 'monospace', fontSize: '12px' }}>{log.ip}</div>
-                          </>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ))}
+                  {expandedLog === log._id ? (
+                    <Grid>
+                      <Grid.Col span={{ base: 12, sm: 4 }}>
+                        <Text fw={600} size="sm">User ID</Text>
+                        <Text ff="monospace" size="sm">{log.userId}</Text>
+                      </Grid.Col>
+                      <Grid.Col span={{ base: 12, sm: 4 }}>
+                        <Text fw={600} size="sm">User Email</Text>
+                        <Text size="sm">{log.userEmail}</Text>
+                      </Grid.Col>
+                      <Grid.Col span={{ base: 12, sm: 4 }}>
+                        <Text fw={600} size="sm">Client ID</Text>
+                        <Text ff="monospace" size="sm">{log.clientId}</Text>
+                      </Grid.Col>
+                      {log.currentRole ? (
+                        <Grid.Col span={{ base: 12, sm: 4 }}>
+                          <Text fw={600} size="sm">Role</Text>
+                          <Text size="sm">{log.currentRole}</Text>
+                        </Grid.Col>
+                      ) : null}
+                      {log.changedBy ? (
+                        <Grid.Col span={{ base: 12, sm: 4 }}>
+                          <Text fw={600} size="sm">Changed By</Text>
+                          <Text size="sm">{log.changedBy}</Text>
+                        </Grid.Col>
+                      ) : null}
+                      {log.ip ? (
+                        <Grid.Col span={{ base: 12, sm: 4 }}>
+                          <Text fw={600} size="sm">IP Address</Text>
+                          <Text ff="monospace" size="sm">{log.ip}</Text>
+                        </Grid.Col>
+                      ) : null}
+                    </Grid>
+                  ) : null}
+                </Stack>
+              </Card>
+            ))}
 
-              {/* Pagination */}
-              {pagination.hasMore && (
-                <div style={{ textAlign: 'center', marginTop: '2rem' }}>
-                  <button
-                    onClick={() => setSkip(skip + 50)}
-                    disabled={loading}
-                    style={{
-                      padding: '12px 32px',
-                      fontSize: '14px',
-                      color: 'white',
-                      background: loading ? '#999' : '#667eea',
-                      border: 'none',
-                      borderRadius: '8px',
-                      cursor: loading ? 'not-allowed' : 'pointer'
-                    }}
-                  >
-                    Load More
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      </div>
+            {pagination.hasMore ? (
+              <Group justify="center">
+                <Button onClick={() => setSkip(skip + 50)} variant="default">
+                  Load More
+                </Button>
+              </Group>
+            ) : null}
+          </Stack>
+        )}
+      </AdminShell>
     </>
   )
 }
