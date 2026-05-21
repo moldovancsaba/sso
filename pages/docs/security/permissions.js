@@ -1,6 +1,6 @@
 // WHAT: App permissions system documentation for OAuth 2.0 SSO integration
 // WHY: Developers need to understand app-level permissions and roles
-// HOW: Explains permissionStatus, app roles, and two-level access control
+// HOW: Explains backend-derived permissionStatus, app roles, and two-level access control
 
 import DocsLayout from '../../../components/DocsLayout';
 import styles from '../../../styles/docs.module.css';
@@ -27,11 +27,14 @@ export default function SecurityPermissions() {
             <p>
               This document focuses on <strong>SSO-level permissions</strong> that affect OAuth 2.0 authentication.
             </p>
+            <div className={styles.warningBox}>
+              <p><strong>Current contract note:</strong> canonical app-permission state comes from the permission APIs. If your app exposes a <code>permissionStatus</code> field internally, that should be your own backend&apos;s derived session field, not an assumed raw ID-token claim.</p>
+            </div>
           </section>
 
           <section className={styles.section}>
             <h2>Permission Status (SSO-Level)</h2>
-            <p>Every user has a <code>permissionStatus</code> for each application they attempt to access:</p>
+            <p>Every user has a backend-derived <code>permissionStatus</code> for each application they attempt to access:</p>
             <table style={{width: '100%', marginTop: '1rem', borderCollapse: 'collapse'}}>
               <thead>
                 <tr style={{borderBottom: '2px solid #333'}}>
@@ -74,29 +77,33 @@ export default function SecurityPermissions() {
           </section>
 
           <section className={styles.section}>
-            <h2>Extracting Permissions from ID Token</h2>
+            <h2>Deriving Permissions in Your Backend</h2>
             <div className={styles.codeBlock}>
               <pre>
                 {`import jwt from 'jsonwebtoken';
 
-// WHY: ID token contains user info and app permissions
+// WHY: ID token contains identity claims; app permissions should come
+// from your backend permission lookup for the current client
 const idToken = req.cookies.id_token;
 const decoded = jwt.decode(idToken);
+const permission = await getPermissionForUserAndClient({
+  userId: decoded.sub,
+  clientId: process.env.SSO_CLIENT_ID
+});
 
-// Extract permission fields
+// Extract identity fields
 const {
   sub: userId,             // User ID
   email,                   // User email
   name,                    // User name
-  role,                    // App role: 'admin' or 'user'
-  permissionStatus,        // Permission status: 'approved', 'pending', 'revoked'
+  role,                    // Identity / broad role claim
   iat,                     // Issued at (timestamp)
   exp                      // Expires at (timestamp)
 } = decoded;
 
 console.log('User:', userId);
-console.log('Role:', role);  // 'admin' or 'user'
-console.log('Status:', permissionStatus);  // 'approved', 'pending', 'revoked'`}
+console.log('Role:', permission?.role ?? role);
+console.log('Status:', permission?.status ?? 'unknown');`}
               </pre>
             </div>
           </section>
@@ -118,17 +125,20 @@ export function requireApproval(req, res, next) {
 
   try {
     const decoded = jwt.decode(idToken);
-    const { permissionStatus, role } = decoded;
+    const permission = getPermissionForUserAndClient({
+      userId: decoded.sub,
+      clientId: process.env.SSO_CLIENT_ID
+    });
 
     // WHY: Check if user is approved to access this app
-    if (permissionStatus !== 'approved') {
-      if (permissionStatus === 'pending') {
+    if (permission?.status !== 'approved') {
+      if (permission?.status === 'pending') {
         return res.status(403).json({ 
           error: 'APP_ACCESS_PENDING',
           message: 'Your access request is pending approval' 
         });
       }
-      if (permissionStatus === 'revoked') {
+      if (permission?.status === 'revoked') {
         return res.status(403).json({ 
           error: 'APP_ACCESS_REVOKED',
           message: 'Your access has been revoked' 
@@ -138,7 +148,11 @@ export function requireApproval(req, res, next) {
     }
 
     // Attach user info to request
-    req.user = decoded;
+    req.user = {
+      ...decoded,
+      role: permission?.role ?? decoded.role,
+      permissionStatus: permission?.status ?? null
+    };
     next();
   } catch (error) {
     console.error('Permission check failed:', error);
@@ -181,7 +195,7 @@ import { useRouter } from 'next/router';
 import { useEffect } from 'react';
 
 export function ProtectedRoute({ children, requireAdmin = false }) {
-  const { user, permissionStatus, loading } = useAuth();
+  const { user, permission, loading } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
@@ -194,17 +208,17 @@ export function ProtectedRoute({ children, requireAdmin = false }) {
     }
 
     // WHY: Check permission status
-    if (permissionStatus === 'pending') {
+    if (permission?.status === 'pending') {
       router.push('/access-pending');
       return;
     }
 
-    if (permissionStatus === 'revoked') {
+    if (permission?.status === 'revoked') {
       router.push('/access-denied');
       return;
     }
 
-    if (permissionStatus !== 'approved') {
+    if (permission?.status !== 'approved') {
       router.push('/access-denied');
       return;
     }
@@ -214,9 +228,9 @@ export function ProtectedRoute({ children, requireAdmin = false }) {
       router.push('/unauthorized');
       return;
     }
-  }, [user, permissionStatus, loading, requireAdmin]);
+  }, [user, permission, loading, requireAdmin]);
 
-  if (loading || !user || permissionStatus !== 'approved') {
+  if (loading || !user || permission?.status !== 'approved') {
     return <div>Loading...</div>;
   }
 
@@ -299,7 +313,7 @@ export default function AccessDenied() {
 // Level 2: Your App controls WHAT users can do inside the app
 // -------------------------------------------------------
 // Your app receives ID token with:
-// - permissionStatus: 'approved'
+// - permissionStatus: 'approved' (derived by your backend session layer)
 // - role: 'admin' (or 'user')
 
 // Your app decides:
@@ -328,7 +342,7 @@ if (role === 'admin') {
           <section className={styles.section}>
             <h2>Summary</h2>
             <ul>
-              <li>☑️ Always check <code>permissionStatus</code> before granting access</li>
+              <li>☑️ Always check backend-derived permission status before granting access</li>
               <li>☑️ Handle <code>pending</code> and <code>revoked</code> states gracefully</li>
               <li>☑️ Use <code>role</code> field to determine user's capabilities</li>
               <li>☑️ Implement backend middleware for permission checks</li>

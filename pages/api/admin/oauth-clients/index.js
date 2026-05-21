@@ -17,8 +17,12 @@ export default async function handler(req, res) {
   // Apply CORS
   if (runCors(req, res)) return
 
+  const requiresFreshAuth = req.method === 'POST'
+
   // Authenticate admin user via unified system
-  const adminUser = await requireUnifiedAdmin(req, res)
+  const adminUser = await requireUnifiedAdmin(req, res, {
+    requireFreshAuth: requiresFreshAuth,
+  })
   if (!adminUser) return // requireUnifiedAdmin already sent 401/403
 
   try {

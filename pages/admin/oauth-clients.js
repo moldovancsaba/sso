@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import Link from 'next/link'
+import { fetchAdminJson, isAuthRedirectError } from '../../lib/adminAuthFlow.js'
 
 export default function OAuthClientsPage() {
   const [admin, setAdmin] = useState(null)
@@ -21,63 +22,36 @@ export default function OAuthClientsPage() {
     require_pkce: false, // PKCE not required for confidential clients by default
   })
 
-  useEffect(() => {
-    checkSession()
-    loadClients()
-  }, [])
-
-  async function checkSession() {
+  const loadClients = useCallback(async () => {
     try {
-      // WHAT: Check public session (unified admin system uses publicUsers + appPermissions)
-      // WHY: Modern admin system uses OAuth flow which creates public sessions
-      const res = await fetch('/api/public/session', { credentials: 'include' })
-      if (res.ok) {
-        const data = await res.json()
-        console.log('[OAuth Clients] Session data:', data)
-        if (data?.isValid && data?.user) {
-          console.log('[OAuth Clients] User:', data.user)
-          
-          // WHAT: Check if user has admin access to sso-admin-dashboard
-          // WHY: Admin access is managed via appPermissions, not user.role
-          const checkRes = await fetch('/api/admin/check-access', { credentials: 'include' })
-          if (checkRes.ok) {
-            const checkData = await checkRes.json()
-            console.log('[OAuth Clients] Admin check:', checkData)
-            if (checkData?.success && checkData?.user) {
-              console.log('[OAuth Clients] Admin user set:', checkData.user)
-              setAdmin(checkData.user)
-            } else {
-              console.warn('[OAuth Clients] User does not have admin access')
-            }
-          } else {
-            console.warn('[OAuth Clients] Admin check failed:', checkRes.status)
-          }
-        } else {
-          console.warn('[OAuth Clients] Session not valid')
-        }
-      } else {
-        console.warn('[OAuth Clients] Session check failed:', res.status)
-      }
-    } catch (e) {
-      console.error('Session check error:', e)
-    }
-  }
-
-  async function loadClients() {
-    try {
-      setLoading(true)
-      const res = await fetch('/api/admin/oauth-clients', { credentials: 'include' })
-      if (!res.ok) {
-        throw new Error(`Failed to load clients: ${res.status}`)
-      }
-      const data = await res.json()
+      const data = await fetchAdminJson('/api/admin/oauth-clients')
       setClients(data.clients || [])
     } catch (err) {
-      setMessage(err.message)
+      if (!isAuthRedirectError(err)) {
+        setMessage(err.message)
+      }
+    }
+  }, [])
+
+  const initializePage = useCallback(async () => {
+    try {
+      setLoading(true)
+      const sessionData = await fetchAdminJson('/api/admin/session')
+      setAdmin(sessionData?.user || null)
+      await loadClients()
+    } catch (e) {
+      if (!isAuthRedirectError(e)) {
+        console.error('Session check error:', e)
+        setMessage(e.message)
+      }
     } finally {
       setLoading(false)
     }
-  }
+  }, [loadClients])
+
+  useEffect(() => {
+    initializePage()
+  }, [initializePage])
 
   async function handleCreateClient(e) {
     e.preventDefault()
@@ -121,19 +95,11 @@ export default function OAuthClientsPage() {
         require_pkce: formData.require_pkce, // Include PKCE requirement setting
       }
 
-      const res = await fetch('/api/admin/oauth-clients', {
+      const data = await fetchAdminJson('/api/admin/oauth-clients', {
         method: 'POST',
-        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       })
-
-      if (!res.ok) {
-        const data = await res.json()
-        throw new Error(data.error || `Failed to create client: ${res.status}`)
-      }
-
-      const data = await res.json()
       setNewClientSecret(data.client_secret) // Show secret only once
       setMessage('Client created successfully! Save the secret now.')
       setShowCreateForm(false)
@@ -151,7 +117,9 @@ export default function OAuthClientsPage() {
 
       await loadClients()
     } catch (err) {
-      setMessage(err.message)
+      if (!isAuthRedirectError(err)) {
+        setMessage(err.message)
+      }
     } finally {
       setLoading(false)
     }
@@ -164,20 +132,16 @@ export default function OAuthClientsPage() {
 
     try {
       setLoading(true)
-      const res = await fetch(`/api/admin/oauth-clients/${clientId}`, {
+      await fetchAdminJson(`/api/admin/oauth-clients/${clientId}`, {
         method: 'DELETE',
-        credentials: 'include',
       })
-
-      if (!res.ok) {
-        const data = await res.json()
-        throw new Error(data.error || `Failed to delete client: ${res.status}`)
-      }
 
       setMessage(`Client "${clientName}" deleted successfully`)
       await loadClients()
     } catch (err) {
-      setMessage(err.message)
+      if (!isAuthRedirectError(err)) {
+        setMessage(err.message)
+      }
     } finally {
       setLoading(false)
     }
@@ -188,22 +152,18 @@ export default function OAuthClientsPage() {
 
     try {
       setLoading(true)
-      const res = await fetch(`/api/admin/oauth-clients/${clientId}`, {
+      await fetchAdminJson(`/api/admin/oauth-clients/${clientId}`, {
         method: 'PATCH',
-        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: newStatus }),
       })
 
-      if (!res.ok) {
-        const data = await res.json()
-        throw new Error(data.error || `Failed to update client: ${res.status}`)
-      }
-
       setMessage(`Client status updated to ${newStatus}`)
       await loadClients()
     } catch (err) {
-      setMessage(err.message)
+      if (!isAuthRedirectError(err)) {
+        setMessage(err.message)
+      }
     } finally {
       setLoading(false)
     }
@@ -217,22 +177,16 @@ export default function OAuthClientsPage() {
     try {
       setLoading(true)
       setMessage('')
-      const res = await fetch(`/api/admin/oauth-clients/${clientId}/regenerate-secret`, {
+      const data = await fetchAdminJson(`/api/admin/oauth-clients/${clientId}/regenerate-secret`, {
         method: 'POST',
-        credentials: 'include',
       })
-
-      if (!res.ok) {
-        const data = await res.json()
-        throw new Error(data.error || `Failed to regenerate secret: ${res.status}`)
-      }
-
-      const data = await res.json()
       setNewClientSecret(data.client_secret)
       setMessage(`Secret regenerated for "${clientName}". Save it now!`)
       await loadClients()
     } catch (err) {
-      setMessage(err.message)
+      if (!isAuthRedirectError(err)) {
+        setMessage(err.message)
+      }
     } finally {
       setLoading(false)
     }
@@ -306,23 +260,19 @@ export default function OAuthClientsPage() {
         require_pkce: formData.require_pkce,
       }
 
-      const res = await fetch(`/api/admin/oauth-clients/${editingClientId}`, {
+      await fetchAdminJson(`/api/admin/oauth-clients/${editingClientId}`, {
         method: 'PATCH',
-        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       })
-
-      if (!res.ok) {
-        const data = await res.json()
-        throw new Error(data.error || `Failed to update client: ${res.status}`)
-      }
 
       setMessage('Client updated successfully!')
       handleCancelEdit()
       await loadClients()
     } catch (err) {
-      setMessage(err.message)
+      if (!isAuthRedirectError(err)) {
+        setMessage(err.message)
+      }
     } finally {
       setLoading(false)
     }

@@ -1,7 +1,7 @@
 # SSO Service
 
 Version: 5.29.0  
-Last updated: 2026-05-11T12:00:00.000Z
+Last updated: 2026-05-21T00:00:00.000Z
 
 This repository provides the SSO service for `https://sso.doneisbetter.com`.
 
@@ -11,6 +11,22 @@ It currently acts as:
 - a hosted login surface for public users
 - a centralized per-app authorization layer
 - an admin interface and API for users, clients, permissions, and audit operations
+
+## Design SSOT
+
+All design, UI, and UX rules now defer to the shared cross-project source of truth:
+
+- [docs/DESIGN_SYSTEM.md](/Users/moldovancsaba/Projects/sso/docs/DESIGN_SYSTEM.md)
+- [`/Users/Shared/Projects/GENERAL_DESIGN_SYSTEM/README.md`](/Users/Shared/Projects/GENERAL_DESIGN_SYSTEM/README.md)
+
+That shared directory is normative for:
+
+- Mantine-first UI rules
+- component contracts
+- form and modal behavior
+- interaction and accessibility expectations
+
+This repository still contains legacy CSS modules and theme infrastructure that should be migrated toward that SSOT rather than extended as a parallel system.
 
 ## Current Runtime Contract
 
@@ -54,10 +70,13 @@ Legacy compatibility inputs are normalized in runtime:
 
 ### Session model
 
-- Admin sessions use the `admin-session` cookie
+- Legacy admin sessions use the `admin-session` cookie
 - Public user sessions use the `public-session` cookie
+- The current admin UI signs in through OAuth and is authorized through a public session plus admin app permission checks
 - Public session tokens are hashed at rest in the `publicSessions` collection
 - Production public sessions use `SameSite=None`, `Secure`, and the configured shared cookie domain when cross-subdomain SSO is enabled
+- High-risk admin mutations require recent authentication and can return `REAUTH_REQUIRED` after the freshness window expires
+- Admin UI routes preserve the current `/admin/*` path during that forced re-login and return to the same screen after OAuth completes
 
 ### OAuth / OIDC contract
 
@@ -66,6 +85,13 @@ Legacy compatibility inputs are normalized in runtime:
 - Standard scopes: `openid`, `profile`, `email`, `offline_access`
 - OIDC discovery available at `/.well-known/openid-configuration`
 - JWKS available at `/.well-known/jwks.json`
+- ID tokens carry identity claims. App-level access state still comes from `appPermissions` and related APIs.
+
+### Canonical session endpoints
+
+- `GET /api/public/session`: canonical public-user session check
+- `GET /api/admin/session`: canonical admin UI session check
+- `GET /api/sso/validate`: compatibility endpoint that can validate either admin or public sessions
 
 ## Operational Notes
 
@@ -81,6 +107,7 @@ The May 2026 hardening pass delivered these changes:
 ## Recommended Reading
 
 - [docs/ARCHITECTURE.md](/Users/moldovancsaba/Projects/sso/docs/ARCHITECTURE.md): runtime architecture and core contracts
+- [docs/DESIGN_SYSTEM.md](/Users/moldovancsaba/Projects/sso/docs/DESIGN_SYSTEM.md): local pointer to the shared design / UI / UX SSOT
 - [docs/THIRD_PARTY_INTEGRATION_GUIDE.md](/Users/moldovancsaba/Projects/sso/docs/THIRD_PARTY_INTEGRATION_GUIDE.md): integration guide for app teams
 - [docs/MULTI_APP_PERMISSIONS.md](/Users/moldovancsaba/Projects/sso/docs/MULTI_APP_PERMISSIONS.md): app-permission semantics and workflows
 - [docs/ROLE_SYSTEM_MIGRATION.md](/Users/moldovancsaba/Projects/sso/docs/ROLE_SYSTEM_MIGRATION.md): compatibility notes for legacy roles

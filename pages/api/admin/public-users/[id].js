@@ -18,7 +18,10 @@ export default async function handler(req, res) {
 
   try {
     // Verify admin authentication
-    const admin = await requireUnifiedAdmin(req, res)
+    const requiresFreshAuth = req.method === 'PATCH' || req.method === 'DELETE'
+    const admin = await requireUnifiedAdmin(req, res, {
+      requireFreshAuth: requiresFreshAuth,
+    })
     if (!admin) return // requireUnifiedAdmin already sent error response
 
     const db = await getDb()

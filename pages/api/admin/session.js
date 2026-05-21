@@ -6,6 +6,7 @@
 
 import { getAdminUser } from '../../../lib/auth.mjs'
 import logger from '../../../lib/logger.mjs'
+import { getPublicUserWithAdminCheck, isFreshAuthenticationTimestamp } from '../../../lib/auth.mjs'
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
@@ -14,6 +15,28 @@ export default async function handler(req, res) {
   }
 
   try {
+    const unifiedAdmin = await getPublicUserWithAdminCheck(req)
+
+    if (unifiedAdmin?.adminPermission?.role === 'admin') {
+      const authenticatedAt = unifiedAdmin.session?.authenticatedAt || unifiedAdmin.session?.createdAt || null
+
+      return res.status(200).json({
+        isValid: true,
+        user: {
+          id: unifiedAdmin.user.id,
+          email: unifiedAdmin.user.email,
+          name: unifiedAdmin.user.name,
+          role: unifiedAdmin.adminPermission.role,
+          permissions: ['read', 'write', 'delete', 'manage-users', 'manage-orgs', 'manage-org-users'],
+        },
+        auth: {
+          model: 'unified-public-session',
+          authenticatedAt,
+          requiresRecentAuth: !isFreshAuthenticationTimestamp(authenticatedAt),
+        }
+      })
+    }
+
     // WHAT: Get ADMIN user only (not public user)
     // WHY: Admin dashboard should only accept admin sessions
     const adminUser = await getAdminUser(req)
@@ -35,6 +58,9 @@ export default async function handler(req, res) {
         name: adminUser.name,
         role: adminUser.role,
         permissions: adminUser.permissions
+      },
+      auth: {
+        model: 'legacy-admin-session',
       }
     })
   } catch (error) {

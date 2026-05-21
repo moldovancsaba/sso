@@ -176,6 +176,7 @@ export default async function handler(req, res) {
     const sessionToken = await createPublicSession(user.id, {
       ip: req.headers['x-forwarded-for'] || req.socket?.remoteAddress || 'unknown',
       userAgent: req.headers['user-agent'] || 'unknown',
+      authenticatedAt: new Date().toISOString(),
     })
     setPublicSessionCookie(res, sessionToken)
 

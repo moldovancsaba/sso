@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 import Link from 'next/link'
+import { decodeAdminLoginState, sanitizeAdminRedirectPath } from '../../lib/adminAuthFlow.js'
 
 /**
  * Admin OAuth Callback
@@ -19,7 +20,7 @@ export default function AdminCallbackPage() {
   const [error, setError] = useState(null)
 
   useEffect(() => {
-    const { code, error: oauthError, error_description } = router.query
+    const { code, error: oauthError, error_description, state } = router.query
 
     if (oauthError) {
       setError(error_description || oauthError)
@@ -59,9 +60,11 @@ export default function AdminCallbackPage() {
         const data = await response.json()
         console.log('[Admin Callback] Success:', data)
 
-        // Session created successfully - redirect to dashboard
-        console.log('[Admin Callback] Redirecting to dashboard')
-        router.push('/admin/dashboard')
+        const decodedState = decodeAdminLoginState(Array.isArray(state) ? state[0] : state)
+        const redirectPath = sanitizeAdminRedirectPath(decodedState?.redirectPath)
+
+        console.log('[Admin Callback] Redirecting to:', redirectPath)
+        router.push(redirectPath)
       } catch (err) {
         console.error('[Admin Callback] Exception:', err)
         setError('Network error: ' + err.message)

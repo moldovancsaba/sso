@@ -15,8 +15,8 @@
 3. Successfully authenticates with Google
 4. Google callback creates session and sets `public-session` cookie
 5. Redirects back to `/admin`
-6. `/admin` page calls `/api/admin/check-access` with cookies
-7. **FAILS**: Returns 401 Unauthorized
+6. Older builds called `/api/admin/check-access` with cookies
+7. Current builds should validate admin UI access through `GET /api/admin/session`; the historical failure mode here was a 401 on the admin access check
 8. Shows login page again
 
 ### Root Cause Analysis:

@@ -25,6 +25,9 @@ export default function VueExample() {
               <strong>⚠️ Security Note:</strong> Never expose <code>client_secret</code> in your Vue app.
               All token exchange operations must happen on your backend server.
             </div>
+            <div className={styles.warningBox}>
+              <p><strong>Current contract note:</strong> your backend session endpoint should derive app-permission state from the permission APIs and hand that result to Pinia. Do not assume canonical permission status comes directly from raw <code>id_token</code> claims.</p>
+            </div>
           </section>
 
           <section className={styles.section}>
@@ -66,14 +69,14 @@ export const useAuthStore = defineStore('auth', {
   state: () => ({
     user: null,
     loading: true,
-    permissionStatus: null // 'approved', 'pending', 'revoked'
+    permission: null // e.g. { status: 'approved', role: 'member' }
   }),
 
   getters: {
     isAuthenticated: (state) => !!state.user,
-    isApproved: (state) => state.permissionStatus === 'approved',
-    isPending: (state) => state.permissionStatus === 'pending',
-    isRevoked: (state) => state.permissionStatus === 'revoked'
+    isApproved: (state) => state.permission?.status === 'approved',
+    isPending: (state) => state.permission?.status === 'pending',
+    isRevoked: (state) => state.permission?.status === 'revoked'
   },
 
   actions: {
@@ -87,7 +90,7 @@ export const useAuthStore = defineStore('auth', {
         if (response.ok) {
           const data = await response.json();
           this.user = data.user;
-          this.permissionStatus = data.permissionStatus;
+          this.permission = data.permission ?? null;
         }
       } catch (error) {
         console.error('Session check failed:', error);
@@ -120,7 +123,7 @@ export const useAuthStore = defineStore('auth', {
           credentials: 'include'
         });
         this.user = null;
-        this.permissionStatus = null;
+        this.permission = null;
 
         // Optional: Also logout from SSO
         window.location.href = import.meta.env.VITE_SSO_BASE_URL + '/api/public/logout';
@@ -180,9 +183,15 @@ router.get('/api/auth/callback', async (req, res) => {
     const tokens = await tokenResponse.json();
     const { access_token, id_token, refresh_token } = tokens;
 
-    // WHY: Decode ID token to get user info and app permissions
+    // WHY: Decode ID token to get user identity claims
     const decoded = jwt.decode(id_token);
-    const { sub: userId, email, name, role, permissionStatus } = decoded;
+    const { sub: userId, email, name, role } = decoded;
+
+    // WHY: Ask your backend permission layer for canonical app access state
+    const permission = await getPermissionForUserAndClient({
+      userId,
+      clientId: process.env.SSO_CLIENT_ID
+    });
 
     // WHY: Store tokens securely in HTTP-only cookies
     res.cookie('access_token', access_token, {
@@ -204,10 +213,10 @@ router.get('/api/auth/callback', async (req, res) => {
       maxAge: 3600000
     });
 
-    // WHY: Check app permission status and redirect accordingly
-    if (permissionStatus === 'pending') {
+    // WHY: Check backend-derived app permission status and redirect accordingly
+    if (permission?.status === 'pending') {
       return res.redirect('/access-pending');
-    } else if (permissionStatus === 'revoked') {
+    } else if (permission?.status === 'revoked') {
       return res.redirect('/access-denied');
     }
 
@@ -229,15 +238,20 @@ router.get('/api/auth/session', (req, res) => {
 
   try {
     const decoded = jwt.decode(id_token);
-    const { sub: userId, email, name, role, permissionStatus } = decoded;
+    const { sub: userId, email, name, role } = decoded;
 
     if (decoded.exp * 1000 < Date.now()) {
       return res.status(401).json({ error: 'Token expired' });
     }
 
+    const permission = await getPermissionForUserAndClient({
+      userId,
+      clientId: process.env.SSO_CLIENT_ID
+    });
+
     res.json({
       user: { userId, email, name, role },
-      permissionStatus
+      permission
     });
   } catch (error) {
     console.error('Session validation error:', error);
@@ -276,7 +290,7 @@ export function useAuth() {
   const loading = computed(() => authStore.loading);
   const isAuthenticated = computed(() => authStore.isAuthenticated);
   const isApproved = computed(() => authStore.isApproved);
-  const permissionStatus = computed(() => authStore.permissionStatus);
+  const permission = computed(() => authStore.permission);
 
   const requireAuth = () => {
     if (!isAuthenticated.value) {
@@ -305,7 +319,7 @@ export function useAuth() {
     loading,
     isAuthenticated,
     isApproved,
-    permissionStatus,
+    permission,
     login: () => authStore.login(),
     logout: () => authStore.logout(),
     requireAuth,

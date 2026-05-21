@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
+import { fetchAdminJson, isAuthRedirectError } from '../../lib/adminAuthFlow.js'
 
 export default function AdminDashboard() {
   const router = useRouter()
@@ -12,56 +13,43 @@ export default function AdminDashboard() {
     recentActivity: [],
   })
 
-  useEffect(() => {
-    checkSession()
+  const loadStats = useCallback(async () => {
+    try {
+      // Load basic stats from APIs
+      const [usersData, clientsData] = await Promise.all([
+        fetchAdminJson('/api/admin/public-users'),
+        fetchAdminJson('/api/admin/oauth-clients'),
+      ])
+
+      setStats(prev => ({ ...prev, totalUsers: usersData.users?.length || 0 }))
+      setStats(prev => ({ ...prev, totalClients: clientsData.clients?.length || 0 }))
+    } catch (e) {
+      if (!isAuthRedirectError(e)) {
+        console.error('Failed to load stats:', e)
+      }
+    }
   }, [])
 
-  async function checkSession() {
+  const checkSession = useCallback(async () => {
     try {
-      // WHAT: Check PUBLIC session (OAuth flow creates public session)
-      // WHY: Admin dashboard uses OAuth, which creates public session cookies
-      // NOTE: We'll verify admin dashboard permission in the API
-      const res = await fetch('/api/public/session', { credentials: 'include' })
-      if (res.ok) {
-        const data = await res.json()
-        if (data?.isValid) {
-          setAdmin(data.user)
-          loadStats()
-        } else {
-          router.push('/admin')
-        }
-      } else {
-        router.push('/admin')
+      const data = await fetchAdminJson('/api/admin/session')
+      if (data?.isValid) {
+        setAdmin(data.user)
+        await loadStats()
       }
     } catch (e) {
-      console.error('Session check error:', e)
-      router.push('/admin')
+      if (!isAuthRedirectError(e)) {
+        console.error('Session check error:', e)
+        router.push('/admin')
+      }
     } finally {
       setLoading(false)
     }
-  }
+  }, [loadStats, router])
 
-  async function loadStats() {
-    try {
-      // Load basic stats from APIs
-      const [usersRes, clientsRes] = await Promise.all([
-        fetch('/api/admin/public-users', { credentials: 'include' }),
-        fetch('/api/admin/oauth-clients', { credentials: 'include' }),
-      ])
-
-      if (usersRes.ok) {
-        const usersData = await usersRes.json()
-        setStats(prev => ({ ...prev, totalUsers: usersData.users?.length || 0 }))
-      }
-
-      if (clientsRes.ok) {
-        const clientsData = await clientsRes.json()
-        setStats(prev => ({ ...prev, totalClients: clientsData.clients?.length || 0 }))
-      }
-    } catch (e) {
-      console.error('Failed to load stats:', e)
-    }
-  }
+  useEffect(() => {
+    checkSession()
+  }, [checkSession])
 
   async function handleLogout() {
     try {

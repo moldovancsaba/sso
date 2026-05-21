@@ -17,6 +17,10 @@ export default function Quickstart() {
                 <strong>Recommended path:</strong> use OAuth 2.0 Authorization Code flow. Do not treat the public
                 password-login endpoint as a replacement for OAuth token issuance.
               </p>
+              <p>
+                <strong>Design / UI / UX SSOT:</strong> if you are implementing login screens, auth forms, or app UI around this flow,
+                follow <code>/Users/Shared/Projects/GENERAL_DESIGN_SYSTEM</code> as the authoritative cross-project design system.
+              </p>
             </div>
           </section>
 

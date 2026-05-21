@@ -6,10 +6,11 @@
  * HOW: Server-side auth check, fetch users list, provide admin actions
  */
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Head from 'next/head'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
+import { fetchAdminJson, isAuthRedirectError } from '../../lib/adminAuthFlow.js'
 import styles from '../../styles/home.module.css'
 
 export default function AdminUsersPage() {
@@ -47,35 +48,51 @@ export default function AdminUsersPage() {
   // WHY: Admin can unlink login methods from user accounts
   const [unlinkLoading, setUnlinkLoading] = useState(false)
 
+  const fetchUsers = useCallback(async () => {
+    setLoading(true)
+    try {
+      const params = new URLSearchParams({
+        filter,
+        sortBy,
+        sortOrder
+      })
+      
+      const data = await fetchAdminJson(`/api/admin/public-users?${params}`)
+      setUsers(data.users || [])
+    } catch (err) {
+      if (!isAuthRedirectError(err)) {
+        console.error('Failed to fetch users:', err)
+        setMessage({ type: 'error', text: err.message || 'An unexpected error occurred' })
+      }
+    } finally {
+      setLoading(false)
+    }
+  }, [filter, sortBy, sortOrder])
+
+  const checkSession = useCallback(async () => {
+    try {
+      const data = await fetchAdminJson('/api/admin/session')
+      if (data?.isValid) {
+        setAdmin(data.user)
+      }
+    } catch (e) {
+      if (!isAuthRedirectError(e)) {
+        console.error('Session check error:', e)
+        router.push('/admin')
+      }
+    }
+  }, [router])
+
   // Check session and fetch users
   useEffect(() => {
     checkSession()
-  }, [])
+  }, [checkSession])
   
   useEffect(() => {
     if (admin) {
       fetchUsers()
     }
-  }, [filter, sortBy, sortOrder, admin])
-  
-  async function checkSession() {
-    try {
-      const res = await fetch('/api/sso/validate', { credentials: 'include' })
-      if (res.ok) {
-        const data = await res.json()
-        if (data?.isValid) {
-          setAdmin(data.user)
-        } else {
-          router.push('/admin')
-        }
-      } else {
-        router.push('/admin')
-      }
-    } catch (e) {
-      console.error('Session check error:', e)
-      router.push('/admin')
-    }
-  }
+  }, [admin, fetchUsers])
 
   // WHAT: Lifecycle management for app permissions
   // WHY: Fetch on modal open, clear on close to prevent stale/cross-user state
@@ -95,33 +112,6 @@ export default function AdminUsersPage() {
     }
   }, [showDetails, selectedUser?.id])
 
-  const fetchUsers = async () => {
-    setLoading(true)
-    try {
-      const params = new URLSearchParams({
-        filter,
-        sortBy,
-        sortOrder
-      })
-      
-      const res = await fetch(`/api/admin/public-users?${params}`, {
-        credentials: 'include'
-      })
-      
-      if (res.ok) {
-        const data = await res.json()
-        setUsers(data.users || [])
-      } else {
-        setMessage({ type: 'error', text: 'Failed to load users' })
-      }
-    } catch (err) {
-      console.error('Failed to fetch users:', err)
-      setMessage({ type: 'error', text: 'An unexpected error occurred' })
-    } finally {
-      setLoading(false)
-    }
-  }
-
   // Filter users by search
   const filteredUsers = users.filter(user => {
     if (!search) return true
@@ -139,23 +129,19 @@ export default function AdminUsersPage() {
     
     setActionLoading(true)
     try {
-      const res = await fetch(`/api/admin/public-users/${userId}`, {
+      await fetchAdminJson(`/api/admin/public-users/${userId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
         body: JSON.stringify({ status: 'disabled' })
       })
-      
-      if (res.ok) {
-        setMessage({ type: 'success', text: 'User disabled successfully' })
-        fetchUsers()
-        setShowDetails(false)
-      } else {
-        const data = await res.json()
-        setMessage({ type: 'error', text: data.error || 'Failed to disable user' })
-      }
+
+      setMessage({ type: 'success', text: 'User disabled successfully' })
+      fetchUsers()
+      setShowDetails(false)
     } catch (err) {
-      setMessage({ type: 'error', text: 'An unexpected error occurred' })
+      if (!isAuthRedirectError(err)) {
+        setMessage({ type: 'error', text: err.message || 'An unexpected error occurred' })
+      }
     } finally {
       setActionLoading(false)
     }
@@ -164,23 +150,19 @@ export default function AdminUsersPage() {
   const handleEnableUser = async (userId) => {
     setActionLoading(true)
     try {
-      const res = await fetch(`/api/admin/public-users/${userId}`, {
+      await fetchAdminJson(`/api/admin/public-users/${userId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
         body: JSON.stringify({ status: 'active' })
       })
-      
-      if (res.ok) {
-        setMessage({ type: 'success', text: 'User enabled successfully' })
-        fetchUsers()
-        setShowDetails(false)
-      } else {
-        const data = await res.json()
-        setMessage({ type: 'error', text: data.error || 'Failed to enable user' })
-      }
+
+      setMessage({ type: 'success', text: 'User enabled successfully' })
+      fetchUsers()
+      setShowDetails(false)
     } catch (err) {
-      setMessage({ type: 'error', text: 'An unexpected error occurred' })
+      if (!isAuthRedirectError(err)) {
+        setMessage({ type: 'error', text: err.message || 'An unexpected error occurred' })
+      }
     } finally {
       setActionLoading(false)
     }
@@ -197,21 +179,17 @@ export default function AdminUsersPage() {
     
     setActionLoading(true)
     try {
-      const res = await fetch(`/api/admin/public-users/${userId}`, {
+      await fetchAdminJson(`/api/admin/public-users/${userId}`, {
         method: 'DELETE',
-        credentials: 'include'
       })
-      
-      if (res.ok) {
-        setMessage({ type: 'success', text: 'User deleted successfully' })
-        fetchUsers()
-        setShowDetails(false)
-      } else {
-        const data = await res.json()
-        setMessage({ type: 'error', text: data.error || 'Failed to delete user' })
-      }
+
+      setMessage({ type: 'success', text: 'User deleted successfully' })
+      fetchUsers()
+      setShowDetails(false)
     } catch (err) {
-      setMessage({ type: 'error', text: 'An unexpected error occurred' })
+      if (!isAuthRedirectError(err)) {
+        setMessage({ type: 'error', text: err.message || 'An unexpected error occurred' })
+      }
     } finally {
       setActionLoading(false)
     }
@@ -231,25 +209,7 @@ export default function AdminUsersPage() {
     setPermissionSuccess('')
     
     try {
-      const res = await fetch(`/api/admin/app-permissions/${userId}`, {
-        credentials: 'include'
-      })
-      
-      // WHAT: Handle authentication errors
-      // WHY: Admin session may have expired
-      if (res.status === 401 || res.status === 403) {
-        window.location.href = '/admin'
-        return
-      }
-      
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}))
-        setAppPermissionsError(data.error?.message || 'Failed to load app permissions')
-        setAppPermissions([])
-        return
-      }
-      
-      const data = await res.json()
+      const data = await fetchAdminJson(`/api/admin/app-permissions/${userId}`)
       
       // WHAT: Initialize app permissions and role selectors
       // WHY: UI needs default role selection for grant actions
@@ -263,9 +223,11 @@ export default function AdminUsersPage() {
       }
       setSelectedRoles(roles)
     } catch (err) {
-      console.error('Failed to fetch app permissions:', err)
-      setAppPermissionsError('Connection error. Please check your internet and try again.')
-      setAppPermissions([])
+      if (!isAuthRedirectError(err)) {
+        console.error('Failed to fetch app permissions:', err)
+        setAppPermissionsError(err.message || 'Connection error. Please check your internet and try again.')
+        setAppPermissions([])
+      }
     } finally {
       setAppPermissionsLoading(false)
     }
@@ -280,30 +242,20 @@ export default function AdminUsersPage() {
     setPermissionSuccess('')
     
     try {
-      const res = await fetch(`/api/admin/app-permissions/${userId}`, {
+      await fetchAdminJson(`/api/admin/app-permissions/${userId}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
         body: JSON.stringify({ clientId, role, status: 'approved' })
       })
-      
-      if (res.status === 401 || res.status === 403) {
-        window.location.href = '/admin'
-        return
-      }
-      
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}))
-        setAppPermissionsError(data.error?.message || 'Failed to grant access')
-        return
-      }
       
       setPermissionSuccess(`Access granted as ${role}`)
       setTimeout(() => setPermissionSuccess(''), 3000)
       await fetchAppPermissions(userId)
     } catch (err) {
-      console.error('Failed to grant access:', err)
-      setAppPermissionsError('Connection error. Please try again.')
+      if (!isAuthRedirectError(err)) {
+        console.error('Failed to grant access:', err)
+        setAppPermissionsError(err.message || 'Connection error. Please try again.')
+      }
     } finally {
       setAppActionLoading(prev => ({ ...prev, [clientId]: false }))
     }
@@ -324,30 +276,20 @@ export default function AdminUsersPage() {
     setPermissionSuccess('')
     
     try {
-      const res = await fetch(`/api/admin/app-permissions/${userId}`, {
+      await fetchAdminJson(`/api/admin/app-permissions/${userId}`, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
         body: JSON.stringify({ clientId })
       })
-      
-      if (res.status === 401 || res.status === 403) {
-        window.location.href = '/admin'
-        return
-      }
-      
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}))
-        setAppPermissionsError(data.error?.message || 'Failed to revoke access')
-        return
-      }
       
       setPermissionSuccess('Access revoked successfully')
       setTimeout(() => setPermissionSuccess(''), 3000)
       await fetchAppPermissions(userId)
     } catch (err) {
-      console.error('Failed to revoke access:', err)
-      setAppPermissionsError('Connection error. Please try again.')
+      if (!isAuthRedirectError(err)) {
+        console.error('Failed to revoke access:', err)
+        setAppPermissionsError(err.message || 'Connection error. Please try again.')
+      }
     } finally {
       setAppActionLoading(prev => ({ ...prev, [clientId]: false }))
     }
@@ -362,30 +304,20 @@ export default function AdminUsersPage() {
     setPermissionSuccess('')
     
     try {
-      const res = await fetch(`/api/admin/app-permissions/${userId}`, {
+      await fetchAdminJson(`/api/admin/app-permissions/${userId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
         body: JSON.stringify({ clientId, role: newRole })
       })
-      
-      if (res.status === 401 || res.status === 403) {
-        window.location.href = '/admin'
-        return
-      }
-      
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}))
-        setAppPermissionsError(data.error?.message || 'Failed to change role')
-        return
-      }
       
       setPermissionSuccess(`Role changed to ${newRole}`)
       setTimeout(() => setPermissionSuccess(''), 3000)
       await fetchAppPermissions(userId)
     } catch (err) {
-      console.error('Failed to change role:', err)
-      setAppPermissionsError('Connection error. Please try again.')
+      if (!isAuthRedirectError(err)) {
+        console.error('Failed to change role:', err)
+        setAppPermissionsError(err.message || 'Connection error. Please try again.')
+      }
     } finally {
       setAppActionLoading(prev => ({ ...prev, [clientId]: false }))
     }
@@ -405,26 +337,21 @@ export default function AdminUsersPage() {
     setLinkSuccess('')
     
     try {
-      const res = await fetch(`/api/admin/public-users/${userId}/link`, {
+      await fetchAdminJson(`/api/admin/public-users/${userId}/link`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
         body: JSON.stringify({ provider, providerData: formData })
       })
-      
-      const data = await res.json()
-      
-      if (res.ok) {
-        setLinkSuccess(`${provider} linked successfully`)
-        setLinkingProvider(null)
-        setLinkFormData({ id: '', email: '', name: '', picture: '' })
-        fetchUsers() // Refresh user list
-        setTimeout(() => setLinkSuccess(''), 3000)
-      } else {
-        setLinkError(data.error || data.details || 'Failed to link')
-      }
+
+      setLinkSuccess(`${provider} linked successfully`)
+      setLinkingProvider(null)
+      setLinkFormData({ id: '', email: '', name: '', picture: '' })
+      fetchUsers() // Refresh user list
+      setTimeout(() => setLinkSuccess(''), 3000)
     } catch (err) {
-      setLinkError('Connection error')
+      if (!isAuthRedirectError(err)) {
+        setLinkError(err.message || 'Connection error')
+      }
     } finally {
       setLinkLoading(false)
     }
@@ -440,20 +367,16 @@ export default function AdminUsersPage() {
     setUnlinkLoading(true)
     
     try {
-      const res = await fetch(`/api/admin/public-users/${userId}/unlink/${provider}`, {
+      await fetchAdminJson(`/api/admin/public-users/${userId}/unlink/${provider}`, {
         method: 'DELETE',
-        credentials: 'include'
       })
-      
-      if (res.ok) {
-        fetchUsers() // Refresh user list
-        setMessage({ type: 'success', text: `${providerName} unlinked successfully` })
-      } else {
-        const data = await res.json()
-        setMessage({ type: 'error', text: data.details || 'Failed to unlink' })
-      }
+
+      fetchUsers() // Refresh user list
+      setMessage({ type: 'success', text: `${providerName} unlinked successfully` })
     } catch (err) {
-      setMessage({ type: 'error', text: 'Connection error' })
+      if (!isAuthRedirectError(err)) {
+        setMessage({ type: 'error', text: err.message || 'Connection error' })
+      }
     } finally {
       setUnlinkLoading(false)
     }

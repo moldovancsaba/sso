@@ -1,7 +1,7 @@
 # Third-Party Integration Guide — SSO Service
 
 **Version**: 5.29.0  
-**Last Updated**: 2026-05-11T12:00:00.000Z  
+**Last Updated**: 2026-05-21T00:00:00.000Z  
 **Service URL**: https://sso.doneisbetter.com  
 **Status**: Current Runtime Guide
 
@@ -13,6 +13,14 @@ The SSO service provides:
 - centralized app-approval and role management
 - hosted public-user authentication
 - cookie-based SSO for shared subdomain deployments
+
+## Design / UI / UX SSOT
+
+If you are building or modifying hosted UI surfaces, admin screens, auth forms, or shared component patterns around this service, use the shared design-system source of truth:
+
+- [`/Users/Shared/Projects/GENERAL_DESIGN_SYSTEM/README.md`](/Users/Shared/Projects/GENERAL_DESIGN_SYSTEM/README.md)
+
+That directory is authoritative for Mantine-first component, form, modal, and interaction rules across projects.
 
 ## What You Get
 
@@ -110,6 +118,7 @@ Success response:
 - Use the `id_token` for identity claims.
 - Use the `access_token` for SSO API calls.
 - Refresh expired access tokens with `grant_type=refresh_token`.
+- Do not infer per-app access or per-app admin role from the ID token alone. Use the permission APIs when app authorization matters.
 
 ## App-Level Permissions
 
@@ -158,15 +167,16 @@ Requirements:
 
 ```http
 PUT /api/admin/users/{userId}/apps/{clientId}/permissions
-Cookie: admin-session=...
+Cookie: admin-session=... or public-session=...
 Content-Type: application/json
 
 {
-  "hasAccess": true,
   "role": "admin",
   "status": "approved"
 }
 ```
+
+The canonical admin UI path now uses `GET /api/admin/session`, which can validate either a legacy admin session or the current OAuth-backed admin public session.
 
 ### Access-request flow
 
@@ -225,6 +235,25 @@ Cookie: public-session=... or admin-session=...
 ```
 
 Use this only if your integration specifically depends on that compatibility endpoint. For new work, prefer `GET /api/public/session` for public-user session checks.
+
+### Admin session validation
+
+```http
+GET /api/admin/session
+Cookie: public-session=... or admin-session=...
+```
+
+Use this for the hosted admin UI contract. Unified-admin responses can also include:
+
+```json
+{
+  "auth": {
+    "model": "unified-public-session",
+    "authenticatedAt": "2026-05-21T10:00:00.000Z",
+    "requiresRecentAuth": false
+  }
+}
+```
 
 ## Method 3: Hosted Public Authentication
 

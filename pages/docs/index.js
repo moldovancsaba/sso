@@ -20,6 +20,11 @@ export default function DocsPage() {
                 <strong>Recommended default:</strong> use OAuth 2.0 Authorization Code flow with OIDC claims.
                 Public login endpoints create cookie-backed sessions, but they do not replace the OAuth token flow.
               </p>
+              <p>
+                <strong>Design / UI / UX SSOT:</strong> cross-project design rules now live in
+                {' '}<code>/Users/Shared/Projects/GENERAL_DESIGN_SYSTEM</code>.
+                Local styling in this repo should be treated as migration-state implementation, not the long-term design source of truth.
+              </p>
             </div>
           </section>
 

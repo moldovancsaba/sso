@@ -57,6 +57,7 @@ DRY_RUN=true node scripts/merge-duplicate-accounts.mjs
   - `super-admin`, `superadmin`, `owner` -> `admin`
   - `guest` -> `none`
   - `active` -> `approved`
+- The current admin UI uses OAuth plus a public session with admin app permission checks; legacy `admin-session` support remains available
 
 ## Current Authentication Surfaces
 
@@ -64,6 +65,7 @@ DRY_RUN=true node scripts/merge-duplicate-accounts.mjs
 - Admin session validation: `GET /api/admin/session`
 - Public login: `POST /api/public/login`
 - Public session validation: `GET /api/public/session`
+- Compatibility mixed-session validation: `GET /api/sso/validate`
 - Social login: Google and Facebook only
 - OAuth / OIDC:
   - `GET /api/oauth/authorize`
@@ -80,4 +82,6 @@ DRY_RUN=true node scripts/merge-duplicate-accounts.mjs
 - Passkeys are not implemented
 - Enterprise federation features such as SAML and SCIM are not implemented
 - Public-auth endpoints set cookie-backed sessions; they do not replace the OAuth token flow
+- App-level authorization is not encoded by default as the canonical app-permission contract; use permission APIs when app access or app role matters
 - Canonical docs live in [`/Users/moldovancsaba/Projects/sso/docs/README.md`](/Users/moldovancsaba/Projects/sso/docs/README.md), [`/Users/moldovancsaba/Projects/sso/docs/ARCHITECTURE.md`](/Users/moldovancsaba/Projects/sso/docs/ARCHITECTURE.md), and [`/Users/moldovancsaba/Projects/sso/docs/THIRD_PARTY_INTEGRATION_GUIDE.md`](/Users/moldovancsaba/Projects/sso/docs/THIRD_PARTY_INTEGRATION_GUIDE.md)
+- Design, UI, and UX SSOT lives in [`/Users/Shared/Projects/GENERAL_DESIGN_SYSTEM/README.md`](/Users/Shared/Projects/GENERAL_DESIGN_SYSTEM/README.md); local design notes are subordinate to that shared directory

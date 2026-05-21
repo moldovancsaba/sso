@@ -61,7 +61,7 @@ export default function LoginPage({ initialRedirect, initialOAuthRequest }) {
     if (redirect) {
       console.log('[Login] Page loaded with redirect:', redirect)
     }
-  }, [])
+  }, [oauth_request, redirect])
 
   // REMOVED: Automatic session check was interfering with form submission
   // Users who are already logged in can just manually go to /demo

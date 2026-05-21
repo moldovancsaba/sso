@@ -6,7 +6,7 @@
  * HOW: Filterable timeline view with real-time data from appAccessLogs collection
  */
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Head from 'next/head'
 import Link from 'next/link'
 import styles from '../../styles/home.module.css'
@@ -47,11 +47,7 @@ export default function ActivityDashboard({ admin }) {
   const [expandedLog, setExpandedLog] = useState(null)
 
   // WHAT: Fetch activity logs with current filters
-  useEffect(() => {
-    fetchLogs()
-  }, [timeRange, eventType, skip])
-
-  const fetchLogs = async () => {
+  const fetchLogs = useCallback(async () => {
     setLoading(true)
     try {
       const params = new URLSearchParams({
@@ -77,7 +73,11 @@ export default function ActivityDashboard({ admin }) {
     } finally {
       setLoading(false)
     }
-  }
+  }, [timeRange, eventType, skip])
+
+  useEffect(() => {
+    fetchLogs()
+  }, [fetchLogs])
 
   // WHAT: Format timestamp for display
   const formatTimestamp = (timestamp) => {
