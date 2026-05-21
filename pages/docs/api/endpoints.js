@@ -108,7 +108,7 @@ Content-Type: application/json
             <p>Validates the <code>public-session</code> cookie and returns sanitized user information.</p>
 
             <h3>GET /api/sso/validate</h3>
-            <p>Compatibility endpoint for shared-domain session validation.</p>
+            <p>Compatibility endpoint for mixed admin/public shared-domain session validation.</p>
           </section>
 
           <section className={styles.section} id="social">
@@ -171,11 +171,10 @@ Content-Type: application/json
             <p>Admin-managed permission update.</p>
             <div className={styles.codeBlock}>
               <pre>{`PUT /api/admin/users/{userId}/apps/{clientId}/permissions
-Cookie: admin-session=...
+Cookie: admin-session=... or public-session=...
 Content-Type: application/json
 
 {
-  "hasAccess": true,
   "role": "admin",
   "status": "approved"
 }`}</pre>

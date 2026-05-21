@@ -108,27 +108,31 @@ try {
 
           <section className={styles.section}>
             <h2>App Permission Errors</h2>
-            <p>After successful authentication, check the user's permission status:</p>
+            <p>After successful authentication, check the user's backend-derived permission status:</p>
 
             <div className={styles.codeBlock}>
               <pre>
-                {`// Extract permission status from ID token
+                {`// Fetch canonical permission state from your backend session layer
 import jwt from 'jsonwebtoken';
 
 const idToken = req.cookies.id_token;
 const decoded = jwt.decode(idToken);
-const { permissionStatus, role } = decoded;
+const permission = await getPermissionForUserAndClient({
+  userId: decoded.sub,
+  clientId: process.env.SSO_CLIENT_ID
+});
+const role = permission?.role ?? decoded.role;
 
 // Handle different permission statuses
-if (permissionStatus === 'pending') {
+if (permission?.status === 'pending') {
   return res.redirect('/access-pending');
-} else if (permissionStatus === 'revoked') {
+} else if (permission?.status === 'revoked') {
   return res.redirect('/access-denied');
-} else if (permissionStatus !== 'approved') {
+} else if (permission?.status !== 'approved') {
   return res.status(403).json({
     error: 'APP_ACCESS_DENIED',
     message: 'Access not approved',
-    permissionStatus
+    permissionStatus: permission?.status ?? 'unknown'
   });
 }
 
@@ -296,7 +300,7 @@ function logError(error, context) {
             <h2>Summary</h2>
             <ul>
               <li>☑️ Handle OAuth 2.0 errors in authorization and token exchange</li>
-              <li>☑️ Check <code>permissionStatus</code> after authentication</li>
+              <li>☑️ Check backend-derived permission status after authentication</li>
               <li>☑️ Implement token refresh with error handling</li>
               <li>☑️ Provide user-friendly error messages</li>
               <li>☑️ Implement rate limiting backoff</li>

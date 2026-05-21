@@ -25,6 +25,9 @@ export default function ReactExample() {
               <strong>⚠️ Security Note:</strong> Never expose <code>client_secret</code> in your React app.
               All token exchange operations must happen on your backend server.
             </div>
+            <div className={styles.warningBox}>
+              <p><strong>Current contract note:</strong> when these examples talk about app approval state, your backend should derive it from the permission APIs and expose it through your own session endpoint. Do not assume raw <code>id_token</code> claims already contain canonical app-permission status.</p>
+            </div>
           </section>
 
           <section className={styles.section}>
@@ -55,7 +58,7 @@ const AuthContext = createContext(null);
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [permissionStatus, setPermissionStatus] = useState(null);
+  const [permission, setPermission] = useState(null);
 
   // Check session on mount
   useEffect(() => {
@@ -72,7 +75,7 @@ export function AuthProvider({ children }) {
       if (response.ok) {
         const data = await response.json();
         setUser(data.user);
-        setPermissionStatus(data.permissionStatus); // 'approved', 'pending', 'revoked'
+        setPermission(data.permission ?? null); // e.g. { status: 'approved', role: 'member' }
       }
     } catch (error) {
       console.error('Session check failed:', error);
@@ -105,7 +108,7 @@ export function AuthProvider({ children }) {
         credentials: 'include'
       });
       setUser(null);
-      setPermissionStatus(null);
+      setPermission(null);
       
       // Optional: Also logout from SSO
       window.location.href = 'https://sso.doneisbetter.com/api/public/logout';
@@ -118,10 +121,10 @@ export function AuthProvider({ children }) {
     <AuthContext.Provider value={{ 
       user, 
       loading, 
-      permissionStatus,
+      permission,
       login, 
       logout,
-      isApproved: permissionStatus === 'approved'
+      isApproved: permission?.status === 'approved'
     }}>
       {children}
     </AuthContext.Provider>
@@ -181,9 +184,15 @@ export default async function handler(req, res) {
     const tokens = await tokenResponse.json();
     const { access_token, id_token, refresh_token } = tokens;
 
-    // WHY: Decode ID token to get user info and app permissions
+    // WHY: Decode ID token to get user identity claims
     const decoded = jwt.decode(id_token);
-    const { sub: userId, email, name, role, permissionStatus } = decoded;
+    const { sub: userId, email, name, role } = decoded;
+
+    // WHY: Ask your backend permission layer for canonical app access state
+    const permission = await getPermissionForUserAndClient({
+      userId,
+      clientId: process.env.SSO_CLIENT_ID
+    });
 
     // WHY: Store tokens securely in HTTP-only cookies
     res.setHeader('Set-Cookie', [
@@ -192,10 +201,10 @@ export default async function handler(req, res) {
       \`id_token=\${id_token}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=3600\`
     ]);
 
-    // WHY: Check app permission status and redirect accordingly
-    if (permissionStatus === 'pending') {
+    // WHY: Check backend-derived app permission status and redirect accordingly
+    if (permission?.status === 'pending') {
       return res.redirect('/access-pending');
-    } else if (permissionStatus === 'revoked') {
+    } else if (permission?.status === 'revoked') {
       return res.redirect('/access-denied');
     }
 
@@ -226,18 +235,23 @@ export default async function handler(req, res) {
   }
 
   try {
-    // WHY: Decode ID token to get user info and permission status
+    // WHY: Decode ID token to get user identity claims
     const decoded = jwt.decode(id_token);
-    const { sub: userId, email, name, role, permissionStatus } = decoded;
+    const { sub: userId, email, name, role } = decoded;
 
     // WHY: Check token expiration
     if (decoded.exp * 1000 < Date.now()) {
       return res.status(401).json({ error: 'Token expired' });
     }
 
+    const permission = await getPermissionForUserAndClient({
+      userId,
+      clientId: process.env.SSO_CLIENT_ID
+    });
+
     res.json({
       user: { userId, email, name, role },
-      permissionStatus
+      permission
     });
   } catch (error) {
     console.error('Session validation error:', error);
@@ -259,7 +273,7 @@ import { useRouter } from 'next/router';
 import { useEffect } from 'react';
 
 export function ProtectedRoute({ children, requireApproved = true }) {
-  const { user, loading, permissionStatus, isApproved } = useAuth();
+  const { user, loading, permission, isApproved } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
@@ -273,13 +287,13 @@ export function ProtectedRoute({ children, requireApproved = true }) {
 
     // WHY: Check app permission status
     if (requireApproved && !isApproved) {
-      if (permissionStatus === 'pending') {
+      if (permission?.status === 'pending') {
         router.push('/access-pending');
-      } else if (permissionStatus === 'revoked') {
+      } else if (permission?.status === 'revoked') {
         router.push('/access-denied');
       }
     }
-  }, [user, loading, permissionStatus, isApproved, requireApproved]);
+  }, [user, loading, permission, isApproved, requireApproved]);
 
   if (loading) {
     return <div>Loading...</div>;

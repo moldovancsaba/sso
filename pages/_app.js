@@ -1,6 +1,13 @@
+import '@mantine/core/styles.css';
+import '@mantine/notifications/styles.css';
 import '../styles/globals.css';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { Box, MantineProvider } from '@mantine/core';
+import { ModalsProvider } from '@mantine/modals';
+import { Notifications, notifications } from '@mantine/notifications';
 import { useRouter } from 'next/router';
+import AppFooter from '../components/AppFooter';
+import { mantineTheme } from '../lib/ui/mantineTheme';
 import packageJson from '../package.json';
 
 export default function App({ Component, pageProps }) {
@@ -29,8 +36,16 @@ export default function App({ Component, pageProps }) {
         if (data.status === 'expired' && !notificationShown) {
           setSessionStatus('expired');
           setNotificationShown(true);
-          alert('Your session has expired. Please sign in again.');
-          window.location.href = '/';
+          notifications.clean();
+          notifications.show({
+            title: 'Session expired',
+            message: 'Please sign in again.',
+            color: 'red',
+            autoClose: 2500,
+          });
+          window.setTimeout(() => {
+            router.push('/');
+          }, 300);
         }
       } catch (error) {
         console.error('Error checking session status:', error);
@@ -40,33 +55,39 @@ export default function App({ Component, pageProps }) {
     const interval = setInterval(checkSession, 60000); // Check every minute
 
     return () => clearInterval(interval);
-  }, [notificationShown, isAdminPage]);
+  }, [notificationShown, isAdminPage, router]);
 
   // Form submission handler
-  const handleFormSubmit = async (event) => {
+  const handleFormSubmit = useCallback(async (event) => {
     event.preventDefault();
     
     if (sessionStatus === 'expired') {
-      alert('Session expired. Please sign in again.');
-      window.location.href = '/';
+      notifications.clean();
+      notifications.show({
+        title: 'Session expired',
+        message: 'Please sign in again before continuing.',
+        color: 'red',
+        autoClose: 2500,
+      });
+      router.push('/');
       return;
     }
 
     // Continue with form submission
     const form = event.target;
     form.submit();
-  };
+  }, [router, sessionStatus]);
 
   // Sign-out handler
-  const handleSignOut = async () => {
+  const handleSignOut = useCallback(async () => {
     try {
       await fetch('/api/users/logout', { method: 'POST' });
       setSessionStatus('expired');
-      window.location.href = '/';
+      router.push('/');
     } catch (error) {
       console.error('Error signing out:', error);
     }
-  };
+  }, [router]);
 
   // Add event listeners for forms and sign-out button
   useEffect(() => {
@@ -88,27 +109,17 @@ export default function App({ Component, pageProps }) {
         signOutBtn.removeEventListener('click', handleSignOut);
       }
     };
-  }, [sessionStatus]);
+  }, [handleFormSubmit, handleSignOut]);
 
   return (
-    <>
-      <Component {...pageProps} />
-      <footer style={{
-        position: 'fixed',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        background: 'rgba(255, 255, 255, 0.95)',
-        borderTop: '1px solid #e0e0e0',
-        padding: '8px 16px',
-        textAlign: 'center',
-        fontSize: '12px',
-        color: '#666',
-        zIndex: 100,
-        backdropFilter: 'blur(10px)'
-      }}>
-        SSO v{packageJson.version} | <a href="https://github.com/moldovancsaba/sso" target="_blank" rel="noopener noreferrer" style={{ color: '#667eea', textDecoration: 'none' }}>GitHub</a> | <a href="/docs" style={{ color: '#667eea', textDecoration: 'none' }}>Docs</a> | <a href="/privacy" style={{ color: '#667eea', textDecoration: 'none' }}>Privacy</a> | <a href="/terms" style={{ color: '#667eea', textDecoration: 'none' }}>Terms</a> | <a href="/data-deletion" style={{ color: '#667eea', textDecoration: 'none' }}>Data Deletion</a>
-      </footer>
-    </>
-  )
+    <MantineProvider defaultColorScheme="light" theme={mantineTheme}>
+      <ModalsProvider>
+        <Notifications position="top-right" />
+        <Box pb={48}>
+          <Component {...pageProps} />
+          <AppFooter version={packageJson.version} />
+        </Box>
+      </ModalsProvider>
+    </MantineProvider>
+  );
 }

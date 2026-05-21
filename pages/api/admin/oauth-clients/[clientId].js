@@ -18,8 +18,13 @@ export default async function handler(req, res) {
   // Apply CORS
   if (runCors(req, res)) return
 
+  const requiresFreshAuth = req.method === 'PATCH' || req.method === 'DELETE'
+
   // Authenticate admin user
-  const adminUser = await requireUnifiedAdmin(req, res)
+  const adminUser = await requireUnifiedAdmin(req, res, {
+    requireFreshAuth: requiresFreshAuth,
+  })
+  if (!adminUser) return
 
 
   const { clientId } = req.query

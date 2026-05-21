@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/router'
 import Link from 'next/link'
 
@@ -24,11 +24,26 @@ export default function ConsentPage({ initialRequest }) {
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState(null)
 
-  useEffect(() => {
-    checkSessionAndLoadRequest()
-  }, [requestParam])
+  const fetchScopeDetails = useCallback(async (scopes) => {
+    // Map scopes to their details (hardcoded for now, could be fetched from API)
+    const scopeMap = {
+      openid: { name: 'OpenID', description: 'Required for authentication. Provides your user ID.', category: 'authentication' },
+      profile: { name: 'Profile', description: 'Access to your basic profile information (name, picture).', category: 'user_info' },
+      email: { name: 'Email', description: 'Access to your email address.', category: 'user_info' },
+      offline_access: { name: 'Offline Access', description: 'Keep you signed in across sessions (refresh token).', category: 'authentication' },
+      'read:cards': { name: 'Read Cards', description: 'View your card collection and rankings.', category: 'narimato' },
+      'write:cards': { name: 'Manage Cards', description: 'Create, update, and delete cards in your collection.', category: 'narimato' },
+      'read:rankings': { name: 'Read Rankings', description: 'View global and personal card rankings.', category: 'narimato' },
+      'read:decks': { name: 'Read Decks', description: 'View your card decks.', category: 'cardmass' },
+      'write:decks': { name: 'Manage Decks', description: 'Create, update, and delete your card decks.', category: 'cardmass' },
+      'read:games': { name: 'Read Games', description: 'View your game history and statistics.', category: 'playmass' },
+      'write:games': { name: 'Manage Games', description: 'Create and update game sessions.', category: 'playmass' },
+    }
 
-  async function checkSessionAndLoadRequest() {
+    return scopes.map(scope => scopeMap[scope] || { name: scope, description: scope, category: 'other' })
+  }, [])
+
+  const checkSessionAndLoadRequest = useCallback(async () => {
     try {
       // WHAT: Check if user is authenticated (public or admin)
       // WHY: OAuth consent requires an authenticated user session
@@ -86,26 +101,11 @@ export default function ConsentPage({ initialRequest }) {
       setError(err.message)
       setLoading(false)
     }
-  }
+  }, [fetchScopeDetails, requestParam, router])
 
-  async function fetchScopeDetails(scopes) {
-    // Map scopes to their details (hardcoded for now, could be fetched from API)
-    const scopeMap = {
-      openid: { name: 'OpenID', description: 'Required for authentication. Provides your user ID.', category: 'authentication' },
-      profile: { name: 'Profile', description: 'Access to your basic profile information (name, picture).', category: 'user_info' },
-      email: { name: 'Email', description: 'Access to your email address.', category: 'user_info' },
-      offline_access: { name: 'Offline Access', description: 'Keep you signed in across sessions (refresh token).', category: 'authentication' },
-      'read:cards': { name: 'Read Cards', description: 'View your card collection and rankings.', category: 'narimato' },
-      'write:cards': { name: 'Manage Cards', description: 'Create, update, and delete cards in your collection.', category: 'narimato' },
-      'read:rankings': { name: 'Read Rankings', description: 'View global and personal card rankings.', category: 'narimato' },
-      'read:decks': { name: 'Read Decks', description: 'View your card decks.', category: 'cardmass' },
-      'write:decks': { name: 'Manage Decks', description: 'Create, update, and delete your card decks.', category: 'cardmass' },
-      'read:games': { name: 'Read Games', description: 'View your game history and statistics.', category: 'playmass' },
-      'write:games': { name: 'Manage Games', description: 'Create and update game sessions.', category: 'playmass' },
-    }
-
-    return scopes.map(scope => scopeMap[scope] || { name: scope, description: scope, category: 'other' })
-  }
+  useEffect(() => {
+    checkSessionAndLoadRequest()
+  }, [checkSessionAndLoadRequest])
 
   async function handleApprove() {
     if (!authRequest || !user) return
@@ -249,6 +249,8 @@ export default function ConsentPage({ initialRequest }) {
         {/* Header */}
         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
           {authRequest.client_logo && (
+            // Third-party client logos are runtime-provided URLs, so the native img element is intentional here.
+            // eslint-disable-next-line @next/next/no-img-element
             <img src={authRequest.client_logo} alt={authRequest.client_name} style={{ width: 64, height: 64, marginBottom: '1rem' }} />
           )}
           <h1 style={{ margin: '0 0 0.5rem 0', fontSize: '1.5rem' }}>Authorize Access</h1>

@@ -143,8 +143,7 @@ Request body:
 ```json
 {
   "role": "user",
-  "status": "approved",
-  "grantedBy": "app:client-id"
+  "status": "approved"
 }
 ```
 
@@ -155,9 +154,27 @@ Request body:
 Requirements:
 - admin session
 
+Canonical admin DTO example:
+
+```json
+{
+  "userId": "uuid",
+  "clientId": "uuid",
+  "appName": "launchmass",
+  "hasAccess": true,
+  "status": "approved",
+  "role": "admin",
+  "grantedAt": "2026-05-21T10:05:00.000Z",
+  "grantedBy": "admin-uuid",
+  "createdAt": "2026-05-21T10:00:00.000Z",
+  "updatedAt": "2026-05-21T10:05:00.000Z"
+}
+```
+
 ## Notes for Integrators
 
 - Treat `approved` as the canonical granted status
 - Do not build new client logic around `active`
 - Do not assume any roles beyond `none`, `user`, `admin`
 - If you cache permission state in downstream apps, resync it on login
+- Do not treat the OIDC ID token as the source of app-permission status; use permission APIs for that contract

@@ -26,6 +26,9 @@ export default function VanillaExample() {
               <strong>⚠️ Security Note:</strong> Never expose <code>client_secret</code> in your frontend code.
               All token operations must happen on your backend server.
             </div>
+            <div className={styles.warningBox}>
+              <p><strong>Current contract note:</strong> your backend session layer should fetch canonical app-permission state from the permission APIs and return it to the frontend. Do not treat raw <code>id_token</code> claims as the source of truth for app approval status.</p>
+            </div>
           </section>
 
           <section className={styles.section}>
@@ -142,7 +145,7 @@ async function checkSession() {
       return {
         isAuthenticated: true,
         user: data.user,
-        permissionStatus: data.permissionStatus
+        permission: data.permission ?? null
       };
     } else {
       return { isAuthenticated: false };
@@ -223,7 +226,7 @@ async function initApp() {
   }
 
   // WHY: Handle different permission statuses
-  switch (session.permissionStatus) {
+  switch (session.permission?.status) {
     case 'approved':
       renderUserInfo(session.user);
       showView('dashboard-view');
@@ -310,9 +313,15 @@ router.get('/api/auth/callback', async (req, res) => {
     const tokens = await tokenResponse.json();
     const { access_token, id_token, refresh_token } = tokens;
 
-    // WHY: Decode ID token to get user info
+    // WHY: Decode ID token to get user identity claims
     const decoded = jwt.decode(id_token);
-    const { sub, email, name, role, permissionStatus } = decoded;
+    const { sub, email, name, role } = decoded;
+
+    // WHY: Ask your backend permission layer for canonical app access state
+    const permission = await getPermissionForUserAndClient({
+      userId: sub,
+      clientId: SSO_CONFIG.clientId
+    });
 
     // WHY: Store tokens in HTTP-only cookies
     res.cookie('access_token', access_token, {
@@ -334,10 +343,10 @@ router.get('/api/auth/callback', async (req, res) => {
       maxAge: 3600000
     });
 
-    // WHY: Redirect based on permission status
-    if (permissionStatus === 'pending') {
+    // WHY: Redirect based on backend-derived permission status
+    if (permission?.status === 'pending') {
       return res.redirect('/?status=pending');
-    } else if (permissionStatus === 'revoked') {
+    } else if (permission?.status === 'revoked') {
       return res.redirect('/?status=denied');
     }
 
@@ -358,15 +367,20 @@ router.get('/api/auth/session', (req, res) => {
 
   try {
     const decoded = jwt.decode(id_token);
-    const { sub, email, name, role, permissionStatus } = decoded;
+    const { sub, email, name, role } = decoded;
 
     if (decoded.exp * 1000 < Date.now()) {
       return res.status(401).json({ error: 'Token expired' });
     }
 
+    const permission = getPermissionForUserAndClient({
+      userId: sub,
+      clientId: SSO_CONFIG.clientId
+    });
+
     res.json({
       user: { userId: sub, email, name, role },
-      permissionStatus
+      permission
     });
   } catch (error) {
     console.error('Session validation error:', error);

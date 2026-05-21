@@ -139,10 +139,10 @@ openssl rand -base64 32`}
 console.log('Authorization code received:', code);
 console.log('Tokens received:', { access_token, id_token, refresh_token });
 
-// Decode ID token to verify user info
+// Decode ID token to verify identity claims
 const decoded = jwt.decode(id_token);
 console.log('User info:', decoded);
-console.log('Permission status:', decoded.permissionStatus);`}
+console.log('Permission should come from your backend session endpoint, not directly from decoded ID token claims.');`}
               </pre>
             </div>
           </section>

@@ -59,7 +59,7 @@ export default function SessionManagementDocs() {
               <li><strong>Purpose:</strong> Contains user identity and app permissions</li>
               <li><strong>Lifetime:</strong> 1 hour (3600 seconds)</li>
               <li><strong>Format:</strong> JWT (JSON Web Token)</li>
-              <li><strong>Usage:</strong> Extract user info, role, and permission status</li>
+              <li><strong>Usage:</strong> Extract user identity claims; derive app permission status separately through your backend permission layer</li>
               <li><strong>Storage:</strong> HTTP-only cookie (backend)</li>
             </ul>
             <div className={styles.codeBlock}>
@@ -69,8 +69,7 @@ export default function SessionManagementDocs() {
   "sub": "user-uuid-123",
   "email": "user@example.com",
   "name": "John Doe",
-  "role": "admin",  // 'admin' or 'user'
-  "permissionStatus": "approved",  // 'approved', 'pending', or 'revoked'
+  "role": "admin",  // Identity / broad role claim
   "iss": "https://sso.doneisbetter.com",
   "aud": "your-client-id",
   "exp": 1710000000,
@@ -109,7 +108,8 @@ export default function SessionManagementDocs() {
             <ul>
               <li>User makes requests to your app</li>
               <li>Your backend validates ID token for each request</li>
-              <li>User info and permissions are extracted from ID token</li>
+              <li>User identity is extracted from the ID token</li>
+              <li>Your backend session layer derives app permission state from the permission APIs</li>
               <li>Access token is used for SSO API calls (if needed)</li>
             </ul>
 
@@ -161,11 +161,16 @@ export function validateSession(req, res, next) {
       return refreshAndRetry(req, res, next);
     }
 
-    // WHY: Check app permission status
-    if (decoded.permissionStatus !== 'approved') {
+    const permission = getPermissionForUserAndClient({
+      userId: decoded.sub,
+      clientId: process.env.SSO_CLIENT_ID
+    });
+
+    // WHY: Check backend-derived app permission status
+    if (permission?.status !== 'approved') {
       return res.status(403).json({
         error: 'APP_ACCESS_DENIED',
-        permissionStatus: decoded.permissionStatus
+        permissionStatus: permission?.status ?? 'unknown'
       });
     }
 
@@ -175,7 +180,7 @@ export function validateSession(req, res, next) {
       email: decoded.email,
       name: decoded.name,
       role: decoded.role,
-      permissionStatus: decoded.permissionStatus
+      permissionStatus: permission?.status ?? null
     };
 
     next();
@@ -355,7 +360,7 @@ export async function logout(req, res) {
             <h3>Permission status changed</h3>
             <p><strong>Symptom:</strong> User was approved but now gets 403 errors</p>
             <p><strong>Cause:</strong> SSO admin changed user's permission status</p>
-            <p><strong>Solution:</strong> Check <code>permissionStatus</code> in ID token and redirect accordingly</p>
+            <p><strong>Solution:</strong> Check backend-derived permission status in your session layer and redirect accordingly</p>
 
             <h3>Session not persisting</h3>
             <p><strong>Symptom:</strong> User logged out on page refresh</p>
@@ -375,7 +380,7 @@ export async function logout(req, res) {
               <li>☑️ Implement proactive token refresh (5 min before expiry)</li>
               <li>☑️ Store tokens in HTTP-only cookies</li>
               <li>☑️ Revoke tokens on logout</li>
-              <li>☑️ Check <code>permissionStatus</code> on every request</li>
+              <li>☑️ Check backend-derived permission status on every request</li>
             </ul>
             <div className={styles.alert}>
               <strong>🔗 Related Resources:</strong>

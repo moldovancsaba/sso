@@ -31,7 +31,10 @@ export default async function handler(req, res) {
   }
 
   // Authenticate admin user
-  const adminUser = await requireUnifiedAdmin(req, res)
+  const adminUser = await requireUnifiedAdmin(req, res, {
+    requireFreshAuth: true,
+  })
+  if (!adminUser) return
 
 
   // Require admin role

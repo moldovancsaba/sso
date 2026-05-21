@@ -30,8 +30,11 @@ export default function AppPermissions() {
               <li><strong>App Permission</strong> - Per-user, per-app access control record</li>
               <li><strong>Permission Status</strong> - Canonical states: pending, approved, revoked</li>
               <li><strong>No Record</strong> - Represented operationally as no permission record and surfaced as <code>status: "none"</code> in some read APIs</li>
-              <li><strong>App Role</strong> - User's role within app: user or admin</li>
+              <li><strong>App Role</strong> - User&apos;s role within app: user or admin</li>
             </ul>
+            <div className={styles.warningBox}>
+              <p><strong>Important:</strong> the app-permission contract lives in permission APIs, not in the OIDC <code>id_token</code>.</p>
+            </div>
           </section>
 
           {/* WHAT: Permission lifecycle diagram */}
@@ -120,7 +123,7 @@ export default function AppPermissions() {
                 </div>
               </li>
               <li><strong>User experience:</strong> OAuth completes successfully, user redirected to app</li>
-              <li><strong>Token payload:</strong> ID token includes <code>role</code> field from permission record</li>
+              <li><strong>Token payload:</strong> OAuth tokens establish identity, but app-permission status and app role should still be read from permission APIs when authorization matters</li>
               <li><strong>Duration:</strong> Indefinite until revoked or role changed</li>
             </ul>
 
@@ -161,7 +164,7 @@ export default function AppPermissions() {
             <ul>
               <li>Default role for most users</li>
               <li>Can access app features but not admin functions</li>
-              <li>Your app receives <code>role: "user"</code> in ID token payload</li>
+              <li>Your app should persist the validated permission response if it needs app-role decisions later in the request lifecycle</li>
               <li>Example use: Regular users in Launchmass can view/edit their own pages</li>
             </ul>
 
@@ -169,7 +172,7 @@ export default function AppPermissions() {
             <ul>
               <li>Granted by SSO admin for trusted users</li>
               <li>Can access app's administrative features</li>
-              <li>Your app receives <code>role: "admin"</code> in ID token payload</li>
+              <li>Your app should treat this as an app-permission concept, not as a generic identity claim</li>
               <li>Example use: Admins in Launchmass can manage all users and organizations</li>
             </ul>
 
@@ -191,35 +194,42 @@ export default function AppPermissions() {
             <h2>Handling Permissions in Your App</h2>
             
             <h3>1. During OAuth Callback</h3>
-            <p>Extract role from ID token after token exchange:</p>
+            <p>Extract identity from the ID token after token exchange, then validate app permission separately when your app needs authorization state:</p>
             <div className={styles.codeBlock}>
               <pre>
                 {`// After POST /api/oauth/token
-const { id_token } = await tokenResponse.json();
+const { access_token, id_token } = await tokenResponse.json();
 const jwt = require('jsonwebtoken');
 const userInfo = jwt.decode(id_token);
 
 // Store in your app's session
 req.session.userId = userInfo.sub;
 req.session.email = userInfo.email;
-req.session.role = userInfo.role;  // "user" or "admin"
+req.session.userType = userInfo.user_type;
 
-// Route user based on role
-if (userInfo.role === 'admin') {
-  res.redirect('/admin/dashboard');
-} else {
-  res.redirect('/dashboard');
-}`}
+// Validate app-level permission explicitly
+const permissionResponse = await fetch(
+  \`https://sso.doneisbetter.com/api/users/\${userInfo.sub}/apps/\${process.env.SSO_CLIENT_ID}/permissions\`,
+  {
+    headers: {
+      Authorization: \`Bearer \${access_token}\`
+    }
+  }
+);
+
+const permission = await permissionResponse.json();
+req.session.appRole = permission.role;
+req.session.appStatus = permission.status;`}
               </pre>
             </div>
 
             <h3>2. Protecting Admin Routes</h3>
-            <p>Use role from session to guard admin-only features:</p>
+            <p>Use the validated app-permission role from your own session to guard admin-only features:</p>
             <div className={styles.codeBlock}>
               <pre>
                 {`// Middleware for admin-only routes
 function requireAppAdmin(req, res, next) {
-  if (req.session.role !== 'admin') {
+  if (req.session.appRole !== 'admin' || req.session.appStatus !== 'approved') {
     return res.status(403).json({
       error: 'Admin access required'
     });
@@ -259,7 +269,7 @@ async function validateAppAccess(req, res, next) {
   }
 
   const permission = await validation.json();
-  if (!permission.hasAccess || permission.status !== 'approved') {
+  if (permission.status !== 'approved' || permission.role === 'none') {
     req.session.destroy();
     return res.redirect('/access-pending');
   }
@@ -326,14 +336,14 @@ app.post('/admin/delete-user', requireAppAdmin, validateAppAccess, async (req, r
             <h2>App Permissions API</h2>
             <p>
               SSO provides REST APIs for programmatic permission management. 
-              <strong>Requires SSO admin authentication</strong> (admin session cookie).
+              <strong>Requires SSO admin authentication</strong> through the current admin session contract.
             </p>
 
             <h3>Get User's Permissions</h3>
             <div className={styles.codeBlock}>
               <pre>
                 {`GET https://sso.doneisbetter.com/api/admin/app-permissions/[userId]
-Cookie: admin-session=...
+Cookie: admin-session=... or public-session=...
 
 // Response:
 {
@@ -365,7 +375,7 @@ Cookie: admin-session=...
             <div className={styles.codeBlock}>
               <pre>
                 {`POST https://sso.doneisbetter.com/api/admin/app-permissions/[userId]
-Cookie: admin-session=...
+Cookie: admin-session=... or public-session=...
 Content-Type: application/json
 
 {
@@ -376,8 +386,12 @@ Content-Type: application/json
 
 // Response: 200 OK
 {
-  success: true,
-  permission: { ...updated permission record... }
+  "userId": "550e8400-e29b-41d4-a716-446655440000",
+  "clientId": "your-app-client-id",
+  "appName": "Your App",
+  "hasAccess": true,
+  "status": "approved",
+  "role": "user"
 }`}
               </pre>
             </div>
@@ -386,7 +400,7 @@ Content-Type: application/json
             <div className={styles.codeBlock}>
               <pre>
                 {`PATCH https://sso.doneisbetter.com/api/admin/app-permissions/[userId]
-Cookie: admin-session=...
+Cookie: admin-session=... or public-session=...
 Content-Type: application/json
 
 {
@@ -402,7 +416,7 @@ Content-Type: application/json
             <div className={styles.codeBlock}>
               <pre>
                 {`DELETE https://sso.doneisbetter.com/api/admin/app-permissions/[userId]
-Cookie: admin-session=...
+Cookie: admin-session=... or public-session=...
 Content-Type: application/json
 
 {
@@ -424,8 +438,8 @@ Content-Type: application/json
                 <p>Only SSO admins can approve app permissions. Apps cannot call permission APIs with their OAuth credentials.</p>
               </li>
               <li>
-                <strong>Token Role is Snapshot</strong>
-                <p>Role in ID token is captured at token issuance. If admin changes role, user needs to refresh token to see new role.</p>
+                <strong>App Permission Is the Source of Truth</strong>
+                <p>Treat permission APIs as canonical for app access and app role. Do not assume the ID token alone reflects the latest app authorization state.</p>
               </li>
               <li>
                 <strong>Revocation Not Immediate</strong>

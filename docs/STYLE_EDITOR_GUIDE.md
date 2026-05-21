@@ -2,6 +2,7 @@
 
 > Historical guide.
 > The style editor still exists, but this document predates the admin-role consolidation and is no longer the source of truth for current runtime behavior.
+> Design, UI, and UX rules now defer to [`/Users/Shared/Projects/GENERAL_DESIGN_SYSTEM/README.md`](/Users/Shared/Projects/GENERAL_DESIGN_SYSTEM/README.md).
 > Confirm current behavior in [`/Users/moldovancsaba/Projects/sso/pages/admin/style-editor.js`](/Users/moldovancsaba/Projects/sso/pages/admin/style-editor.js) and [`/Users/moldovancsaba/Projects/sso/pages/api/admin/themes/index.js`](/Users/moldovancsaba/Projects/sso/pages/api/admin/themes/index.js) before relying on this guide.
 
 **Document**: STYLE_EDITOR_GUIDE.md  

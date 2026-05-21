@@ -1,4 +1,4 @@
-export default {
+const config = {
   testEnvironment: 'node',
   transform: {},
   moduleNameMapper: {
@@ -7,3 +7,5 @@ export default {
   testMatch: ['**/?(*.)+(spec|test).js'],
   testPathIgnorePatterns: ['/node_modules/', '/tests/'],
 };
+
+export default config;

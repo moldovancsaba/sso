@@ -10,7 +10,17 @@ import { auditLog } from '../../../../lib/adminHelpers.mjs'
 import { AuditAction } from '../../../../lib/auditLog.mjs'
 
 export default async function handler(req, res) {
-  const admin = await requireUnifiedAdmin(req, res)
+  const body = req.body || {}
+  const requiresFreshAuth =
+    req.method === 'DELETE' ||
+    (req.method === 'PATCH' && (
+      typeof body.role === 'string' ||
+      Object.prototype.hasOwnProperty.call(body, 'password')
+    ))
+
+  const admin = await requireUnifiedAdmin(req, res, {
+    requireFreshAuth: requiresFreshAuth,
+  })
   if (!admin) return // requireUnifiedAdmin already sent error response
 
   const { userId } = req.query || {}
@@ -34,7 +44,7 @@ export default async function handler(req, res) {
 
   if (req.method === 'PATCH') {
     try {
-      const { name, role, password } = req.body || {}
+      const { name, role, password } = body
 
       // Role updates are restricted to admins
       if (role && admin.role !== 'admin') {
@@ -128,4 +138,3 @@ export default async function handler(req, res) {
   res.setHeader('Allow', 'GET, PATCH, DELETE')
   return res.status(405).end(`Method ${req.method} Not Allowed`)
 }
-

@@ -32,6 +32,9 @@ export default function SecurityBestPractices() {
               <strong>⚠️ Critical:</strong> OAuth 2.0 security depends on proper implementation.
               Violations of these practices can lead to severe security breaches.
             </div>
+            <div className={styles.warningBox}>
+              <p><strong>Current contract note:</strong> use ID tokens for identity claims and use permission APIs for app authorization state. If your backend surfaces a <code>permissionStatus</code> field, that should be derived from the permission APIs rather than assumed to be present in the raw ID token.</p>
+            </div>
           </section>
 
           <section className={styles.section}>
@@ -165,7 +168,7 @@ import jwt from 'jsonwebtoken';
 
 // ✅ Option 1: Just decode (if you trust the SSO server)
 const decoded = jwt.decode(idToken);
-const { sub: userId, email, name, role, permissionStatus } = decoded;
+const { sub: userId, email, name, role } = decoded;
 
 // ✅ Option 2: Verify signature (more secure, recommended)
 const publicKey = await fetchSSOPublicKey(); // From /.well-known/jwks.json
@@ -191,14 +194,15 @@ if (decoded.exp * 1000 < Date.now()) {
               <pre>
                 {`// WHY: Enforce app-level permissions to prevent unauthorized access
 
-const { permissionStatus, role } = decoded; // From ID token
+const permission = await getPermissionForUserAndClient({ userId, clientId });
+const role = permission?.role ?? 'member';
 
 // ✅ Always check permission status before granting access
-if (permissionStatus !== 'approved') {
-  if (permissionStatus === 'pending') {
+if (permission?.status !== 'approved') {
+  if (permission?.status === 'pending') {
     return res.redirect('/access-pending');
   }
-  if (permissionStatus === 'revoked') {
+  if (permission?.status === 'revoked') {
     return res.redirect('/access-denied');
   }
   // Unknown status - deny access
@@ -213,7 +217,7 @@ if (role === 'admin') {
 }`}
               </pre>
             </div>
-            <p><strong>WHY:</strong> A user may authenticate successfully but not have permission to access your application. Always verify <code>permissionStatus</code>.</p>
+            <p><strong>WHY:</strong> A user may authenticate successfully but still lack app access. Always verify backend-derived permission state before granting access.</p>
           </section>
 
           <section className={styles.section}>
@@ -350,7 +354,7 @@ window.location.href = 'https://sso.doneisbetter.com/api/public/logout';`}
               <li>☑️ Implement CSRF protection with <code>state</code> parameter</li>
               <li>☑️ Store tokens in HTTP-only cookies (never localStorage)</li>
               <li>☑️ Validate ID token signatures and expiration</li>
-              <li>☑️ Check <code>permissionStatus</code> before granting access</li>
+              <li>☑️ Check backend-derived permission status before granting access</li>
               <li>☑️ Implement token refresh before expiry</li>
               <li>☑️ Use exact, pre-registered redirect URIs</li>
               <li>☑️ Handle rate limiting with exponential backoff</li>

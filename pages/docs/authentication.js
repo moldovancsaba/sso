@@ -18,6 +18,10 @@ export default function Authentication() {
               and PKCE where appropriate. Public-user hosted auth and social login feed into that same
               authorization flow.
             </p>
+            <p>
+              Design, UI, and UX rules for those hosted auth surfaces now defer to
+              {' '}<code>/Users/Shared/Projects/GENERAL_DESIGN_SYSTEM</code>.
+            </p>
           </section>
 
           <section className={styles.section}>

@@ -6,7 +6,7 @@
  * HOW: Organized color pickers by category with real-time updates
  */
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Head from 'next/head'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
@@ -62,10 +62,6 @@ export default function StyleEditor({ admin }) {
   const [exportData, setExportData] = useState(null)
 
   // WHAT: Load themes on mount
-  useEffect(() => {
-    loadThemes()
-  }, [])
-
   // WHAT: Load colors when theme is selected
   useEffect(() => {
     if (selectedTheme) {
@@ -75,7 +71,7 @@ export default function StyleEditor({ admin }) {
     }
   }, [selectedTheme])
 
-  const loadThemes = async () => {
+  const loadThemes = useCallback(async () => {
     try {
       setLoading(true)
       const res = await fetch('/api/admin/themes', { credentials: 'include' })
@@ -94,7 +90,11 @@ export default function StyleEditor({ admin }) {
     } finally {
       setLoading(false)
     }
-  }
+  }, [selectedTheme])
+
+  useEffect(() => {
+    loadThemes()
+  }, [loadThemes])
 
   const handleColorChange = (colorKey, value) => {
     setColors(prev => ({ ...prev, [colorKey]: value }))

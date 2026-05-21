@@ -362,7 +362,9 @@ The script is **idempotent** — safe to run multiple times. If no duplicates ar
 
 #### `GET /api/sso/validate`
 
-No changes to API, but underlying logic uses account linking helpers.
+No account-linking-specific response changes. This remains a compatibility endpoint for mixed admin/public session validation.
+
+For new public-account UIs, prefer `GET /api/public/session`.
 
 ---
 

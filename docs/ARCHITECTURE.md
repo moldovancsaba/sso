@@ -1,7 +1,7 @@
 # Architecture — SSO
 
 Version: 5.29.0  
-Last updated: 2026-05-10T00:00:00.000Z
+Last updated: 2026-05-21T00:00:00.000Z
 
 ## Stack
 
@@ -9,15 +9,25 @@ Last updated: 2026-05-10T00:00:00.000Z
 - Node.js 18+
 - MongoDB Atlas
 
+## Design System Boundary
+
+- Design, UI, and UX governance is defined outside this repo in [`/Users/Shared/Projects/GENERAL_DESIGN_SYSTEM`](/Users/Shared/Projects/GENERAL_DESIGN_SYSTEM)
+- The local pointer is [docs/DESIGN_SYSTEM.md](/Users/moldovancsaba/Projects/sso/docs/DESIGN_SYSTEM.md)
+- Current local CSS modules, `styles/globals.css`, and `components/ThemeProvider.js` are implementation artifacts, not the long-term design SSOT
+- Future UI work should migrate this repo toward the Mantine-first contracts in that shared directory
+
 ## Canonical Runtime Model
 
 ### Admin users
 - Collection: `users`
 - Canonical role: `admin`
 - Legacy `super-admin` values are normalized to `admin`
-- Session cookie: `admin-session`
-- Session storage: `sessions`
+- Legacy session cookie: `admin-session`
+- Legacy session storage: `sessions`
+- Current admin UI authorization also supports a public session plus `sso-admin-dashboard` app permission
 - Session timeout: 4 hours with server-side validation and sliding extension on activity
+- High-risk unified-admin mutations require recent authentication; default freshness window is 15 minutes unless `ADMIN_FRESH_AUTH_WINDOW_MS` overrides it
+- The admin UI handles `REAUTH_REQUIRED` by returning the operator to `/admin`, preserving the current admin route, and resuming at that route after OAuth login completes
 
 ### Public users
 - Collection: `publicUsers`
@@ -44,9 +54,10 @@ Last updated: 2026-05-10T00:00:00.000Z
 ## Main Flows
 
 ### Admin authentication
-1. Admin authenticates against `users`
-2. Server creates an `admin-session` cookie
-3. Admin routes validate session and normalized role
+1. Preferred admin UI path starts at `/admin`, which launches an OAuth flow for `sso-admin-dashboard`
+2. Successful admin OAuth login creates a public session and checks `appPermissions` for admin access
+3. `GET /api/admin/session` validates that admin access, and still supports legacy `admin-session` users
+4. Sensitive admin mutations may require recent authentication and can return `REAUTH_REQUIRED`
 
 ### Public authentication
 1. User authenticates with password, magic link, PIN, Google, or Facebook
@@ -60,6 +71,7 @@ Last updated: 2026-05-10T00:00:00.000Z
 4. Server checks or creates per-app permission state
 5. Approved users continue through consent and code issuance
 6. Client exchanges code at `/api/oauth/token`
+7. ID token returns identity claims; app-specific authorization remains a separate permission concern
 
 ## Security-Relevant Behavior
 
@@ -80,6 +92,8 @@ Last updated: 2026-05-10T00:00:00.000Z
 - Self-service reads are constrained to the token subject and token client
 - App-to-app permission mutations require a client token with `manage_permissions`
 - Admin-session mutation paths remain available for the admin UI
+- Sensitive unified-admin mutations can return `REAUTH_REQUIRED` even when the session is otherwise valid
+- Permission DTOs normalize legacy values but the canonical runtime contract is still `none|user|admin` plus `pending|approved|revoked`
 
 ## Important Collections
 
@@ -115,3 +129,4 @@ Last updated: 2026-05-10T00:00:00.000Z
 - Apple Sign In is not implemented yet
 - Enterprise federation features such as SAML and SCIM are not implemented yet
 - Documentation pages under `pages/docs` may still lag behind this file and should be treated as secondary until reconciled
+- The current repo still contains legacy local styling infrastructure that has not yet been replaced by the shared Mantine-first design-system target

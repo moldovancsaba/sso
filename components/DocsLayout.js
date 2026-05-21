@@ -53,7 +53,8 @@ export default function DocsLayout({ children }) {
       <nav className={styles.sidebar}>
         <div className={styles.sidebarHeader}>
           <Link href="/">
-            <img src="/logo.svg" alt="DoneIsBetter SSO" className={styles.logo} />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/logo.svg" alt="DoneIsBetter SSO" className={styles.logo} width={160} height={40} />
           </Link>
           <select 
             className={styles.versionSelect}
