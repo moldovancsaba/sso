@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
-import Link from 'next/link'
+import { Alert, Button, Loader, Stack, Text } from '@mantine/core'
+import { IconAlertCircle, IconLock } from '@tabler/icons-react'
 import { decodeAdminLoginState, sanitizeAdminRedirectPath } from '../../lib/adminAuthFlow.js'
+import AuthSurface from '../../components/AuthSurface'
 
 /**
  * Admin OAuth Callback
@@ -77,38 +79,35 @@ export default function AdminCallbackPage() {
 
   if (error) {
     return (
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem', background: '#0b1021' }}>
-        <div style={{ width: '100%', maxWidth: 480, background: '#12172b', border: '1px solid #22284a', borderRadius: 12, padding: '2rem', color: '#e6e8f2' }}>
-          <div style={{ fontSize: '2rem', marginBottom: '1rem', textAlign: 'center' }}>❌</div>
-          <h1 style={{ margin: 0, fontSize: '1.5rem', textAlign: 'center' }}>Access Denied</h1>
-          <p style={{ marginTop: '1rem', opacity: 0.8 }}>{error}</p>
-          <Link 
-            href="/"
-            style={{
-              display: 'block',
-              marginTop: '1.5rem',
-              padding: '0.75rem',
-              background: '#4054d6',
-              color: 'white',
-              borderRadius: 6,
-              textDecoration: 'none',
-              textAlign: 'center'
-            }}
-          >
+      <AuthSurface
+        description="The admin authorization flow could not be completed."
+        icon={<IconAlertCircle size={28} stroke={1.8} />}
+        title="Access Denied"
+      >
+        <Stack gap="md">
+          <Alert color="red" icon={<IconAlertCircle size={18} />} title="Authorization failed" variant="light">
+            {error}
+          </Alert>
+          <Button component="a" href="/" variant="filled">
             Back to Home
-          </Link>
-        </div>
-      </div>
+          </Button>
+        </Stack>
+      </AuthSurface>
     )
   }
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem', background: '#0b1021' }}>
-      <div style={{ width: '100%', maxWidth: 480, background: '#12172b', border: '1px solid #22284a', borderRadius: 12, padding: '2rem', color: '#e6e8f2', textAlign: 'center' }}>
-        <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>🔐</div>
-        <h1 style={{ margin: 0, fontSize: '1.5rem' }}>SSO Admin</h1>
-        <p style={{ marginTop: '0.5rem', opacity: 0.8 }}>Completing authorization...</p>
-      </div>
-    </div>
+    <AuthSurface
+      description="Finalizing admin authorization and restoring your dashboard session."
+      icon={<IconLock size={28} stroke={1.8} />}
+      title="SSO Admin"
+    >
+      <Stack align="center" gap="sm">
+        <Loader color="brand" type="dots" />
+        <Text c="dimmed" size="sm">
+          Completing authorization...
+        </Text>
+      </Stack>
+    </AuthSurface>
   )
 }

@@ -4,7 +4,7 @@ Status: Migrating
 Last updated: 2026-05-21
 
 Design / UI / UX SSOT: `/Users/Shared/Projects/GENERAL_DESIGN_SYSTEM`
-Aligned SSOT version/date: `1.1.0 / 2026-05-21`
+Aligned SSOT version/date: `1.3.0 / 2026-05-21`
 
 The single source of truth for design, UI, and UX lives in the shared directory:
 
@@ -39,11 +39,10 @@ The single source of truth for design, UI, and UX lives in the shared directory:
 
 ## Migration Backlog
 
-1. Migrate login, admin entry, callback, and consent surfaces.
-2. Migrate admin shell and CRUD flows.
-3. Decide rewrite or removal for the old style editor and theme provider.
-4. Migrate docs surfaces.
-5. Delete legacy design infrastructure after the Mantine surfaces are complete.
+1. Migrate admin shell and CRUD flows.
+2. Decide rewrite or removal for the old style editor and theme provider.
+3. Migrate docs surfaces.
+4. Delete legacy design infrastructure after the Mantine surfaces are complete.
 
 ## Phase 1 Status
 
@@ -51,7 +50,15 @@ The single source of truth for design, UI, and UX lives in the shared directory:
 - root provider is active in `pages/_app.js`
 - shared Mantine theme exists in `lib/ui/mantineTheme.js`
 - notifications and modals are centralized at the app root
-- legacy page surfaces are still present and remain migration work
+- auth entry surfaces are no longer on the legacy login CSS module path
+
+## Phase 2 Status
+
+- `pages/login.js` is Mantine-based
+- `pages/admin/index.js` is Mantine-based
+- `pages/admin/callback.js` is Mantine-based
+- `pages/oauth/consent.js` is Mantine-based
+- the old auth-page CSS module remains legacy inventory until the deletion phase
 
 ## Rules For This Repo During Migration
 
