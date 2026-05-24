@@ -1,7 +1,9 @@
-import Link from 'next/link';
-import { useRouter } from 'next/router';
+import Image from 'next/image'
+import Link from 'next/link'
+import { useRouter } from 'next/router'
 import {
   AppShell,
+  Box,
   Burger,
   Group,
   NavLink,
@@ -13,9 +15,9 @@ import {
   Divider,
   Anchor,
   Select,
-} from '@mantine/core';
-import { useDisclosure } from '@mantine/hooks';
-import { IconSearch } from '@tabler/icons-react';
+} from '@mantine/core'
+import { useDisclosure } from '@mantine/hooks'
+import { IconSearch } from '@tabler/icons-react'
 
 export default function DocsLayout({ children }) {
   const [opened, { toggle }] = useDisclosure();
@@ -78,15 +80,17 @@ export default function DocsLayout({ children }) {
         <Group h="100%" px="md" justify="space-between">
           <Group>
             <Burger opened={opened} onClick={toggle} hiddenFrom="sm" size="sm" />
-            <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'none' }}>
-              <img src="/logo.svg" alt="DoneIsBetter SSO" style={{ height: 28 }} />
+            <Link href="/">
+              <Box component="span" display="inline-flex">
+                <Image alt="DoneIsBetter SSO" height={28} src="/logo.svg" width={132} />
+              </Box>
             </Link>
             <Select
               size="xs"
               w={90}
               data={['v1.0.0']}
               defaultValue="v1.0.0"
-              styles={{ input: { border: 'none', background: 'transparent', fontWeight: 600 } }}
+              variant="unstyled"
             />
           </Group>
           <Group gap="lg">
@@ -105,7 +109,7 @@ export default function DocsLayout({ children }) {
           <TextInput
             placeholder="Search documentation..."
             mb="md"
-            leftSection={<IconSearch size={16} style={{ opacity: 0.6 }} />}
+            leftSection={<IconSearch opacity={0.6} size={16} />}
           />
         </AppShell.Section>
         <AppShell.Section grow component={ScrollArea} mx="-xs" px="xs">
@@ -122,11 +126,7 @@ export default function DocsLayout({ children }) {
                   label={link.label}
                   active={router.pathname === link.href}
                   variant="light"
-                  styles={{
-                    root: {
-                      borderRadius: 'var(--mantine-radius-sm)',
-                    }
-                  }}
+                  radius="sm"
                 />
               ))}
             </Stack>
@@ -159,5 +159,5 @@ export default function DocsLayout({ children }) {
         </Container>
       </AppShell.Main>
     </AppShell>
-  );
+  )
 }

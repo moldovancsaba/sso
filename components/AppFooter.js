@@ -1,4 +1,5 @@
-import { Anchor, Box, Container, Group, Text } from '@mantine/core';
+import Link from 'next/link'
+import { Anchor, Box, Container, Group, Text } from '@mantine/core'
 
 const footerLinks = [
   { href: '/docs', label: 'Docs' },
@@ -45,20 +46,13 @@ export default function AppFooter({ version }) {
               <Text c="dimmed" size="xs">
                 |
               </Text>
-              <a
-                href={link.href}
-                style={{
-                  color: 'var(--mantine-color-brand-6)',
-                  fontSize: 'var(--mantine-font-size-xs)',
-                  textDecoration: 'none',
-                }}
-              >
+              <Anchor component={Link} href={link.href} size="xs" underline="never">
                 {link.label}
-              </a>
+              </Anchor>
             </Group>
           ))}
         </Group>
       </Container>
     </Box>
-  );
+  )
 }
