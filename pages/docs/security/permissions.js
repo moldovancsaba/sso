@@ -1,40 +1,55 @@
+import Link from 'next/link';
+import {
+  Stack,
+  Title,
+  Text,
+  Paper,
+  Code,
+  List,
+  Box,
+  Anchor,
+  Container,
+  Divider,
+  Group,
+} from '@mantine/core';
 // WHAT: App permissions system documentation for OAuth 2.0 SSO integration
 // WHY: Developers need to understand app-level permissions and roles
 // HOW: Explains backend-derived permissionStatus, app roles, and two-level access control
 
 import DocsLayout from '../../../components/DocsLayout';
-import styles from '../../../styles/docs.module.css';
 import packageJson from '../../../package.json';
 
 export default function SecurityPermissions() {
   return (
     <DocsLayout>
-      <div className={styles.container}>
-        <header className={styles.header}>
-          <h1>App Permissions System</h1>
-          <p className={styles.version}>SSO Version: {packageJson.version}</p>
-        </header>
-        <main className={styles.main}>
-          <section className={styles.section}>
-            <h2>Overview</h2>
-            <p>
+      <Stack gap="xl">
+        <Box>
+          <Title order={1} mb="xs">App Permissions System</Title>
+          <Text size="sm" c="dimmed" fw={500} mb="xs">SSO Version: {packageJson.version}</Text>
+        </Box>
+        
+          <Box>
+            <Title order={2} mb="sm">Overview</Title>
+            <Text size="sm">
               The SSO service implements a two-level access control system:
-            </p>
-            <ol>
-              <li><strong>SSO-Level Permissions:</strong> Managed by SSO admins (who can access which apps)</li>
-              <li><strong>App-Level Permissions:</strong> Managed by your application (what users can do inside your app)</li>
-            </ol>
-            <p>
+            </Text>
+            <List spacing="xs" type="ordered">
+              <List.Item><strong>SSO-Level Permissions:</strong> Managed by SSO admins (who can access which apps)</List.Item>
+              <List.Item><strong>App-Level Permissions:</strong> Managed by your application (what users can do inside your app)</List.Item>
+            </List>
+            <Text size="sm">
               This document focuses on <strong>SSO-level permissions</strong> that affect OAuth 2.0 authentication.
-            </p>
-            <div className={styles.warningBox}>
-              <p><strong>Current contract note:</strong> canonical app-permission state comes from the permission APIs. If your app exposes a <code>permissionStatus</code> field internally, that should be your own backend&apos;s derived session field, not an assumed raw ID-token claim.</p>
-            </div>
-          </section>
+            </Text>
+            <Paper withBorder p="md" shadow="sm" radius="md" style={{ borderLeft: "4px solid var(--mantine-color-yellow-6)" }} bg="var(--mantine-color-yellow-light)">
+              <Text size="sm">
+                <strong>Current contract note:</strong> canonical app-permission state comes from the permission APIs. If your app exposes a <code>permissionStatus</code> field internally, that should be your own backend&apos;s derived session field, not an assumed raw ID-token claim.
+              </Text>
+            </Paper>
+          </Box>
 
-          <section className={styles.section}>
-            <h2>Permission Status (SSO-Level)</h2>
-            <p>Every user has a backend-derived <code>permissionStatus</code> for each application they attempt to access:</p>
+          <Box>
+            <Title order={2} mb="sm">Permission Status (SSO-Level)</Title>
+            <Text size="sm">Every user has a backend-derived <code>permissionStatus</code> for each application they attempt to access:</Text>
             <table style={{width: '100%', marginTop: '1rem', borderCollapse: 'collapse'}}>
               <thead>
                 <tr style={{borderBottom: '2px solid #333'}}>
@@ -61,26 +76,27 @@ export default function SecurityPermissions() {
                 </tr>
               </tbody>
             </table>
-          </section>
+          </Box>
 
-          <section className={styles.section}>
-            <h2>App Roles (SSO-Level)</h2>
-            <p>For approved users, the SSO admin assigns an app-level role:</p>
-            <ul>
-              <li><code>admin</code> - Full application access (intended for app administrators)</li>
-              <li><code>user</code> - Standard application access (intended for regular users)</li>
-            </ul>
-            <div className={styles.alert}>
-              <strong>📝 Note:</strong> These roles are <em>suggestions</em> from the SSO admin.
+          <Box>
+            <Title order={2} mb="sm">App Roles (SSO-Level)</Title>
+            <Text size="sm">For approved users, the SSO admin assigns an app-level role:</Text>
+            <List spacing="xs">
+              <List.Item><code>admin</code> - Full application access (intended for app administrators)</List.Item>
+              <List.Item><code>user</code> - Standard application access (intended for regular users)</List.Item>
+            </List>
+            <Paper withBorder p="md" shadow="sm" radius="md" style={{ borderLeft: "4px solid var(--mantine-color-red-6)" }} bg="var(--mantine-color-red-light)">
+              <Text size="sm">
+                <strong>📝 Note:</strong> These roles are <em>suggestions</em> from the SSO admin.
               Your application decides what features each role can access.
-            </div>
-          </section>
+              </Text>
+            </Paper>
+          </Box>
 
-          <section className={styles.section}>
-            <h2>Deriving Permissions in Your Backend</h2>
-            <div className={styles.codeBlock}>
-              <pre>
-                {`import jwt from 'jsonwebtoken';
+          <Box>
+            <Title order={2} mb="sm">Deriving Permissions in Your Backend</Title>
+            <Code block>
+              {`import jwt from 'jsonwebtoken';
 
 // WHY: ID token contains identity claims; app permissions should come
 // from your backend permission lookup for the current client
@@ -104,16 +120,14 @@ const {
 console.log('User:', userId);
 console.log('Role:', permission?.role ?? role);
 console.log('Status:', permission?.status ?? 'unknown');`}
-              </pre>
-            </div>
-          </section>
+            </Code>
+          </Box>
 
-          <section className={styles.section}>
-            <h2>Implementing Permission Checks</h2>
-            <h3>Backend Middleware (Node.js/Express)</h3>
-            <div className={styles.codeBlock}>
-              <pre>
-                {`// middleware/requireApproval.js
+          <Box>
+            <Title order={2} mb="sm">Implementing Permission Checks</Title>
+            <Title order={3} mb="xs">Backend Middleware (Node.js/Express)</Title>
+            <Code block>
+              {`// middleware/requireApproval.js
 import jwt from 'jsonwebtoken';
 
 export function requireApproval(req, res, next) {
@@ -181,15 +195,13 @@ export function requireAdmin(req, res, next) {
 app.delete('/api/admin/users/:id', requireAdmin, (req, res) => {
   // Admin-only endpoint
 });`}
-              </pre>
-            </div>
-          </section>
+            </Code>
+          </Box>
 
-          <section className={styles.section}>
-            <h2>Frontend Permission Handling</h2>
-            <div className={styles.codeBlock}>
-              <pre>
-                {`// React example
+          <Box>
+            <Title order={2} mb="sm">Frontend Permission Handling</Title>
+            <Code block>
+              {`// React example
 import { useAuth } from './contexts/AuthContext';
 import { useRouter } from 'next/router';
 import { useEffect } from 'react';
@@ -241,71 +253,65 @@ export function ProtectedRoute({ children, requireAdmin = false }) {
 function AdminDashboard() {
   return (
     <ProtectedRoute requireAdmin={true}>
-      <h1>Admin Dashboard</h1>
+      <Title order={1} mb="xs">Admin Dashboard</Title>
       {/* Admin-only content */}
     </ProtectedRoute>
   );
 }`}
-              </pre>
-            </div>
-          </section>
+            </Code>
+          </Box>
 
-          <section className={styles.section}>
-            <h2>Permission Status UI Examples</h2>
-            <h3>Access Pending Page</h3>
-            <div className={styles.codeBlock}>
-              <pre>
-                {`// pages/access-pending.js
+          <Box>
+            <Title order={2} mb="sm">Permission Status UI Examples</Title>
+            <Title order={3} mb="xs">Access Pending Page</Title>
+            <Code block>
+              {`// pages/access-pending.js
 export default function AccessPending() {
   return (
     <div>
-      <h1>⏳ Access Pending</h1>
-      <p>
+      <Title order={1} mb="xs">⏳ Access Pending</Title>
+      <Text size="sm">
         Your request to access this application is pending approval.
         An SSO administrator will review your request shortly.
-      </p>
-      <p>
+      </Text>
+      <Text size="sm">
         You will receive an email notification once your access is approved.
-      </p>
+      </Text>
       <button onClick={() => window.location.href = '/logout'}>
         Sign Out
       </button>
     </div>
   );
 }`}
-              </pre>
-            </div>
+            </Code>
 
-            <h3>Access Denied Page</h3>
-            <div className={styles.codeBlock}>
-              <pre>
-                {`// pages/access-denied.js
+            <Title order={3} mb="xs">Access Denied Page</Title>
+            <Code block>
+              {`// pages/access-denied.js
 export default function AccessDenied() {
   return (
     <div>
-      <h1>❌ Access Denied</h1>
-      <p>
+      <Title order={1} mb="xs">❌ Access Denied</Title>
+      <Text size="sm">
         Your access to this application has been revoked or denied.
-      </p>
-      <p>
+      </Text>
+      <Text size="sm">
         If you believe this is an error, please contact the SSO administrator.
-      </p>
+      </Text>
       <button onClick={() => window.location.href = '/logout'}>
         Sign Out
       </button>
     </div>
   );
 }`}
-              </pre>
-            </div>
-          </section>
+            </Code>
+          </Box>
 
-          <section className={styles.section}>
-            <h2>Two-Level Access Control Architecture</h2>
-            <p>Here's how SSO-level and app-level permissions work together:</p>
-            <div className={styles.codeBlock}>
-              <pre>
-                {`// Level 1: SSO Admin controls WHO can access the app
+          <Box>
+            <Title order={2} mb="sm">Two-Level Access Control Architecture</Title>
+            <Text size="sm">Here's how SSO-level and app-level permissions work together:</Text>
+            <Code block>
+              {`// Level 1: SSO Admin controls WHO can access the app
 // -------------------------------------------------------
 // SSO Admin grants user@example.com access to "myapp"
 // SSO Admin assigns role: "user" or "admin"
@@ -335,31 +341,32 @@ if (role === 'admin') {
 // - Which pages can this user edit?
 // - etc.
 // (These are stored in YOUR database, not in SSO)`}
-              </pre>
-            </div>
-          </section>
+            </Code>
+          </Box>
 
-          <section className={styles.section}>
-            <h2>Summary</h2>
-            <ul>
-              <li>☑️ Always check backend-derived permission status before granting access</li>
-              <li>☑️ Handle <code>pending</code> and <code>revoked</code> states gracefully</li>
-              <li>☑️ Use <code>role</code> field to determine user's capabilities</li>
-              <li>☑️ Implement backend middleware for permission checks</li>
-              <li>☑️ Provide clear UI feedback for permission states</li>
-            </ul>
-            <div className={styles.alert}>
-              <strong>🔗 Related Resources:</strong>
-              <ul>
-                <li><a href="/docs/app-permissions">App Permissions Guide</a></li>
-                <li><a href="/docs/admin-approval">Admin Approval Workflow</a></li>
-                <li><a href="/docs/authentication">OAuth 2.0 Authentication</a></li>
-                <li><a href="/docs/security/best-practices">Security Best Practices</a></li>
-              </ul>
-            </div>
-          </section>
-        </main>
-      </div>
+          <Box>
+            <Title order={2} mb="sm">Summary</Title>
+            <List spacing="xs">
+              <List.Item>☑️ Always check backend-derived permission status before granting access</List.Item>
+              <List.Item>☑️ Handle <code>pending</code> and <code>revoked</code> states gracefully</List.Item>
+              <List.Item>☑️ Use <code>role</code> field to determine user's capabilities</List.Item>
+              <List.Item>☑️ Implement backend middleware for permission checks</List.Item>
+              <List.Item>☑️ Provide clear UI feedback for permission states</List.Item>
+            </List>
+            <Paper withBorder p="md" shadow="sm" radius="md" style={{ borderLeft: "4px solid var(--mantine-color-red-6)" }} bg="var(--mantine-color-red-light)">
+              <Text size="sm">
+                <strong>🔗 Related Resources:</strong>
+              <List spacing="xs">
+                <List.Item><Anchor component={Link} href="/docs/app-permissions">App Permissions Guide</Anchor></List.Item>
+                <List.Item><Anchor component={Link} href="/docs/admin-approval">Admin Approval Workflow</Anchor></List.Item>
+                <List.Item><Anchor component={Link} href="/docs/authentication">OAuth 2.0 Authentication</Anchor></List.Item>
+                <List.Item><Anchor component={Link} href="/docs/security/best-practices">Security Best Practices</Anchor></List.Item>
+              </List>
+              </Text>
+            </Paper>
+          </Box>
+        
+      </Stack>
     </DocsLayout>
   );
 }

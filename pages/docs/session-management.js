@@ -1,48 +1,62 @@
+import Link from 'next/link';
+import {
+  Stack,
+  Title,
+  Text,
+  Paper,
+  Code,
+  List,
+  Box,
+  Anchor,
+  Container,
+  Divider,
+  Group,
+} from '@mantine/core';
 // WHAT: OAuth 2.0 token lifecycle and session management documentation
 // WHY: Developers need to understand token types, expiry, and refresh mechanisms
 // HOW: Explains access tokens, refresh tokens, ID tokens, and session validation
 
 import DocsLayout from '../../components/DocsLayout';
-import styles from '../../styles/docs.module.css';
 import packageJson from '../../package.json';
 
 export default function SessionManagementDocs() {
   return (
     <DocsLayout>
-      <div className={styles.container}>
-        <header className={styles.header}>
-          <h1>Session Management</h1>
-          <p className={styles.version}>SSO Version: {packageJson.version}</p>
-        </header>
+      <Stack gap="xl">
+        <Box>
+          <Title order={1} mb="xs">Session Management</Title>
+          <Text size="sm" c="dimmed" fw={500} mb="xs">SSO Version: {packageJson.version}</Text>
+        </Box>
 
-        <main className={styles.main}>
-          <section className={styles.section}>
-            <h2>Overview</h2>
-            <p>
+        
+          <Box>
+            <Title order={2} mb="sm">Overview</Title>
+            <Text size="sm">
               The SSO service uses OAuth 2.0 tokens to manage user sessions. Understanding token types,
               lifetimes, and refresh mechanisms is essential for building secure, seamless applications.
-            </p>
-            <div className={styles.alert}>
-              <strong>📝 Note:</strong> This guide focuses on session management from the application's perspective.
+            </Text>
+            <Paper withBorder p="md" shadow="sm" radius="md" style={{ borderLeft: "4px solid var(--mantine-color-red-6)" }} bg="var(--mantine-color-red-light)">
+              <Text size="sm">
+                <strong>📝 Note:</strong> This guide focuses on session management from the application's perspective.
               All token operations should happen on your backend server, not in the browser.
-            </div>
-          </section>
+              </Text>
+            </Paper>
+          </Box>
 
-          <section className={styles.section}>
-            <h2>Token Types</h2>
-            <p>The SSO service issues three types of tokens during OAuth 2.0 authentication:</p>
+          <Box>
+            <Title order={2} mb="sm">Token Types</Title>
+            <Text size="sm">The SSO service issues three types of tokens during OAuth 2.0 authentication:</Text>
 
-            <h3>1. Access Token</h3>
-            <ul>
-              <li><strong>Purpose:</strong> Used to authenticate API requests</li>
-              <li><strong>Lifetime:</strong> 1 hour (3600 seconds)</li>
-              <li><strong>Format:</strong> JWT (JSON Web Token)</li>
-              <li><strong>Usage:</strong> Include in <code>Authorization: Bearer TOKEN</code> header</li>
-              <li><strong>Storage:</strong> HTTP-only cookie (backend) or secure storage (backend)</li>
-            </ul>
-            <div className={styles.codeBlock}>
-              <pre>
-                {`// Example access token payload (decoded)
+            <Title order={3} mb="xs">1. Access Token</Title>
+            <List spacing="xs">
+              <List.Item><strong>Purpose:</strong> Used to authenticate API requests</List.Item>
+              <List.Item><strong>Lifetime:</strong> 1 hour (3600 seconds)</List.Item>
+              <List.Item><strong>Format:</strong> JWT (JSON Web Token)</List.Item>
+              <List.Item><strong>Usage:</strong> Include in <code>Authorization: Bearer TOKEN</code> header</List.Item>
+              <List.Item><strong>Storage:</strong> HTTP-only cookie (backend) or secure storage (backend)</List.Item>
+            </List>
+            <Code block>
+              {`// Example access token payload (decoded)
 {
   "sub": "user-uuid-123",
   "iss": "https://sso.doneisbetter.com",
@@ -51,20 +65,18 @@ export default function SessionManagementDocs() {
   "iat": 1709996400,
   "scope": "openid profile email"
 }`}
-              </pre>
-            </div>
+            </Code>
 
-            <h3>2. ID Token</h3>
-            <ul>
-              <li><strong>Purpose:</strong> Contains user identity and app permissions</li>
-              <li><strong>Lifetime:</strong> 1 hour (3600 seconds)</li>
-              <li><strong>Format:</strong> JWT (JSON Web Token)</li>
-              <li><strong>Usage:</strong> Extract user identity claims; derive app permission status separately through your backend permission layer</li>
-              <li><strong>Storage:</strong> HTTP-only cookie (backend)</li>
-            </ul>
-            <div className={styles.codeBlock}>
-              <pre>
-                {`// Example ID token payload (decoded)
+            <Title order={3} mb="xs">2. ID Token</Title>
+            <List spacing="xs">
+              <List.Item><strong>Purpose:</strong> Contains user identity and app permissions</List.Item>
+              <List.Item><strong>Lifetime:</strong> 1 hour (3600 seconds)</List.Item>
+              <List.Item><strong>Format:</strong> JWT (JSON Web Token)</List.Item>
+              <List.Item><strong>Usage:</strong> Extract user identity claims; derive app permission status separately through your backend permission layer</List.Item>
+              <List.Item><strong>Storage:</strong> HTTP-only cookie (backend)</List.Item>
+            </List>
+            <Code block>
+              {`// Example ID token payload (decoded)
 {
   "sub": "user-uuid-123",
   "email": "user@example.com",
@@ -75,70 +87,68 @@ export default function SessionManagementDocs() {
   "exp": 1710000000,
   "iat": 1709996400
 }`}
-              </pre>
-            </div>
+            </Code>
 
-            <h3>3. Refresh Token</h3>
-            <ul>
-              <li><strong>Purpose:</strong> Used to obtain new access and ID tokens</li>
-              <li><strong>Lifetime:</strong> 30 days (2592000 seconds)</li>
-              <li><strong>Format:</strong> Opaque string (not JWT)</li>
-              <li><strong>Usage:</strong> Exchange for new tokens before access token expires</li>
-              <li><strong>Storage:</strong> HTTP-only cookie (backend)</li>
-              <li><strong>Security:</strong> Single-use (rotated on each refresh)</li>
-            </ul>
-          </section>
+            <Title order={3} mb="xs">3. Refresh Token</Title>
+            <List spacing="xs">
+              <List.Item><strong>Purpose:</strong> Used to obtain new access and ID tokens</List.Item>
+              <List.Item><strong>Lifetime:</strong> 30 days (2592000 seconds)</List.Item>
+              <List.Item><strong>Format:</strong> Opaque string (not JWT)</List.Item>
+              <List.Item><strong>Usage:</strong> Exchange for new tokens before access token expires</List.Item>
+              <List.Item><strong>Storage:</strong> HTTP-only cookie (backend)</List.Item>
+              <List.Item><strong>Security:</strong> Single-use (rotated on each refresh)</List.Item>
+            </List>
+          </Box>
 
-          <section className={styles.section}>
-            <h2>Session Lifecycle</h2>
-            <p>Understanding the complete session lifecycle helps you implement reliable authentication:</p>
+          <Box>
+            <Title order={2} mb="sm">Session Lifecycle</Title>
+            <Text size="sm">Understanding the complete session lifecycle helps you implement reliable authentication:</Text>
 
-            <h3>Phase 1: Initial Authentication</h3>
-            <ol>
-              <li>User clicks "Sign in with SSO"</li>
-              <li>Your app redirects to SSO authorization page</li>
-              <li>User authenticates with SSO</li>
-              <li>SSO redirects back to your app with authorization code</li>
-              <li>Your backend exchanges code for tokens (access, ID, refresh)</li>
-              <li>Your backend stores tokens in HTTP-only cookies</li>
-              <li>Your backend redirects user to app</li>
-            </ol>
+            <Title order={3} mb="xs">Phase 1: Initial Authentication</Title>
+            <List spacing="xs" type="ordered">
+              <List.Item>User clicks "Sign in with SSO"</List.Item>
+              <List.Item>Your app redirects to SSO authorization page</List.Item>
+              <List.Item>User authenticates with SSO</List.Item>
+              <List.Item>SSO redirects back to your app with authorization code</List.Item>
+              <List.Item>Your backend exchanges code for tokens (access, ID, refresh)</List.Item>
+              <List.Item>Your backend stores tokens in HTTP-only cookies</List.Item>
+              <List.Item>Your backend redirects user to app</List.Item>
+            </List>
 
-            <h3>Phase 2: Active Session</h3>
-            <ul>
-              <li>User makes requests to your app</li>
-              <li>Your backend validates ID token for each request</li>
-              <li>User identity is extracted from the ID token</li>
-              <li>Your backend session layer derives app permission state from the permission APIs</li>
-              <li>Access token is used for SSO API calls (if needed)</li>
-            </ul>
+            <Title order={3} mb="xs">Phase 2: Active Session</Title>
+            <List spacing="xs">
+              <List.Item>User makes requests to your app</List.Item>
+              <List.Item>Your backend validates ID token for each request</List.Item>
+              <List.Item>User identity is extracted from the ID token</List.Item>
+              <List.Item>Your backend session layer derives app permission state from the permission APIs</List.Item>
+              <List.Item>Access token is used for SSO API calls (if needed)</List.Item>
+            </List>
 
-            <h3>Phase 3: Token Refresh (Automatic)</h3>
-            <ul>
-              <li>Access token expires after 1 hour</li>
-              <li>Your backend detects expiry (checks <code>exp</code> claim)</li>
-              <li>Your backend uses refresh token to get new tokens</li>
-              <li>Old refresh token is invalidated (single-use)</li>
-              <li>New tokens are stored in cookies</li>
-            </ul>
+            <Title order={3} mb="xs">Phase 3: Token Refresh (Automatic)</Title>
+            <List spacing="xs">
+              <List.Item>Access token expires after 1 hour</List.Item>
+              <List.Item>Your backend detects expiry (checks <code>exp</code> claim)</List.Item>
+              <List.Item>Your backend uses refresh token to get new tokens</List.Item>
+              <List.Item>Old refresh token is invalidated (single-use)</List.Item>
+              <List.Item>New tokens are stored in cookies</List.Item>
+            </List>
 
-            <h3>Phase 4: Session End</h3>
-            <ul>
-              <li>User clicks "Sign out"</li>
-              <li>Your backend revokes tokens with SSO</li>
-              <li>Your backend clears cookies</li>
-              <li>User is redirected to logout page</li>
-            </ul>
-          </section>
+            <Title order={3} mb="xs">Phase 4: Session End</Title>
+            <List spacing="xs">
+              <List.Item>User clicks "Sign out"</List.Item>
+              <List.Item>Your backend revokes tokens with SSO</List.Item>
+              <List.Item>Your backend clears cookies</List.Item>
+              <List.Item>User is redirected to logout page</List.Item>
+            </List>
+          </Box>
 
-          <section className={styles.section}>
-            <h2>Validating Tokens</h2>
-            <p>Your backend should validate tokens on every request to ensure session integrity:</p>
+          <Box>
+            <Title order={2} mb="sm">Validating Tokens</Title>
+            <Text size="sm">Your backend should validate tokens on every request to ensure session integrity:</Text>
 
-            <h3>Backend Session Validation</h3>
-            <div className={styles.codeBlock}>
-              <pre>
-                {`// Node.js/Express example
+            <Title order={3} mb="xs">Backend Session Validation</Title>
+            <Code block>
+              {`// Node.js/Express example
 import jwt from 'jsonwebtoken';
 
 // WHY: Middleware to validate session and extract user info
@@ -189,18 +199,16 @@ export function validateSession(req, res, next) {
     return res.status(401).json({ error: 'Invalid token' });
   }
 }`}
-              </pre>
-            </div>
-          </section>
+            </Code>
+          </Box>
 
-          <section className={styles.section}>
-            <h2>Token Refresh Implementation</h2>
-            <p>Implement automatic token refresh to maintain seamless user sessions:</p>
+          <Box>
+            <Title order={2} mb="sm">Token Refresh Implementation</Title>
+            <Text size="sm">Implement automatic token refresh to maintain seamless user sessions:</Text>
 
-            <h3>Proactive Refresh (Recommended)</h3>
-            <div className={styles.codeBlock}>
-              <pre>
-                {`// Refresh tokens 5 minutes before expiry
+            <Title order={3} mb="xs">Proactive Refresh (Recommended)</Title>
+            <Code block>
+              {`// Refresh tokens 5 minutes before expiry
 const REFRESH_BUFFER = 5 * 60 * 1000; // 5 minutes
 
 async function ensureValidToken(req, res, next) {
@@ -282,18 +290,16 @@ async function refreshTokens(req, res) {
     throw error;
   }
 }`}
-              </pre>
-            </div>
-          </section>
+            </Code>
+          </Box>
 
-          <section className={styles.section}>
-            <h2>Session Termination</h2>
-            <p>Properly terminate sessions to ensure security:</p>
+          <Box>
+            <Title order={2} mb="sm">Session Termination</Title>
+            <Text size="sm">Properly terminate sessions to ensure security:</Text>
 
-            <h3>Logout Implementation</h3>
-            <div className={styles.codeBlock}>
-              <pre>
-                {`// Backend logout endpoint
+            <Title order={3} mb="xs">Logout Implementation</Title>
+            <Code block>
+              {`// Backend logout endpoint
 export async function logout(req, res) {
   const accessToken = req.cookies.access_token;
 
@@ -322,78 +328,79 @@ export async function logout(req, res) {
 
   res.json({ success: true });
 }`}
-              </pre>
-            </div>
-          </section>
+            </Code>
+          </Box>
 
-          <section className={styles.section}>
-            <h2>Best Practices</h2>
-            <ul>
-              <li>✅ <strong>Store tokens in HTTP-only cookies</strong> (never in localStorage/sessionStorage)</li>
-              <li>✅ <strong>Implement proactive token refresh</strong> (5 minutes before expiry)</li>
-              <li>✅ <strong>Validate tokens on every request</strong> (check expiry and permission status)</li>
-              <li>✅ <strong>Use refresh tokens correctly</strong> (they're single-use and rotate on refresh)</li>
-              <li>✅ <strong>Revoke tokens on logout</strong> (prevent reuse even if intercepted)</li>
-              <li>✅ <strong>Handle token expiry gracefully</strong> (redirect to login or show message)</li>
-              <li>✅ <strong>Monitor token operations</strong> (log refresh failures for debugging)</li>
-              <li>⚠️ <strong>Never expose tokens in URLs</strong> (use cookies or headers only)</li>
-              <li>⚠️ <strong>Never decode tokens in frontend</strong> (keep user info extraction server-side)</li>
-            </ul>
-          </section>
+          <Box>
+            <Title order={2} mb="sm">Best Practices</Title>
+            <List spacing="xs">
+              <List.Item>✅ <strong>Store tokens in HTTP-only cookies</strong> (never in localStorage/sessionStorage)</List.Item>
+              <List.Item>✅ <strong>Implement proactive token refresh</strong> (5 minutes before expiry)</List.Item>
+              <List.Item>✅ <strong>Validate tokens on every request</strong> (check expiry and permission status)</List.Item>
+              <List.Item>✅ <strong>Use refresh tokens correctly</strong> (they're single-use and rotate on refresh)</List.Item>
+              <List.Item>✅ <strong>Revoke tokens on logout</strong> (prevent reuse even if intercepted)</List.Item>
+              <List.Item>✅ <strong>Handle token expiry gracefully</strong> (redirect to login or show message)</List.Item>
+              <List.Item>✅ <strong>Monitor token operations</strong> (log refresh failures for debugging)</List.Item>
+              <List.Item>⚠️ <strong>Never expose tokens in URLs</strong> (use cookies or headers only)</List.Item>
+              <List.Item>⚠️ <strong>Never decode tokens in frontend</strong> (keep user info extraction server-side)</List.Item>
+            </List>
+          </Box>
 
-          <section className={styles.section}>
-            <h2>Troubleshooting</h2>
-            <h3>Token expired</h3>
-            <p><strong>Symptom:</strong> 401 errors, user logged out unexpectedly</p>
-            <p><strong>Solution:</strong> Implement proactive token refresh (see above)</p>
+          <Box>
+            <Title order={2} mb="sm">Troubleshooting</Title>
+            <Title order={3} mb="xs">Token expired</Title>
+            <Text size="sm"><strong>Symptom:</strong> 401 errors, user logged out unexpectedly</Text>
+            <Text size="sm"><strong>Solution:</strong> Implement proactive token refresh (see above)</Text>
 
-            <h3>Refresh token invalid</h3>
-            <p><strong>Symptom:</strong> Token refresh fails with 401 error</p>
-            <p><strong>Causes:</strong></p>
-            <ul>
-              <li>Refresh token already used (they're single-use)</li>
-              <li>Refresh token expired (30 day lifetime)</li>
-              <li>User's access was revoked</li>
-            </ul>
-            <p><strong>Solution:</strong> Redirect user to login page</p>
+            <Title order={3} mb="xs">Refresh token invalid</Title>
+            <Text size="sm"><strong>Symptom:</strong> Token refresh fails with 401 error</Text>
+            <Text size="sm"><strong>Causes:</strong></Text>
+            <List spacing="xs">
+              <List.Item>Refresh token already used (they're single-use)</List.Item>
+              <List.Item>Refresh token expired (30 day lifetime)</List.Item>
+              <List.Item>User's access was revoked</List.Item>
+            </List>
+            <Text size="sm"><strong>Solution:</strong> Redirect user to login page</Text>
 
-            <h3>Permission status changed</h3>
-            <p><strong>Symptom:</strong> User was approved but now gets 403 errors</p>
-            <p><strong>Cause:</strong> SSO admin changed user's permission status</p>
-            <p><strong>Solution:</strong> Check backend-derived permission status in your session layer and redirect accordingly</p>
+            <Title order={3} mb="xs">Permission status changed</Title>
+            <Text size="sm"><strong>Symptom:</strong> User was approved but now gets 403 errors</Text>
+            <Text size="sm"><strong>Cause:</strong> SSO admin changed user's permission status</Text>
+            <Text size="sm"><strong>Solution:</strong> Check backend-derived permission status in your session layer and redirect accordingly</Text>
 
-            <h3>Session not persisting</h3>
-            <p><strong>Symptom:</strong> User logged out on page refresh</p>
-            <p><strong>Solutions:</strong></p>
-            <ul>
-              <li>Verify cookies are set with correct domain and path</li>
-              <li>Ensure <code>SameSite</code> and <code>Secure</code> flags are set correctly</li>
-              <li>Check CORS configuration (credentials must be included)</li>
-            </ul>
-          </section>
+            <Title order={3} mb="xs">Session not persisting</Title>
+            <Text size="sm"><strong>Symptom:</strong> User logged out on page refresh</Text>
+            <Text size="sm"><strong>Solutions:</strong></Text>
+            <List spacing="xs">
+              <List.Item>Verify cookies are set with correct domain and path</List.Item>
+              <List.Item>Ensure <code>SameSite</code> and <code>Secure</code> flags are set correctly</List.Item>
+              <List.Item>Check CORS configuration (credentials must be included)</List.Item>
+            </List>
+          </Box>
 
-          <section className={styles.section}>
-            <h2>Summary</h2>
-            <ul>
-              <li>☑️ Understand three token types: access, ID, and refresh</li>
-              <li>☑️ Implement token validation middleware</li>
-              <li>☑️ Implement proactive token refresh (5 min before expiry)</li>
-              <li>☑️ Store tokens in HTTP-only cookies</li>
-              <li>☑️ Revoke tokens on logout</li>
-              <li>☑️ Check backend-derived permission status on every request</li>
-            </ul>
-            <div className={styles.alert}>
-              <strong>🔗 Related Resources:</strong>
-              <ul>
-                <li><a href="/docs/authentication">OAuth 2.0 Authentication Flow</a></li>
-                <li><a href="/docs/security/best-practices">Security Best Practices</a></li>
-                <li><a href="/docs/app-permissions">App Permissions System</a></li>
-                <li><a href="/docs/api/endpoints">API Reference</a></li>
-              </ul>
-            </div>
-          </section>
-        </main>
-      </div>
+          <Box>
+            <Title order={2} mb="sm">Summary</Title>
+            <List spacing="xs">
+              <List.Item>☑️ Understand three token types: access, ID, and refresh</List.Item>
+              <List.Item>☑️ Implement token validation middleware</List.Item>
+              <List.Item>☑️ Implement proactive token refresh (5 min before expiry)</List.Item>
+              <List.Item>☑️ Store tokens in HTTP-only cookies</List.Item>
+              <List.Item>☑️ Revoke tokens on logout</List.Item>
+              <List.Item>☑️ Check backend-derived permission status on every request</List.Item>
+            </List>
+            <Paper withBorder p="md" shadow="sm" radius="md" style={{ borderLeft: "4px solid var(--mantine-color-red-6)" }} bg="var(--mantine-color-red-light)">
+              <Text size="sm">
+                <strong>🔗 Related Resources:</strong>
+              <List spacing="xs">
+                <List.Item><Anchor component={Link} href="/docs/authentication">OAuth 2.0 Authentication Flow</Anchor></List.Item>
+                <List.Item><Anchor component={Link} href="/docs/security/best-practices">Security Best Practices</Anchor></List.Item>
+                <List.Item><Anchor component={Link} href="/docs/app-permissions">App Permissions System</Anchor></List.Item>
+                <List.Item><Anchor component={Link} href="/docs/api/endpoints">API Reference</Anchor></List.Item>
+              </List>
+              </Text>
+            </Paper>
+          </Box>
+        
+      </Stack>
     </DocsLayout>
   );
 }

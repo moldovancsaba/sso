@@ -1,6 +1,18 @@
-import { useState, useEffect } from 'react';
-import styles from '../styles/docs.module.css';
 import Link from 'next/link';
+import {
+  Stack,
+  Title,
+  Text,
+  Paper,
+  Code,
+  List,
+  Box,
+  Anchor,
+  Container,
+  Divider,
+  Group,
+} from '@mantine/core';
+import { useState, useEffect } from 'react';
 
 // WHAT: Public data deletion request page for SSO service
 // WHY: Required for GDPR/privacy compliance; allows users to request account and data deletion
@@ -66,79 +78,79 @@ export default function DataDeletionPage() {
   }
 
   return (
-    <div className={styles.container}>
-      <header className={styles.header}>
-        <h1>Data Deletion Request</h1>
-        <p className={styles.version}>Your Right to Be Forgotten</p>
-      </header>
+    <Container size="md" py="xl"><Stack gap="xl">
+      <Box>
+        <Title order={1} mb="xs">Data Deletion Request</Title>
+        <Text size="sm">Your Right to Be Forgotten</Text>
+      </Box>
 
-      <main className={styles.main}>
-        <section className={styles.section}>
-          <h2>Account and Data Deletion</h2>
-          <p>
+      
+        <Box>
+          <Title order={2} mb="sm">Account and Data Deletion</Title>
+          <Text size="sm">
             In accordance with privacy regulations (GDPR, CCPA), you have the right to request deletion 
             of your personal data and account from DoneIsBetter SSO.
-          </p>
-        </section>
+          </Text>
+        </Box>
 
         {loading ? (
-          <section className={styles.section}>
-            <p>Loading your session information...</p>
-          </section>
+          <Box>
+            <Text size="sm">Loading your session information...</Text>
+          </Box>
         ) : user ? (
           <>
-            <section className={styles.section}>
-              <h2>Your Account</h2>
+            <Box>
+              <Title order={2} mb="sm">Your Account</Title>
               <div style={{ 
                 background: '#f7fafc', 
                 padding: '1.5rem', 
                 borderRadius: '8px',
                 marginBottom: '1rem' 
               }}>
-                <p><strong>Email:</strong> {user.email}</p>
-                <p><strong>Username:</strong> {user.username || 'Not set'}</p>
-                <p><strong>User ID:</strong> {user.id}</p>
+                <Text size="sm"><strong>Email:</strong> {user.email}</Text>
+                <Text size="sm"><strong>Username:</strong> {user.username || 'Not set'}</Text>
+                <Text size="sm"><strong>User ID:</strong> {user.id}</Text>
               </div>
-            </section>
+            </Box>
 
-            <section className={styles.section}>
-              <h2>What Will Be Deleted</h2>
-              <p>If you proceed with account deletion, the following data will be permanently removed:</p>
-              <ul>
-                <li><strong>Account Information</strong> - Email, username, password, and profile data</li>
-                <li><strong>Authentication Records</strong> - Session tokens and login history</li>
-                <li><strong>Permissions</strong> - All role-based access controls and admin privileges</li>
-                <li><strong>Activity Logs</strong> - Authentication logs and audit trails (after 90 days)</li>
-                <li><strong>OAuth Clients</strong> - Any registered OAuth applications</li>
-                <li><strong>Third-Party Access</strong> - Authorization tokens for integrated applications</li>
-              </ul>
-              <p style={{ marginTop: '1rem', color: '#c82333', fontWeight: 'bold' }}>
+            <Box>
+              <Title order={2} mb="sm">What Will Be Deleted</Title>
+              <Text size="sm">If you proceed with account deletion, the following data will be permanently removed:</Text>
+              <List spacing="xs">
+                <List.Item><strong>Account Information</strong> - Email, username, password, and profile data</List.Item>
+                <List.Item><strong>Authentication Records</strong> - Session tokens and login history</List.Item>
+                <List.Item><strong>Permissions</strong> - All role-based access controls and admin privileges</List.Item>
+                <List.Item><strong>Activity Logs</strong> - Authentication logs and audit trails (after 90 days)</List.Item>
+                <List.Item><strong>OAuth Clients</strong> - Any registered OAuth applications</List.Item>
+                <List.Item><strong>Third-Party Access</strong> - Authorization tokens for integrated applications</List.Item>
+              </List>
+              <Text size="sm" style={{ marginTop: '1rem', color: '#c82333', fontWeight: 'bold' }}>
                 ⚠️ This action is irreversible. Once deleted, your data cannot be recovered.
-              </p>
-            </section>
+              </Text>
+            </Box>
 
-            <section className={styles.section}>
-              <h2>Timeline</h2>
-              <ul>
-                <li><strong>Immediate:</strong> Your account will be deactivated and you will be logged out</li>
-                <li><strong>Within 24 hours:</strong> Personal information will be removed from active databases</li>
-                <li><strong>Within 30 days:</strong> All backup copies will be permanently deleted</li>
-                <li><strong>Within 90 days:</strong> Authentication logs will be purged from audit systems</li>
-              </ul>
-            </section>
+            <Box>
+              <Title order={2} mb="sm">Timeline</Title>
+              <List spacing="xs">
+                <List.Item><strong>Immediate:</strong> Your account will be deactivated and you will be logged out</List.Item>
+                <List.Item><strong>Within 24 hours:</strong> Personal information will be removed from active databases</List.Item>
+                <List.Item><strong>Within 30 days:</strong> All backup copies will be permanently deleted</List.Item>
+                <List.Item><strong>Within 90 days:</strong> Authentication logs will be purged from audit systems</List.Item>
+              </List>
+            </Box>
 
-            <section className={styles.section}>
-              <h2>Important Notes</h2>
-              <ul>
-                <li>You will lose access to all applications using DoneIsBetter SSO for authentication</li>
-                <li>If you have admin rights on integrated applications, those permissions will be revoked</li>
-                <li>Anonymous usage statistics may be retained for service improvement (no personal identifiers)</li>
-                <li>Legal compliance records may be retained as required by law</li>
-              </ul>
-            </section>
+            <Box>
+              <Title order={2} mb="sm">Important Notes</Title>
+              <List spacing="xs">
+                <List.Item>You will lose access to all applications using DoneIsBetter SSO for authentication</List.Item>
+                <List.Item>If you have admin rights on integrated applications, those permissions will be revoked</List.Item>
+                <List.Item>Anonymous usage statistics may be retained for service improvement (no personal identifiers)</List.Item>
+                <List.Item>Legal compliance records may be retained as required by law</List.Item>
+              </List>
+            </Box>
 
-            <section className={styles.section}>
-              <h2>Delete Your Account</h2>
+            <Box>
+              <Title order={2} mb="sm">Delete Your Account</Title>
               
               {message && (
                 <div style={{ 
@@ -192,12 +204,12 @@ export default function DataDeletionPage() {
                   borderRadius: '8px',
                   border: '1px solid #ffc107'
                 }}>
-                  <p style={{ fontWeight: 'bold', marginBottom: '1rem', color: '#856404' }}>
+                  <Text size="sm" style={{ fontWeight: 'bold', marginBottom: '1rem', color: '#856404' }}>
                     ⚠️ Are you absolutely sure?
-                  </p>
-                  <p style={{ marginBottom: '1rem', color: '#856404' }}>
+                  </Text>
+                  <Text size="sm" style={{ marginBottom: '1rem', color: '#856404' }}>
                     This will permanently delete your account and all associated data. This action cannot be undone.
-                  </p>
+                  </Text>
                   <div style={{ display: 'flex', gap: '1rem' }}>
                     <button
                       onClick={handleDeleteAccount}
@@ -236,16 +248,16 @@ export default function DataDeletionPage() {
                   </div>
                 </div>
               )}
-            </section>
+            </Box>
           </>
         ) : (
           <>
-            <section className={styles.section}>
-              <h2>Authentication Required</h2>
-              <p>
+            <Box>
+              <Title order={2} mb="sm">Authentication Required</Title>
+              <Text size="sm">
                 To delete your account, you must be logged in. This ensures that only account owners 
                 can request deletion of their own data.
-              </p>
+              </Text>
               <div style={{ marginTop: '1.5rem' }}>
                 <Link 
                   href="/login"
@@ -262,55 +274,56 @@ export default function DataDeletionPage() {
                   Sign In to Continue
                 </Link>
               </div>
-            </section>
+            </Box>
 
-            <section className={styles.section}>
-              <h2>Alternative: Email Request</h2>
-              <p>
+            <Box>
+              <Title order={2} mb="sm">Alternative: Email Request</Title>
+              <Text size="sm">
                 If you cannot access your account but need to request data deletion, please contact us:
-              </p>
-              <ul>
-                <li><strong>Email:</strong> <a href="mailto:support@doneisbetter.com">support@doneisbetter.com</a></li>
-                <li><strong>Subject Line:</strong> "Data Deletion Request"</li>
-                <li><strong>Include:</strong> Your email address and any identifying information</li>
-              </ul>
-              <p>
+              </Text>
+              <List spacing="xs">
+                <List.Item><strong>Email:</strong> <a href="mailto:support@doneisbetter.com">support@doneisbetter.com</a></List.Item>
+                <List.Item><strong>Subject Line:</strong> "Data Deletion Request"</List.Item>
+                <List.Item><strong>Include:</strong> Your email address and any identifying information</List.Item>
+              </List>
+              <Text size="sm">
                 We will verify your identity and process your request within 30 days as required by law.
-              </p>
-            </section>
+              </Text>
+            </Box>
           </>
         )}
 
-        <section className={styles.section}>
-          <h2>Privacy Rights</h2>
-          <p>For more information about how we handle your data:</p>
-          <ul>
-            <li><Link href="/privacy">Privacy Policy</Link> - Our data collection and usage practices</li>
-            <li><Link href="/terms">Terms of Service</Link> - Service agreement and user responsibilities</li>
-            <li><Link href="/docs">Documentation</Link> - Technical details about our SSO service</li>
-          </ul>
-        </section>
+        <Box>
+          <Title order={2} mb="sm">Privacy Rights</Title>
+          <Text size="sm">For more information about how we handle your data:</Text>
+          <List spacing="xs">
+            <List.Item><Link href="/privacy">Privacy Policy</Link> - Our data collection and usage practices</List.Item>
+            <List.Item><Link href="/terms">Terms of Service</Link> - Service agreement and user responsibilities</List.Item>
+            <List.Item><Link href="/docs">Documentation</Link> - Technical details about our SSO service</List.Item>
+          </List>
+        </Box>
 
-        <section className={styles.section}>
-          <h2>Questions or Concerns</h2>
-          <p>If you have questions about data deletion or privacy:</p>
-          <ul>
-            <li><strong>Email:</strong> <a href="mailto:support@doneisbetter.com">support@doneisbetter.com</a></li>
-            <li><strong>Response Time:</strong> Within 48 hours for privacy-related inquiries</li>
-            <li><strong>Support Hours:</strong> Monday - Friday, 9:00 AM - 5:00 PM (UTC)</li>
-          </ul>
-        </section>
-      </main>
+        <Box>
+          <Title order={2} mb="sm">Questions or Concerns</Title>
+          <Text size="sm">If you have questions about data deletion or privacy:</Text>
+          <List spacing="xs">
+            <List.Item><strong>Email:</strong> <a href="mailto:support@doneisbetter.com">support@doneisbetter.com</a></List.Item>
+            <List.Item><strong>Response Time:</strong> Within 48 hours for privacy-related inquiries</List.Item>
+            <List.Item><strong>Support Hours:</strong> Monday - Friday, 9:00 AM - 5:00 PM (UTC)</List.Item>
+          </List>
+        </Box>
+      
 
-      <footer className={styles.footer}>
-        <p>© 2025 DoneIsBetter. All rights reserved.</p>
-        <div style={{ marginTop: '1rem' }}>
+      <Divider mt="xl" />
+      <Group justify="space-between" align="center" wrap="wrap">
+        <Text size="xs" c="dimmed">© 2025 DoneIsBetter. All rights reserved.</Text>
+        <Group gap="md">
           <Link href="/">Home</Link> | 
           <Link href="/privacy" style={{ margin: '0 0.5rem' }}>Privacy Policy</Link> | 
           <Link href="/terms" style={{ margin: '0 0.5rem' }}>Terms of Service</Link> | 
           <Link href="/data-deletion">Data Deletion</Link>
-        </div>
-      </footer>
-    </div>
+        </Group>
+      </Group>
+    </Stack></Container>
   );
 }

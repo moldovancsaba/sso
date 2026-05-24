@@ -1,41 +1,55 @@
+import Link from 'next/link';
+import {
+  Stack,
+  Title,
+  Text,
+  Paper,
+  Code,
+  List,
+  Box,
+  Anchor,
+  Container,
+  Divider,
+  Group,
+} from '@mantine/core';
 // WHAT: Error handling guide for OAuth 2.0 and app permission errors
 // WHY: Developers need practical error handling patterns for production apps
 // HOW: Covers OAuth errors, app permission errors, and best practices
 
 import DocsLayout from '../../components/DocsLayout';
-import styles from '../../styles/docs.module.css';
 import packageJson from '../../package.json';
 
 export default function ErrorHandlingDocs() {
   return (
     <DocsLayout>
-      <div className={styles.container}>
-        <header className={styles.header}>
-          <h1>Error Handling</h1>
-          <p className={styles.version}>SSO Version: {packageJson.version}</p>
-        </header>
+      <Stack gap="xl">
+        <Box>
+          <Title order={1} mb="xs">Error Handling</Title>
+          <Text size="sm" c="dimmed" fw={500} mb="xs">SSO Version: {packageJson.version}</Text>
+        </Box>
 
-        <main className={styles.main}>
-          <section className={styles.section}>
-            <h2>Overview</h2>
-            <p>
+        
+          <Box>
+            <Title order={2} mb="sm">Overview</Title>
+            <Text size="sm">
               Proper error handling is critical for a robust OAuth 2.0 integration. This guide covers
               OAuth error codes, app permission errors, and best practices for graceful error recovery.
-            </p>
-            <div className={styles.alert}>
-              <strong>📝 Note:</strong> For complete error code reference, see <a href="/docs/api/errors">API Error Codes</a>.
-            </div>
-          </section>
+            </Text>
+            <Paper withBorder p="md" shadow="sm" radius="md" style={{ borderLeft: "4px solid var(--mantine-color-red-6)" }} bg="var(--mantine-color-red-light)">
+              <Text size="sm">
+                <strong>📝 Note:</strong> For complete error code reference, see <Anchor component={Link} href="/docs/api/errors">API Error Codes</Anchor>.
+              </Text>
+            </Paper>
+          </Box>
 
-          <section className={styles.section}>
-            <h2>OAuth 2.0 Error Handling</h2>
-            <p>OAuth 2.0 errors occur during the authorization and token exchange flow:</p>
+          <Box>
+            <Title order={2} mb="sm">OAuth 2.0 Error Handling</Title>
+            <Text size="sm">OAuth 2.0 errors occur during the authorization and token exchange flow:</Text>
 
-            <h3>Authorization Endpoint Errors</h3>
-            <p>These errors appear in the redirect URI query parameters:</p>
-            <div className={styles.codeBlock}>
-              <pre>
-                {`// Example error redirect
+            <Title order={3} mb="xs">Authorization Endpoint Errors</Title>
+            <Text size="sm">These errors appear in the redirect URI query parameters:</Text>
+            <Code block>
+              {`// Example error redirect
 https://yourapp.com/callback?error=access_denied&error_description=User+denied+access&state=abc123
 
 // Handle in your callback
@@ -47,14 +61,12 @@ if (error === 'access_denied') {
 } else if (error === 'unauthorized_client') {
   showMessage('Your application is not authorized. Contact support.');
 }`}
-              </pre>
-            </div>
+            </Code>
 
-            <h3>Token Endpoint Errors</h3>
-            <p>These errors occur during token exchange on your backend:</p>
-            <div className={styles.codeBlock}>
-              <pre>
-                {`// Backend token exchange error handling
+            <Title order={3} mb="xs">Token Endpoint Errors</Title>
+            <Text size="sm">These errors occur during token exchange on your backend:</Text>
+            <Code block>
+              {`// Backend token exchange error handling
 try {
   const tokenResponse = await fetch(
     'https://sso.doneisbetter.com/api/oauth/token',
@@ -102,17 +114,15 @@ try {
   console.error('Token exchange error:', error);
   res.status(500).json({ error: 'Authentication failed' });
 }`}
-              </pre>
-            </div>
-          </section>
+            </Code>
+          </Box>
 
-          <section className={styles.section}>
-            <h2>App Permission Errors</h2>
-            <p>After successful authentication, check the user's backend-derived permission status:</p>
+          <Box>
+            <Title order={2} mb="sm">App Permission Errors</Title>
+            <Text size="sm">After successful authentication, check the user's backend-derived permission status:</Text>
 
-            <div className={styles.codeBlock}>
-              <pre>
-                {`// Fetch canonical permission state from your backend session layer
+            <Code block>
+              {`// Fetch canonical permission state from your backend session layer
 import jwt from 'jsonwebtoken';
 
 const idToken = req.cookies.id_token;
@@ -143,38 +153,34 @@ if (requireAdmin && role !== 'admin') {
     message: 'Admin role required'
   });
 }`}
-              </pre>
-            </div>
-          </section>
+            </Code>
+          </Box>
 
-          <section className={styles.section}>
-            <h2>Common Error Scenarios</h2>
+          <Box>
+            <Title order={2} mb="sm">Common Error Scenarios</Title>
 
-            <h3>1. Token Expired</h3>
-            <p><strong>Error:</strong> <code>TOKEN_EXPIRED</code> or <code>INVALID_TOKEN</code></p>
-            <p><strong>Solution:</strong> Implement automatic token refresh</p>
-            <div className={styles.codeBlock}>
-              <pre>
-                {`// Check token expiry and refresh if needed
+            <Title order={3} mb="xs">1. Token Expired</Title>
+            <Text size="sm"><strong>Error:</strong> <code>TOKEN_EXPIRED</code> or <code>INVALID_TOKEN</code></Text>
+            <Text size="sm"><strong>Solution:</strong> Implement automatic token refresh</Text>
+            <Code block>
+              {`// Check token expiry and refresh if needed
 const decoded = jwt.decode(idToken);
 if (decoded.exp * 1000 < Date.now()) {
   await refreshTokens(req, res);
 }`}
-              </pre>
-            </div>
+            </Code>
 
-            <h3>2. Invalid Refresh Token</h3>
-            <p><strong>Error:</strong> <code>invalid_grant</code> when refreshing</p>
-            <p><strong>Causes:</strong></p>
-            <ul>
-              <li>Refresh token already used (they're single-use)</li>
-              <li>Refresh token expired (30 day lifetime)</li>
-              <li>User's access was revoked</li>
-            </ul>
-            <p><strong>Solution:</strong> Redirect to login</p>
-            <div className={styles.codeBlock}>
-              <pre>
-                {`try {
+            <Title order={3} mb="xs">2. Invalid Refresh Token</Title>
+            <Text size="sm"><strong>Error:</strong> <code>invalid_grant</code> when refreshing</Text>
+            <Text size="sm"><strong>Causes:</strong></Text>
+            <List spacing="xs">
+              <List.Item>Refresh token already used (they're single-use)</List.Item>
+              <List.Item>Refresh token expired (30 day lifetime)</List.Item>
+              <List.Item>User's access was revoked</List.Item>
+            </List>
+            <Text size="sm"><strong>Solution:</strong> Redirect to login</Text>
+            <Code block>
+              {`try {
   await refreshTokens(req, res);
 } catch (error) {
   if (error.error === 'invalid_grant') {
@@ -185,27 +191,23 @@ if (decoded.exp * 1000 < Date.now()) {
     return res.redirect('/login');
   }
 }`}
-              </pre>
-            </div>
+            </Code>
 
-            <h3>3. CORS Errors</h3>
-            <p><strong>Error:</strong> Browser console shows CORS error</p>
-            <p><strong>Solution:</strong> Register your origin with SSO admin</p>
-            <div className={styles.codeBlock}>
-              <pre>
-                {`// Always include credentials in requests
+            <Title order={3} mb="xs">3. CORS Errors</Title>
+            <Text size="sm"><strong>Error:</strong> Browser console shows CORS error</Text>
+            <Text size="sm"><strong>Solution:</strong> Register your origin with SSO admin</Text>
+            <Code block>
+              {`// Always include credentials in requests
 fetch('https://sso.doneisbetter.com/api/public/session', {
   credentials: 'include' // Required for cookies
 });`}
-              </pre>
-            </div>
+            </Code>
 
-            <h3>4. Rate Limiting</h3>
-            <p><strong>Error:</strong> <code>429 Too Many Requests</code></p>
-            <p><strong>Solution:</strong> Implement exponential backoff</p>
-            <div className={styles.codeBlock}>
-              <pre>
-                {`async function retryWithBackoff(operation, maxRetries = 3) {
+            <Title order={3} mb="xs">4. Rate Limiting</Title>
+            <Text size="sm"><strong>Error:</strong> <code>429 Too Many Requests</code></Text>
+            <Text size="sm"><strong>Solution:</strong> Implement exponential backoff</Text>
+            <Code block>
+              {`async function retryWithBackoff(operation, maxRetries = 3) {
   for (let i = 0; i < maxRetries; i++) {
     try {
       return await operation();
@@ -220,16 +222,14 @@ fetch('https://sso.doneisbetter.com/api/public/session', {
   }
   throw new Error('Max retries exceeded');
 }`}
-              </pre>
-            </div>
-          </section>
+            </Code>
+          </Box>
 
-          <section className={styles.section}>
-            <h2>User-Friendly Error Messages</h2>
-            <p>Transform technical errors into user-friendly messages:</p>
-            <div className={styles.codeBlock}>
-              <pre>
-                {`function getErrorMessage(error) {
+          <Box>
+            <Title order={2} mb="sm">User-Friendly Error Messages</Title>
+            <Text size="sm">Transform technical errors into user-friendly messages:</Text>
+            <Code block>
+              {`function getErrorMessage(error) {
   const messages = {
     // OAuth errors
     'access_denied': 'You declined to sign in. Please try again if this was a mistake.',
@@ -259,22 +259,20 @@ try {
 } catch (error) {
   showUserMessage(getErrorMessage(error));
 }`}
-              </pre>
-            </div>
-          </section>
+            </Code>
+          </Box>
 
-          <section className={styles.section}>
-            <h2>Error Logging Best Practices</h2>
-            <ul>
-              <li>✅ Log errors with full context (user ID, timestamp, request details)</li>
-              <li>✅ Use structured logging (JSON format)</li>
-              <li>✅ Include error codes and messages</li>
-              <li>✅ Never log sensitive data (tokens, secrets, passwords)</li>
-              <li>✅ Monitor error rates and patterns</li>
-            </ul>
-            <div className={styles.codeBlock}>
-              <pre>
-                {`// Good error logging example
+          <Box>
+            <Title order={2} mb="sm">Error Logging Best Practices</Title>
+            <List spacing="xs">
+              <List.Item>✅ Log errors with full context (user ID, timestamp, request details)</List.Item>
+              <List.Item>✅ Use structured logging (JSON format)</List.Item>
+              <List.Item>✅ Include error codes and messages</List.Item>
+              <List.Item>✅ Never log sensitive data (tokens, secrets, passwords)</List.Item>
+              <List.Item>✅ Monitor error rates and patterns</List.Item>
+            </List>
+            <Code block>
+              {`// Good error logging example
 function logError(error, context) {
   console.error(JSON.stringify({
     timestamp: new Date().toISOString(),
@@ -292,32 +290,33 @@ function logError(error, context) {
     // Never log: tokens, client_secret, passwords
   }));
 }`}
-              </pre>
-            </div>
-          </section>
+            </Code>
+          </Box>
 
-          <section className={styles.section}>
-            <h2>Summary</h2>
-            <ul>
-              <li>☑️ Handle OAuth 2.0 errors in authorization and token exchange</li>
-              <li>☑️ Check backend-derived permission status after authentication</li>
-              <li>☑️ Implement token refresh with error handling</li>
-              <li>☑️ Provide user-friendly error messages</li>
-              <li>☑️ Implement rate limiting backoff</li>
-              <li>☑️ Log errors with context (but never log secrets)</li>
-            </ul>
-            <div className={styles.alert}>
-              <strong>🔗 Related Resources:</strong>
-              <ul>
-                <li><a href="/docs/api/errors">Complete Error Code Reference</a></li>
-                <li><a href="/docs/authentication">OAuth 2.0 Authentication Flow</a></li>
-                <li><a href="/docs/session-management">Token Refresh Implementation</a></li>
-                <li><a href="/docs/app-permissions">App Permissions System</a></li>
-              </ul>
-            </div>
-          </section>
-        </main>
-      </div>
+          <Box>
+            <Title order={2} mb="sm">Summary</Title>
+            <List spacing="xs">
+              <List.Item>☑️ Handle OAuth 2.0 errors in authorization and token exchange</List.Item>
+              <List.Item>☑️ Check backend-derived permission status after authentication</List.Item>
+              <List.Item>☑️ Implement token refresh with error handling</List.Item>
+              <List.Item>☑️ Provide user-friendly error messages</List.Item>
+              <List.Item>☑️ Implement rate limiting backoff</List.Item>
+              <List.Item>☑️ Log errors with context (but never log secrets)</List.Item>
+            </List>
+            <Paper withBorder p="md" shadow="sm" radius="md" style={{ borderLeft: "4px solid var(--mantine-color-red-6)" }} bg="var(--mantine-color-red-light)">
+              <Text size="sm">
+                <strong>🔗 Related Resources:</strong>
+              <List spacing="xs">
+                <List.Item><Anchor component={Link} href="/docs/api/errors">Complete Error Code Reference</Anchor></List.Item>
+                <List.Item><Anchor component={Link} href="/docs/authentication">OAuth 2.0 Authentication Flow</Anchor></List.Item>
+                <List.Item><Anchor component={Link} href="/docs/session-management">Token Refresh Implementation</Anchor></List.Item>
+                <List.Item><Anchor component={Link} href="/docs/app-permissions">App Permissions System</Anchor></List.Item>
+              </List>
+              </Text>
+            </Paper>
+          </Box>
+        
+      </Stack>
     </DocsLayout>
   );
 }

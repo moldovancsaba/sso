@@ -1,90 +1,103 @@
+import Link from 'next/link';
+import {
+  Stack,
+  Title,
+  Text,
+  Paper,
+  Code,
+  List,
+  Box,
+  Anchor,
+  Container,
+  Divider,
+  Group,
+} from '@mantine/core';
 import DocsLayout from '../../../components/DocsLayout';
-import styles from '../../../styles/docs.module.css';
 import packageJson from '../../../package.json';
 
 export default function ApiErrors() {
   return (
     <DocsLayout>
-      <div className={styles.container}>
-        <header className={styles.header}>
-          <h1>API Error Reference</h1>
-          <p className={styles.version}>API Version: {packageJson.version}</p>
-        </header>
-        <main className={styles.main}>
-          <section className={styles.section}>
-            <h2>OAuth Errors</h2>
-            <p>Authorization and token endpoints use standard OAuth-style error responses.</p>
+      <Stack gap="xl">
+        <Box>
+          <Title order={1} mb="xs">API Error Reference</Title>
+          <Text size="sm" c="dimmed" fw={500} mb="xs">API Version: {packageJson.version}</Text>
+        </Box>
+        
+          <Box>
+            <Title order={2} mb="sm">OAuth Errors</Title>
+            <Text size="sm">Authorization and token endpoints use standard OAuth-style error responses.</Text>
 
-            <h3><code>invalid_request</code></h3>
-            <p>Missing required parameters or malformed input.</p>
+            <Title order={3} mb="xs"><code>invalid_request</code></Title>
+            <Text size="sm">Missing required parameters or malformed input.</Text>
 
-            <h3><code>invalid_client</code></h3>
-            <p>Unknown client, suspended client, or invalid client authentication.</p>
+            <Title order={3} mb="xs"><code>invalid_client</code></Title>
+            <Text size="sm">Unknown client, suspended client, or invalid client authentication.</Text>
 
-            <h3><code>invalid_scope</code></h3>
-            <p>Requested scope is not allowed for the client.</p>
+            <Title order={3} mb="xs"><code>invalid_scope</code></Title>
+            <Text size="sm">Requested scope is not allowed for the client.</Text>
 
-            <h3><code>invalid_grant</code></h3>
-            <p>Expired, reused, or invalid authorization code or refresh token.</p>
+            <Title order={3} mb="xs"><code>invalid_grant</code></Title>
+            <Text size="sm">Expired, reused, or invalid authorization code or refresh token.</Text>
 
-            <h3><code>access_denied</code></h3>
-            <p>User denied the flow or the authorization request could not proceed.</p>
-          </section>
+            <Title order={3} mb="xs"><code>access_denied</code></Title>
+            <Text size="sm">User denied the flow or the authorization request could not proceed.</Text>
+          </Box>
 
-          <section className={styles.section}>
-            <h2>Public Authentication Errors</h2>
+          <Box>
+            <Title order={2} mb="sm">Public Authentication Errors</Title>
 
-            <h3><code>401 Invalid email or password</code></h3>
-            <p>Standard password-login failure.</p>
+            <Title order={3} mb="xs"><code>401 Invalid email or password</code></Title>
+            <Text size="sm">Standard password-login failure.</Text>
 
-            <h3><code>401 Password not set</code></h3>
-            <p>The account exists but only has social login methods linked.</p>
+            <Title order={3} mb="xs"><code>401 Password not set</code></Title>
+            <Text size="sm">The account exists but only has social login methods linked.</Text>
 
-            <h3><code>403 Please verify your email address before logging in</code></h3>
-            <p>The public user exists but email verification is not complete.</p>
+            <Title order={3} mb="xs"><code>403 Please verify your email address before logging in</code></Title>
+            <Text size="sm">The public user exists but email verification is not complete.</Text>
 
-            <h3><code>401 No active session found</code></h3>
-            <p>Returned by <code>GET /api/public/session</code> when the cookie is missing or invalid.</p>
-          </section>
+            <Title order={3} mb="xs"><code>401 No active session found</code></Title>
+            <Text size="sm">Returned by <code>GET /api/public/session</code> when the cookie is missing or invalid.</Text>
+          </Box>
 
-          <section className={styles.section}>
-            <h2>Permission and Access Errors</h2>
+          <Box>
+            <Title order={2} mb="sm">Permission and Access Errors</Title>
 
-            <h3><code>403 Forbidden</code></h3>
-            <p>Returned when the bearer token is valid but is not authorized for the requested user/client combination.</p>
+            <Title order={3} mb="xs"><code>403 Forbidden</code></Title>
+            <Text size="sm">Returned when the bearer token is valid but is not authorized for the requested user/client combination.</Text>
 
-            <h3><code>404 No permission record found</code></h3>
-            <p>Returned by permission reads when no record exists for the specified user/client pair.</p>
+            <Title order={3} mb="xs"><code>404 No permission record found</code></Title>
+            <Text size="sm">Returned by permission reads when no record exists for the specified user/client pair.</Text>
 
-            <h3><code>404 Client not found</code></h3>
-            <p>Returned when the target OAuth client does not exist.</p>
+            <Title order={3} mb="xs"><code>404 Client not found</code></Title>
+            <Text size="sm">Returned when the target OAuth client does not exist.</Text>
 
-            <h3><code>400 Invalid role</code></h3>
-            <p>Role must be one of <code>none</code>, <code>user</code>, <code>admin</code>.</p>
+            <Title order={3} mb="xs"><code>400 Invalid role</code></Title>
+            <Text size="sm">Role must be one of <code>none</code>, <code>user</code>, <code>admin</code>.</Text>
 
-            <h3><code>400 Invalid status</code></h3>
-            <p>Status must be one of <code>pending</code>, <code>approved</code>, <code>revoked</code>.</p>
-          </section>
+            <Title order={3} mb="xs"><code>400 Invalid status</code></Title>
+            <Text size="sm">Status must be one of <code>pending</code>, <code>approved</code>, <code>revoked</code>.</Text>
+          </Box>
 
-          <section className={styles.section}>
-            <h2>Social Login Errors</h2>
+          <Box>
+            <Title order={2} mb="sm">Social Login Errors</Title>
 
-            <h3><code>google_invalid_state</code> / <code>facebook_invalid_state</code></h3>
-            <p>Callback state is missing, malformed, expired, or no longer matches the CSRF cookie.</p>
+            <Title order={3} mb="xs"><code>google_invalid_state</code> / <code>facebook_invalid_state</code></Title>
+            <Text size="sm">Callback state is missing, malformed, expired, or no longer matches the CSRF cookie.</Text>
 
-            <h3><code>google_callback_failed</code> / <code>facebook_callback_failed</code></h3>
-            <p>Provider callback failed after redirect.</p>
+            <Title order={3} mb="xs"><code>google_callback_failed</code> / <code>facebook_callback_failed</code></Title>
+            <Text size="sm">Provider callback failed after redirect.</Text>
 
-            <h3><code>google_no_email</code> / <code>facebook_no_email</code></h3>
-            <p>The provider account did not supply a usable email claim for account linking.</p>
-          </section>
+            <Title order={3} mb="xs"><code>google_no_email</code> / <code>facebook_no_email</code></Title>
+            <Text size="sm">The provider account did not supply a usable email claim for account linking.</Text>
+          </Box>
 
-          <section className={styles.section}>
-            <h2>Rate Limits and Retry Behavior</h2>
-            <p>Some endpoints return HTTP <code>429</code> with retry guidance. Authentication clients should treat 429 responses as transient and retry later.</p>
-          </section>
-        </main>
-      </div>
+          <Box>
+            <Title order={2} mb="sm">Rate Limits and Retry Behavior</Title>
+            <Text size="sm">Some endpoints return HTTP <code>429</code> with retry guidance. Authentication clients should treat 429 responses as transient and retry later.</Text>
+          </Box>
+        
+      </Stack>
     </DocsLayout>
   );
 }
