@@ -1,22 +1,30 @@
 /**
  * Public User Registration Page
- * 
+ *
  * WHY: Provides a self-service registration interface for public users to create accounts
- * WHAT: Beautiful form with email, password, confirm password, and name fields
+ * WHAT: Mantine-based registration form for email, password, confirm password, and name
  * HOW: Calls POST /api/public/register, handles validation, sets session cookie, redirects
  */
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import Head from 'next/head'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
+import {
+  Alert,
+  Anchor,
+  Button,
+  PasswordInput,
+  Stack,
+  Text,
+  TextInput,
+} from '@mantine/core'
+import { IconAlertCircle, IconAt, IconLock, IconUser, IconUserPlus } from '@tabler/icons-react'
+import AuthSurface from '../components/AuthSurface'
 
-// WHAT: Make page server-rendered to ensure query params are available immediately
-// WHY: useRouter().query can be empty on first render, causing OAuth params to be lost
-// HOW: Extract query params in getServerSideProps and pass as props
 export async function getServerSideProps(context) {
   const { redirect, oauth_request } = context.query
-  
+
   return {
     props: {
       initialRedirect: redirect || null,
@@ -27,33 +35,24 @@ export async function getServerSideProps(context) {
 
 export default function RegisterPage({ initialRedirect, initialOAuthRequest }) {
   const router = useRouter()
-  // WHAT: Use props as primary source, fallback to router.query
-  // WHY: Props from getServerSideProps are reliable, router.query can be empty initially
   const redirect = initialRedirect || router.query.redirect
-  const oauth_request = initialOAuthRequest || router.query.oauth_request
+  const oauthRequest = initialOAuthRequest || router.query.oauth_request
   const [formData, setFormData] = useState({
     email: '',
     password: '',
     confirmPassword: '',
-    name: ''
+    name: '',
   })
   const [errors, setErrors] = useState({})
   const [loading, setLoading] = useState(false)
   const [serverError, setServerError] = useState('')
 
-  // REMOVED: Automatic session check was interfering with form submission
-  // Users who are already logged in can just manually go to /demo
-
-  // WHAT: Validate redirect URL to prevent open redirect attacks
-  // WHY: Only allow redirects to *.doneisbetter.com subdomains and localhost (dev)
   const isValidRedirectUrl = (url) => {
     try {
       const parsed = new URL(url)
-      // Allow localhost for development
       if (parsed.hostname === 'localhost' || parsed.hostname === '127.0.0.1') {
         return true
       }
-      // Allow *.doneisbetter.com subdomains
       if (parsed.hostname.endsWith('.doneisbetter.com') || parsed.hostname === 'doneisbetter.com') {
         return true
       }
@@ -63,58 +62,49 @@ export default function RegisterPage({ initialRedirect, initialOAuthRequest }) {
     }
   }
 
-  // Handle input changes
-  const handleChange = (e) => {
-    const { name, value } = e.target
-    setFormData(prev => ({ ...prev, [name]: value }))
-    // Clear error for this field when user starts typing
-    if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: '' }))
+  const handleChange = (field) => (event) => {
+    const value = event.currentTarget.value
+    setFormData((prev) => ({ ...prev, [field]: value }))
+    if (errors[field]) {
+      setErrors((prev) => ({ ...prev, [field]: '' }))
     }
     setServerError('')
   }
 
-  // Client-side validation
-  // WHY: Provide immediate feedback before sending request to server
   const validate = () => {
-    const newErrors = {}
+    const nextErrors = {}
 
-    // Email validation
     if (!formData.email) {
-      newErrors.email = 'Email is required'
+      nextErrors.email = 'Email is required'
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = 'Please enter a valid email address'
+      nextErrors.email = 'Please enter a valid email address'
     }
 
-    // Name validation
     if (!formData.name) {
-      newErrors.name = 'Name is required'
+      nextErrors.name = 'Name is required'
     } else if (formData.name.trim().length < 2) {
-      newErrors.name = 'Name must be at least 2 characters'
+      nextErrors.name = 'Name must be at least 2 characters'
     }
 
-    // Password validation
     if (!formData.password) {
-      newErrors.password = 'Password is required'
+      nextErrors.password = 'Password is required'
     } else if (formData.password.length < 8) {
-      newErrors.password = 'Password must be at least 8 characters'
+      nextErrors.password = 'Password must be at least 8 characters'
     }
 
-    // Confirm password validation
     if (!formData.confirmPassword) {
-      newErrors.confirmPassword = 'Please confirm your password'
+      nextErrors.confirmPassword = 'Please confirm your password'
     } else if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = 'Passwords do not match'
+      nextErrors.confirmPassword = 'Passwords do not match'
     }
 
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
+    setErrors(nextErrors)
+    return Object.keys(nextErrors).length === 0
   }
 
-  // Handle form submission - CHANGED: Now works as button click handler, not form submit
-  const handleSubmit = async (e) => {
-    // e.preventDefault() not needed for button type="button"
-    
+  const handleSubmit = async (event) => {
+    event.preventDefault()
+
     if (!validate()) {
       return
     }
@@ -130,28 +120,17 @@ export default function RegisterPage({ initialRedirect, initialOAuthRequest }) {
         body: JSON.stringify({
           email: formData.email.toLowerCase().trim(),
           password: formData.password,
-          name: formData.name.trim()
-        })
+          name: formData.name.trim(),
+        }),
       })
 
       const data = await res.json()
 
       if (res.ok) {
-        // WHAT: Check if this is an OAuth flow registration - REDIRECT IMMEDIATELY to continue OAuth
-        // WHY: Third-party apps (like camera) need seamless flow after account creation
-        // HOW: Decode oauth_request and redirect to authorization endpoint (same as login page)
-        if (oauth_request) {
-          console.log('[Register] OAuth flow detected, continuing authorization immediately')
-          console.log('[Register] oauth_request:', oauth_request)
+        if (oauthRequest) {
           try {
-            // WHAT: Decode base64url in browser (Buffer doesn't exist in browser)
-            // WHY: Node.js Buffer API is not available in client-side JavaScript
-            // HOW: Convert base64url to base64, then use atob() to decode
-            const base64 = oauth_request.replace(/-/g, '+').replace(/_/g, '/')
+            const base64 = oauthRequest.replace(/-/g, '+').replace(/_/g, '/')
             const decoded = JSON.parse(decodeURIComponent(escape(atob(base64))))
-            console.log('[Register] Decoded OAuth request:', decoded)
-            
-            // Reconstruct the authorize URL with original parameters
             const params = new URLSearchParams({
               response_type: decoded.response_type,
               client_id: decoded.client_id,
@@ -159,45 +138,28 @@ export default function RegisterPage({ initialRedirect, initialOAuthRequest }) {
               scope: decoded.scope,
               state: decoded.state,
             })
-            
-            // WHAT: Only add code_challenge if it exists
-            // WHY: Some clients might not use PKCE
+
             if (decoded.code_challenge) {
               params.set('code_challenge', decoded.code_challenge)
               params.set('code_challenge_method', decoded.code_challenge_method || 'S256')
             }
-            
-            const authorizeUrl = `/api/oauth/authorize?${params.toString()}`
-            console.log('[Register] Redirecting to:', authorizeUrl)
-            
-            // WHAT: Small delay to ensure session cookie is set
-            // WHY: Cookie needs time to be persisted by browser
-            setTimeout(() => {
-              console.log('[Register] Now redirecting to OAuth authorize...')
-              window.location.href = authorizeUrl
-            }, 150)
-            return // Stop execution
+
+            window.location.href = `/api/oauth/authorize?${params.toString()}`
+            return
           } catch (err) {
             console.error('[Register] Failed to decode oauth_request:', err)
-            console.error('[Register] Error details:', err.message, err.stack)
-            // Fall through to normal redirect logic
           }
         }
-        
-        // WHAT: Registration successful, redirect to requested page or account page
-        // WHY: Non-OAuth flows should go to account page or specified redirect
+
         if (redirect && isValidRedirectUrl(decodeURIComponent(redirect))) {
           window.location.href = decodeURIComponent(redirect)
         } else {
           window.location.href = '/account'
         }
+      } else if (res.status === 409) {
+        setErrors({ email: 'This email is already registered' })
       } else {
-        // Handle server errors
-        if (res.status === 409) {
-          setErrors({ email: 'This email is already registered' })
-        } else {
-          setServerError(data.message || 'Registration failed. Please try again.')
-        }
+        setServerError(data.message || 'Registration failed. Please try again.')
       }
     } catch (err) {
       console.error('[Register] Registration error:', err)
@@ -207,6 +169,12 @@ export default function RegisterPage({ initialRedirect, initialOAuthRequest }) {
     }
   }
 
+  const loginHref = oauthRequest
+    ? `/login?oauth_request=${encodeURIComponent(oauthRequest)}`
+    : redirect
+      ? `/login?redirect=${encodeURIComponent(redirect)}`
+      : '/login'
+
   return (
     <>
       <Head>
@@ -214,301 +182,81 @@ export default function RegisterPage({ initialRedirect, initialOAuthRequest }) {
         <meta name="description" content="Create your SSO account" />
       </Head>
 
-      <div style={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-        padding: '20px'
-      }}>
-        <div style={{
-          background: 'white',
-          borderRadius: '16px',
-          boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
-          padding: '48px',
-          maxWidth: '440px',
-          width: '100%'
-        }}>
-          {/* Logo */}
-          <div style={{
-            textAlign: 'center',
-            marginBottom: '32px'
-          }}>
-            <h1 style={{
-              fontSize: '32px',
-              fontWeight: 'bold',
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              marginBottom: '8px'
-            }}>
-              Create Account
-            </h1>
-            <p style={{
-              color: '#666',
-              fontSize: '14px'
-            }}>
-              Join our SSO service
-            </p>
-          </div>
-
-          {/* Server Error */}
-          {serverError && (
-            <div style={{
-              background: '#fee',
-              border: '1px solid #fcc',
-              borderRadius: '8px',
-              padding: '12px 16px',
-              marginBottom: '24px',
-              color: '#c33',
-              fontSize: '14px'
-            }}>
+      <AuthSurface
+        description="Create your account to continue into the SSO service."
+        icon={IconUserPlus}
+        maxWidth={560}
+        title="Create Account"
+      >
+        <Stack gap="lg">
+          {serverError ? (
+            <Alert color="red" icon={<IconAlertCircle size={16} />} title="Registration failed">
               {serverError}
-            </div>
-          )}
+            </Alert>
+          ) : null}
 
-          {/* Registration Form - CHANGED: Removed form wrapper to test if form submission is causing fetch to fail */}
-          <div>
-            {/* Name Field */}
-            <div style={{ marginBottom: '20px' }}>
-              <label style={{
-                display: 'block',
-                marginBottom: '8px',
-                fontSize: '14px',
-                fontWeight: '600',
-                color: '#333'
-              }}>
-                Full Name
-              </label>
-              <input
-                type="text"
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
+          <form onSubmit={handleSubmit}>
+            <Stack gap="md">
+              <TextInput
+                autoComplete="name"
+                disabled={loading}
+                error={errors.name}
+                label="Full name"
+                leftSection={<IconUser size={16} stroke={1.8} />}
+                onChange={handleChange('name')}
                 placeholder="Enter your full name"
-                disabled={loading}
-                style={{
-                  width: '100%',
-                  padding: '12px 16px',
-                  fontSize: '14px',
-                  border: errors.name ? '2px solid #f44' : '2px solid #e0e0e0',
-                  borderRadius: '8px',
-                  outline: 'none',
-                  transition: 'border-color 0.2s',
-                  boxSizing: 'border-box'
-                }}
-                onFocus={(e) => e.target.style.borderColor = '#667eea'}
-                onBlur={(e) => e.target.style.borderColor = errors.name ? '#f44' : '#e0e0e0'}
+                value={formData.name}
               />
-              {errors.name && (
-                <p style={{
-                  marginTop: '6px',
-                  fontSize: '13px',
-                  color: '#f44'
-                }}>
-                  {errors.name}
-                </p>
-              )}
-            </div>
-
-            {/* Email Field */}
-            <div style={{ marginBottom: '20px' }}>
-              <label style={{
-                display: 'block',
-                marginBottom: '8px',
-                fontSize: '14px',
-                fontWeight: '600',
-                color: '#333'
-              }}>
-                Email Address
-              </label>
-              <input
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
+              <TextInput
+                autoComplete="email"
+                disabled={loading}
+                error={errors.email}
+                label="Email address"
+                leftSection={<IconAt size={16} stroke={1.8} />}
+                onChange={handleChange('email')}
                 placeholder="Enter your email"
-                disabled={loading}
-                style={{
-                  width: '100%',
-                  padding: '12px 16px',
-                  fontSize: '14px',
-                  border: errors.email ? '2px solid #f44' : '2px solid #e0e0e0',
-                  borderRadius: '8px',
-                  outline: 'none',
-                  transition: 'border-color 0.2s',
-                  boxSizing: 'border-box'
-                }}
-                onFocus={(e) => e.target.style.borderColor = '#667eea'}
-                onBlur={(e) => e.target.style.borderColor = errors.email ? '#f44' : '#e0e0e0'}
+                type="email"
+                value={formData.email}
               />
-              {errors.email && (
-                <p style={{
-                  marginTop: '6px',
-                  fontSize: '13px',
-                  color: '#f44'
-                }}>
-                  {errors.email}
-                </p>
-              )}
-            </div>
-
-            {/* Password Field */}
-            <div style={{ marginBottom: '20px' }}>
-              <label style={{
-                display: 'block',
-                marginBottom: '8px',
-                fontSize: '14px',
-                fontWeight: '600',
-                color: '#333'
-              }}>
-                Password
-              </label>
-              <input
-                type="password"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
+              <PasswordInput
+                autoComplete="new-password"
+                disabled={loading}
+                error={errors.password}
+                label="Password"
+                leftSection={<IconLock size={16} stroke={1.8} />}
+                onChange={handleChange('password')}
                 placeholder="Create a strong password"
-                disabled={loading}
-                style={{
-                  width: '100%',
-                  padding: '12px 16px',
-                  fontSize: '14px',
-                  border: errors.password ? '2px solid #f44' : '2px solid #e0e0e0',
-                  borderRadius: '8px',
-                  outline: 'none',
-                  transition: 'border-color 0.2s',
-                  boxSizing: 'border-box'
-                }}
-                onFocus={(e) => e.target.style.borderColor = '#667eea'}
-                onBlur={(e) => e.target.style.borderColor = errors.password ? '#f44' : '#e0e0e0'}
+                value={formData.password}
               />
-              {errors.password && (
-                <p style={{
-                  marginTop: '6px',
-                  fontSize: '13px',
-                  color: '#f44'
-                }}>
-                  {errors.password}
-                </p>
-              )}
-            </div>
-
-            {/* Confirm Password Field */}
-            <div style={{ marginBottom: '28px' }}>
-              <label style={{
-                display: 'block',
-                marginBottom: '8px',
-                fontSize: '14px',
-                fontWeight: '600',
-                color: '#333'
-              }}>
-                Confirm Password
-              </label>
-              <input
-                type="password"
-                name="confirmPassword"
-                value={formData.confirmPassword}
-                onChange={handleChange}
+              <PasswordInput
+                autoComplete="new-password"
+                disabled={loading}
+                error={errors.confirmPassword}
+                label="Confirm password"
+                leftSection={<IconLock size={16} stroke={1.8} />}
+                onChange={handleChange('confirmPassword')}
                 placeholder="Re-enter your password"
-                disabled={loading}
-                style={{
-                  width: '100%',
-                  padding: '12px 16px',
-                  fontSize: '14px',
-                  border: errors.confirmPassword ? '2px solid #f44' : '2px solid #e0e0e0',
-                  borderRadius: '8px',
-                  outline: 'none',
-                  transition: 'border-color 0.2s',
-                  boxSizing: 'border-box'
-                }}
-                onFocus={(e) => e.target.style.borderColor = '#667eea'}
-                onBlur={(e) => e.target.style.borderColor = errors.confirmPassword ? '#f44' : '#e0e0e0'}
+                value={formData.confirmPassword}
               />
-              {errors.confirmPassword && (
-                <p style={{
-                  marginTop: '6px',
-                  fontSize: '13px',
-                  color: '#f44'
-                }}>
-                  {errors.confirmPassword}
-                </p>
-              )}
-            </div>
+              <Button fullWidth loading={loading} type="submit">
+                Create Account
+              </Button>
+            </Stack>
+          </form>
 
-            {/* Submit Button - CHANGED: Changed to button type and added onClick handler */}
-            <button
-              type="button"
-              onClick={handleSubmit}
-              disabled={loading}
-              style={{
-                width: '100%',
-                padding: '14px',
-                fontSize: '16px',
-                fontWeight: '600',
-                color: 'white',
-                background: loading ? '#999' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                border: 'none',
-                borderRadius: '8px',
-                cursor: loading ? 'not-allowed' : 'pointer',
-                transition: 'transform 0.1s, box-shadow 0.2s',
-                boxShadow: '0 4px 12px rgba(102, 126, 234, 0.4)'
-              }}
-              onMouseEnter={(e) => {
-                if (!loading) {
-                  e.target.style.transform = 'translateY(-2px)'
-                  e.target.style.boxShadow = '0 6px 20px rgba(102, 126, 234, 0.6)'
-                }
-              }}
-              onMouseLeave={(e) => {
-                e.target.style.transform = 'translateY(0)'
-                e.target.style.boxShadow = '0 4px 12px rgba(102, 126, 234, 0.4)'
-              }}
-            >
-              {loading ? 'Creating Account...' : 'Create Account'}
-            </button>
-          </div>
-
-          {/* Login Link */}
-          <div style={{
-            marginTop: '24px',
-            textAlign: 'center',
-            fontSize: '14px',
-            color: '#666'
-          }}>
-            Already have an account?{' '}
-            <Link href={
-              oauth_request 
-                ? `/login?oauth_request=${encodeURIComponent(oauth_request)}`
-                : redirect 
-                  ? `/login?redirect=${encodeURIComponent(redirect)}`
-                  : '/login'
-            } style={{
-              color: '#667eea',
-              textDecoration: 'none',
-              fontWeight: '600'
-            }}>
-              Sign in
-            </Link>
-          </div>
-
-          {/* Back to Home */}
-          <div style={{
-            marginTop: '16px',
-            textAlign: 'center'
-          }}>
-            <Link href="/" style={{
-              fontSize: '13px',
-              color: '#999',
-              textDecoration: 'none'
-            }}>
-              ← Back to home
-            </Link>
-          </div>
-        </div>
-      </div>
+          <Stack align="center" gap={4}>
+            <Text c="dimmed" size="sm">
+              Already have an account?{' '}
+              <Anchor component={Link} href={loginHref} fw={600}>
+                Sign in
+              </Anchor>
+            </Text>
+            <Anchor component={Link} href="/" size="sm">
+              Back to home
+            </Anchor>
+          </Stack>
+        </Stack>
+      </AuthSurface>
     </>
   )
 }

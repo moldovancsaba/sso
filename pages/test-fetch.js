@@ -1,5 +1,8 @@
 import { useState } from 'react'
 import Head from 'next/head'
+import { Alert, Button, Code, Stack, Text } from '@mantine/core'
+import { IconAlertCircle, IconBug, IconCheck } from '@tabler/icons-react'
+import PublicPageLayout from '../components/PublicPageLayout'
 
 export default function TestFetch() {
   const [result, setResult] = useState('')
@@ -8,26 +11,21 @@ export default function TestFetch() {
   const testLogin = async () => {
     setResult('Testing...')
     setError('')
-    
+
     try {
-      console.log('Starting fetch...')
       const res = await fetch('/api/public/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({
           email: 'test@example.com',
-          password: 'testpass123'
-        })
+          password: 'testpass123',
+        }),
       })
-      
-      console.log('Fetch completed, status:', res.status)
+
       const data = await res.json()
-      console.log('Response data:', data)
-      
       setResult(JSON.stringify(data, null, 2))
     } catch (err) {
-      console.error('Fetch error:', err)
       setError(`Error: ${err.message}\nType: ${err.constructor.name}\nStack: ${err.stack}`)
     }
   }
@@ -37,37 +35,31 @@ export default function TestFetch() {
       <Head>
         <title>Fetch Test</title>
       </Head>
-      <div style={{ padding: '40px', maxWidth: '800px', margin: '0 auto' }}>
-        <h1>Fetch Test Page</h1>
-        <button 
-          onClick={testLogin}
-          style={{
-            padding: '12px 24px',
-            fontSize: '16px',
-            background: '#667eea',
-            color: 'white',
-            border: 'none',
-            borderRadius: '8px',
-            cursor: 'pointer'
-          }}
-        >
-          Test Login API
-        </button>
-        
-        {result && (
-          <div style={{ marginTop: '20px', padding: '20px', background: '#efe', borderRadius: '8px' }}>
-            <h3>Success:</h3>
-            <pre>{result}</pre>
-          </div>
-        )}
-        
-        {error && (
-          <div style={{ marginTop: '20px', padding: '20px', background: '#fee', borderRadius: '8px' }}>
-            <h3>Error:</h3>
-            <pre>{error}</pre>
-          </div>
-        )}
-      </div>
+      <PublicPageLayout subtitle="Diagnostic endpoint check for the public login API." title="Fetch Test">
+        <Stack gap="lg">
+          <Button leftSection={<IconBug size={16} />} onClick={testLogin} w="fit-content">
+            Test Login API
+          </Button>
+
+          {result ? (
+            <Alert color="green" icon={<IconCheck size={16} />} title="Success">
+              <Code block>{result}</Code>
+            </Alert>
+          ) : null}
+
+          {error ? (
+            <Alert color="red" icon={<IconAlertCircle size={16} />} title="Error">
+              <Code block>{error}</Code>
+            </Alert>
+          ) : null}
+
+          {!result && !error ? (
+            <Text c="dimmed" size="sm">
+              Run the request to inspect the API response payload in this environment.
+            </Text>
+          ) : null}
+        </Stack>
+      </PublicPageLayout>
     </>
   )
 }
