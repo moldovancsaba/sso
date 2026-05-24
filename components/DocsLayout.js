@@ -1,4 +1,3 @@
-import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import {
@@ -82,7 +81,7 @@ export default function DocsLayout({ children }) {
             <Burger opened={opened} onClick={toggle} hiddenFrom="sm" size="sm" />
             <Link href="/">
               <Box component="span" display="inline-flex">
-                <Image alt="DoneIsBetter SSO" height={28} src="/logo.svg" width={132} />
+                <Box alt="DoneIsBetter SSO" component="img" h={28} src="/logo.svg" w={132} />
               </Box>
             </Link>
             <Select
