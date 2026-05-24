@@ -1,68 +1,80 @@
+import Link from 'next/link';
+import {
+  Stack,
+  Title,
+  Text,
+  Paper,
+  Code,
+  List,
+  Box,
+  Anchor,
+  Container,
+  Divider,
+  Group,
+} from '@mantine/core';
 // WHAT: Vue.js OAuth 2.0 integration example with Pinia store
 // WHY: Developers need copy-paste ready code for Vue 3 apps using SSO
 // HOW: Provides Pinia store, composables, and protected route examples
 
 import DocsLayout from '../../../components/DocsLayout';
-import styles from '../../../styles/docs.module.css';
 import packageJson from '../../../package.json';
 
 export default function VueExample() {
   return (
     <DocsLayout>
-      <div className={styles.container}>
-        <header className={styles.header}>
-          <h1>Vue.js Integration Example</h1>
-          <p className={styles.version}>SSO Version: {packageJson.version}</p>
-        </header>
-        <main className={styles.main}>
-          <section className={styles.section}>
-            <h2>Overview</h2>
-            <p>
+      <Stack gap="xl">
+        <Box>
+          <Title order={1} mb="xs">Vue.js Integration Example</Title>
+          <Text size="sm" c="dimmed" fw={500} mb="xs">SSO Version: {packageJson.version}</Text>
+        </Box>
+        
+          <Box>
+            <Title order={2} mb="sm">Overview</Title>
+            <Text size="sm">
               This guide demonstrates OAuth 2.0 Authorization Code Flow integration in a Vue 3 application
               using Composition API and Pinia for state management.
-            </p>
-            <div className={styles.alert}>
-              <strong>⚠️ Security Note:</strong> Never expose <code>client_secret</code> in your Vue app.
+            </Text>
+            <Paper withBorder p="md" shadow="sm" radius="md" style={{ borderLeft: "4px solid var(--mantine-color-red-6)" }} bg="var(--mantine-color-red-light)">
+              <Text size="sm">
+                <strong>⚠️ Security Note:</strong> Never expose <code>client_secret</code> in your Vue app.
               All token exchange operations must happen on your backend server.
-            </div>
-            <div className={styles.warningBox}>
-              <p><strong>Current contract note:</strong> your backend session endpoint should derive app-permission state from the permission APIs and hand that result to Pinia. Do not assume canonical permission status comes directly from raw <code>id_token</code> claims.</p>
-            </div>
-          </section>
+              </Text>
+            </Paper>
+            <Paper withBorder p="md" shadow="sm" radius="md" style={{ borderLeft: "4px solid var(--mantine-color-yellow-6)" }} bg="var(--mantine-color-yellow-light)">
+              <Text size="sm">
+                <strong>Current contract note:</strong> your backend session endpoint should derive app-permission state from the permission APIs and hand that result to Pinia. Do not assume canonical permission status comes directly from raw <code>id_token</code> claims.
+              </Text>
+            </Paper>
+          </Box>
 
-          <section className={styles.section}>
-            <h2>1. Project Setup</h2>
-            <p>Install Pinia for state management:</p>
-            <div className={styles.codeBlock}>
-              <pre>
-                {`npm install pinia
+          <Box>
+            <Title order={2} mb="sm">1. Project Setup</Title>
+            <Text size="sm">Install Pinia for state management:</Text>
+            <Code block>
+              {`npm install pinia
 npm install vue-router # If not already installed`}
-              </pre>
-            </div>
-          </section>
+            </Code>
+          </Box>
 
-          <section className={styles.section}>
-            <h2>2. Environment Configuration</h2>
-            <p>Configure your environment variables:</p>
-            <div className={styles.codeBlock}>
-              <pre>
-                {`# .env (Frontend - safe to expose CLIENT_ID only)
+          <Box>
+            <Title order={2} mb="sm">2. Environment Configuration</Title>
+            <Text size="sm">Configure your environment variables:</Text>
+            <Code block>
+              {`# .env (Frontend - safe to expose CLIENT_ID only)
 VITE_SSO_CLIENT_ID=your_client_id_here
 VITE_SSO_BASE_URL=https://sso.doneisbetter.com
 
 # .env (Backend - NEVER commit this file)
 SSO_CLIENT_SECRET=your_client_secret_here
 SSO_REDIRECT_URI=https://yourapp.com/api/auth/callback`}
-              </pre>
-            </div>
-          </section>
+            </Code>
+          </Box>
 
-          <section className={styles.section}>
-            <h2>3. Pinia Auth Store</h2>
-            <p>Create a Pinia store to manage authentication state:</p>
-            <div className={styles.codeBlock}>
-              <pre>
-                {`// src/stores/auth.js
+          <Box>
+            <Title order={2} mb="sm">3. Pinia Auth Store</Title>
+            <Text size="sm">Create a Pinia store to manage authentication state:</Text>
+            <Code block>
+              {`// src/stores/auth.js
 import { defineStore } from 'pinia';
 
 export const useAuthStore = defineStore('auth', {
@@ -133,16 +145,14 @@ export const useAuthStore = defineStore('auth', {
     }
   }
 });`}
-              </pre>
-            </div>
-          </section>
+            </Code>
+          </Box>
 
-          <section className={styles.section}>
-            <h2>4. Backend OAuth Callback (Express/Node.js)</h2>
-            <p>Handle the OAuth callback and exchange code for tokens:</p>
-            <div className={styles.codeBlock}>
-              <pre>
-                {`// server/routes/auth.js (Express example)
+          <Box>
+            <Title order={2} mb="sm">4. Backend OAuth Callback (Express/Node.js)</Title>
+            <Text size="sm">Handle the OAuth callback and exchange code for tokens:</Text>
+            <Code block>
+              {`// server/routes/auth.js (Express example)
 import express from 'express';
 import jwt from 'jsonwebtoken';
 
@@ -268,16 +278,14 @@ router.post('/api/auth/logout', (req, res) => {
 });
 
 export default router;`}
-              </pre>
-            </div>
-          </section>
+            </Code>
+          </Box>
 
-          <section className={styles.section}>
-            <h2>5. Auth Composable (Optional)</h2>
-            <p>Create a reusable composable for auth logic:</p>
-            <div className={styles.codeBlock}>
-              <pre>
-                {`// src/composables/useAuth.js
+          <Box>
+            <Title order={2} mb="sm">5. Auth Composable (Optional)</Title>
+            <Text size="sm">Create a reusable composable for auth logic:</Text>
+            <Code block>
+              {`// src/composables/useAuth.js
 import { computed } from 'vue';
 import { useAuthStore } from '@/stores/auth';
 import { useRouter } from 'vue-router';
@@ -326,16 +334,14 @@ export function useAuth() {
     requireApproval
   };
 }`}
-              </pre>
-            </div>
-          </section>
+            </Code>
+          </Box>
 
-          <section className={styles.section}>
-            <h2>6. Router Guards</h2>
-            <p>Protect routes that require authentication:</p>
-            <div className={styles.codeBlock}>
-              <pre>
-                {`// src/router/index.js
+          <Box>
+            <Title order={2} mb="sm">6. Router Guards</Title>
+            <Text size="sm">Protect routes that require authentication:</Text>
+            <Code block>
+              {`// src/router/index.js
 import { createRouter, createWebHistory } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
 
@@ -402,18 +408,16 @@ router.beforeEach(async (to, from, next) => {
 });
 
 export default router;`}
-              </pre>
-            </div>
-          </section>
+            </Code>
+          </Box>
 
-          <section className={styles.section}>
-            <h2>7. Component Examples</h2>
-            <div className={styles.codeBlock}>
-              <pre>
-                {`<!-- src/views/Login.vue -->
+          <Box>
+            <Title order={2} mb="sm">7. Component Examples</Title>
+            <Code block>
+              {`<!-- src/views/Login.vue -->
 <template>
   <div class="login-page">
-    <h1>Sign In</h1>
+    <Title order={1} mb="xs">Sign In</Title>
     <button @click="handleLogin" :disabled="loading">
       {{ loading ? 'Loading...' : 'Sign in with SSO' }}
     </button>
@@ -433,9 +437,9 @@ const handleLogin = () => {
 <!-- src/views/Dashboard.vue -->
 <template>
   <div class="dashboard">
-    <h1>Welcome, {{ user?.name }}</h1>
-    <p>Email: {{ user?.email }}</p>
-    <p>Role: {{ user?.role }}</p>
+    <Title order={1} mb="xs">Welcome, {{ user?.name }}</Title>
+    <Text size="sm">Email: {{ user?.email }}</Text>
+    <Text size="sm">Role: {{ user?.role }}</Text>
     <button @click="handleLogout">Sign Out</button>
   </div>
 </template>
@@ -459,12 +463,12 @@ const handleLogout = () => {
 <!-- src/views/AccessPending.vue -->
 <template>
   <div class="access-pending">
-    <h1>Access Pending</h1>
-    <p>
+    <Title order={1} mb="xs">Access Pending</Title>
+    <Text size="sm">
       Your access to this application is pending approval.
       An administrator will review your request shortly.
-    </p>
-    <p>You will receive an email notification once approved.</p>
+    </Text>
+    <Text size="sm">You will receive an email notification once approved.</Text>
     <button @click="logout">Sign Out</button>
   </div>
 </template>
@@ -473,16 +477,14 @@ const handleLogout = () => {
 import { useAuth } from '@/composables/useAuth';
 const { logout } = useAuth();
 </script>`}
-              </pre>
-            </div>
-          </section>
+            </Code>
+          </Box>
 
-          <section className={styles.section}>
-            <h2>8. App Setup</h2>
-            <p>Initialize Pinia and check session on app mount:</p>
-            <div className={styles.codeBlock}>
-              <pre>
-                {`// src/main.js
+          <Box>
+            <Title order={2} mb="sm">8. App Setup</Title>
+            <Text size="sm">Initialize Pinia and check session on app mount:</Text>
+            <Code block>
+              {`// src/main.js
 import { createApp } from 'vue';
 import { createPinia } from 'pinia';
 import router from './router';
@@ -500,31 +502,32 @@ const authStore = useAuthStore();
 authStore.checkSession();
 
 app.mount('#app');`}
-              </pre>
-            </div>
-          </section>
+            </Code>
+          </Box>
 
-          <section className={styles.section}>
-            <h2>Summary</h2>
-            <ul>
-              <li>✅ OAuth 2.0 Authorization Code Flow with Vue 3 Composition API</li>
-              <li>✅ Pinia store for centralized auth state management</li>
-              <li>✅ Router guards for protected routes</li>
-              <li>✅ Reusable auth composable</li>
-              <li>✅ App permission status handling (pending/approved/revoked)</li>
-              <li>✅ Secure token storage with HTTP-only cookies</li>
-            </ul>
-            <div className={styles.alert}>
-              <strong>🔗 Next Steps:</strong>
-              <ul>
-                <li>Review <a href="/docs/authentication">Authentication Flow</a> for detailed OAuth 2.0 explanation</li>
-                <li>Check <a href="/docs/app-permissions">App Permissions</a> to understand permission lifecycle</li>
-                <li>See <a href="/docs/api/endpoints">API Reference</a> for complete endpoint documentation</li>
-              </ul>
-            </div>
-          </section>
-        </main>
-      </div>
+          <Box>
+            <Title order={2} mb="sm">Summary</Title>
+            <List spacing="xs">
+              <List.Item>✅ OAuth 2.0 Authorization Code Flow with Vue 3 Composition API</List.Item>
+              <List.Item>✅ Pinia store for centralized auth state management</List.Item>
+              <List.Item>✅ Router guards for protected routes</List.Item>
+              <List.Item>✅ Reusable auth composable</List.Item>
+              <List.Item>✅ App permission status handling (pending/approved/revoked)</List.Item>
+              <List.Item>✅ Secure token storage with HTTP-only cookies</List.Item>
+            </List>
+            <Paper withBorder p="md" shadow="sm" radius="md" style={{ borderLeft: "4px solid var(--mantine-color-red-6)" }} bg="var(--mantine-color-red-light)">
+              <Text size="sm">
+                <strong>🔗 Next Steps:</strong>
+              <List spacing="xs">
+                <List.Item>Review <Anchor component={Link} href="/docs/authentication">Authentication Flow</Anchor> for detailed OAuth 2.0 explanation</List.Item>
+                <List.Item>Check <Anchor component={Link} href="/docs/app-permissions">App Permissions</Anchor> to understand permission lifecycle</List.Item>
+                <List.Item>See <Anchor component={Link} href="/docs/api/endpoints">API Reference</Anchor> for complete endpoint documentation</List.Item>
+              </List>
+              </Text>
+            </Paper>
+          </Box>
+        
+      </Stack>
     </DocsLayout>
   );
 }

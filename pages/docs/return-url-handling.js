@@ -1,70 +1,82 @@
+import Link from 'next/link';
+import {
+  Stack,
+  Title,
+  Text,
+  Paper,
+  Code,
+  List,
+  Box,
+  Anchor,
+  Container,
+  Divider,
+  Group,
+} from '@mantine/core';
 // WHAT: Documentation for handling return URLs in OAuth flow
 // WHY: Developers need guidance on preserving user's location through OAuth redirects
 // HOW: Encode return URL in state parameter or use sessionStorage
 
 import DocsLayout from '../../components/DocsLayout';
-import styles from '../../styles/docs.module.css';
 import packageJson from '../../package.json';
 
 export default function ReturnUrlHandling() {
   return (
     <DocsLayout>
-      <div className={styles.container}>
-        <header className={styles.header}>
-          <h1>Return URL Handling</h1>
-          <p className={styles.version}>API Version: {packageJson.version}</p>
-          <p className={styles.subtitle}>Returning users to their original page after OAuth</p>
-        </header>
+      <Stack gap="xl">
+        <Box>
+          <Title order={1} mb="xs">Return URL Handling</Title>
+          <Text size="sm" c="dimmed" fw={500} mb="xs">API Version: {packageJson.version}</Text>
+          <Text size="lg" c="dimmed">Returning users to their original page after OAuth</Text>
+        </Box>
 
-        <main className={styles.main}>
+        
           {/* Problem Statement */}
-          <section className={styles.section}>
-            <h2>The Problem</h2>
-            <p>
+          <Box>
+            <Title order={2} mb="sm">The Problem</Title>
+            <Text size="sm">
               When users click "Login" from a specific page in your app (e.g., <code>/settings/integrations</code>),
               they go through the OAuth flow at the SSO service. After successfully authenticating, you want them
               to return to that exact page—not just your homepage or dashboard.
-            </p>
-            <div className={styles.infoBox}>
-              <p>
+            </Text>
+            <div>
+              <Text size="sm">
                 <strong>Example Flow:</strong>
-              </p>
-              <ol>
-                <li>User is on <code>https://yourapp.com/settings/integrations?tab=sso</code></li>
-                <li>Clicks "Login" → Redirected to SSO</li>
-                <li>Completes authentication (may register new account)</li>
-                <li>OAuth redirects to <code>https://yourapp.com/auth/callback?code=...</code></li>
-                <li><strong>Goal:</strong> Redirect user back to <code>/settings/integrations?tab=sso</code></li>
-              </ol>
+              </Text>
+              <List spacing="xs" type="ordered">
+                <List.Item>User is on <code>https://yourapp.com/settings/integrations?tab=sso</code></List.Item>
+                <List.Item>Clicks "Login" → Redirected to SSO</List.Item>
+                <List.Item>Completes authentication (may register new account)</List.Item>
+                <List.Item>OAuth redirects to <code>https://yourapp.com/auth/callback?code=...</code></List.Item>
+                <List.Item><strong>Goal:</strong> Redirect user back to <code>/settings/integrations?tab=sso</code></List.Item>
+              </List>
             </div>
-          </section>
+          </Box>
 
           {/* Solution Overview */}
-          <section className={styles.section}>
-            <h2>The Solution</h2>
-            <p>
+          <Box>
+            <Title order={2} mb="sm">The Solution</Title>
+            <Text size="sm">
               The <code>state</code> parameter in OAuth 2.0 serves two purposes:
-            </p>
-            <ul>
-              <li><strong>CSRF Protection</strong> (required): Prevents cross-site request forgery attacks</li>
-              <li><strong>App State Preservation</strong> (optional): Store return URL, UI state, etc.</li>
-            </ul>
-            <p>
+            </Text>
+            <List spacing="xs">
+              <List.Item><strong>CSRF Protection</strong> (required): Prevents cross-site request forgery attacks</List.Item>
+              <List.Item><strong>App State Preservation</strong> (optional): Store return URL, UI state, etc.</List.Item>
+            </List>
+            <Text size="sm">
               You can encode <strong>both</strong> the CSRF token and return URL in the state parameter.
-            </p>
-          </section>
+            </Text>
+          </Box>
 
           {/* Method 1: State Parameter */}
-          <section className={styles.section}>
-            <h2>Method 1: State Parameter (Recommended)</h2>
-            <p className={styles.successText}>
+          <Box>
+            <Title order={2} mb="sm">Method 1: State Parameter (Recommended)</Title>
+            <Text size="sm">
               ✅ <strong>Recommended:</strong> Works across tabs, survives page refreshes, fully stateless
-            </p>
+            </Text>
 
-            <h3>Step 1: Encode State When Initiating OAuth</h3>
-            <div className={styles.codeBlock}>
-              <pre>
-                {`// Frontend: When user clicks "Login"
+            <Title order={3} mb="xs">Step 1: Encode State When Initiating OAuth</Title>
+            <Code block>
+              {`// Frontend: When user clicks "Login"
 async function handleLogin() {
   // WHAT: Capture current page location
   const currentUrl = window.location.pathname + window.location.search
@@ -111,13 +123,11 @@ function base64URLEncode(buffer) {
     : btoa(String.fromCharCode(...new Uint8Array(buffer)))
   return base64.replace(/\\+/g, '-').replace(/\\//g, '_').replace(/=/g, '')
 }`}
-              </pre>
-            </div>
+            </Code>
 
-            <h3>Step 2: Decode State in OAuth Callback</h3>
-            <div className={styles.codeBlock}>
-              <pre>
-                {`// Backend: /auth/callback endpoint
+            <Title order={3} mb="xs">Step 2: Decode State in OAuth Callback</Title>
+            <Code block>
+              {`// Backend: /auth/callback endpoint
 app.get('/auth/callback', async (req, res) => {
   const { code, state: encodedState } = req.query
   
@@ -184,21 +194,19 @@ function isValidReturnUrl(url) {
   if (url.includes('<') || url.includes('>')) return false
   return true
 }`}
-              </pre>
-            </div>
-          </section>
+            </Code>
+          </Box>
 
           {/* Method 2: SessionStorage */}
-          <section className={styles.section}>
-            <h2>Method 2: SessionStorage (Alternative)</h2>
-            <p className={styles.warningText}>
+          <Box>
+            <Title order={2} mb="sm">Method 2: SessionStorage (Alternative)</Title>
+            <Text size="sm">
               ⚠️ <strong>Limitations:</strong> Doesn't work across tabs, lost on page refresh
-            </p>
+            </Text>
 
-            <h3>Frontend Implementation</h3>
-            <div className={styles.codeBlock}>
-              <pre>
-                {`// Store return URL before OAuth redirect
+            <Title order={3} mb="xs">Frontend Implementation</Title>
+            <Code block>
+              {`// Store return URL before OAuth redirect
 function handleLogin() {
   const currentUrl = window.location.pathname + window.location.search
   sessionStorage.setItem('oauth_return_to', currentUrl)
@@ -215,73 +223,73 @@ window.addEventListener('DOMContentLoaded', () => {
     window.location.href = returnTo
   }
 })`}
-              </pre>
-            </div>
-          </section>
+            </Code>
+          </Box>
 
           {/* Security Best Practices */}
-          <section className={styles.section}>
-            <h2>Security Best Practices</h2>
+          <Box>
+            <Title order={2} mb="sm">Security Best Practices</Title>
             
-            <h3>1. Always Validate Return URLs</h3>
-            <div className={styles.dangerBox}>
-              <p>
+            <Title order={3} mb="xs">1. Always Validate Return URLs</Title>
+            <div>
+              <Text size="sm">
                 <strong>⚠️ Critical Security Warning:</strong><br />
                 Never blindly redirect to user-supplied URLs. This opens your app to <strong>open redirect attacks</strong>.
-              </p>
+              </Text>
             </div>
-            <p>
+            <Text size="sm">
               Malicious actors can craft URLs like:
-            </p>
-            <div className={styles.codeBlock}>
+            </Text>
+            <div>
               <code>
                 https://yourapp.com/login?return_to=https://evil.com/phishing
               </code>
             </div>
-            <p>
+            <Text size="sm">
               <strong>Always validate:</strong>
-            </p>
-            <ul>
-              <li>✅ Only allow relative URLs (starting with <code>/</code>)</li>
-              <li>✅ Reject protocol-relative URLs (<code>//evil.com</code>)</li>
-              <li>✅ Reject URLs with suspicious characters</li>
-              <li>✅ Use an allowlist of valid paths if possible</li>
-            </ul>
+            </Text>
+            <List spacing="xs">
+              <List.Item>✅ Only allow relative URLs (starting with <code>/</code>)</List.Item>
+              <List.Item>✅ Reject protocol-relative URLs (<code>//evil.com</code>)</List.Item>
+              <List.Item>✅ Reject URLs with suspicious characters</List.Item>
+              <List.Item>✅ Use an allowlist of valid paths if possible</List.Item>
+            </List>
 
-            <h3>2. State Parameter Best Practices</h3>
-            <ul>
-              <li><strong>Always include CSRF token</strong> - Required for security</li>
-              <li><strong>Add timestamp</strong> - Detect and reject expired states</li>
-              <li><strong>Keep it small</strong> - Some browsers limit URL length to ~2000 chars</li>
-              <li><strong>Use base64url encoding</strong> - Safe for URLs (not standard base64)</li>
-            </ul>
+            <Title order={3} mb="xs">2. State Parameter Best Practices</Title>
+            <List spacing="xs">
+              <List.Item><strong>Always include CSRF token</strong> - Required for security</List.Item>
+              <List.Item><strong>Add timestamp</strong> - Detect and reject expired states</List.Item>
+              <List.Item><strong>Keep it small</strong> - Some browsers limit URL length to ~2000 chars</List.Item>
+              <List.Item><strong>Use base64url encoding</strong> - Safe for URLs (not standard base64)</List.Item>
+            </List>
 
-            <h3>3. Don't Store Sensitive Data in State</h3>
-            <div className={styles.warningBox}>
-              <p>
+            <Title order={3} mb="xs">3. Don't Store Sensitive Data in State</Title>
+            <Paper withBorder p="md" shadow="sm" radius="md" style={{ borderLeft: "4px solid var(--mantine-color-yellow-6)" }} bg="var(--mantine-color-yellow-light)">
+              <Stack gap="xs">
+                <Text size="sm">
                 The <code>state</code> parameter is visible in browser history, logs, and analytics.
                 Never include:
-              </p>
-              <ul>
-                <li>❌ Passwords or tokens</li>
-                <li>❌ Personal information (SSN, credit cards)</li>
-                <li>❌ Session IDs</li>
-                <li>✅ Only non-sensitive navigation state</li>
-              </ul>
-            </div>
-          </section>
+              </Text>
+              <List spacing="xs">
+                <List.Item>❌ Passwords or tokens</List.Item>
+                <List.Item>❌ Personal information (SSN, credit cards)</List.Item>
+                <List.Item>❌ Session IDs</List.Item>
+                <List.Item>✅ Only non-sensitive navigation state</List.Item>
+              </List>
+              </Stack>
+            </Paper>
+          </Box>
 
           {/* Complete Working Example */}
-          <section className={styles.section}>
-            <h2>Complete Working Example</h2>
-            <p>
+          <Box>
+            <Title order={2} mb="sm">Complete Working Example</Title>
+            <Text size="sm">
               Here's a full implementation using Next.js (adaptable to any framework):
-            </p>
+            </Text>
 
-            <h3>Frontend Component</h3>
-            <div className={styles.codeBlock}>
-              <pre>
-                {`// components/LoginButton.jsx
+            <Title order={3} mb="xs">Frontend Component</Title>
+            <Code block>
+              {`// components/LoginButton.jsx
 export default function LoginButton() {
   const handleLogin = async () => {
     try {
@@ -338,13 +346,11 @@ function base64URLEncode(buffer) {
 function generateRandomString(length) {
   return base64URLEncode(crypto.getRandomValues(new Uint8Array(length)))
 }`}
-              </pre>
-            </div>
+            </Code>
 
-            <h3>Backend OAuth Callback</h3>
-            <div className={styles.codeBlock}>
-              <pre>
-                {`// pages/api/auth/callback.js (Next.js API route)
+            <Title order={3} mb="xs">Backend OAuth Callback</Title>
+            <Code block>
+              {`// pages/api/auth/callback.js (Next.js API route)
 export default async function handler(req, res) {
   const { code, state: encodedState } = req.query
   
@@ -396,43 +402,42 @@ export default async function handler(req, res) {
   
   res.redirect('/dashboard')
 }`}
-              </pre>
-            </div>
-          </section>
+            </Code>
+          </Box>
 
           {/* Common Issues */}
-          <section className={styles.section}>
-            <h2>Troubleshooting</h2>
+          <Box>
+            <Title order={2} mb="sm">Troubleshooting</Title>
             
-            <h3>Issue: User Always Redirected to Homepage</h3>
-            <p><strong>Cause:</strong> Return URL not preserved in state parameter</p>
-            <p><strong>Solution:</strong> Check that you're encoding <code>return_to</code> in state before OAuth redirect</p>
+            <Title order={3} mb="xs">Issue: User Always Redirected to Homepage</Title>
+            <Text size="sm"><strong>Cause:</strong> Return URL not preserved in state parameter</Text>
+            <Text size="sm"><strong>Solution:</strong> Check that you're encoding <code>return_to</code> in state before OAuth redirect</Text>
 
-            <h3>Issue: "Invalid state parameter" Error</h3>
-            <p><strong>Cause:</strong> State decoding failed or CSRF token missing</p>
-            <p><strong>Solution:</strong> Ensure you're using base64url encoding (not standard base64) and including CSRF token</p>
+            <Title order={3} mb="xs">Issue: "Invalid state parameter" Error</Title>
+            <Text size="sm"><strong>Cause:</strong> State decoding failed or CSRF token missing</Text>
+            <Text size="sm"><strong>Solution:</strong> Ensure you're using base64url encoding (not standard base64) and including CSRF token</Text>
 
-            <h3>Issue: Return URL Lost After Registration</h3>
-            <p><strong>Cause:</strong> SSO preserves OAuth parameters during registration flow</p>
-            <p><strong>Solution:</strong> The current login and registration flow preserves the encoded return target through the auth round-trip. If this breaks, treat it as a regression.</p>
+            <Title order={3} mb="xs">Issue: Return URL Lost After Registration</Title>
+            <Text size="sm"><strong>Cause:</strong> SSO preserves OAuth parameters during registration flow</Text>
+            <Text size="sm"><strong>Solution:</strong> The current login and registration flow preserves the encoded return target through the auth round-trip. If this breaks, treat it as a regression.</Text>
 
-            <h3>Issue: Open Redirect Warning</h3>
-            <p><strong>Cause:</strong> Not validating return URLs</p>
-            <p><strong>Solution:</strong> Always validate that return URL is relative and safe before redirecting</p>
-          </section>
+            <Title order={3} mb="xs">Issue: Open Redirect Warning</Title>
+            <Text size="sm"><strong>Cause:</strong> Not validating return URLs</Text>
+            <Text size="sm"><strong>Solution:</strong> Always validate that return URL is relative and safe before redirecting</Text>
+          </Box>
 
           {/* Next Steps */}
-          <section className={styles.section}>
-            <h2>Next Steps</h2>
-            <ul>
-              <li><a href="/docs/authentication">Full Authentication Guide</a></li>
-              <li><a href="/docs/quickstart">Quick Start Guide</a></li>
-              <li><a href="/docs/security/best-practices">Security Best Practices</a></li>
-              <li><a href="/docs/api">API Reference</a></li>
-            </ul>
-          </section>
-        </main>
-      </div>
+          <Box>
+            <Title order={2} mb="sm">Next Steps</Title>
+            <List spacing="xs">
+              <List.Item><Anchor component={Link} href="/docs/authentication">Full Authentication Guide</Anchor></List.Item>
+              <List.Item><Anchor component={Link} href="/docs/quickstart">Quick Start Guide</Anchor></List.Item>
+              <List.Item><Anchor component={Link} href="/docs/security/best-practices">Security Best Practices</Anchor></List.Item>
+              <List.Item><Anchor component={Link} href="/docs/api">API Reference</Anchor></List.Item>
+            </List>
+          </Box>
+        
+      </Stack>
     </DocsLayout>
   );
 }

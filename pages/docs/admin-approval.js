@@ -1,80 +1,92 @@
+import Link from 'next/link';
+import {
+  Stack,
+  Title,
+  Text,
+  Paper,
+  Code,
+  List,
+  Box,
+  Anchor,
+  Container,
+  Divider,
+  Group,
+} from '@mantine/core';
 // WHAT: Admin Approval Process documentation for SSO administrators
 // WHY: SSO admins need guidance on managing user access to apps
 // HOW: Step-by-step workflows for granting/revoking app permissions
 
 import DocsLayout from '../../components/DocsLayout';
-import styles from '../../styles/docs.module.css';
 import packageJson from '../../package.json';
 
 export default function AdminApproval() {
   return (
     <DocsLayout>
-      <div className={styles.container}>
-        <header className={styles.header}>
-          <h1>Admin Approval Process</h1>
-          <p className={styles.version}>API Version: {packageJson.version}</p>
-        </header>
-        <main className={styles.main}>
+      <Stack gap="xl">
+        <Box>
+          <Title order={1} mb="xs">Admin Approval Process</Title>
+          <Text size="sm" c="dimmed" fw={500} mb="xs">API Version: {packageJson.version}</Text>
+        </Box>
+        
           {/* WHAT: Overview for SSO admins */}
           {/* WHY: Set context for administrative responsibilities */}
-          <section className={styles.section}>
-            <h2>Overview</h2>
-            <p>
+          <Box>
+            <Title order={2} mb="sm">Overview</Title>
+            <Text size="sm">
               As an <strong>SSO Administrator</strong>, you control which users can access which applications 
               in the DoneIsBetter ecosystem. This is a critical security responsibility that ensures only 
               authorized users can access sensitive applications.
-            </p>
-            <p><strong>Your Responsibilities:</strong></p>
-            <ul>
-              <li>Review and approve/deny user access requests</li>
-              <li>Assign app-level roles (user vs admin)</li>
-              <li>Monitor active permissions across all apps</li>
-              <li>Revoke access when needed (security incidents, role changes)</li>
-              <li>Maintain audit trail of permission changes</li>
-            </ul>
-          </section>
+            </Text>
+            <Text size="sm"><strong>Your Responsibilities:</strong></Text>
+            <List spacing="xs">
+              <List.Item>Review and approve/deny user access requests</List.Item>
+              <List.Item>Assign app-level roles (user vs admin)</List.Item>
+              <List.Item>Monitor active permissions across all apps</List.Item>
+              <List.Item>Revoke access when needed (security incidents, role changes)</List.Item>
+              <List.Item>Maintain audit trail of permission changes</List.Item>
+            </List>
+          </Box>
 
           {/* WHAT: Access the admin panel */}
           {/* WHY: First step for any admin task */}
-          <section className={styles.section}>
-            <h2>Accessing the Admin Panel</h2>
+          <Box>
+            <Title order={2} mb="sm">Accessing the Admin Panel</Title>
             
-            <h3>Login</h3>
-            <ol>
-              <li>Navigate to <a href="https://sso.doneisbetter.com/admin" target="_blank">https://sso.doneisbetter.com/admin</a></li>
-              <li>Enter your SSO admin email and 32-hex password token</li>
-              <li>Alternatively, request a magic link if configured</li>
-              <li>Session lasts 7 days with automatic extension</li>
-            </ol>
+            <Title order={3} mb="xs">Login</Title>
+            <List spacing="xs" type="ordered">
+              <List.Item>Navigate to <Anchor component={Link} href="https://sso.doneisbetter.com/admin" target="_blank">https://sso.doneisbetter.com/admin</Anchor></List.Item>
+              <List.Item>Enter your SSO admin email and 32-hex password token</List.Item>
+              <List.Item>Alternatively, request a magic link if configured</List.Item>
+              <List.Item>Session lasts 7 days with automatic extension</List.Item>
+            </List>
 
-            <h3>Admin Panel Layout</h3>
-            <ul>
-              <li><strong>Users Tab</strong> - Manage user accounts and app permissions (primary focus)</li>
-              <li><strong>OAuth Clients Tab</strong> - View registered applications</li>
-              <li><strong>Settings</strong> - Admin account settings and logout</li>
-            </ul>
-          </section>
+            <Title order={3} mb="xs">Admin Panel Layout</Title>
+            <List spacing="xs">
+              <List.Item><strong>Users Tab</strong> - Manage user accounts and app permissions (primary focus)</List.Item>
+              <List.Item><strong>OAuth Clients Tab</strong> - View registered applications</List.Item>
+              <List.Item><strong>Settings</strong> - Admin account settings and logout</List.Item>
+            </List>
+          </Box>
 
           {/* WHAT: User approval workflow */}
           {/* WHY: Most common task for SSO admins */}
-          <section className={styles.section}>
-            <h2>Approving User Access</h2>
+          <Box>
+            <Title order={2} mb="sm">Approving User Access</Title>
             
-            <h3>When Users Need Approval</h3>
-            <p>Users need approval in these scenarios:</p>
-            <ul>
-              <li><strong>First-time access</strong> - User tries to login to app for the first time</li>
-              <li><strong>After revocation</strong> - User's access was previously revoked, they're requesting again</li>
-              <li><strong>New app registration</strong> - App is newly registered, all users need approval</li>
-            </ul>
+            <Title order={3} mb="xs">When Users Need Approval</Title>
+            <Text size="sm">Users need approval in these scenarios:</Text>
+            <List spacing="xs">
+              <List.Item><strong>First-time access</strong> - User tries to login to app for the first time</List.Item>
+              <List.Item><strong>After revocation</strong> - User's access was previously revoked, they're requesting again</List.Item>
+              <List.Item><strong>New app registration</strong> - App is newly registered, all users need approval</List.Item>
+            </List>
 
-            <h3>Step-by-Step Approval Process</h3>
+            <Title order={3} mb="xs">Step-by-Step Approval Process</Title>
             
             <h4>1. Identify Pending Requests</h4>
-            <p>Navigate to Admin Panel → Users tab:</p>
-            <div className={styles.codeBlock}>
-              <pre>
-                {`Users List:
+            <Text size="sm">Navigate to Admin Panel → Users tab:</Text>
+            <Code block>
+              {`Users List:
 ┌─────────────────────────────────────────────────┐
 │ Name          │ Email              │ Actions   │
 ├─────────────────────────────────────────────────┤
@@ -82,14 +94,12 @@ export default function AdminApproval() {
 │ Jane Smith    │ jane@example.com   │ [View]    │
 │ ...           │ ...                │ ...       │
 └─────────────────────────────────────────────────┘`}
-              </pre>
-            </div>
+            </Code>
 
             <h4>2. View User Details</h4>
-            <p>Click "View" on a user to see their profile and app permissions:</p>
-            <div className={styles.codeBlock}>
-              <pre>
-                {`User Details:
+            <Text size="sm">Click "View" on a user to see their profile and app permissions:</Text>
+            <Code block>
+              {`User Details:
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 User Information
   Name: John Doe
@@ -115,149 +125,147 @@ Application Access
 │                                     │
 │ Role: [user ▼] [Revoke Access]     │
 └─────────────────────────────────────┘`}
-              </pre>
-            </div>
+            </Code>
 
             <h4>3. Select Appropriate Role</h4>
-            <p>Before granting access, choose the right role:</p>
-            <ul>
-              <li>
+            <Text size="sm">Before granting access, choose the right role:</Text>
+            <List spacing="xs">
+              <List.Item>
                 <strong>user</strong> (Default)
-                <ul>
-                  <li>Standard app access</li>
-                  <li>Cannot access admin features</li>
-                  <li>Best for: Regular users, team members</li>
-                </ul>
-              </li>
-              <li>
+                <List spacing="xs">
+                  <List.Item>Standard app access</List.Item>
+                  <List.Item>Cannot access admin features</List.Item>
+                  <List.Item>Best for: Regular users, team members</List.Item>
+                </List>
+              </List.Item>
+              <List.Item>
                 <strong>admin</strong> (Elevated)
-                <ul>
-                  <li>Full app access including admin panel</li>
-                  <li>Can manage app-specific users and settings</li>
-                  <li>Best for: Trusted administrators, app owners</li>
-                </ul>
-              </li>
-            </ul>
+                <List spacing="xs">
+                  <List.Item>Full app access including admin panel</List.Item>
+                  <List.Item>Can manage app-specific users and settings</List.Item>
+                  <List.Item>Best for: Trusted administrators, app owners</List.Item>
+                </List>
+              </List.Item>
+            </List>
 
             <h4>4. Grant Access</h4>
-            <ol>
-              <li>Click the role dropdown next to "Grant Access"</li>
-              <li>Select "user" or "admin"</li>
-              <li>Click "Grant Access" button</li>
-              <li>Success message appears: "Access granted successfully"</li>
-              <li>Status changes to "APPROVED ✓"</li>
-            </ol>
+            <List spacing="xs" type="ordered">
+              <List.Item>Click the role dropdown next to "Grant Access"</List.Item>
+              <List.Item>Select "user" or "admin"</List.Item>
+              <List.Item>Click "Grant Access" button</List.Item>
+              <List.Item>Success message appears: "Access granted successfully"</List.Item>
+              <List.Item>Status changes to "APPROVED ✓"</List.Item>
+            </List>
 
             <h4>5. Notify User (Optional)</h4>
-            <p>
+            <Text size="sm">
               SSO doesn't automatically email users. Consider:
-            </p>
-            <ul>
-              <li>Sending manual notification: "Your access to [App] has been approved"</li>
-              <li>Instructing user to try logging in again</li>
-              <li>Setting up Slack/Discord notifications for your team</li>
-            </ul>
-          </section>
+            </Text>
+            <List spacing="xs">
+              <List.Item>Sending manual notification: "Your access to [App] has been approved"</List.Item>
+              <List.Item>Instructing user to try logging in again</List.Item>
+              <List.Item>Setting up Slack/Discord notifications for your team</List.Item>
+            </List>
+          </Box>
 
           {/* WHAT: Role management */}
           {/* WHY: Admins need to change roles as users' responsibilities change */}
-          <section className={styles.section}>
-            <h2>Managing User Roles</h2>
+          <Box>
+            <Title order={2} mb="sm">Managing User Roles</Title>
             
-            <h3>Changing an Existing Role</h3>
-            <p>If a user's responsibilities change:</p>
-            <ol>
-              <li>Navigate to User Details → Application Access</li>
-              <li>Find app with status "APPROVED"</li>
-              <li>Click role dropdown (shows current role)</li>
-              <li>Select new role: "user" or "admin"</li>
-              <li>Change applies immediately</li>
-            </ol>
+            <Title order={3} mb="xs">Changing an Existing Role</Title>
+            <Text size="sm">If a user's responsibilities change:</Text>
+            <List spacing="xs" type="ordered">
+              <List.Item>Navigate to User Details → Application Access</List.Item>
+              <List.Item>Find app with status "APPROVED"</List.Item>
+              <List.Item>Click role dropdown (shows current role)</List.Item>
+              <List.Item>Select new role: "user" or "admin"</List.Item>
+              <List.Item>Change applies immediately</List.Item>
+            </List>
             
-            <div style={{ background: '#fff3e0', border: '1px solid #f57c00', borderRadius: '8px', padding: '16px', marginTop: '16px' }}>
-              <p style={{ margin: 0, fontSize: '14px', color: '#e65100' }}>
-                <strong>⚠️ Token Lag:</strong><br />
+            <Paper withBorder p="md" shadow="sm" radius="md" style={{ borderLeft: "4px solid var(--mantine-color-yellow-6)" }} bg="var(--mantine-color-yellow-light)">
+              <Text size="sm" fw={600} mb="xs">⚠️ Token Lag</Text>
+              <Text size="sm">
                 Role changes don't affect existing access tokens until they expire or refresh (max 1 hour). 
                 For immediate effect, consider revoking and re-granting access.
-              </p>
-            </div>
+              </Text>
+            </Paper>
 
-            <h3>Common Role Change Scenarios</h3>
-            <ul>
-              <li>
+            <Title order={3} mb="xs">Common Role Change Scenarios</Title>
+            <List spacing="xs">
+              <List.Item>
                 <strong>Promotion: user → admin</strong>
-                <p>User is now managing app features, needs admin panel access</p>
-              </li>
-              <li>
+                <Text size="sm">User is now managing app features, needs admin panel access</Text>
+              </List.Item>
+              <List.Item>
                 <strong>Demotion: admin → user</strong>
-                <p>User no longer needs administrative privileges, reduce access</p>
-              </li>
-            </ul>
-          </section>
+                <Text size="sm">User no longer needs administrative privileges, reduce access</Text>
+              </List.Item>
+            </List>
+          </Box>
 
           {/* WHAT: Revoking access */}
           {/* WHY: Security incidents, offboarding, policy violations */}
-          <section className={styles.section}>
-            <h2>Revoking User Access</h2>
+          <Box>
+            <Title order={2} mb="sm">Revoking User Access</Title>
             
-            <h3>When to Revoke Access</h3>
-            <ul>
-              <li><strong>User leaves organization</strong> - Offboarding process</li>
-              <li><strong>Security incident</strong> - Compromised account</li>
-              <li><strong>Policy violation</strong> - Terms of service breach</li>
-              <li><strong>Role change</strong> - User no longer needs app access</li>
-              <li><strong>Temporary suspension</strong> - Pending investigation</li>
-            </ul>
+            <Title order={3} mb="xs">When to Revoke Access</Title>
+            <List spacing="xs">
+              <List.Item><strong>User leaves organization</strong> - Offboarding process</List.Item>
+              <List.Item><strong>Security incident</strong> - Compromised account</List.Item>
+              <List.Item><strong>Policy violation</strong> - Terms of service breach</List.Item>
+              <List.Item><strong>Role change</strong> - User no longer needs app access</List.Item>
+              <List.Item><strong>Temporary suspension</strong> - Pending investigation</List.Item>
+            </List>
 
-            <h3>Revocation Process</h3>
-            <ol>
-              <li>Navigate to User Details → Application Access</li>
-              <li>Find app with status "APPROVED"</li>
-              <li>Click "Revoke Access" button</li>
-              <li>Confirm in dialog: "Are you sure you want to revoke access?"</li>
-              <li>Success message: "Access revoked successfully"</li>
-              <li>Status changes to "REVOKED ❌"</li>
-            </ol>
+            <Title order={3} mb="xs">Revocation Process</Title>
+            <List spacing="xs" type="ordered">
+              <List.Item>Navigate to User Details → Application Access</List.Item>
+              <List.Item>Find app with status "APPROVED"</List.Item>
+              <List.Item>Click "Revoke Access" button</List.Item>
+              <List.Item>Confirm in dialog: "Are you sure you want to revoke access?"</List.Item>
+              <List.Item>Success message: "Access revoked successfully"</List.Item>
+              <List.Item>Status changes to "REVOKED ❌"</List.Item>
+            </List>
 
-            <h3>What Happens After Revocation</h3>
-            <ul>
-              <li><strong>Immediate:</strong> User cannot complete new OAuth flows</li>
-              <li><strong>Existing tokens:</strong> Remain valid until expiry (max 1 hour)</li>
-              <li><strong>Next login attempt:</strong> Shows "Access Denied" message</li>
-              <li><strong>Database record:</strong> Kept with status "revoked" (audit trail)</li>
-              <li><strong>Re-approval:</strong> Can grant access again later if needed</li>
-            </ul>
+            <Title order={3} mb="xs">What Happens After Revocation</Title>
+            <List spacing="xs">
+              <List.Item><strong>Immediate:</strong> User cannot complete new OAuth flows</List.Item>
+              <List.Item><strong>Existing tokens:</strong> Remain valid until expiry (max 1 hour)</List.Item>
+              <List.Item><strong>Next login attempt:</strong> Shows "Access Denied" message</List.Item>
+              <List.Item><strong>Database record:</strong> Kept with status "revoked" (audit trail)</List.Item>
+              <List.Item><strong>Re-approval:</strong> Can grant access again later if needed</List.Item>
+            </List>
 
-            <div style={{ background: '#fee', border: '1px solid #c33', borderRadius: '8px', padding: '16px', marginTop: '16px' }}>
-              <p style={{ margin: 0, fontSize: '14px', color: '#c33' }}>
-                <strong>🚨 Token Delay:</strong><br />
+            <Paper withBorder p="md" shadow="sm" radius="md" style={{ borderLeft: "4px solid var(--mantine-color-red-6)" }} bg="var(--mantine-color-red-light)">
+              <Text size="sm" fw={600} mb="xs">🚨 Token Delay</Text>
+              <Text size="sm">
                 Revoked users can still use existing access tokens for up to 1 hour. 
                 For immediate lockout, contact app administrators to implement server-side session validation.
-              </p>
-            </div>
-          </section>
+              </Text>
+            </Paper>
+          </Box>
 
           {/* WHAT: Bulk operations */}
           {/* WHY: Manage multiple users efficiently */}
-          <section className={styles.section}>
-            <h2>Batch Operations</h2>
+          <Box>
+            <Title order={2} mb="sm">Batch Operations</Title>
             
-            <h3>Current Limitations</h3>
-            <p>
+            <Title order={3} mb="xs">Current Limitations</Title>
+            <Text size="sm">
               The admin panel currently requires one-by-one permission management. 
               For bulk operations, contact development team to:
-            </p>
-            <ul>
-              <li>Build batch approval UI</li>
-              <li>Use API scripts for bulk grants/revokes</li>
-              <li>Export/import permission lists</li>
-            </ul>
+            </Text>
+            <List spacing="xs">
+              <List.Item>Build batch approval UI</List.Item>
+              <List.Item>Use API scripts for bulk grants/revokes</List.Item>
+              <List.Item>Export/import permission lists</List.Item>
+            </List>
 
-            <h3>API-Based Bulk Operations</h3>
-            <p>For administrators comfortable with APIs:</p>
-            <div className={styles.codeBlock}>
-              <pre>
-                {`// Bulk approve script example
+            <Title order={3} mb="xs">API-Based Bulk Operations</Title>
+            <Text size="sm">For administrators comfortable with APIs:</Text>
+            <Code block>
+              {`// Bulk approve script example
 const users = ['user-uuid-1', 'user-uuid-2', 'user-uuid-3'];
 const clientId = 'launchmass-client-id';
 
@@ -274,206 +282,205 @@ for (const userId of users) {
   });
   console.log(\`Approved \${userId}\`);
 }`}
-              </pre>
-            </div>
-          </section>
+            </Code>
+          </Box>
 
           {/* WHAT: Monitoring and audit */}
           {/* WHY: Track permission changes for security/compliance */}
-          <section className={styles.section}>
-            <h2>Monitoring & Audit Trail</h2>
+          <Box>
+            <Title order={2} mb="sm">Monitoring & Audit Trail</Title>
             
-            <h3>Permission Metadata</h3>
-            <p>Every permission record includes audit fields:</p>
-            <ul>
-              <li><code>createdAt</code> - When permission was first requested (ISO 8601 UTC)</li>
-              <li><code>updatedAt</code> - Last modification timestamp</li>
-              <li><code>grantedAt</code> - When approval was granted</li>
-              <li><code>grantedBy</code> - Admin user ID who granted access</li>
-              <li><code>revokedAt</code> - When access was revoked (if applicable)</li>
-              <li><code>revokedBy</code> - Admin user ID who revoked access</li>
-            </ul>
+            <Title order={3} mb="xs">Permission Metadata</Title>
+            <Text size="sm">Every permission record includes audit fields:</Text>
+            <List spacing="xs">
+              <List.Item><code>createdAt</code> - When permission was first requested (ISO 8601 UTC)</List.Item>
+              <List.Item><code>updatedAt</code> - Last modification timestamp</List.Item>
+              <List.Item><code>grantedAt</code> - When approval was granted</List.Item>
+              <List.Item><code>grantedBy</code> - Admin user ID who granted access</List.Item>
+              <List.Item><code>revokedAt</code> - When access was revoked (if applicable)</List.Item>
+              <List.Item><code>revokedBy</code> - Admin user ID who revoked access</List.Item>
+            </List>
 
-            <h3>Viewing Audit Information</h3>
-            <p>Currently, audit fields are stored in MongoDB but not shown in UI. To view:</p>
-            <ol>
-              <li>Connect to MongoDB Atlas</li>
-              <li>Query <code>appPermissions</code> collection</li>
-              <li>Filter by <code>userId</code> or <code>clientId</code></li>
-              <li>Examine audit fields</li>
-            </ol>
+            <Title order={3} mb="xs">Viewing Audit Information</Title>
+            <Text size="sm">Currently, audit fields are stored in MongoDB but not shown in UI. To view:</Text>
+            <List spacing="xs" type="ordered">
+              <List.Item>Connect to MongoDB Atlas</List.Item>
+              <List.Item>Query <code>appPermissions</code> collection</List.Item>
+              <List.Item>Filter by <code>userId</code> or <code>clientId</code></List.Item>
+              <List.Item>Examine audit fields</List.Item>
+            </List>
 
-            <h3>Future Audit Features</h3>
-            <p>Planned enhancements:</p>
-            <ul>
-              <li>Permission change history log in UI</li>
-              <li>Export audit reports (CSV/PDF)</li>
-              <li>Email notifications for permission changes</li>
-              <li>Slack/Discord integration for real-time alerts</li>
-            </ul>
-          </section>
+            <Title order={3} mb="xs">Future Audit Features</Title>
+            <Text size="sm">Planned enhancements:</Text>
+            <List spacing="xs">
+              <List.Item>Permission change history log in UI</List.Item>
+              <List.Item>Export audit reports (CSV/PDF)</List.Item>
+              <List.Item>Email notifications for permission changes</List.Item>
+              <List.Item>Slack/Discord integration for real-time alerts</List.Item>
+            </List>
+          </Box>
 
           {/* WHAT: Best practices */}
           {/* WHY: Guide admins to secure, efficient workflows */}
-          <section className={styles.section}>
-            <h2>Best Practices</h2>
+          <Box>
+            <Title order={2} mb="sm">Best Practices</Title>
             
-            <h3>Security</h3>
-            <ul>
-              <li>✅ <strong>Default to "user" role</strong> - Only grant "admin" when truly needed</li>
-              <li>✅ <strong>Review pending requests daily</strong> - Don't leave users waiting unnecessarily</li>
-              <li>✅ <strong>Verify user identity</strong> - Confirm via email/Slack before approving</li>
-              <li>✅ <strong>Document approval decisions</strong> - Keep notes on why access was granted</li>
-              <li>✅ <strong>Regular access reviews</strong> - Quarterly audit of who has what access</li>
-              <li>✅ <strong>Revoke on departure</strong> - Part of offboarding checklist</li>
-              <li>❌ <strong>Don't share admin credentials</strong> - Each admin should have own account</li>
-            </ul>
+            <Title order={3} mb="xs">Security</Title>
+            <List spacing="xs">
+              <List.Item>✅ <strong>Default to "user" role</strong> - Only grant "admin" when truly needed</List.Item>
+              <List.Item>✅ <strong>Review pending requests daily</strong> - Don't leave users waiting unnecessarily</List.Item>
+              <List.Item>✅ <strong>Verify user identity</strong> - Confirm via email/Slack before approving</List.Item>
+              <List.Item>✅ <strong>Document approval decisions</strong> - Keep notes on why access was granted</List.Item>
+              <List.Item>✅ <strong>Regular access reviews</strong> - Quarterly audit of who has what access</List.Item>
+              <List.Item>✅ <strong>Revoke on departure</strong> - Part of offboarding checklist</List.Item>
+              <List.Item>❌ <strong>Don't share admin credentials</strong> - Each admin should have own account</List.Item>
+            </List>
 
-            <h3>Workflow Efficiency</h3>
-            <ul>
-              <li>📋 <strong>Check pending requests daily</strong> - Morning routine</li>
-              <li>📋 <strong>Batch similar requests</strong> - Approve all "user" roles together</li>
-              <li>📋 <strong>Set approval criteria</strong> - Define who auto-qualifies (e.g., company email domain)</li>
-              <li>📋 <strong>Communicate expectations</strong> - Tell users typical approval time (e.g., "within 24 hours")</li>
-              <li>📋 <strong>Delegate when possible</strong> - Multiple SSO admins for coverage</li>
-            </ul>
+            <Title order={3} mb="xs">Workflow Efficiency</Title>
+            <List spacing="xs">
+              <List.Item>📋 <strong>Check pending requests daily</strong> - Morning routine</List.Item>
+              <List.Item>📋 <strong>Batch similar requests</strong> - Approve all "user" roles together</List.Item>
+              <List.Item>📋 <strong>Set approval criteria</strong> - Define who auto-qualifies (e.g., company email domain)</List.Item>
+              <List.Item>📋 <strong>Communicate expectations</strong> - Tell users typical approval time (e.g., "within 24 hours")</List.Item>
+              <List.Item>📋 <strong>Delegate when possible</strong> - Multiple SSO admins for coverage</List.Item>
+            </List>
 
-            <h3>Communication</h3>
-            <ul>
-              <li>💬 <strong>Notify users of approval</strong> - Manual email or Slack message</li>
-              <li>💬 <strong>Explain rejections</strong> - If denying, tell user why and next steps</li>
-              <li>💬 <strong>Announce new apps</strong> - When registering new app, notify team</li>
-              <li>💬 <strong>Coordinate with app admins</strong> - They manage org-level access, you manage SSO-level</li>
-            </ul>
-          </section>
+            <Title order={3} mb="xs">Communication</Title>
+            <List spacing="xs">
+              <List.Item>💬 <strong>Notify users of approval</strong> - Manual email or Slack message</List.Item>
+              <List.Item>💬 <strong>Explain rejections</strong> - If denying, tell user why and next steps</List.Item>
+              <List.Item>💬 <strong>Announce new apps</strong> - When registering new app, notify team</List.Item>
+              <List.Item>💬 <strong>Coordinate with app admins</strong> - They manage org-level access, you manage SSO-level</List.Item>
+            </List>
+          </Box>
 
           {/* WHAT: Troubleshooting */}
           {/* WHY: Help admins solve common issues */}
-          <section className={styles.section}>
-            <h2>Troubleshooting</h2>
+          <Box>
+            <Title order={2} mb="sm">Troubleshooting</Title>
             
-            <h3>User Says "Access Pending" But I Already Approved</h3>
-            <p><strong>Possible Causes:</strong></p>
-            <ul>
-              <li>User hasn't tried logging in again after approval</li>
-              <li>Wrong app - Check which app they're trying to access</li>
-              <li>Wrong user - Verify email matches SSO account</li>
-              <li>Cache issue - Have user clear browser cache/try incognito</li>
-            </ul>
-            <p><strong>Resolution:</strong></p>
-            <ol>
-              <li>Navigate to user details in admin panel</li>
-              <li>Verify status shows "APPROVED" for correct app</li>
-              <li>Have user logout and login again</li>
-              <li>Check browser console for OAuth errors</li>
-            </ol>
+            <Title order={3} mb="xs">User Says "Access Pending" But I Already Approved</Title>
+            <Text size="sm"><strong>Possible Causes:</strong></Text>
+            <List spacing="xs">
+              <List.Item>User hasn't tried logging in again after approval</List.Item>
+              <List.Item>Wrong app - Check which app they're trying to access</List.Item>
+              <List.Item>Wrong user - Verify email matches SSO account</List.Item>
+              <List.Item>Cache issue - Have user clear browser cache/try incognito</List.Item>
+            </List>
+            <Text size="sm"><strong>Resolution:</strong></Text>
+            <List spacing="xs" type="ordered">
+              <List.Item>Navigate to user details in admin panel</List.Item>
+              <List.Item>Verify status shows "APPROVED" for correct app</List.Item>
+              <List.Item>Have user logout and login again</List.Item>
+              <List.Item>Check browser console for OAuth errors</List.Item>
+            </List>
 
-            <h3>I Changed Role But User Still Has Old Permissions</h3>
-            <p><strong>Cause:</strong> Existing access tokens cached old role (max 1 hour)</p>
-            <p><strong>Resolution:</strong></p>
-            <ul>
-              <li><strong>Wait:</strong> Token expires within 1 hour, new role applies automatically</li>
-              <li><strong>Force refresh:</strong> Revoke access, wait 5 seconds, re-grant with new role</li>
-              <li><strong>User action:</strong> Have user logout and login again (forces token refresh)</li>
-            </ul>
+            <Title order={3} mb="xs">I Changed Role But User Still Has Old Permissions</Title>
+            <Text size="sm"><strong>Cause:</strong> Existing access tokens cached old role (max 1 hour)</Text>
+            <Text size="sm"><strong>Resolution:</strong></Text>
+            <List spacing="xs">
+              <List.Item><strong>Wait:</strong> Token expires within 1 hour, new role applies automatically</List.Item>
+              <List.Item><strong>Force refresh:</strong> Revoke access, wait 5 seconds, re-grant with new role</List.Item>
+              <List.Item><strong>User action:</strong> Have user logout and login again (forces token refresh)</List.Item>
+            </List>
 
-            <h3>User Can't Login After Revocation</h3>
-            <p><strong>Expected Behavior:</strong> If you revoked access, user should see "Access Denied"</p>
-            <p><strong>If they need access back:</strong></p>
-            <ol>
-              <li>Navigate to user details</li>
-              <li>Find app with status "REVOKED"</li>
-              <li>Select role and click "Grant Access" (same as first-time approval)</li>
-              <li>User can now login again</li>
-            </ol>
+            <Title order={3} mb="xs">User Can't Login After Revocation</Title>
+            <Text size="sm"><strong>Expected Behavior:</strong> If you revoked access, user should see "Access Denied"</Text>
+            <Text size="sm"><strong>If they need access back:</strong></Text>
+            <List spacing="xs" type="ordered">
+              <List.Item>Navigate to user details</List.Item>
+              <List.Item>Find app with status "REVOKED"</List.Item>
+              <List.Item>Select role and click "Grant Access" (same as first-time approval)</List.Item>
+              <List.Item>User can now login again</List.Item>
+            </List>
 
-            <h3>Don't See Any Pending Requests</h3>
-            <p><strong>Possible Reasons:</strong></p>
-            <ul>
-              <li>No users have attempted login recently</li>
-              <li>All existing requests already approved</li>
-              <li>Users are trying to login to different SSO instance (check environment)</li>
-            </ul>
-            <p><strong>To Generate Test Request:</strong></p>
-            <ol>
-              <li>Open incognito browser</li>
-              <li>Navigate to your app (e.g., https://launchmass.doneisbetter.com)</li>
-              <li>Click "Login with SSO"</li>
-              <li>Register new test account</li>
-              <li>Complete OAuth flow - Should create pending request</li>
-              <li>Check admin panel for new pending entry</li>
-            </ol>
-          </section>
+            <Title order={3} mb="xs">Don't See Any Pending Requests</Title>
+            <Text size="sm"><strong>Possible Reasons:</strong></Text>
+            <List spacing="xs">
+              <List.Item>No users have attempted login recently</List.Item>
+              <List.Item>All existing requests already approved</List.Item>
+              <List.Item>Users are trying to login to different SSO instance (check environment)</List.Item>
+            </List>
+            <Text size="sm"><strong>To Generate Test Request:</strong></Text>
+            <List spacing="xs" type="ordered">
+              <List.Item>Open incognito browser</List.Item>
+              <List.Item>Navigate to your app (e.g., https://launchmass.doneisbetter.com)</List.Item>
+              <List.Item>Click "Login with SSO"</List.Item>
+              <List.Item>Register new test account</List.Item>
+              <List.Item>Complete OAuth flow - Should create pending request</List.Item>
+              <List.Item>Check admin panel for new pending entry</List.Item>
+            </List>
+          </Box>
 
           {/* WHAT: Admin roles and delegation */}
           {/* WHY: Multiple admins need coordination */}
-          <section className={styles.section}>
-            <h2>Multiple Admins & Delegation</h2>
+          <Box>
+            <Title order={2} mb="sm">Multiple Admins & Delegation</Title>
             
-            <h3>SSO Admin Roles</h3>
-            <p>SSO currently uses a single canonical admin role:</p>
-            <ul>
-              <li>
+            <Title order={3} mb="xs">SSO Admin Roles</Title>
+            <Text size="sm">SSO currently uses a single canonical admin role:</Text>
+            <List spacing="xs">
+              <List.Item>
                 <strong>admin</strong> - Can manage users and app permissions
-              </li>
-            </ul>
+              </List.Item>
+            </List>
 
-            <h3>Creating New Admins</h3>
-            <ol>
-              <li>Login to admin panel as an admin</li>
-              <li>Navigate to Users tab</li>
-              <li>Click "Create Admin User"</li>
-              <li>Enter email, name, and assign role <code>admin</code></li>
-              <li>System generates 32-hex password token</li>
-              <li><strong>Copy and securely share token</strong> (shown only once!)</li>
-              <li>New admin can login at https://sso.doneisbetter.com/admin</li>
-            </ol>
+            <Title order={3} mb="xs">Creating New Admins</Title>
+            <List spacing="xs" type="ordered">
+              <List.Item>Login to admin panel as an admin</List.Item>
+              <List.Item>Navigate to Users tab</List.Item>
+              <List.Item>Click "Create Admin User"</List.Item>
+              <List.Item>Enter email, name, and assign role <code>admin</code></List.Item>
+              <List.Item>System generates 32-hex password token</List.Item>
+              <List.Item><strong>Copy and securely share token</strong> (shown only once!)</List.Item>
+              <List.Item>New admin can login at https://sso.doneisbetter.com/admin</List.Item>
+            </List>
 
-            <h3>Delegation Best Practices</h3>
-            <ul>
-              <li>Assign primary admin for each app (e.g., Launchmass admin handles Launchmass approvals)</li>
-              <li>Cross-train admins for coverage (vacations, time zones)</li>
-              <li>Document approval criteria (who qualifies for automatic approval)</li>
-              <li>Use shared Slack channel for coordination</li>
-              <li>Review admin access quarterly (remove unused accounts)</li>
-            </ul>
-          </section>
+            <Title order={3} mb="xs">Delegation Best Practices</Title>
+            <List spacing="xs">
+              <List.Item>Assign primary admin for each app (e.g., Launchmass admin handles Launchmass approvals)</List.Item>
+              <List.Item>Cross-train admins for coverage (vacations, time zones)</List.Item>
+              <List.Item>Document approval criteria (who qualifies for automatic approval)</List.Item>
+              <List.Item>Use shared Slack channel for coordination</List.Item>
+              <List.Item>Review admin access quarterly (remove unused accounts)</List.Item>
+            </List>
+          </Box>
 
           {/* WHAT: Related documentation links */}
           {/* WHY: Guide admins to complementary docs */}
-          <section className={styles.section}>
-            <h2>Related Documentation</h2>
-            <ul>
-              <li><a href="/docs/app-permissions">App Permissions</a> - Technical details of permission system</li>
-              <li><a href="/docs/authentication">Authentication Guide</a> - OAuth 2.0 flow users experience</li>
-              <li><a href="/docs/quickstart">Quick Start Guide</a> - For app developers integrating SSO</li>
-              <li><a href="https://sso.doneisbetter.com/admin" target="_blank">SSO Admin Panel</a> - Login to manage permissions</li>
-            </ul>
-          </section>
+          <Box>
+            <Title order={2} mb="sm">Related Documentation</Title>
+            <List spacing="xs">
+              <List.Item><Anchor component={Link} href="/docs/app-permissions">App Permissions</Anchor> - Technical details of permission system</List.Item>
+              <List.Item><Anchor component={Link} href="/docs/authentication">Authentication Guide</Anchor> - OAuth 2.0 flow users experience</List.Item>
+              <List.Item><Anchor component={Link} href="/docs/quickstart">Quick Start Guide</Anchor> - For app developers integrating SSO</List.Item>
+              <List.Item><Anchor component={Link} href="https://sso.doneisbetter.com/admin" target="_blank">SSO Admin Panel</Anchor> - Login to manage permissions</List.Item>
+            </List>
+          </Box>
 
           {/* WHAT: Support and escalation */}
           {/* WHY: Admins need help sometimes */}
-          <section className={styles.section}>
-            <h2>Support & Escalation</h2>
-            <p><strong>For SSO-related issues:</strong></p>
-            <ul>
-              <li>Email: <a href="mailto:sso@doneisbetter.com">sso@doneisbetter.com</a></li>
-              <li>Slack: #sso-support (internal)</li>
-              <li>Emergency: Contact development team directly</li>
-            </ul>
+          <Box>
+            <Title order={2} mb="sm">Support & Escalation</Title>
+            <Text size="sm"><strong>For SSO-related issues:</strong></Text>
+            <List spacing="xs">
+              <List.Item>Email: <Anchor component={Link} href="mailto:sso@doneisbetter.com">sso@doneisbetter.com</Anchor></List.Item>
+              <List.Item>Slack: #sso-support (internal)</List.Item>
+              <List.Item>Emergency: Contact development team directly</List.Item>
+            </List>
             
-            <p><strong>When escalating, include:</strong></p>
-            <ul>
-              <li>User's email address</li>
-              <li>App they're trying to access (client_id if known)</li>
-              <li>Current permission status (pending/approved/revoked)</li>
-              <li>Screenshots of admin panel</li>
-              <li>Error messages from user's browser console</li>
-              <li>Timestamps (ISO 8601 UTC format)</li>
-            </ul>
-          </section>
-        </main>
-      </div>
+            <Text size="sm"><strong>When escalating, include:</strong></Text>
+            <List spacing="xs">
+              <List.Item>User's email address</List.Item>
+              <List.Item>App they're trying to access (client_id if known)</List.Item>
+              <List.Item>Current permission status (pending/approved/revoked)</List.Item>
+              <List.Item>Screenshots of admin panel</List.Item>
+              <List.Item>Error messages from user's browser console</List.Item>
+              <List.Item>Timestamps (ISO 8601 UTC format)</List.Item>
+            </List>
+          </Box>
+        
+      </Stack>
     </DocsLayout>
   );
 }

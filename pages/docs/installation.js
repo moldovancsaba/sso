@@ -1,70 +1,86 @@
+import Link from 'next/link';
+import {
+  Stack,
+  Title,
+  Text,
+  Paper,
+  Code,
+  List,
+  Box,
+  Anchor,
+  Container,
+  Divider,
+  Group,
+} from '@mantine/core';
 // WHAT: Integration guide for developers adding SSO to their applications
 // WHY: Developers need clear steps to integrate OAuth 2.0 SSO into their apps
 // HOW: Provides step-by-step setup, environment configuration, and verification
 
 import DocsLayout from '../../components/DocsLayout';
-import styles from '../../styles/docs.module.css';
 import packageJson from '../../package.json';
 
 export default function Installation() {
   return (
     <DocsLayout>
-      <div className={styles.container}>
-        <header className={styles.header}>
-          <h1>Integration Guide</h1>
-          <p className={styles.version}>SSO Version: {packageJson.version}</p>
-        </header>
-        <main className={styles.main}>
-          <section className={styles.section}>
-            <h2>Overview</h2>
-            <p>
+      <Stack gap="xl">
+        <Box>
+          <Title order={1} mb="xs">Integration Guide</Title>
+          <Text size="sm" c="dimmed" fw={500} mb="xs">SSO Version: {packageJson.version}</Text>
+        </Box>
+        
+          <Box>
+            <Title order={2} mb="sm">Overview</Title>
+            <Text size="sm">
               This guide walks you through integrating the SSO service into your application using OAuth 2.0.
               Follow these steps to enable secure authentication for your users.
-            </p>
-            <div className={styles.alert}>
-              <strong>⚠️ Important:</strong> This guide is for application developers integrating with the SSO service,
+            </Text>
+            <Paper withBorder p="md" shadow="sm" radius="md" style={{ borderLeft: "4px solid var(--mantine-color-red-6)" }} bg="var(--mantine-color-red-light)">
+              <Text size="sm">
+                <strong>⚠️ Important:</strong> This guide is for application developers integrating with the SSO service,
               not for deploying the SSO service itself.
-            </div>
-          </section>
+              </Text>
+            </Paper>
+          </Box>
 
-          <section className={styles.section}>
-            <h2>Prerequisites</h2>
-            <ul>
-              <li>Node.js 18.x or higher (for backend token exchange)</li>
-              <li>A web application (React, Vue, vanilla JS, etc.)</li>
-              <li>HTTPS-enabled domain (required for production)</li>
-              <li>Email access to contact SSO admin</li>
-            </ul>
-          </section>
+          <Box>
+            <Title order={2} mb="sm">Prerequisites</Title>
+            <List spacing="xs">
+              <List.Item>Node.js 18.x or higher (for backend token exchange)</List.Item>
+              <List.Item>A web application (React, Vue, vanilla JS, etc.)</List.Item>
+              <List.Item>HTTPS-enabled domain (required for production)</List.Item>
+              <List.Item>Email access to contact SSO admin</List.Item>
+            </List>
+          </Box>
 
-          <section className={styles.section}>
-            <h2>Step 1: Register Your Application</h2>
-            <p>Before you can integrate, you must register your application with the SSO admin:</p>
-            <ol>
-              <li>Contact SSO admin: <code>sso@doneisbetter.com</code></li>
-              <li>Provide the following information:
-                <ul>
-                  <li><strong>Application Name:</strong> e.g., "MyApp Production"</li>
-                  <li><strong>Redirect URIs:</strong> e.g., <code>https://myapp.com/api/auth/callback</code></li>
-                  <li><strong>Allowed Origins:</strong> e.g., <code>https://myapp.com</code></li>
-                  <li><strong>Application Description:</strong> Brief description of your app</li>
-                </ul>
-              </li>
-              <li>Wait for approval (typically within 24 hours)</li>
-              <li>Receive your <code>client_id</code> and <code>client_secret</code></li>
-            </ol>
-            <div className={styles.alert}>
-              <strong>📝 Note:</strong> For local development, use <code>http://localhost:PORT/api/auth/callback</code> as your redirect URI.
+          <Box>
+            <Title order={2} mb="sm">Step 1: Register Your Application</Title>
+            <Text size="sm">Before you can integrate, you must register your application with the SSO admin:</Text>
+            <List spacing="xs" type="ordered">
+              <List.Item>Contact SSO admin: <code>sso@doneisbetter.com</code></List.Item>
+              <List.Item>Provide the following information:
+                <List spacing="xs">
+                  <List.Item><strong>Application Name:</strong> e.g., "MyApp Production"</List.Item>
+                  <List.Item><strong>Redirect URIs:</strong> e.g., <code>https://myapp.com/api/auth/callback</code></List.Item>
+                  <List.Item><strong>Allowed Origins:</strong> e.g., <code>https://myapp.com</code></List.Item>
+                  <List.Item><strong>Application Description:</strong> Brief description of your app</List.Item>
+                </List>
+              </List.Item>
+              <List.Item>Wait for approval (typically within 24 hours)</List.Item>
+              <List.Item>Receive your <code>client_id</code> and <code>client_secret</code></List.Item>
+            </List>
+            <Paper withBorder p="md" shadow="sm" radius="md" style={{ borderLeft: "4px solid var(--mantine-color-red-6)" }} bg="var(--mantine-color-red-light)">
+              <Text size="sm">
+                <strong>📝 Note:</strong> For local development, use <code>http://localhost:PORT/api/auth/callback</code> as your redirect URI.
               Localhost origins are automatically allowed.
-            </div>
-          </section>
+              </Text>
+            </Paper>
+          </Box>
 
-          <section className={styles.section}>
-            <h2>Step 2: Install Dependencies</h2>
-            <p>Install required packages for OAuth 2.0 token handling:</p>
-            <div className={styles.codeBlock}>
-              <pre>
-                {`# For Node.js/Express backend
+          <Box>
+            <Title order={2} mb="sm">Step 2: Install Dependencies</Title>
+            <Text size="sm">Install required packages for OAuth 2.0 token handling:</Text>
+            <Code block>
+              {`# For Node.js/Express backend
 npm install jsonwebtoken
 
 # Optional: For making HTTP requests
@@ -72,16 +88,14 @@ npm install node-fetch  # or axios
 
 # For Next.js projects (already includes fetch)
 npm install jsonwebtoken`}
-              </pre>
-            </div>
-          </section>
+            </Code>
+          </Box>
 
-          <section className={styles.section}>
-            <h2>Step 3: Configure Environment Variables</h2>
-            <p>Create a <code>.env</code> file in your project root (backend only):</p>
-            <div className={styles.codeBlock}>
-              <pre>
-                {`# .env (Backend - NEVER commit this file!)
+          <Box>
+            <Title order={2} mb="sm">Step 3: Configure Environment Variables</Title>
+            <Text size="sm">Create a <code>.env</code> file in your project root (backend only):</Text>
+            <Code block>
+              {`# .env (Backend - NEVER commit this file!)
 
 # OAuth 2.0 Credentials (from SSO admin)
 SSO_CLIENT_ID=your_client_id_here
@@ -97,45 +111,41 @@ NODE_ENV=production
 
 # Development override (optional)
 # SSO_REDIRECT_URI=http://localhost:3000/api/auth/callback`}
-              </pre>
-            </div>
-            <h3>Generate Session Secret</h3>
-            <div className={styles.codeBlock}>
-              <pre>
-                {`# Generate a secure random secret
+            </Code>
+            <Title order={3} mb="xs">Generate Session Secret</Title>
+            <Code block>
+              {`# Generate a secure random secret
 openssl rand -base64 32`}
-              </pre>
-            </div>
-          </section>
+            </Code>
+          </Box>
 
-          <section className={styles.section}>
-            <h2>Step 4: Implement OAuth 2.0 Flow</h2>
-            <p>Follow the implementation guide for your framework:</p>
-            <ul>
-              <li><a href="/docs/examples/react">React Integration Example</a></li>
-              <li><a href="/docs/examples/vue">Vue.js Integration Example</a></li>
-              <li><a href="/docs/examples/vanilla">Vanilla JS Integration Example</a></li>
-            </ul>
-            <p>Or implement manually by following the <a href="/docs/authentication">OAuth 2.0 Authentication Flow</a> guide.</p>
-          </section>
+          <Box>
+            <Title order={2} mb="sm">Step 4: Implement OAuth 2.0 Flow</Title>
+            <Text size="sm">Follow the implementation guide for your framework:</Text>
+            <List spacing="xs">
+              <List.Item><Anchor component={Link} href="/docs/examples/react">React Integration Example</Anchor></List.Item>
+              <List.Item><Anchor component={Link} href="/docs/examples/vue">Vue.js Integration Example</Anchor></List.Item>
+              <List.Item><Anchor component={Link} href="/docs/examples/vanilla">Vanilla JS Integration Example</Anchor></List.Item>
+            </List>
+            <Text size="sm">Or implement manually by following the <Anchor component={Link} href="/docs/authentication">OAuth 2.0 Authentication Flow</Anchor> guide.</Text>
+          </Box>
 
-          <section className={styles.section}>
-            <h2>Step 5: Test Your Integration</h2>
-            <h3>Development Testing</h3>
-            <ol>
-              <li>Start your application: <code>npm run dev</code></li>
-              <li>Navigate to your login page</li>
-              <li>Click "Sign in with SSO"</li>
-              <li>You should be redirected to <code>https://sso.doneisbetter.com</code></li>
-              <li>Login with test credentials (provided by SSO admin)</li>
-              <li>Verify you're redirected back to your app</li>
-              <li>Check that user info is displayed correctly</li>
-            </ol>
+          <Box>
+            <Title order={2} mb="sm">Step 5: Test Your Integration</Title>
+            <Title order={3} mb="xs">Development Testing</Title>
+            <List spacing="xs" type="ordered">
+              <List.Item>Start your application: <code>npm run dev</code></List.Item>
+              <List.Item>Navigate to your login page</List.Item>
+              <List.Item>Click "Sign in with SSO"</List.Item>
+              <List.Item>You should be redirected to <code>https://sso.doneisbetter.com</code></List.Item>
+              <List.Item>Login with test credentials (provided by SSO admin)</List.Item>
+              <List.Item>Verify you're redirected back to your app</List.Item>
+              <List.Item>Check that user info is displayed correctly</List.Item>
+            </List>
 
-            <h3>Verify Token Exchange</h3>
-            <div className={styles.codeBlock}>
-              <pre>
-                {`// Add logging to your OAuth callback handler
+            <Title order={3} mb="xs">Verify Token Exchange</Title>
+            <Code block>
+              {`// Add logging to your OAuth callback handler
 console.log('Authorization code received:', code);
 console.log('Tokens received:', { access_token, id_token, refresh_token });
 
@@ -143,71 +153,70 @@ console.log('Tokens received:', { access_token, id_token, refresh_token });
 const decoded = jwt.decode(id_token);
 console.log('User info:', decoded);
 console.log('Permission should come from your backend session endpoint, not directly from decoded ID token claims.');`}
-              </pre>
-            </div>
-          </section>
+            </Code>
+          </Box>
 
-          <section className={styles.section}>
-            <h2>Step 6: Request Production Access</h2>
-            <p>Once testing is complete, request production access approval:</p>
-            <ol>
-              <li>Test your application thoroughly in development</li>
-              <li>Login and verify OAuth flow works correctly</li>
-              <li>Test token refresh and logout</li>
-              <li>Contact SSO admin to register your production domain</li>
-              <li>Update environment variables with production values</li>
-              <li>Deploy your application</li>
-              <li>Request SSO admin to grant you "approved" permission status</li>
-            </ol>
-          </section>
+          <Box>
+            <Title order={2} mb="sm">Step 6: Request Production Access</Title>
+            <Text size="sm">Once testing is complete, request production access approval:</Text>
+            <List spacing="xs" type="ordered">
+              <List.Item>Test your application thoroughly in development</List.Item>
+              <List.Item>Login and verify OAuth flow works correctly</List.Item>
+              <List.Item>Test token refresh and logout</List.Item>
+              <List.Item>Contact SSO admin to register your production domain</List.Item>
+              <List.Item>Update environment variables with production values</List.Item>
+              <List.Item>Deploy your application</List.Item>
+              <List.Item>Request SSO admin to grant you "approved" permission status</List.Item>
+            </List>
+          </Box>
 
-          <section className={styles.section}>
-            <h2>Common Integration Issues</h2>
-            <h3>Redirect URI Mismatch</h3>
-            <p><strong>Error:</strong> <code>redirect_uri_mismatch</code></p>
-            <p><strong>Solution:</strong> Ensure your <code>SSO_REDIRECT_URI</code> exactly matches what you registered with SSO admin (including protocol and path).</p>
+          <Box>
+            <Title order={2} mb="sm">Common Integration Issues</Title>
+            <Title order={3} mb="xs">Redirect URI Mismatch</Title>
+            <Text size="sm"><strong>Error:</strong> <code>redirect_uri_mismatch</code></Text>
+            <Text size="sm"><strong>Solution:</strong> Ensure your <code>SSO_REDIRECT_URI</code> exactly matches what you registered with SSO admin (including protocol and path).</Text>
 
-            <h3>Origin Not Allowed</h3>
-            <p><strong>Error:</strong> CORS error in browser console</p>
-            <p><strong>Solution:</strong> Contact SSO admin to register your origin. See <a href="/docs/security/cors">CORS Configuration</a>.</p>
+            <Title order={3} mb="xs">Origin Not Allowed</Title>
+            <Text size="sm"><strong>Error:</strong> CORS error in browser console</Text>
+            <Text size="sm"><strong>Solution:</strong> Contact SSO admin to register your origin. See <Anchor component={Link} href="/docs/security/cors">CORS Configuration</Anchor>.</Text>
 
-            <h3>Invalid Client</h3>
-            <p><strong>Error:</strong> <code>invalid_client</code></p>
-            <p><strong>Solution:</strong> Verify your <code>client_id</code> and <code>client_secret</code> are correct.</p>
+            <Title order={3} mb="xs">Invalid Client</Title>
+            <Text size="sm"><strong>Error:</strong> <code>invalid_client</code></Text>
+            <Text size="sm"><strong>Solution:</strong> Verify your <code>client_id</code> and <code>client_secret</code> are correct.</Text>
 
-            <h3>Token Exchange Fails</h3>
-            <p><strong>Error:</strong> 401 from token endpoint</p>
-            <p><strong>Solutions:</strong></p>
-            <ul>
-              <li>Ensure token exchange happens on backend (not frontend)</li>
-              <li>Verify <code>client_secret</code> is not exposed in browser</li>
-              <li>Check authorization code is used within 10 minutes</li>
-              <li>Confirm code hasn't been used already (single-use)</li>
-            </ul>
-          </section>
+            <Title order={3} mb="xs">Token Exchange Fails</Title>
+            <Text size="sm"><strong>Error:</strong> 401 from token endpoint</Text>
+            <Text size="sm"><strong>Solutions:</strong></Text>
+            <List spacing="xs">
+              <List.Item>Ensure token exchange happens on backend (not frontend)</List.Item>
+              <List.Item>Verify <code>client_secret</code> is not exposed in browser</List.Item>
+              <List.Item>Check authorization code is used within 10 minutes</List.Item>
+              <List.Item>Confirm code hasn't been used already (single-use)</List.Item>
+            </List>
+          </Box>
 
-          <section className={styles.section}>
-            <h2>Next Steps</h2>
-            <ul>
-              <li>✅ Review <a href="/docs/security/best-practices">Security Best Practices</a></li>
-              <li>✅ Implement <a href="/docs/session-management">Token Refresh</a> for seamless sessions</li>
-              <li>✅ Handle <a href="/docs/app-permissions">App Permission Status</a> (pending/approved/revoked)</li>
-              <li>✅ Set up <a href="/docs/error-handling">Error Handling</a> for production</li>
-              <li>✅ Review <a href="/docs/api/endpoints">API Reference</a> for additional endpoints</li>
-            </ul>
-          </section>
+          <Box>
+            <Title order={2} mb="sm">Next Steps</Title>
+            <List spacing="xs">
+              <List.Item>✅ Review <Anchor component={Link} href="/docs/security/best-practices">Security Best Practices</Anchor></List.Item>
+              <List.Item>✅ Implement <Anchor component={Link} href="/docs/session-management">Token Refresh</Anchor> for seamless sessions</List.Item>
+              <List.Item>✅ Handle <Anchor component={Link} href="/docs/app-permissions">App Permission Status</Anchor> (pending/approved/revoked)</List.Item>
+              <List.Item>✅ Set up <Anchor component={Link} href="/docs/error-handling">Error Handling</Anchor> for production</List.Item>
+              <List.Item>✅ Review <Anchor component={Link} href="/docs/api/endpoints">API Reference</Anchor> for additional endpoints</List.Item>
+            </List>
+          </Box>
 
-          <section className={styles.section}>
-            <h2>Support</h2>
-            <p>Need help with integration?</p>
-            <ul>
-              <li>Email: <code>sso@doneisbetter.com</code></li>
-              <li>Documentation: <a href="/docs">SSO Documentation</a></li>
-              <li>API Reference: <a href="/docs/api">API Docs</a></li>
-            </ul>
-          </section>
-        </main>
-      </div>
+          <Box>
+            <Title order={2} mb="sm">Support</Title>
+            <Text size="sm">Need help with integration?</Text>
+            <List spacing="xs">
+              <List.Item>Email: <code>sso@doneisbetter.com</code></List.Item>
+              <List.Item>Documentation: <Anchor component={Link} href="/docs">SSO Documentation</Anchor></List.Item>
+              <List.Item>API Reference: <Anchor component={Link} href="/docs/api">API Docs</Anchor></List.Item>
+            </List>
+          </Box>
+        
+      </Stack>
     </DocsLayout>
   );
 }

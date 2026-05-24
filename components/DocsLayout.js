@@ -1,8 +1,24 @@
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import styles from '../styles/docs-layout.module.css';
+import {
+  AppShell,
+  Burger,
+  Group,
+  NavLink,
+  ScrollArea,
+  TextInput,
+  Stack,
+  Text,
+  Container,
+  Divider,
+  Anchor,
+  Select,
+} from '@mantine/core';
+import { useDisclosure } from '@mantine/hooks';
+import { IconSearch } from '@tabler/icons-react';
 
 export default function DocsLayout({ children }) {
+  const [opened, { toggle }] = useDisclosure();
   const router = useRouter();
 
   const navigation = [
@@ -49,72 +65,99 @@ export default function DocsLayout({ children }) {
   ];
 
   return (
-    <div className={styles.container}>
-      <nav className={styles.sidebar}>
-        <div className={styles.sidebarHeader}>
-          <Link href="/">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo.svg" alt="DoneIsBetter SSO" className={styles.logo} width={160} height={40} />
-          </Link>
-          <select 
-            className={styles.versionSelect}
-            defaultValue="v1.0.0"
-          >
-            <option value="v1.0.0">v1.0.0</option>
-          </select>
-        </div>
-
-        <div className={styles.sidebarContent}>
-          {navigation.map((section, i) => (
-            <div key={i} className={styles.section}>
-              <h3>{section.title}</h3>
-              <ul>
-                {section.links.map((link, j) => (
-                  <li key={j}>
-                    <Link
-                      href={link.href}
-                      className={router.pathname === link.href ? styles.active : ''}
-                    >
-                      {link.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
-        </div>
-      </nav>
-
-      <main className={styles.content}>
-        <div className={styles.contentHeader}>
-          <div className={styles.search}>
-            <input
-              type="text"
-              placeholder="Search documentation..."
-              className={styles.searchInput}
+    <AppShell
+      header={{ height: 60 }}
+      navbar={{
+        width: 280,
+        breakpoint: 'sm',
+        collapsed: { mobile: !opened },
+      }}
+      padding="md"
+    >
+      <AppShell.Header>
+        <Group h="100%" px="md" justify="space-between">
+          <Group>
+            <Burger opened={opened} onClick={toggle} hiddenFrom="sm" size="sm" />
+            <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'none' }}>
+              <img src="/logo.svg" alt="DoneIsBetter SSO" style={{ height: 28 }} />
+            </Link>
+            <Select
+              size="xs"
+              w={90}
+              data={['v1.0.0']}
+              defaultValue="v1.0.0"
+              styles={{ input: { border: 'none', background: 'transparent', fontWeight: 600 } }}
             />
-          </div>
-          <div className={styles.headerLinks}>
-            <a href="https://github.com/doneisbetter/sso" target="_blank" rel="noopener noreferrer">
+          </Group>
+          <Group gap="lg">
+            <Anchor href="https://github.com/doneisbetter/sso" target="_blank" rel="noopener noreferrer" size="sm" c="dimmed">
               GitHub
-            </a>
-            <a href="mailto:support@doneisbetter.com">Support</a>
-          </div>
-        </div>
+            </Anchor>
+            <Anchor href="mailto:support@doneisbetter.com" size="sm" c="dimmed">
+              Support
+            </Anchor>
+          </Group>
+        </Group>
+      </AppShell.Header>
 
-        <div className={styles.contentBody}>
-          {children}
-        </div>
+      <AppShell.Navbar p="md">
+        <AppShell.Section>
+          <TextInput
+            placeholder="Search documentation..."
+            mb="md"
+            leftSection={<IconSearch size={16} style={{ opacity: 0.6 }} />}
+          />
+        </AppShell.Section>
+        <AppShell.Section grow component={ScrollArea} mx="-xs" px="xs">
+          {navigation.map((section, i) => (
+            <Stack key={i} gap={4} mb="lg">
+              <Text size="xs" fw={700} c="dimmed" tt="uppercase" px="xs" mb={4}>
+                {section.title}
+              </Text>
+              {section.links.map((link, j) => (
+                <NavLink
+                  key={j}
+                  component={Link}
+                  href={link.href}
+                  label={link.label}
+                  active={router.pathname === link.href}
+                  variant="light"
+                  styles={{
+                    root: {
+                      borderRadius: 'var(--mantine-radius-sm)',
+                    }
+                  }}
+                />
+              ))}
+            </Stack>
+          ))}
+        </AppShell.Section>
+      </AppShell.Navbar>
 
-        <footer className={styles.footer}>
-          <p>© 2025 DoneIsBetter. All rights reserved.</p>
-          <div className={styles.footerLinks}>
-            <Link href="/privacy">Privacy Policy</Link>
-            <Link href="/terms">Terms of Service</Link>
-            <Link href="/data-deletion">Data Deletion</Link>
-          </div>
-        </footer>
-      </main>
-    </div>
+      <AppShell.Main bg="var(--mantine-color-body)">
+        <Container size="md" py="xl">
+          <Stack gap="xl">
+            {children}
+            <Divider mt="xl" />
+            <Group justify="space-between" align="center" wrap="wrap">
+              <Text size="xs" c="dimmed">
+                © 2025 DoneIsBetter. All rights reserved.
+              </Text>
+              <Group gap="md">
+                <Anchor component={Link} href="/privacy" size="xs" c="dimmed">
+                  Privacy Policy
+                </Anchor>
+                <Anchor component={Link} href="/terms" size="xs" c="dimmed">
+                  Terms of Service
+                </Anchor>
+                <Anchor component={Link} href="/data-deletion" size="xs" c="dimmed">
+                  Data Deletion
+                </Anchor>
+              </Group>
+            </Group>
+          </Stack>
+        </Container>
+      </AppShell.Main>
+    </AppShell>
   );
 }

@@ -1,56 +1,70 @@
+import Link from 'next/link';
+import {
+  Stack,
+  Title,
+  Text,
+  Paper,
+  Code,
+  List,
+  Box,
+  Anchor,
+  Container,
+  Divider,
+  Group,
+} from '@mantine/core';
 // WHAT: React OAuth 2.0 integration example with complete implementation
 // WHY: Developers need copy-paste ready code for React apps using SSO
 // HOW: Provides AuthContext, callback handler, and protected route examples
 
 import DocsLayout from '../../../components/DocsLayout';
-import styles from '../../../styles/docs.module.css';
 import packageJson from '../../../package.json';
 
 export default function ReactExample() {
   return (
     <DocsLayout>
-      <div className={styles.container}>
-        <header className={styles.header}>
-          <h1>React Integration Example</h1>
-          <p className={styles.version}>SSO Version: {packageJson.version}</p>
-        </header>
-        <main className={styles.main}>
-          <section className={styles.section}>
-            <h2>Overview</h2>
-            <p>
+      <Stack gap="xl">
+        <Box>
+          <Title order={1} mb="xs">React Integration Example</Title>
+          <Text size="sm" c="dimmed" fw={500} mb="xs">SSO Version: {packageJson.version}</Text>
+        </Box>
+        
+          <Box>
+            <Title order={2} mb="sm">Overview</Title>
+            <Text size="sm">
               This guide demonstrates OAuth 2.0 Authorization Code Flow integration in a React application.
               No special library is required—just standard OAuth 2.0 flow with your backend handling token exchange.
-            </p>
-            <div className={styles.alert}>
-              <strong>⚠️ Security Note:</strong> Never expose <code>client_secret</code> in your React app.
+            </Text>
+            <Paper withBorder p="md" shadow="sm" radius="md" style={{ borderLeft: "4px solid var(--mantine-color-red-6)" }} bg="var(--mantine-color-red-light)">
+              <Text size="sm">
+                <strong>⚠️ Security Note:</strong> Never expose <code>client_secret</code> in your React app.
               All token exchange operations must happen on your backend server.
-            </div>
-            <div className={styles.warningBox}>
-              <p><strong>Current contract note:</strong> when these examples talk about app approval state, your backend should derive it from the permission APIs and expose it through your own session endpoint. Do not assume raw <code>id_token</code> claims already contain canonical app-permission status.</p>
-            </div>
-          </section>
+              </Text>
+            </Paper>
+            <Paper withBorder p="md" shadow="sm" radius="md" style={{ borderLeft: "4px solid var(--mantine-color-yellow-6)" }} bg="var(--mantine-color-yellow-light)">
+              <Text size="sm">
+                <strong>Current contract note:</strong> when these examples talk about app approval state, your backend should derive it from the permission APIs and expose it through your own session endpoint. Do not assume raw <code>id_token</code> claims already contain canonical app-permission status.
+              </Text>
+            </Paper>
+          </Box>
 
-          <section className={styles.section}>
-            <h2>1. Environment Setup</h2>
-            <p>Configure your environment variables (backend only):</p>
-            <div className={styles.codeBlock}>
-              <pre>
-                {`# .env (Backend Only - NEVER commit this file)
+          <Box>
+            <Title order={2} mb="sm">1. Environment Setup</Title>
+            <Text size="sm">Configure your environment variables (backend only):</Text>
+            <Code block>
+              {`# .env (Backend Only - NEVER commit this file)
 SSO_CLIENT_ID=your_client_id_here
 SSO_CLIENT_SECRET=your_client_secret_here
 SSO_REDIRECT_URI=https://yourapp.com/api/auth/callback
 SSO_BASE_URL=https://sso.doneisbetter.com
 SESSION_SECRET=your_session_secret_here`}
-              </pre>
-            </div>
-          </section>
+            </Code>
+          </Box>
 
-          <section className={styles.section}>
-            <h2>2. AuthContext Setup</h2>
-            <p>Create a React Context to manage authentication state:</p>
-            <div className={styles.codeBlock}>
-              <pre>
-                {`// src/contexts/AuthContext.jsx
+          <Box>
+            <Title order={2} mb="sm">2. AuthContext Setup</Title>
+            <Text size="sm">Create a React Context to manage authentication state:</Text>
+            <Code block>
+              {`// src/contexts/AuthContext.jsx
 import { createContext, useContext, useState, useEffect } from 'react';
 
 const AuthContext = createContext(null);
@@ -138,16 +152,14 @@ export const useAuth = () => {
   }
   return context;
 };`}
-              </pre>
-            </div>
-          </section>
+            </Code>
+          </Box>
 
-          <section className={styles.section}>
-            <h2>3. Backend OAuth Callback (Next.js API Route)</h2>
-            <p>Handle the OAuth callback and exchange code for tokens:</p>
-            <div className={styles.codeBlock}>
-              <pre>
-                {`// pages/api/auth/callback.js
+          <Box>
+            <Title order={2} mb="sm">3. Backend OAuth Callback (Next.js API Route)</Title>
+            <Text size="sm">Handle the OAuth callback and exchange code for tokens:</Text>
+            <Code block>
+              {`// pages/api/auth/callback.js
 import jwt from 'jsonwebtoken';
 
 export default async function handler(req, res) {
@@ -215,16 +227,14 @@ export default async function handler(req, res) {
     res.status(500).json({ error: 'Authentication failed' });
   }
 }`}
-              </pre>
-            </div>
-          </section>
+            </Code>
+          </Box>
 
-          <section className={styles.section}>
-            <h2>4. Session Validation Endpoint</h2>
-            <p>Create an endpoint to check current session status:</p>
-            <div className={styles.codeBlock}>
-              <pre>
-                {`// pages/api/auth/session.js
+          <Box>
+            <Title order={2} mb="sm">4. Session Validation Endpoint</Title>
+            <Text size="sm">Create an endpoint to check current session status:</Text>
+            <Code block>
+              {`// pages/api/auth/session.js
 import jwt from 'jsonwebtoken';
 
 export default async function handler(req, res) {
@@ -258,16 +268,14 @@ export default async function handler(req, res) {
     res.status(500).json({ error: 'Session validation failed' });
   }
 }`}
-              </pre>
-            </div>
-          </section>
+            </Code>
+          </Box>
 
-          <section className={styles.section}>
-            <h2>5. Protected Route Component</h2>
-            <p>Create a component to protect routes requiring authentication:</p>
-            <div className={styles.codeBlock}>
-              <pre>
-                {`// src/components/ProtectedRoute.jsx
+          <Box>
+            <Title order={2} mb="sm">5. Protected Route Component</Title>
+            <Text size="sm">Create a component to protect routes requiring authentication:</Text>
+            <Code block>
+              {`// src/components/ProtectedRoute.jsx
 import { useAuth } from '../contexts/AuthContext';
 import { useRouter } from 'next/router';
 import { useEffect } from 'react';
@@ -305,15 +313,13 @@ export function ProtectedRoute({ children, requireApproved = true }) {
 
   return <>{children}</>;
 }`}
-              </pre>
-            </div>
-          </section>
+            </Code>
+          </Box>
 
-          <section className={styles.section}>
-            <h2>6. Usage in Your App</h2>
-            <div className={styles.codeBlock}>
-              <pre>
-                {`// pages/_app.js
+          <Box>
+            <Title order={2} mb="sm">6. Usage in Your App</Title>
+            <Code block>
+              {`// pages/_app.js
 import { AuthProvider } from '../contexts/AuthContext';
 
 export default function App({ Component, pageProps }) {
@@ -332,7 +338,7 @@ export default function LoginPage() {
 
   return (
     <div>
-      <h1>Sign In</h1>
+      <Title order={1} mb="xs">Sign In</Title>
       <button onClick={login}>Sign in with SSO</button>
     </div>
   );
@@ -348,9 +354,9 @@ export default function Dashboard() {
   return (
     <ProtectedRoute>
       <div>
-        <h1>Welcome, {user.name}</h1>
-        <p>Email: {user.email}</p>
-        <p>Role: {user.role}</p>
+        <Title order={1} mb="xs">Welcome, {user.name}</Title>
+        <Text size="sm">Email: {user.email}</Text>
+        <Text size="sm">Role: {user.role}</Text>
         <button onClick={logout}>Sign Out</button>
       </div>
     </ProtectedRoute>
@@ -361,25 +367,23 @@ export default function Dashboard() {
 export default function AccessPending() {
   return (
     <div>
-      <h1>Access Pending</h1>
-      <p>
+      <Title order={1} mb="xs">Access Pending</Title>
+      <Text size="sm">
         Your access to this application is pending approval.
         An administrator will review your request shortly.
-      </p>
-      <p>You will receive an email notification once approved.</p>
+      </Text>
+      <Text size="sm">You will receive an email notification once approved.</Text>
     </div>
   );
 }`}
-              </pre>
-            </div>
-          </section>
+            </Code>
+          </Box>
 
-          <section className={styles.section}>
-            <h2>7. Token Refresh (Optional)</h2>
-            <p>Implement automatic token refresh before expiry:</p>
-            <div className={styles.codeBlock}>
-              <pre>
-                {`// pages/api/auth/refresh.js
+          <Box>
+            <Title order={2} mb="sm">7. Token Refresh (Optional)</Title>
+            <Text size="sm">Implement automatic token refresh before expiry:</Text>
+            <Code block>
+              {`// pages/api/auth/refresh.js
 export default async function handler(req, res) {
   const { refresh_token } = req.cookies;
 
@@ -421,31 +425,32 @@ export default async function handler(req, res) {
     res.status(500).json({ error: 'Token refresh failed' });
   }
 }`}
-              </pre>
-            </div>
-          </section>
+            </Code>
+          </Box>
 
-          <section className={styles.section}>
-            <h2>Summary</h2>
-            <ul>
-              <li>✅ OAuth 2.0 Authorization Code Flow implemented</li>
-              <li>✅ Secure token handling with HTTP-only cookies</li>
-              <li>✅ CSRF protection with state parameter</li>
-              <li>✅ App permission status handling (pending/approved/revoked)</li>
-              <li>✅ Protected routes with automatic redirects</li>
-              <li>✅ Token refresh capability</li>
-            </ul>
-            <div className={styles.alert}>
-              <strong>🔗 Next Steps:</strong>
-              <ul>
-                <li>Review <a href="/docs/authentication">Authentication Flow</a> for detailed OAuth 2.0 explanation</li>
-                <li>Check <a href="/docs/app-permissions">App Permissions</a> to understand permission lifecycle</li>
-                <li>See <a href="/docs/api/endpoints">API Reference</a> for complete endpoint documentation</li>
-              </ul>
-            </div>
-          </section>
-        </main>
-      </div>
+          <Box>
+            <Title order={2} mb="sm">Summary</Title>
+            <List spacing="xs">
+              <List.Item>✅ OAuth 2.0 Authorization Code Flow implemented</List.Item>
+              <List.Item>✅ Secure token handling with HTTP-only cookies</List.Item>
+              <List.Item>✅ CSRF protection with state parameter</List.Item>
+              <List.Item>✅ App permission status handling (pending/approved/revoked)</List.Item>
+              <List.Item>✅ Protected routes with automatic redirects</List.Item>
+              <List.Item>✅ Token refresh capability</List.Item>
+            </List>
+            <Paper withBorder p="md" shadow="sm" radius="md" style={{ borderLeft: "4px solid var(--mantine-color-red-6)" }} bg="var(--mantine-color-red-light)">
+              <Text size="sm">
+                <strong>🔗 Next Steps:</strong>
+              <List spacing="xs">
+                <List.Item>Review <Anchor component={Link} href="/docs/authentication">Authentication Flow</Anchor> for detailed OAuth 2.0 explanation</List.Item>
+                <List.Item>Check <Anchor component={Link} href="/docs/app-permissions">App Permissions</Anchor> to understand permission lifecycle</List.Item>
+                <List.Item>See <Anchor component={Link} href="/docs/api/endpoints">API Reference</Anchor> for complete endpoint documentation</List.Item>
+              </List>
+              </Text>
+            </Paper>
+          </Box>
+        
+      </Stack>
     </DocsLayout>
   );
 }

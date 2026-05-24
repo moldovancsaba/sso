@@ -1,71 +1,87 @@
+import Link from 'next/link';
+import {
+  Stack,
+  Title,
+  Text,
+  Paper,
+  Code,
+  List,
+  Box,
+  Anchor,
+  Container,
+  Divider,
+  Group,
+} from '@mantine/core';
 // WHAT: CORS configuration documentation for SSO OAuth 2.0 integration
 // WHY: Developers need to understand CORS setup for cross-origin SSO requests
 // HOW: Explains SSO CORS policy, registration process, and client-side configuration
 
 import DocsLayout from '../../../components/DocsLayout';
-import styles from '../../../styles/docs.module.css';
 import packageJson from '../../../package.json';
 
 export default function SecurityCORS() {
   return (
     <DocsLayout>
-      <div className={styles.container}>
-        <header className={styles.header}>
-          <h1>CORS Configuration</h1>
-          <p className={styles.version}>SSO Version: {packageJson.version}</p>
-        </header>
-        <main className={styles.main}>
-          <section className={styles.section}>
-            <h2>Overview</h2>
-            <p>
+      <Stack gap="xl">
+        <Box>
+          <Title order={1} mb="xs">CORS Configuration</Title>
+          <Text size="sm" c="dimmed" fw={500} mb="xs">SSO Version: {packageJson.version}</Text>
+        </Box>
+        
+          <Box>
+            <Title order={2} mb="sm">Overview</Title>
+            <Text size="sm">
               Cross-Origin Resource Sharing (CORS) allows your application to make secure requests to the SSO service
               from a different origin (domain). This is essential for OAuth 2.0 flows and API interactions.
-            </p>
-            <div className={styles.alert}>
-              <strong>⚠️ Important:</strong> Your application's origin must be registered with the SSO admin
+            </Text>
+            <Paper withBorder p="md" shadow="sm" radius="md" style={{ borderLeft: "4px solid var(--mantine-color-red-6)" }} bg="var(--mantine-color-red-light)">
+              <Text size="sm">
+                <strong>⚠️ Important:</strong> Your application's origin must be registered with the SSO admin
               before CORS requests will be allowed.
-            </div>
-          </section>
+              </Text>
+            </Paper>
+          </Box>
 
-          <section className={styles.section}>
-            <h2>SSO CORS Policy</h2>
-            <p>The SSO service implements the following CORS policy:</p>
-            <ul>
-              <li>✅ <strong>Allowed Origins:</strong> Only pre-registered origins (no wildcards)</li>
-              <li>✅ <strong>Credentials:</strong> Cookies are allowed (<code>Access-Control-Allow-Credentials: true</code>)</li>
-              <li>✅ <strong>Methods:</strong> GET, POST, PUT, PATCH, DELETE, OPTIONS</li>
-              <li>✅ <strong>Headers:</strong> Content-Type, Authorization, X-Requested-With</li>
-              <li>⚠️ <strong>Preflight Caching:</strong> 24 hours (<code>Access-Control-Max-Age: 86400</code>)</li>
-            </ul>
-          </section>
+          <Box>
+            <Title order={2} mb="sm">SSO CORS Policy</Title>
+            <Text size="sm">The SSO service implements the following CORS policy:</Text>
+            <List spacing="xs">
+              <List.Item>✅ <strong>Allowed Origins:</strong> Only pre-registered origins (no wildcards)</List.Item>
+              <List.Item>✅ <strong>Credentials:</strong> Cookies are allowed (<code>Access-Control-Allow-Credentials: true</code>)</List.Item>
+              <List.Item>✅ <strong>Methods:</strong> GET, POST, PUT, PATCH, DELETE, OPTIONS</List.Item>
+              <List.Item>✅ <strong>Headers:</strong> Content-Type, Authorization, X-Requested-With</List.Item>
+              <List.Item>⚠️ <strong>Preflight Caching:</strong> 24 hours (<code>Access-Control-Max-Age: 86400</code>)</List.Item>
+            </List>
+          </Box>
 
-          <section className={styles.section}>
-            <h2>Registering Your Origin</h2>
-            <p>To enable CORS for your application, contact the SSO administrator to register your origin(s):</p>
-            <ol>
-              <li>Determine your application's origin(s) (e.g., <code>https://myapp.com</code>)</li>
-              <li>Contact SSO admin via email: <code>sso@doneisbetter.com</code></li>
-              <li>Provide the following information:
-                <ul>
-                  <li>Your application name</li>
-                  <li>Origin URL(s) (must be HTTPS in production)</li>
-                  <li>OAuth <code>client_id</code> (if already issued)</li>
-                  <li>Redirect URI(s) for OAuth callback</li>
-                </ul>
-              </li>
-              <li>Wait for admin approval (typically within 24 hours)</li>
-            </ol>
-            <div className={styles.alert}>
-              <strong>📝 Note:</strong> For local development, <code>http://localhost</code> origins (any port) are automatically allowed.
-            </div>
-          </section>
+          <Box>
+            <Title order={2} mb="sm">Registering Your Origin</Title>
+            <Text size="sm">To enable CORS for your application, contact the SSO administrator to register your origin(s):</Text>
+            <List spacing="xs" type="ordered">
+              <List.Item>Determine your application's origin(s) (e.g., <code>https://myapp.com</code>)</List.Item>
+              <List.Item>Contact SSO admin via email: <code>sso@doneisbetter.com</code></List.Item>
+              <List.Item>Provide the following information:
+                <List spacing="xs">
+                  <List.Item>Your application name</List.Item>
+                  <List.Item>Origin URL(s) (must be HTTPS in production)</List.Item>
+                  <List.Item>OAuth <code>client_id</code> (if already issued)</List.Item>
+                  <List.Item>Redirect URI(s) for OAuth callback</List.Item>
+                </List>
+              </List.Item>
+              <List.Item>Wait for admin approval (typically within 24 hours)</List.Item>
+            </List>
+            <Paper withBorder p="md" shadow="sm" radius="md" style={{ borderLeft: "4px solid var(--mantine-color-red-6)" }} bg="var(--mantine-color-red-light)">
+              <Text size="sm">
+                <strong>📝 Note:</strong> For local development, <code>http://localhost</code> origins (any port) are automatically allowed.
+              </Text>
+            </Paper>
+          </Box>
 
-          <section className={styles.section}>
-            <h2>CORS Headers in SSO Responses</h2>
-            <p>When your origin is registered, the SSO service will include these headers in responses:</p>
-            <div className={styles.codeBlock}>
-              <pre>
-                {`// Example SSO Response Headers
+          <Box>
+            <Title order={2} mb="sm">CORS Headers in SSO Responses</Title>
+            <Text size="sm">When your origin is registered, the SSO service will include these headers in responses:</Text>
+            <Code block>
+              {`// Example SSO Response Headers
 HTTP/1.1 200 OK
 Access-Control-Allow-Origin: https://myapp.com
 Access-Control-Allow-Credentials: true
@@ -77,16 +93,14 @@ Vary: Origin
 // If origin is NOT registered:
 HTTP/1.1 403 Forbidden
 { "error": "Origin not allowed" }`}
-              </pre>
-            </div>
-          </section>
+            </Code>
+          </Box>
 
-          <section className={styles.section}>
-            <h2>Client-Side CORS Configuration</h2>
-            <h3>Fetch API (Recommended)</h3>
-            <div className={styles.codeBlock}>
-              <pre>
-                {`// WHY: Include credentials (cookies) in cross-origin requests
+          <Box>
+            <Title order={2} mb="sm">Client-Side CORS Configuration</Title>
+            <Title order={3} mb="xs">Fetch API (Recommended)</Title>
+            <Code block>
+              {`// WHY: Include credentials (cookies) in cross-origin requests
 
 const response = await fetch('https://sso.doneisbetter.com/api/public/session', {
   method: 'GET',
@@ -97,13 +111,11 @@ const response = await fetch('https://sso.doneisbetter.com/api/public/session', 
 });
 
 const data = await response.json();`}
-              </pre>
-            </div>
+            </Code>
 
-            <h3>Axios</h3>
-            <div className={styles.codeBlock}>
-              <pre>
-                {`import axios from 'axios';
+            <Title order={3} mb="xs">Axios</Title>
+            <Code block>
+              {`import axios from 'axios';
 
 // Global configuration
 axios.defaults.withCredentials = true;
@@ -113,41 +125,35 @@ const response = await axios.get(
   'https://sso.doneisbetter.com/api/public/session',
   { withCredentials: true }
 );`}
-              </pre>
-            </div>
+            </Code>
 
-            <h3>XMLHttpRequest (Legacy)</h3>
-            <div className={styles.codeBlock}>
-              <pre>
-                {`const xhr = new XMLHttpRequest();
+            <Title order={3} mb="xs">XMLHttpRequest (Legacy)</Title>
+            <Code block>
+              {`const xhr = new XMLHttpRequest();
 xhr.withCredentials = true; // REQUIRED for cookies
 xhr.open('GET', 'https://sso.doneisbetter.com/api/public/session');
 xhr.send();`}
-              </pre>
-            </div>
-          </section>
+            </Code>
+          </Box>
 
-          <section className={styles.section}>
-            <h2>Backend CORS Configuration (Your App)</h2>
-            <p>If your backend needs to call SSO APIs, no CORS configuration is needed—server-to-server requests bypass CORS entirely.</p>
-            <p>However, if your frontend calls <em>your</em> backend, which then calls SSO, configure CORS on your backend:</p>
+          <Box>
+            <Title order={2} mb="sm">Backend CORS Configuration (Your App)</Title>
+            <Text size="sm">If your backend needs to call SSO APIs, no CORS configuration is needed—server-to-server requests bypass CORS entirely.</Text>
+            <Text size="sm">However, if your frontend calls <em>your</em> backend, which then calls SSO, configure CORS on your backend:</Text>
 
-            <h3>Express.js</h3>
-            <div className={styles.codeBlock}>
-              <pre>
-                {`const cors = require('cors');
+            <Title order={3} mb="xs">Express.js</Title>
+            <Code block>
+              {`const cors = require('cors');
 
 app.use(cors({
   origin: 'https://yourfrontend.com', // Your frontend origin
   credentials: true // Allow cookies
 }));`}
-              </pre>
-            </div>
+            </Code>
 
-            <h3>Next.js API Routes</h3>
-            <div className={styles.codeBlock}>
-              <pre>
-                {`// pages/api/auth/[...].js
+            <Title order={3} mb="xs">Next.js API Routes</Title>
+            <Code block>
+              {`// pages/api/auth/[...].js
 export default function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', 'https://yourfrontend.com');
   res.setHeader('Access-Control-Allow-Credentials', 'true');
@@ -160,30 +166,28 @@ export default function handler(req, res) {
 
   // Handle actual request
 }`}
-              </pre>
-            </div>
-          </section>
+            </Code>
+          </Box>
 
-          <section className={styles.section}>
-            <h2>Common CORS Errors</h2>
-            <h3>Error: "Origin not allowed"</h3>
-            <p><strong>Cause:</strong> Your origin is not registered with the SSO service.</p>
-            <p><strong>Solution:</strong> Contact SSO admin to register your origin.</p>
+          <Box>
+            <Title order={2} mb="sm">Common CORS Errors</Title>
+            <Title order={3} mb="xs">Error: "Origin not allowed"</Title>
+            <Text size="sm"><strong>Cause:</strong> Your origin is not registered with the SSO service.</Text>
+            <Text size="sm"><strong>Solution:</strong> Contact SSO admin to register your origin.</Text>
 
-            <h3>Error: "Credentials flag not set"</h3>
-            <p><strong>Cause:</strong> You're not sending <code>credentials: 'include'</code> in requests.</p>
-            <p><strong>Solution:</strong> Add <code>credentials: 'include'</code> to fetch calls or <code>withCredentials: true</code> to Axios.</p>
+            <Title order={3} mb="xs">Error: "Credentials flag not set"</Title>
+            <Text size="sm"><strong>Cause:</strong> You're not sending <code>credentials: 'include'</code> in requests.</Text>
+            <Text size="sm"><strong>Solution:</strong> Add <code>credentials: 'include'</code> to fetch calls or <code>withCredentials: true</code> to Axios.</Text>
 
-            <h3>Error: "Preflight request failed"</h3>
-            <p><strong>Cause:</strong> OPTIONS preflight request is being blocked.</p>
-            <p><strong>Solution:</strong> Ensure your origin is registered and you're using HTTPS (not HTTP) in production.</p>
-          </section>
+            <Title order={3} mb="xs">Error: "Preflight request failed"</Title>
+            <Text size="sm"><strong>Cause:</strong> OPTIONS preflight request is being blocked.</Text>
+            <Text size="sm"><strong>Solution:</strong> Ensure your origin is registered and you're using HTTPS (not HTTP) in production.</Text>
+          </Box>
 
-          <section className={styles.section}>
-            <h2>Testing CORS Configuration</h2>
-            <div className={styles.codeBlock}>
-              <pre>
-                {`// Test if your origin is allowed
+          <Box>
+            <Title order={2} mb="sm">Testing CORS Configuration</Title>
+            <Code block>
+              {`// Test if your origin is allowed
 fetch('https://sso.doneisbetter.com/api/health', {
   method: 'GET',
   credentials: 'include'
@@ -195,29 +199,30 @@ fetch('https://sso.doneisbetter.com/api/health', {
   .catch(error => {
     console.error('CORS Error:', error);
   });`}
-              </pre>
-            </div>
-          </section>
+            </Code>
+          </Box>
 
-          <section className={styles.section}>
-            <h2>Summary</h2>
-            <ul>
-              <li>☑️ Contact SSO admin to register your origin</li>
-              <li>☑️ Always use <code>credentials: 'include'</code> for API requests</li>
-              <li>☑️ Use HTTPS in production (HTTP only for localhost development)</li>
-              <li>☑️ Test CORS configuration before going live</li>
-            </ul>
-            <div className={styles.alert}>
-              <strong>🔗 Related Resources:</strong>
-              <ul>
-                <li><a href="/docs/quickstart">Quick Start Guide</a></li>
-                <li><a href="/docs/security/best-practices">Security Best Practices</a></li>
-                <li><a href="/docs/api/endpoints">API Reference</a></li>
-              </ul>
-            </div>
-          </section>
-        </main>
-      </div>
+          <Box>
+            <Title order={2} mb="sm">Summary</Title>
+            <List spacing="xs">
+              <List.Item>☑️ Contact SSO admin to register your origin</List.Item>
+              <List.Item>☑️ Always use <code>credentials: 'include'</code> for API requests</List.Item>
+              <List.Item>☑️ Use HTTPS in production (HTTP only for localhost development)</List.Item>
+              <List.Item>☑️ Test CORS configuration before going live</List.Item>
+            </List>
+            <Paper withBorder p="md" shadow="sm" radius="md" style={{ borderLeft: "4px solid var(--mantine-color-red-6)" }} bg="var(--mantine-color-red-light)">
+              <Text size="sm">
+                <strong>🔗 Related Resources:</strong>
+              <List spacing="xs">
+                <List.Item><Anchor component={Link} href="/docs/quickstart">Quick Start Guide</Anchor></List.Item>
+                <List.Item><Anchor component={Link} href="/docs/security/best-practices">Security Best Practices</Anchor></List.Item>
+                <List.Item><Anchor component={Link} href="/docs/api/endpoints">API Reference</Anchor></List.Item>
+              </List>
+              </Text>
+            </Paper>
+          </Box>
+        
+      </Stack>
     </DocsLayout>
   );
 }

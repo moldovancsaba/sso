@@ -1,42 +1,58 @@
+import Link from 'next/link';
+import {
+  Stack,
+  Title,
+  Text,
+  Paper,
+  Code,
+  List,
+  Box,
+  Anchor,
+  Container,
+  Divider,
+  Group,
+} from '@mantine/core';
 // WHAT: Vanilla JavaScript OAuth 2.0 integration example without frameworks
 // WHY: Developers need pure JavaScript implementation for non-framework projects
 // HOW: Provides complete OAuth flow using standard web APIs and server-side backend
 
 import DocsLayout from '../../../components/DocsLayout';
-import styles from '../../../styles/docs.module.css';
 import packageJson from '../../../package.json';
 
 export default function VanillaExample() {
   return (
     <DocsLayout>
-      <div className={styles.container}>
-        <header className={styles.header}>
-          <h1>Vanilla JavaScript Integration Example</h1>
-          <p className={styles.version}>SSO Version: {packageJson.version}</p>
-        </header>
-        <main className={styles.main}>
-          <section className={styles.section}>
-            <h2>Overview</h2>
-            <p>
+      <Stack gap="xl">
+        <Box>
+          <Title order={1} mb="xs">Vanilla JavaScript Integration Example</Title>
+          <Text size="sm" c="dimmed" fw={500} mb="xs">SSO Version: {packageJson.version}</Text>
+        </Box>
+        
+          <Box>
+            <Title order={2} mb="sm">Overview</Title>
+            <Text size="sm">
               This guide demonstrates OAuth 2.0 Authorization Code Flow integration using pure JavaScript
               without any framework dependencies. The frontend handles authorization redirect while the backend
               manages token exchange securely.
-            </p>
-            <div className={styles.alert}>
-              <strong>⚠️ Security Note:</strong> Never expose <code>client_secret</code> in your frontend code.
+            </Text>
+            <Paper withBorder p="md" shadow="sm" radius="md" style={{ borderLeft: "4px solid var(--mantine-color-red-6)" }} bg="var(--mantine-color-red-light)">
+              <Text size="sm">
+                <strong>⚠️ Security Note:</strong> Never expose <code>client_secret</code> in your frontend code.
               All token operations must happen on your backend server.
-            </div>
-            <div className={styles.warningBox}>
-              <p><strong>Current contract note:</strong> your backend session layer should fetch canonical app-permission state from the permission APIs and return it to the frontend. Do not treat raw <code>id_token</code> claims as the source of truth for app approval status.</p>
-            </div>
-          </section>
+              </Text>
+            </Paper>
+            <Paper withBorder p="md" shadow="sm" radius="md" style={{ borderLeft: "4px solid var(--mantine-color-yellow-6)" }} bg="var(--mantine-color-yellow-light)">
+              <Text size="sm">
+                <strong>Current contract note:</strong> your backend session layer should fetch canonical app-permission state from the permission APIs and return it to the frontend. Do not treat raw <code>id_token</code> claims as the source of truth for app approval status.
+              </Text>
+            </Paper>
+          </Box>
 
-          <section className={styles.section}>
-            <h2>1. HTML Structure</h2>
-            <p>Basic HTML setup with login and user profile sections:</p>
-            <div className={styles.codeBlock}>
-              <pre>
-                {`<!DOCTYPE html>
+          <Box>
+            <Title order={2} mb="sm">1. HTML Structure</Title>
+            <Text size="sm">Basic HTML setup with login and user profile sections:</Text>
+            <Code block>
+              {`<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -53,33 +69,33 @@ export default function VanillaExample() {
   <div id="app">
     <!-- Loading State -->
     <div id="loading" class="hidden">
-      <p>Loading...</p>
+      <Text size="sm">Loading...</Text>
     </div>
 
     <!-- Login View -->
     <div id="login-view" class="hidden">
-      <h1>Sign In</h1>
+      <Title order={1} mb="xs">Sign In</Title>
       <button id="login-btn">Sign in with SSO</button>
     </div>
 
     <!-- Access Pending View -->
     <div id="pending-view" class="hidden">
-      <h1>Access Pending</h1>
-      <p>Your access request is pending approval.</p>
-      <p>An administrator will review your request shortly.</p>
+      <Title order={1} mb="xs">Access Pending</Title>
+      <Text size="sm">Your access request is pending approval.</Text>
+      <Text size="sm">An administrator will review your request shortly.</Text>
       <button id="logout-btn-pending">Sign Out</button>
     </div>
 
     <!-- Access Denied View -->
     <div id="denied-view" class="hidden">
-      <h1>Access Denied</h1>
-      <p>Your access to this application has been revoked.</p>
+      <Title order={1} mb="xs">Access Denied</Title>
+      <Text size="sm">Your access to this application has been revoked.</Text>
       <button id="logout-btn-denied">Sign Out</button>
     </div>
 
     <!-- Dashboard View -->
     <div id="dashboard-view" class="hidden">
-      <h1>Dashboard</h1>
+      <Title order={1} mb="xs">Dashboard</Title>
       <div id="user-info"></div>
       <button id="logout-btn">Sign Out</button>
     </div>
@@ -92,16 +108,14 @@ export default function VanillaExample() {
   <script src="/js/app.js"></script>
 </body>
 </html>`}
-              </pre>
-            </div>
-          </section>
+            </Code>
+          </Box>
 
-          <section className={styles.section}>
-            <h2>2. Auth Module (auth.js)</h2>
-            <p>Core authentication logic for OAuth 2.0 flow:</p>
-            <div className={styles.codeBlock}>
-              <pre>
-                {`// js/auth.js
+          <Box>
+            <Title order={2} mb="sm">2. Auth Module (auth.js)</Title>
+            <Text size="sm">Core authentication logic for OAuth 2.0 flow:</Text>
+            <Code block>
+              {`// js/auth.js
 
 // WHY: Configuration for SSO OAuth 2.0
 const SSO_CONFIG = {
@@ -171,16 +185,14 @@ async function logout() {
     window.location.href = '/';
   }
 }`}
-              </pre>
-            </div>
-          </section>
+            </Code>
+          </Box>
 
-          <section className={styles.section}>
-            <h2>3. App Logic (app.js)</h2>
-            <p>Main application logic and UI state management:</p>
-            <div className={styles.codeBlock}>
-              <pre>
-                {`// js/app.js
+          <Box>
+            <Title order={2} mb="sm">3. App Logic (app.js)</Title>
+            <Text size="sm">Main application logic and UI state management:</Text>
+            <Code block>
+              {`// js/app.js
 
 // WHY: View management helper functions
 function hideAllViews() {
@@ -206,10 +218,10 @@ function renderUserInfo(user) {
   const userInfoEl = document.getElementById('user-info');
   userInfoEl.innerHTML = \`
     <div>
-      <p><strong>Name:</strong> \${user.name}</p>
-      <p><strong>Email:</strong> \${user.email}</p>
-      <p><strong>Role:</strong> \${user.role}</p>
-      <p><strong>User ID:</strong> \${user.userId}</p>
+      <Text size="sm"><strong>Name:</strong> \${user.name}</Text>
+      <Text size="sm"><strong>Email:</strong> \${user.email}</Text>
+      <Text size="sm"><strong>Role:</strong> \${user.role}</Text>
+      <Text size="sm"><strong>User ID:</strong> \${user.userId}</Text>
     </div>
   \`;
 }
@@ -255,16 +267,14 @@ document.addEventListener('DOMContentLoaded', () => {
   // Initialize app
   initApp();
 });`}
-              </pre>
-            </div>
-          </section>
+            </Code>
+          </Box>
 
-          <section className={styles.section}>
-            <h2>4. OAuth Callback Handler (Backend)</h2>
-            <p>Server-side callback handler (Node.js/Express example):</p>
-            <div className={styles.codeBlock}>
-              <pre>
-                {`// server.js or routes/auth.js
+          <Box>
+            <Title order={2} mb="sm">4. OAuth Callback Handler (Backend)</Title>
+            <Text size="sm">Server-side callback handler (Node.js/Express example):</Text>
+            <Code block>
+              {`// server.js or routes/auth.js
 const express = require('express');
 const jwt = require('jsonwebtoken');
 const fetch = require('node-fetch');
@@ -397,32 +407,28 @@ router.post('/api/auth/logout', (req, res) => {
 });
 
 module.exports = router;`}
-              </pre>
-            </div>
-          </section>
+            </Code>
+          </Box>
 
-          <section className={styles.section}>
-            <h2>5. Environment Configuration</h2>
-            <p>Backend environment variables:</p>
-            <div className={styles.codeBlock}>
-              <pre>
-                {`# .env (Backend - NEVER commit this file)
+          <Box>
+            <Title order={2} mb="sm">5. Environment Configuration</Title>
+            <Text size="sm">Backend environment variables:</Text>
+            <Code block>
+              {`# .env (Backend - NEVER commit this file)
 SSO_CLIENT_ID=your_client_id_here
 SSO_CLIENT_SECRET=your_client_secret_here
 SSO_REDIRECT_URI=https://yourapp.com/api/auth/callback
 SSO_BASE_URL=https://sso.doneisbetter.com
 NODE_ENV=production
 SESSION_SECRET=your_random_secret_here`}
-              </pre>
-            </div>
-          </section>
+            </Code>
+          </Box>
 
-          <section className={styles.section}>
-            <h2>6. Token Refresh (Optional)</h2>
-            <p>Implement automatic token refresh:</p>
-            <div className={styles.codeBlock}>
-              <pre>
-                {`// Add to auth.js
+          <Box>
+            <Title order={2} mb="sm">6. Token Refresh (Optional)</Title>
+            <Text size="sm">Implement automatic token refresh:</Text>
+            <Code block>
+              {`// Add to auth.js
 
 // WHY: Refresh access token before expiry
 async function refreshToken() {
@@ -494,31 +500,32 @@ router.post('/api/auth/refresh', async (req, res) => {
     res.status(500).json({ error: 'Token refresh failed' });
   }
 });`}
-              </pre>
-            </div>
-          </section>
+            </Code>
+          </Box>
 
-          <section className={styles.section}>
-            <h2>Summary</h2>
-            <ul>
-              <li>✅ Pure JavaScript OAuth 2.0 implementation (no frameworks)</li>
-              <li>✅ Secure token handling with HTTP-only cookies</li>
-              <li>✅ CSRF protection with state parameter</li>
-              <li>✅ App permission status handling (pending/approved/revoked)</li>
-              <li>✅ Clean separation of frontend and backend concerns</li>
-              <li>✅ Token refresh capability</li>
-            </ul>
-            <div className={styles.alert}>
-              <strong>🔗 Next Steps:</strong>
-              <ul>
-                <li>Review <a href="/docs/authentication">Authentication Flow</a> for detailed OAuth 2.0 explanation</li>
-                <li>Check <a href="/docs/app-permissions">App Permissions</a> to understand permission lifecycle</li>
-                <li>See <a href="/docs/api/endpoints">API Reference</a> for complete endpoint documentation</li>
-              </ul>
-            </div>
-          </section>
-        </main>
-      </div>
+          <Box>
+            <Title order={2} mb="sm">Summary</Title>
+            <List spacing="xs">
+              <List.Item>✅ Pure JavaScript OAuth 2.0 implementation (no frameworks)</List.Item>
+              <List.Item>✅ Secure token handling with HTTP-only cookies</List.Item>
+              <List.Item>✅ CSRF protection with state parameter</List.Item>
+              <List.Item>✅ App permission status handling (pending/approved/revoked)</List.Item>
+              <List.Item>✅ Clean separation of frontend and backend concerns</List.Item>
+              <List.Item>✅ Token refresh capability</List.Item>
+            </List>
+            <Paper withBorder p="md" shadow="sm" radius="md" style={{ borderLeft: "4px solid var(--mantine-color-red-6)" }} bg="var(--mantine-color-red-light)">
+              <Text size="sm">
+                <strong>🔗 Next Steps:</strong>
+              <List spacing="xs">
+                <List.Item>Review <Anchor component={Link} href="/docs/authentication">Authentication Flow</Anchor> for detailed OAuth 2.0 explanation</List.Item>
+                <List.Item>Check <Anchor component={Link} href="/docs/app-permissions">App Permissions</Anchor> to understand permission lifecycle</List.Item>
+                <List.Item>See <Anchor component={Link} href="/docs/api/endpoints">API Reference</Anchor> for complete endpoint documentation</List.Item>
+              </List>
+              </Text>
+            </Paper>
+          </Box>
+        
+      </Stack>
     </DocsLayout>
   );
 }

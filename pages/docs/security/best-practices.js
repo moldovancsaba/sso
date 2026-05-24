@@ -1,9 +1,22 @@
+import Link from 'next/link';
+import {
+  Stack,
+  Title,
+  Text,
+  Paper,
+  Code,
+  List,
+  Box,
+  Anchor,
+  Container,
+  Divider,
+  Group,
+} from '@mantine/core';
 // WHAT: Security best practices documentation for OAuth 2.0 SSO integration
 // WHY: Developers need comprehensive security guidance to avoid vulnerabilities
 // HOW: Covers OAuth 2.0 security, token handling, CSRF protection, and app permissions
 
 import DocsLayout from '../../../components/DocsLayout';
-import styles from '../../../styles/docs.module.css';
 import packageJson from '../../../package.json';
 
 // WHAT: Disable SSG for this page to prevent NextRouter errors
@@ -16,33 +29,36 @@ export async function getServerSideProps() {
 export default function SecurityBestPractices() {
   return (
     <DocsLayout>
-      <div className={styles.container}>
-        <header className={styles.header}>
-          <h1>Security Best Practices</h1>
-          <p className={styles.version}>SSO Version: {packageJson.version}</p>
-        </header>
-        <main className={styles.main}>
-          <section className={styles.section}>
-            <h2>Overview</h2>
-            <p>
+      <Stack gap="xl">
+        <Box>
+          <Title order={1} mb="xs">Security Best Practices</Title>
+          <Text size="sm" c="dimmed" fw={500} mb="xs">SSO Version: {packageJson.version}</Text>
+        </Box>
+        
+          <Box>
+            <Title order={2} mb="sm">Overview</Title>
+            <Text size="sm">
               This guide covers security best practices for integrating with the SSO service using OAuth 2.0.
               Following these guidelines will help protect your application and users from common security vulnerabilities.
-            </p>
-            <div className={styles.alert}>
-              <strong>⚠️ Critical:</strong> OAuth 2.0 security depends on proper implementation.
+            </Text>
+            <Paper withBorder p="md" shadow="sm" radius="md" style={{ borderLeft: "4px solid var(--mantine-color-red-6)" }} bg="var(--mantine-color-red-light)">
+              <Text size="sm">
+                <strong>⚠️ Critical:</strong> OAuth 2.0 security depends on proper implementation.
               Violations of these practices can lead to severe security breaches.
-            </div>
-            <div className={styles.warningBox}>
-              <p><strong>Current contract note:</strong> use ID tokens for identity claims and use permission APIs for app authorization state. If your backend surfaces a <code>permissionStatus</code> field, that should be derived from the permission APIs rather than assumed to be present in the raw ID token.</p>
-            </div>
-          </section>
+              </Text>
+            </Paper>
+            <Paper withBorder p="md" shadow="sm" radius="md" style={{ borderLeft: "4px solid var(--mantine-color-yellow-6)" }} bg="var(--mantine-color-yellow-light)">
+              <Text size="sm">
+                <strong>Current contract note:</strong> use ID tokens for identity claims and use permission APIs for app authorization state. If your backend surfaces a <code>permissionStatus</code> field, that should be derived from the permission APIs rather than assumed to be present in the raw ID token.
+              </Text>
+            </Paper>
+          </Box>
 
-          <section className={styles.section}>
-            <h2>1. Never Expose Client Secret</h2>
-            <p><strong>Risk Level: CRITICAL 🔴</strong></p>
-            <div className={styles.codeBlock}>
-              <pre>
-                {`// ❌ NEVER DO THIS - Exposing secret in frontend code
+          <Box>
+            <Title order={2} mb="sm">1. Never Expose Client Secret</Title>
+            <Text size="sm"><strong>Risk Level: CRITICAL 🔴</strong></Text>
+            <Code block>
+              {`// ❌ NEVER DO THIS - Exposing secret in frontend code
 const CLIENT_SECRET = 'abc123secret'; // WRONG!
 
 fetch('https://sso.doneisbetter.com/api/oauth/token', {
@@ -70,29 +86,27 @@ const tokenResponse = await fetch(
     })
   }
 );`}
-              </pre>
-            </div>
-            <p><strong>WHY:</strong> If <code>client_secret</code> is exposed in frontend code, anyone can impersonate your application and request tokens on behalf of any user.</p>
-          </section>
+            </Code>
+            <Text size="sm"><strong>WHY:</strong> If <code>client_secret</code> is exposed in frontend code, anyone can impersonate your application and request tokens on behalf of any user.</Text>
+          </Box>
 
-          <section className={styles.section}>
-            <h2>2. Always Use HTTPS</h2>
-            <p><strong>Risk Level: CRITICAL 🔴</strong></p>
-            <ul>
-              <li>✅ All OAuth 2.0 communications MUST use HTTPS</li>
-              <li>✅ Redirect URIs must be HTTPS (no HTTP allowed in production)</li>
-              <li>✅ Never transmit tokens over unencrypted connections</li>
-              <li>⚠️ HTTP is only acceptable in local development (e.g., <code>http://localhost:3000</code>)</li>
-            </ul>
-            <p><strong>WHY:</strong> Without TLS/SSL encryption, tokens and authorization codes can be intercepted by attackers (man-in-the-middle attacks).</p>
-          </section>
+          <Box>
+            <Title order={2} mb="sm">2. Always Use HTTPS</Title>
+            <Text size="sm"><strong>Risk Level: CRITICAL 🔴</strong></Text>
+            <List spacing="xs">
+              <List.Item>✅ All OAuth 2.0 communications MUST use HTTPS</List.Item>
+              <List.Item>✅ Redirect URIs must be HTTPS (no HTTP allowed in production)</List.Item>
+              <List.Item>✅ Never transmit tokens over unencrypted connections</List.Item>
+              <List.Item>⚠️ HTTP is only acceptable in local development (e.g., <code>http://localhost:3000</code>)</List.Item>
+            </List>
+            <Text size="sm"><strong>WHY:</strong> Without TLS/SSL encryption, tokens and authorization codes can be intercepted by attackers (man-in-the-middle attacks).</Text>
+          </Box>
 
-          <section className={styles.section}>
-            <h2>3. Implement CSRF Protection with State Parameter</h2>
-            <p><strong>Risk Level: HIGH 🟠</strong></p>
-            <div className={styles.codeBlock}>
-              <pre>
-                {`// WHY: Prevent Cross-Site Request Forgery (CSRF) attacks
+          <Box>
+            <Title order={2} mb="sm">3. Implement CSRF Protection with State Parameter</Title>
+            <Text size="sm"><strong>Risk Level: HIGH 🟠</strong></Text>
+            <Code block>
+              {`// WHY: Prevent Cross-Site Request Forgery (CSRF) attacks
 
 // Step 1: Generate random state before redirecting to SSO
 const state = crypto.randomBytes(32).toString('hex');
@@ -113,18 +127,16 @@ if (receivedState !== expectedState) {
 
 // Step 3: Clear state after successful validation
 sessionStorage.removeItem('oauth_state');`}
-              </pre>
-            </div>
-            <p><strong>WHY:</strong> The state parameter ensures the OAuth callback is responding to a request your application initiated, preventing CSRF attacks.</p>
-          </section>
+            </Code>
+            <Text size="sm"><strong>WHY:</strong> The state parameter ensures the OAuth callback is responding to a request your application initiated, preventing CSRF attacks.</Text>
+          </Box>
 
-          <section className={styles.section}>
-            <h2>4. Secure Token Storage</h2>
-            <p><strong>Risk Level: CRITICAL 🔴</strong></p>
-            <h3>Backend: Use HTTP-Only Cookies (Recommended)</h3>
-            <div className={styles.codeBlock}>
-              <pre>
-                {`// ✅ SECURE - HTTP-only cookies prevent XSS attacks
+          <Box>
+            <Title order={2} mb="sm">4. Secure Token Storage</Title>
+            <Text size="sm"><strong>Risk Level: CRITICAL 🔴</strong></Text>
+            <Title order={3} mb="xs">Backend: Use HTTP-Only Cookies (Recommended)</Title>
+            <Code block>
+              {`// ✅ SECURE - HTTP-only cookies prevent XSS attacks
 res.cookie('access_token', accessToken, {
   httpOnly: true,    // Cannot be accessed by JavaScript
   secure: true,      // Only transmitted over HTTPS
@@ -138,12 +150,10 @@ res.cookie('refresh_token', refreshToken, {
   sameSite: 'lax',
   maxAge: 2592000000 // 30 days expiry
 });`}
-              </pre>
-            </div>
-            <h3>Frontend: Never Store Tokens in LocalStorage</h3>
-            <div className={styles.codeBlock}>
-              <pre>
-                {`// ❌ NEVER DO THIS - Vulnerable to XSS attacks
+            </Code>
+            <Title order={3} mb="xs">Frontend: Never Store Tokens in LocalStorage</Title>
+            <Code block>
+              {`// ❌ NEVER DO THIS - Vulnerable to XSS attacks
 localStorage.setItem('access_token', token); // WRONG!
 sessionStorage.setItem('access_token', token); // ALSO WRONG!
 
@@ -152,17 +162,15 @@ sessionStorage.setItem('access_token', token); // ALSO WRONG!
 fetch('/api/auth/session', {
   credentials: 'include' // Sends HTTP-only cookies automatically
 });`}
-              </pre>
-            </div>
-            <p><strong>WHY:</strong> Tokens stored in localStorage or sessionStorage can be stolen via XSS attacks. HTTP-only cookies are inaccessible to JavaScript.</p>
-          </section>
+            </Code>
+            <Text size="sm"><strong>WHY:</strong> Tokens stored in localStorage or sessionStorage can be stolen via XSS attacks. HTTP-only cookies are inaccessible to JavaScript.</Text>
+          </Box>
 
-          <section className={styles.section}>
-            <h2>5. Validate and Decode ID Tokens Properly</h2>
-            <p><strong>Risk Level: HIGH 🟠</strong></p>
-            <div className={styles.codeBlock}>
-              <pre>
-                {`// WHY: Ensure token integrity and extract user info safely
+          <Box>
+            <Title order={2} mb="sm">5. Validate and Decode ID Tokens Properly</Title>
+            <Text size="sm"><strong>Risk Level: HIGH 🟠</strong></Text>
+            <Code block>
+              {`// WHY: Ensure token integrity and extract user info safely
 
 import jwt from 'jsonwebtoken';
 
@@ -182,17 +190,15 @@ const decoded = jwt.verify(idToken, publicKey, {
 if (decoded.exp * 1000 < Date.now()) {
   throw new Error('Token expired');
 }`}
-              </pre>
-            </div>
-            <p><strong>WHY:</strong> Verifying the ID token signature ensures it hasn't been tampered with and actually comes from the SSO server.</p>
-          </section>
+            </Code>
+            <Text size="sm"><strong>WHY:</strong> Verifying the ID token signature ensures it hasn't been tampered with and actually comes from the SSO server.</Text>
+          </Box>
 
-          <section className={styles.section}>
-            <h2>6. Handle App Permission Status Securely</h2>
-            <p><strong>Risk Level: MEDIUM 🟡</strong></p>
-            <div className={styles.codeBlock}>
-              <pre>
-                {`// WHY: Enforce app-level permissions to prevent unauthorized access
+          <Box>
+            <Title order={2} mb="sm">6. Handle App Permission Status Securely</Title>
+            <Text size="sm"><strong>Risk Level: MEDIUM 🟡</strong></Text>
+            <Code block>
+              {`// WHY: Enforce app-level permissions to prevent unauthorized access
 
 const permission = await getPermissionForUserAndClient({ userId, clientId });
 const role = permission?.role ?? 'member';
@@ -215,17 +221,15 @@ if (role === 'admin') {
 } else {
   // Regular user access only
 }`}
-              </pre>
-            </div>
-            <p><strong>WHY:</strong> A user may authenticate successfully but still lack app access. Always verify backend-derived permission state before granting access.</p>
-          </section>
+            </Code>
+            <Text size="sm"><strong>WHY:</strong> A user may authenticate successfully but still lack app access. Always verify backend-derived permission state before granting access.</Text>
+          </Box>
 
-          <section className={styles.section}>
-            <h2>7. Implement Token Refresh Before Expiry</h2>
-            <p><strong>Risk Level: MEDIUM 🟡</strong></p>
-            <div className={styles.codeBlock}>
-              <pre>
-                {`// WHY: Maintain session continuity without forcing re-login
+          <Box>
+            <Title order={2} mb="sm">7. Implement Token Refresh Before Expiry</Title>
+            <Text size="sm"><strong>Risk Level: MEDIUM 🟡</strong></Text>
+            <Code block>
+              {`// WHY: Maintain session continuity without forcing re-login
 
 // ✅ Refresh tokens proactively (e.g., 5 minutes before expiry)
 const TOKEN_REFRESH_BUFFER = 5 * 60 * 1000; // 5 minutes
@@ -256,43 +260,39 @@ async function refreshAccessToken() {
   const { access_token, id_token } = await response.json();
   // Update stored tokens
 }`}
-              </pre>
-            </div>
-            <p><strong>WHY:</strong> Access tokens expire quickly (1 hour default). Proactive refresh prevents session interruptions.</p>
-          </section>
+            </Code>
+            <Text size="sm"><strong>WHY:</strong> Access tokens expire quickly (1 hour default). Proactive refresh prevents session interruptions.</Text>
+          </Box>
 
-          <section className={styles.section}>
-            <h2>8. Secure Redirect URI Configuration</h2>
-            <p><strong>Risk Level: HIGH 🟠</strong></p>
-            <ul>
-              <li>✅ Register exact redirect URIs with SSO admin (no wildcards)</li>
-              <li>✅ Use HTTPS for all redirect URIs in production</li>
-              <li>⚠️ Avoid open redirects (validate redirect_uri parameter)</li>
-              <li>⚠️ Never use dynamic redirect URIs from user input</li>
-            </ul>
-            <div className={styles.codeBlock}>
-              <pre>
-                {`// ❌ DANGEROUS - Open redirect vulnerability
+          <Box>
+            <Title order={2} mb="sm">8. Secure Redirect URI Configuration</Title>
+            <Text size="sm"><strong>Risk Level: HIGH 🟠</strong></Text>
+            <List spacing="xs">
+              <List.Item>✅ Register exact redirect URIs with SSO admin (no wildcards)</List.Item>
+              <List.Item>✅ Use HTTPS for all redirect URIs in production</List.Item>
+              <List.Item>⚠️ Avoid open redirects (validate redirect_uri parameter)</List.Item>
+              <List.Item>⚠️ Never use dynamic redirect URIs from user input</List.Item>
+            </List>
+            <Code block>
+              {`// ❌ DANGEROUS - Open redirect vulnerability
 const redirectUri = req.query.redirect; // User-controlled!
 window.location.href = \`https://sso.doneisbetter.com/api/oauth/authorize?redirect_uri=\${redirectUri}\`;
 
 // ✅ SAFE - Use pre-registered, hardcoded redirect URI
 const ALLOWED_REDIRECT_URI = 'https://myapp.com/api/auth/callback';
 window.location.href = \`https://sso.doneisbetter.com/api/oauth/authorize?redirect_uri=\${ALLOWED_REDIRECT_URI}\`;`}
-              </pre>
-            </div>
-            <p><strong>WHY:</strong> Attackers can trick users into authorizing malicious applications by manipulating redirect URIs.</p>
-          </section>
+            </Code>
+            <Text size="sm"><strong>WHY:</strong> Attackers can trick users into authorizing malicious applications by manipulating redirect URIs.</Text>
+          </Box>
 
-          <section className={styles.section}>
-            <h2>9. Implement Rate Limiting</h2>
-            <p><strong>Risk Level: MEDIUM 🟡</strong></p>
-            <p>
+          <Box>
+            <Title order={2} mb="sm">9. Implement Rate Limiting</Title>
+            <Text size="sm"><strong>Risk Level: MEDIUM 🟡</strong></Text>
+            <Text size="sm">
               The SSO service implements rate limiting on all endpoints. Your application should handle rate limit errors gracefully:
-            </p>
-            <div className={styles.codeBlock}>
-              <pre>
-                {`// WHY: Prevent abuse and handle rate limit responses
+            </Text>
+            <Code block>
+              {`// WHY: Prevent abuse and handle rate limit responses
 
 const response = await fetch('https://sso.doneisbetter.com/api/oauth/token', {
   // ... request config
@@ -306,22 +306,20 @@ if (response.status === 429) {
   await new Promise(resolve => setTimeout(resolve, retryAfter * 1000));
   // Retry request
 }`}
-              </pre>
-            </div>
-            <p><strong>Current Rate Limits:</strong></p>
-            <ul>
-              <li>Public endpoints: 100 requests/minute per IP</li>
-              <li>OAuth endpoints: 50 requests/minute per client_id</li>
-              <li>Admin endpoints: 200 requests/minute per admin session</li>
-            </ul>
-          </section>
+            </Code>
+            <Text size="sm"><strong>Current Rate Limits:</strong></Text>
+            <List spacing="xs">
+              <List.Item>Public endpoints: 100 requests/minute per IP</List.Item>
+              <List.Item>OAuth endpoints: 50 requests/minute per client_id</List.Item>
+              <List.Item>Admin endpoints: 200 requests/minute per admin session</List.Item>
+            </List>
+          </Box>
 
-          <section className={styles.section}>
-            <h2>10. Logout Securely</h2>
-            <p><strong>Risk Level: MEDIUM 🟡</strong></p>
-            <div className={styles.codeBlock}>
-              <pre>
-                {`// WHY: Ensure complete session termination
+          <Box>
+            <Title order={2} mb="sm">10. Logout Securely</Title>
+            <Text size="sm"><strong>Risk Level: MEDIUM 🟡</strong></Text>
+            <Code block>
+              {`// WHY: Ensure complete session termination
 
 // Step 1: Revoke tokens with SSO server
 await fetch('https://sso.doneisbetter.com/api/oauth/revoke', {
@@ -341,37 +339,38 @@ res.clearCookie('id_token');
 
 // Step 3: Optionally redirect to SSO logout (for single logout)
 window.location.href = 'https://sso.doneisbetter.com/api/public/logout';`}
-              </pre>
-            </div>
-            <p><strong>WHY:</strong> Revoking tokens at the SSO server ensures they can't be reused even if intercepted.</p>
-          </section>
+            </Code>
+            <Text size="sm"><strong>WHY:</strong> Revoking tokens at the SSO server ensures they can't be reused even if intercepted.</Text>
+          </Box>
 
-          <section className={styles.section}>
-            <h2>Summary Checklist</h2>
-            <ul>
-              <li>☑️ Never expose <code>client_secret</code> in frontend code</li>
-              <li>☑️ Always use HTTPS for OAuth endpoints</li>
-              <li>☑️ Implement CSRF protection with <code>state</code> parameter</li>
-              <li>☑️ Store tokens in HTTP-only cookies (never localStorage)</li>
-              <li>☑️ Validate ID token signatures and expiration</li>
-              <li>☑️ Check backend-derived permission status before granting access</li>
-              <li>☑️ Implement token refresh before expiry</li>
-              <li>☑️ Use exact, pre-registered redirect URIs</li>
-              <li>☑️ Handle rate limiting with exponential backoff</li>
-              <li>☑️ Revoke tokens on logout</li>
-            </ul>
-            <div className={styles.alert}>
-              <strong>🔗 Related Resources:</strong>
-              <ul>
-                <li><a href="/docs/authentication">OAuth 2.0 Authentication Flow</a></li>
-                <li><a href="/docs/security/cors">CORS Configuration</a></li>
-                <li><a href="/docs/security/permissions">App Permissions System</a></li>
-                <li><a href="/docs/api/errors">Error Handling</a></li>
-              </ul>
-            </div>
-          </section>
-        </main>
-      </div>
+          <Box>
+            <Title order={2} mb="sm">Summary Checklist</Title>
+            <List spacing="xs">
+              <List.Item>☑️ Never expose <code>client_secret</code> in frontend code</List.Item>
+              <List.Item>☑️ Always use HTTPS for OAuth endpoints</List.Item>
+              <List.Item>☑️ Implement CSRF protection with <code>state</code> parameter</List.Item>
+              <List.Item>☑️ Store tokens in HTTP-only cookies (never localStorage)</List.Item>
+              <List.Item>☑️ Validate ID token signatures and expiration</List.Item>
+              <List.Item>☑️ Check backend-derived permission status before granting access</List.Item>
+              <List.Item>☑️ Implement token refresh before expiry</List.Item>
+              <List.Item>☑️ Use exact, pre-registered redirect URIs</List.Item>
+              <List.Item>☑️ Handle rate limiting with exponential backoff</List.Item>
+              <List.Item>☑️ Revoke tokens on logout</List.Item>
+            </List>
+            <Paper withBorder p="md" shadow="sm" radius="md" style={{ borderLeft: "4px solid var(--mantine-color-red-6)" }} bg="var(--mantine-color-red-light)">
+              <Text size="sm">
+                <strong>🔗 Related Resources:</strong>
+              <List spacing="xs">
+                <List.Item><Anchor component={Link} href="/docs/authentication">OAuth 2.0 Authentication Flow</Anchor></List.Item>
+                <List.Item><Anchor component={Link} href="/docs/security/cors">CORS Configuration</Anchor></List.Item>
+                <List.Item><Anchor component={Link} href="/docs/security/permissions">App Permissions System</Anchor></List.Item>
+                <List.Item><Anchor component={Link} href="/docs/api/errors">Error Handling</Anchor></List.Item>
+              </List>
+              </Text>
+            </Paper>
+          </Box>
+        
+      </Stack>
     </DocsLayout>
   );
 }

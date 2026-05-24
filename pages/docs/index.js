@@ -1,62 +1,74 @@
 import Link from 'next/link';
+import {
+  Stack,
+  Title,
+  Text,
+  Paper,
+  Code,
+  List,
+  Box,
+  Anchor,
+  Container,
+  Divider,
+  Group,
+} from '@mantine/core';
 import DocsLayout from '../../components/DocsLayout';
-import styles from '../../styles/docs.module.css';
 import packageJson from '../../package.json';
 
 export default function DocsPage() {
   return (
     <DocsLayout>
-      <div className={styles.container}>
-        <header className={styles.header}>
-          <h1>DoneIsBetter SSO Documentation</h1>
-          <p className={styles.version}>API Version: {packageJson.version}</p>
-          <p className={styles.subtitle}>Current runtime guide for OAuth, hosted auth, and shared-domain session validation.</p>
-        </header>
+      <Stack gap="xl">
+        <Box>
+          <Title order={1} mb="xs">DoneIsBetter SSO Documentation</Title>
+          <Text size="sm" c="dimmed" fw={500} mb="xs">API Version: {packageJson.version}</Text>
+          <Text size="lg" c="dimmed">Current runtime guide for OAuth, hosted auth, and shared-domain session validation.</Text>
+        </Box>
 
-        <main className={styles.main}>
-          <section className={styles.section}>
-            <div className={styles.warningBox}>
-              <p>
+        
+          <Box>
+            <Paper withBorder p="md" shadow="sm" radius="md" style={{ borderLeft: "4px solid var(--mantine-color-yellow-6)" }} bg="var(--mantine-color-yellow-light)">
+              <Text size="sm">
                 <strong>Recommended default:</strong> use OAuth 2.0 Authorization Code flow with OIDC claims.
                 Public login endpoints create cookie-backed sessions, but they do not replace the OAuth token flow.
-              </p>
-              <p>
+              </Text>
+              <Text size="sm">
                 <strong>Design / UI / UX SSOT:</strong> cross-project design rules now live in
                 {' '}<code>/Users/Shared/Projects/GENERAL_DESIGN_SYSTEM</code>.
                 Local styling in this repo should be treated as migration-state implementation, not the long-term design source of truth.
-              </p>
-            </div>
-          </section>
+              </Text>
+            </Paper>
+          </Box>
 
-          <section className={styles.section}>
-            <h2>Current Capabilities</h2>
-            <ul>
-              <li>OAuth 2.0 / OpenID Connect authorization server</li>
-              <li>Hosted public-user authentication with password, magic link, PIN, Google, and Facebook</li>
-              <li>Centralized per-app authorization through <code>appPermissions</code></li>
-              <li>Cookie-based SSO for shared subdomain deployments</li>
-            </ul>
-          </section>
+          <Box>
+            <Title order={2} mb="sm">Current Capabilities</Title>
+            <List spacing="xs">
+              <List.Item>OAuth 2.0 / OpenID Connect authorization server</List.Item>
+              <List.Item>Hosted public-user authentication with password, magic link, PIN, Google, and Facebook</List.Item>
+              <List.Item>Centralized per-app authorization through <code>appPermissions</code></List.Item>
+              <List.Item>Cookie-based SSO for shared subdomain deployments</List.Item>
+            </List>
+          </Box>
 
-          <section className={styles.section}>
-            <h2>Canonical Runtime Contract</h2>
-            <ul>
-              <li>App-permission roles: <code>none</code>, <code>user</code>, <code>admin</code></li>
-              <li>App-permission statuses: <code>pending</code>, <code>approved</code>, <code>revoked</code></li>
-              <li>Admin cookie: <code>admin-session</code></li>
-              <li>Public cookie: <code>public-session</code></li>
-              <li>Apple Sign In, passkeys, SAML, and SCIM are not implemented today</li>
-            </ul>
-          </section>
+          <Box>
+            <Title order={2} mb="sm">Canonical Runtime Contract</Title>
+            <List spacing="xs">
+              <List.Item>App-permission roles: <code>none</code>, <code>user</code>, <code>admin</code></List.Item>
+              <List.Item>App-permission statuses: <code>pending</code>, <code>approved</code>, <code>revoked</code></List.Item>
+              <List.Item>Admin cookie: <code>admin-session</code></List.Item>
+              <List.Item>Public cookie: <code>public-session</code></List.Item>
+              <List.Item>Apple Sign In, passkeys, SAML, and SCIM are not implemented today</List.Item>
+            </List>
+          </Box>
 
-          <section className={styles.section}>
-            <h2>Choose Your Integration</h2>
-            <ol className={styles.steps}>
-              <li>
-                <h3>OAuth2 / OIDC</h3>
-                <p>Use this for most apps, especially external domains, SPAs, mobile apps, and server applications.</p>
-                <div className={styles.codeBlock}>
-                  <pre>{`GET /api/oauth/authorize
+          <Box>
+            <Title order={2} mb="sm">Choose Your Integration</Title>
+            <List spacing="xs" type="ordered">
+              <List.Item>
+                <Title order={3} mb="xs">OAuth2 / OIDC</Title>
+                <Text size="sm">Use this for most apps, especially external domains, SPAs, mobile apps, and server applications.</Text>
+                <Code block>
+              {`GET /api/oauth/authorize
   ?client_id=YOUR_CLIENT_ID
   &redirect_uri=https://yourapp.com/auth/callback
   &response_type=code
@@ -64,54 +76,54 @@ export default function DocsPage() {
   &state=RANDOM_STATE
   &nonce=RANDOM_NONCE
   &code_challenge=PKCE_CHALLENGE
-  &code_challenge_method=S256`}</pre>
-                </div>
-              </li>
+  &code_challenge_method=S256`}
+            </Code>
+              </List.Item>
 
-              <li>
-                <h3>Cookie-Based SSO</h3>
-                <p>Use this only when your app shares the configured cookie domain with the SSO service.</p>
-                <div className={styles.codeBlock}>
-                  <pre>{`GET /api/public/session
-Cookie: public-session=...`}</pre>
-                </div>
-              </li>
+              <List.Item>
+                <Title order={3} mb="xs">Cookie-Based SSO</Title>
+                <Text size="sm">Use this only when your app shares the configured cookie domain with the SSO service.</Text>
+                <Code block>
+              {`GET /api/public/session
+Cookie: public-session=...`}
+            </Code>
+              </List.Item>
 
-              <li>
-                <h3>Permission-Aware Integrations</h3>
-                <p>App access is not based on authentication alone. Check or manage the user’s permission record per client.</p>
-                <div className={styles.codeBlock}>
-                  <pre>{`GET /api/users/{userId}/apps/{clientId}/permissions
-Authorization: Bearer ACCESS_TOKEN`}</pre>
-                </div>
-              </li>
-            </ol>
-          </section>
+              <List.Item>
+                <Title order={3} mb="xs">Permission-Aware Integrations</Title>
+                <Text size="sm">App access is not based on authentication alone. Check or manage the user’s permission record per client.</Text>
+                <Code block>
+              {`GET /api/users/{userId}/apps/{clientId}/permissions
+Authorization: Bearer ACCESS_TOKEN`}
+            </Code>
+              </List.Item>
+            </List>
+          </Box>
 
-          <section className={styles.section}>
-            <h2>Key Endpoints</h2>
-            <ul>
-              <li><code>GET /api/oauth/authorize</code></li>
-              <li><code>POST /api/oauth/token</code></li>
-              <li><code>GET /api/oauth/userinfo</code></li>
-              <li><code>GET /api/public/session</code></li>
-              <li><code>POST /api/public/login</code></li>
-              <li><code>POST /api/public/request-magic-link</code></li>
-              <li><code>POST /api/users/[userId]/apps/[clientId]/request-access</code></li>
-            </ul>
-          </section>
+          <Box>
+            <Title order={2} mb="sm">Key Endpoints</Title>
+            <List spacing="xs">
+              <List.Item><code>GET /api/oauth/authorize</code></List.Item>
+              <List.Item><code>POST /api/oauth/token</code></List.Item>
+              <List.Item><code>GET /api/oauth/userinfo</code></List.Item>
+              <List.Item><code>GET /api/public/session</code></List.Item>
+              <List.Item><code>POST /api/public/login</code></List.Item>
+              <List.Item><code>POST /api/public/request-magic-link</code></List.Item>
+              <List.Item><code>POST /api/users/[userId]/apps/[clientId]/request-access</code></List.Item>
+            </List>
+          </Box>
 
-          <section className={styles.section}>
-            <h2>Read Next</h2>
-            <ul>
-              <li><Link href="/docs/quickstart">Quick Start</Link></li>
-              <li><Link href="/docs/authentication">Authentication Guide</Link></li>
-              <li><Link href="/docs/integration">Integration Options</Link></li>
-              <li><Link href="/docs/api">API Reference</Link></li>
-            </ul>
-          </section>
-        </main>
-      </div>
+          <Box>
+            <Title order={2} mb="sm">Read Next</Title>
+            <List spacing="xs">
+              <List.Item><Link href="/docs/quickstart">Quick Start</Link></List.Item>
+              <List.Item><Link href="/docs/authentication">Authentication Guide</Link></List.Item>
+              <List.Item><Link href="/docs/integration">Integration Options</Link></List.Item>
+              <List.Item><Link href="/docs/api">API Reference</Link></List.Item>
+            </List>
+          </Box>
+        
+      </Stack>
     </DocsLayout>
   );
 }

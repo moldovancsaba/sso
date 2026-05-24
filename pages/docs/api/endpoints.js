@@ -1,24 +1,37 @@
+import Link from 'next/link';
+import {
+  Stack,
+  Title,
+  Text,
+  Paper,
+  Code,
+  List,
+  Box,
+  Anchor,
+  Container,
+  Divider,
+  Group,
+} from '@mantine/core';
 import DocsLayout from '../../../components/DocsLayout';
-import styles from '../../../styles/docs.module.css';
 import packageJson from '../../../package.json';
 
 export default function ApiEndpoints() {
   return (
     <DocsLayout>
-      <div className={styles.container}>
-        <header className={styles.header}>
-          <h1>API Endpoints Reference</h1>
-          <p className={styles.version}>API Version: {packageJson.version}</p>
-        </header>
+      <Stack gap="xl">
+        <Box>
+          <Title order={1} mb="xs">API Endpoints Reference</Title>
+          <Text size="sm" c="dimmed" fw={500} mb="xs">API Version: {packageJson.version}</Text>
+        </Box>
 
-        <main className={styles.main}>
-          <section className={styles.section} id="oauth">
-            <h2>OAuth / OIDC</h2>
+        
+          <Box component="section" id="oauth">
+            <Title order={2} mb="sm">OAuth / OIDC</Title>
 
-            <h3>GET /api/oauth/authorize</h3>
-            <p>Starts the OAuth authorization-code flow.</p>
-            <div className={styles.codeBlock}>
-              <pre>{`GET /api/oauth/authorize
+            <Title order={3} mb="xs">GET /api/oauth/authorize</Title>
+            <Text size="sm">Starts the OAuth authorization-code flow.</Text>
+            <Code block>
+              {`GET /api/oauth/authorize
   ?client_id=YOUR_CLIENT_ID
   &redirect_uri=https://yourapp.com/auth/callback
   &response_type=code
@@ -26,14 +39,14 @@ export default function ApiEndpoints() {
   &state=RANDOM_STATE
   &nonce=RANDOM_NONCE
   &code_challenge=PKCE_CHALLENGE
-  &code_challenge_method=S256`}</pre>
-            </div>
-            <p>Optional parameters currently supported include <code>prompt</code>, <code>provider</code>, and <code>login_hint</code>.</p>
+  &code_challenge_method=S256`}
+            </Code>
+            <Text size="sm">Optional parameters currently supported include <code>prompt</code>, <code>provider</code>, and <code>login_hint</code>.</Text>
 
-            <h3>POST /api/oauth/token</h3>
-            <p>Exchanges an authorization code or refresh token for new tokens.</p>
-            <div className={styles.codeBlock}>
-              <pre>{`POST /api/oauth/token
+            <Title order={3} mb="xs">POST /api/oauth/token</Title>
+            <Text size="sm">Exchanges an authorization code or refresh token for new tokens.</Text>
+            <Code block>
+              {`POST /api/oauth/token
 Content-Type: application/json
 
 {
@@ -43,148 +56,148 @@ Content-Type: application/json
   "client_secret": "YOUR_CLIENT_SECRET",
   "redirect_uri": "https://yourapp.com/auth/callback",
   "code_verifier": "PKCE_VERIFIER"
-}`}</pre>
-            </div>
+}`}
+            </Code>
 
-            <h3>GET /api/oauth/userinfo</h3>
-            <p>Returns OIDC claims for the current access token.</p>
+            <Title order={3} mb="xs">GET /api/oauth/userinfo</Title>
+            <Text size="sm">Returns OIDC claims for the current access token.</Text>
 
-            <h3>POST /api/oauth/revoke</h3>
-            <p>Revokes a token owned by the requesting client.</p>
+            <Title order={3} mb="xs">POST /api/oauth/revoke</Title>
+            <Text size="sm">Revokes a token owned by the requesting client.</Text>
 
-            <h3>GET /.well-known/openid-configuration</h3>
-            <p>Returns discovery metadata for OIDC clients.</p>
+            <Title order={3} mb="xs">GET /.well-known/openid-configuration</Title>
+            <Text size="sm">Returns discovery metadata for OIDC clients.</Text>
 
-            <h3>GET /.well-known/jwks.json</h3>
-            <p>Returns the public signing keys used for JWT verification.</p>
-          </section>
+            <Title order={3} mb="xs">GET /.well-known/jwks.json</Title>
+            <Text size="sm">Returns the public signing keys used for JWT verification.</Text>
+          </Box>
 
-          <section className={styles.section} id="public">
-            <h2>Public Authentication</h2>
+          <Box component="section" id="public">
+            <Title order={2} mb="sm">Public Authentication</Title>
 
-            <h3>POST /api/public/register</h3>
-            <p>Creates a new public user, or adds a password to an existing social-only account with the same email.</p>
-            <div className={styles.codeBlock}>
-              <pre>{`POST /api/public/register
+            <Title order={3} mb="xs">POST /api/public/register</Title>
+            <Text size="sm">Creates a new public user, or adds a password to an existing social-only account with the same email.</Text>
+            <Code block>
+              {`POST /api/public/register
 Content-Type: application/json
 
 {
   "email": "user@example.com",
   "password": "StrongPassword123",
   "name": "User Name"
-}`}</pre>
-            </div>
+}`}
+            </Code>
 
-            <h3>POST /api/public/login</h3>
-            <p>Authenticates a user with email and password, then sets the <code>public-session</code> cookie.</p>
-            <div className={styles.codeBlock}>
-              <pre>{`POST /api/public/login
+            <Title order={3} mb="xs">POST /api/public/login</Title>
+            <Text size="sm">Authenticates a user with email and password, then sets the <code>public-session</code> cookie.</Text>
+            <Code block>
+              {`POST /api/public/login
 Content-Type: application/json
 
 {
   "email": "user@example.com",
   "password": "StrongPassword123"
-}`}</pre>
-            </div>
-            <p>This endpoint is cookie-session based. It does not return OAuth tokens.</p>
+}`}
+            </Code>
+            <Text size="sm">This endpoint is cookie-session based. It does not return OAuth tokens.</Text>
 
-            <h3>POST /api/public/request-magic-link</h3>
-            <p>Requests a passwordless magic link for a verified public user account.</p>
-            <div className={styles.codeBlock}>
-              <pre>{`POST /api/public/request-magic-link
+            <Title order={3} mb="xs">POST /api/public/request-magic-link</Title>
+            <Text size="sm">Requests a passwordless magic link for a verified public user account.</Text>
+            <Code block>
+              {`POST /api/public/request-magic-link
 Content-Type: application/json
 
 {
   "email": "user@example.com",
   "redirect_uri": "https://yourapp.com/after-login"
-}`}</pre>
-            </div>
-            <p>Response is intentionally generic even when the account does not exist.</p>
+}`}
+            </Code>
+            <Text size="sm">Response is intentionally generic even when the account does not exist.</Text>
 
-            <h3>POST /api/public/verify-pin</h3>
-            <p>Completes a PIN-gated login flow.</p>
+            <Title order={3} mb="xs">POST /api/public/verify-pin</Title>
+            <Text size="sm">Completes a PIN-gated login flow.</Text>
 
-            <h3>GET /api/public/session</h3>
-            <p>Validates the <code>public-session</code> cookie and returns sanitized user information.</p>
+            <Title order={3} mb="xs">GET /api/public/session</Title>
+            <Text size="sm">Validates the <code>public-session</code> cookie and returns sanitized user information.</Text>
 
-            <h3>GET /api/sso/validate</h3>
-            <p>Compatibility endpoint for mixed admin/public shared-domain session validation.</p>
-          </section>
+            <Title order={3} mb="xs">GET /api/sso/validate</Title>
+            <Text size="sm">Compatibility endpoint for mixed admin/public shared-domain session validation.</Text>
+          </Box>
 
-          <section className={styles.section} id="social">
-            <h2>Social Login</h2>
+          <Box component="section" id="social">
+            <Title order={2} mb="sm">Social Login</Title>
 
-            <h3>GET /api/auth/google/login</h3>
-            <h3>GET /api/auth/google/callback</h3>
-            <h3>GET /api/auth/facebook/login</h3>
-            <h3>GET /api/auth/facebook/callback</h3>
+            <Title order={3} mb="xs">GET /api/auth/google/login</Title>
+            <Title order={3} mb="xs">GET /api/auth/google/callback</Title>
+            <Title order={3} mb="xs">GET /api/auth/facebook/login</Title>
+            <Title order={3} mb="xs">GET /api/auth/facebook/callback</Title>
 
-            <p>
+            <Text size="sm">
               Social login uses the same hosted SSO flow, with canonical callback-state parsing,
               CSRF binding, and public-session creation. These callbacks can also resume an OAuth flow
               when the login originated inside <code>/api/oauth/authorize</code>.
-            </p>
-          </section>
+            </Text>
+          </Box>
 
-          <section className={styles.section} id="permissions">
-            <h2>Permission APIs</h2>
+          <Box component="section" id="permissions">
+            <Title order={2} mb="sm">Permission APIs</Title>
 
-            <h3>GET /api/users/[userId]/apps/[clientId]/permissions</h3>
-            <p>Reads a permission record for a user/client pair.</p>
-            <p>Allowed via:</p>
-            <ul>
-              <li>matching user-bound access token for the same client</li>
-              <li>matching client token with <code>manage_permissions</code></li>
-              <li>admin session</li>
-            </ul>
+            <Title order={3} mb="xs">GET /api/users/[userId]/apps/[clientId]/permissions</Title>
+            <Text size="sm">Reads a permission record for a user/client pair.</Text>
+            <Text size="sm">Allowed via:</Text>
+            <List spacing="xs">
+              <List.Item>matching user-bound access token for the same client</List.Item>
+              <List.Item>matching client token with <code>manage_permissions</code></List.Item>
+              <List.Item>admin session</List.Item>
+            </List>
 
-            <h3>PUT /api/users/[userId]/apps/[clientId]/permissions</h3>
-            <p>Client-managed permission upsert. Requires a bearer token for the same client with <code>manage_permissions</code>.</p>
-            <div className={styles.codeBlock}>
-              <pre>{`PUT /api/users/{userId}/apps/{clientId}/permissions
+            <Title order={3} mb="xs">PUT /api/users/[userId]/apps/[clientId]/permissions</Title>
+            <Text size="sm">Client-managed permission upsert. Requires a bearer token for the same client with <code>manage_permissions</code>.</Text>
+            <Code block>
+              {`PUT /api/users/{userId}/apps/{clientId}/permissions
 Authorization: Bearer ACCESS_TOKEN
 Content-Type: application/json
 
 {
   "role": "user",
   "status": "approved"
-}`}</pre>
-            </div>
+}`}
+            </Code>
 
-            <h3>DELETE /api/users/[userId]/apps/[clientId]/permissions</h3>
-            <p>Client-managed revoke for the same client.</p>
+            <Title order={3} mb="xs">DELETE /api/users/[userId]/apps/[clientId]/permissions</Title>
+            <Text size="sm">Client-managed revoke for the same client.</Text>
 
-            <h3>POST /api/users/[userId]/apps/[clientId]/request-access</h3>
-            <p>Creates a pending access request for the same token subject and same token client.</p>
-            <div className={styles.codeBlock}>
-              <pre>{`POST /api/users/{userId}/apps/{clientId}/request-access
+            <Title order={3} mb="xs">POST /api/users/[userId]/apps/[clientId]/request-access</Title>
+            <Text size="sm">Creates a pending access request for the same token subject and same token client.</Text>
+            <Code block>
+              {`POST /api/users/{userId}/apps/{clientId}/request-access
 Authorization: Bearer ACCESS_TOKEN
 Content-Type: application/json
 
 {
   "email": "user@example.com",
   "name": "User Name"
-}`}</pre>
-            </div>
+}`}
+            </Code>
 
-            <h3>PUT /api/admin/users/[userId]/apps/[clientId]/permissions</h3>
-            <p>Admin-managed permission update.</p>
-            <div className={styles.codeBlock}>
-              <pre>{`PUT /api/admin/users/{userId}/apps/{clientId}/permissions
+            <Title order={3} mb="xs">PUT /api/admin/users/[userId]/apps/[clientId]/permissions</Title>
+            <Text size="sm">Admin-managed permission update.</Text>
+            <Code block>
+              {`PUT /api/admin/users/{userId}/apps/{clientId}/permissions
 Cookie: admin-session=... or public-session=...
 Content-Type: application/json
 
 {
   "role": "admin",
   "status": "approved"
-}`}</pre>
-            </div>
+}`}
+            </Code>
 
-            <h3>DELETE /api/admin/users/[userId]/apps/[clientId]/permissions</h3>
-            <p>Admin-managed revoke. Returns a canonical revoked/none permission shape.</p>
-          </section>
-        </main>
-      </div>
+            <Title order={3} mb="xs">DELETE /api/admin/users/[userId]/apps/[clientId]/permissions</Title>
+            <Text size="sm">Admin-managed revoke. Returns a canonical revoked/none permission shape.</Text>
+          </Box>
+        
+      </Stack>
     </DocsLayout>
   );
 }
