@@ -82,11 +82,11 @@ If your app is in testing mode, add test user emails here.
 
 **Authorized JavaScript origins:**
 - `https://sso.doneisbetter.com`
-- `http://localhost:3000` (for development)
+- `http://localhost:5500` (for development)
 
 **Authorized redirect URIs:**
 - `https://sso.doneisbetter.com/api/auth/google/callback`
-- `http://localhost:3000/api/auth/google/callback` (for development)
+- `http://localhost:5500/api/auth/google/callback` (for development)
 
 4. Click **Create**
 5. **IMPORTANT**: Copy the Client ID and Client Secret - you'll need these for environment variables
@@ -106,7 +106,7 @@ GOOGLE_REDIRECT_URI=https://sso.doneisbetter.com/api/auth/google/callback
 ```bash
 GOOGLE_CLIENT_ID=your-client-id-here.apps.googleusercontent.com
 GOOGLE_CLIENT_SECRET=your-client-secret-here
-GOOGLE_REDIRECT_URI=http://localhost:3000/api/auth/google/callback
+GOOGLE_REDIRECT_URI=http://localhost:5500/api/auth/google/callback
 ```
 
 ## Step 6: Deploy Configuration

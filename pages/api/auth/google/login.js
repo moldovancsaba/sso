@@ -15,6 +15,7 @@ import { getGoogleAuthUrl } from '../../../../lib/google.mjs'
 import logger from '../../../../lib/logger.mjs'
 import { ensureCsrfToken } from '../../../../lib/middleware/csrf.mjs'
 import { buildOAuthCallbackState, parseOAuthCallbackState } from '../../../../lib/oauth/callbackState.mjs'
+import { getSocialCallbackRedirectUri } from '../../../../lib/oauth/socialRedirectUri.mjs'
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
@@ -29,11 +30,11 @@ export default async function handler(req, res) {
 
     // WHAT: Determine redirect URI based on environment
     // WHY: Support localhost testing while keeping production secure
-    const host = req.headers.host || ''
-    const protocol = host.includes('localhost') ? 'http' : 'https'
-    const redirectUri = host.includes('localhost') 
-      ? `${protocol}://${host}/api/auth/google/callback`
-      : process.env.GOOGLE_REDIRECT_URI
+    const redirectUri = getSocialCallbackRedirectUri(
+      req,
+      process.env.GOOGLE_REDIRECT_URI,
+      '/api/auth/google/callback'
+    )
 
     // WHAT: Build Google OAuth authorization URL with OAuth request
     // WHY: Need to preserve OAuth flow context through Google redirect
