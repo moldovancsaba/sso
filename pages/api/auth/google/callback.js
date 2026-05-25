@@ -22,6 +22,7 @@ import { setAdminSessionCookie } from '../../../../lib/auth.mjs'
 import logger from '../../../../lib/logger.mjs'
 import { clearCsrfCookie, validateStateCsrfToken } from '../../../../lib/middleware/csrf.mjs'
 import { parseOAuthCallbackState } from '../../../../lib/oauth/callbackState.mjs'
+import { getSocialCallbackRedirectUri } from '../../../../lib/oauth/socialRedirectUri.mjs'
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
@@ -87,11 +88,11 @@ export default async function handler(req, res) {
 
     // WHAT: Determine redirect URI based on environment
     // WHY: Must match the redirect URI used in the authorization request
-    const host = req.headers.host || ''
-    const protocol = host.includes('localhost') ? 'http' : 'https'
-    const redirectUri = host.includes('localhost') 
-      ? `${protocol}://${host}/api/auth/google/callback`
-      : process.env.GOOGLE_REDIRECT_URI
+    const redirectUri = getSocialCallbackRedirectUri(
+      req,
+      process.env.GOOGLE_REDIRECT_URI,
+      '/api/auth/google/callback'
+    )
 
     // WHAT: Exchange authorization code for access token
     // WHY: Need access token to fetch user profile from Google

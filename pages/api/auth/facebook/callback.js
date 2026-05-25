@@ -19,6 +19,7 @@ import { createPublicSession, setPublicSessionCookie } from '../../../../lib/pub
 import logger from '../../../../lib/logger.mjs'
 import { clearCsrfCookie, validateStateCsrfToken } from '../../../../lib/middleware/csrf.mjs'
 import { parseOAuthCallbackState } from '../../../../lib/oauth/callbackState.mjs'
+import { getSocialCallbackRedirectUri } from '../../../../lib/oauth/socialRedirectUri.mjs'
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
@@ -72,9 +73,15 @@ export default async function handler(req, res) {
 
     clearCsrfCookie(res)
 
+    const redirectUri = getSocialCallbackRedirectUri(
+      req,
+      process.env.FACEBOOK_REDIRECT_URI,
+      '/api/auth/facebook/callback'
+    )
+
     // WHAT: Exchange authorization code for access token
     // WHY: Need access token to fetch user profile from Facebook
-    const tokenData = await exchangeCodeForToken(code)
+    const tokenData = await exchangeCodeForToken(code, redirectUri)
     
     if (!tokenData.access_token) {
       throw new Error('Failed to obtain access token from Facebook')

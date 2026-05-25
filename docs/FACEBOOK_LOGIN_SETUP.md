@@ -42,7 +42,7 @@ Facebook Login allows users to authenticate using their Facebook accounts. The i
 2. Find **Valid OAuth Redirect URIs**
 3. Add these URIs:
    - `https://sso.doneisbetter.com/api/auth/facebook/callback`
-   - `http://localhost:3000/api/auth/facebook/callback` (for development)
+   - `http://localhost:5500/api/auth/facebook/callback` (for development)
 4. Click **Save Changes**
 
 ## Step 4: Configure App Settings
@@ -105,7 +105,7 @@ FACEBOOK_REDIRECT_URI=https://sso.doneisbetter.com/api/auth/facebook/callback
 ```bash
 FACEBOOK_APP_ID=your-app-id-here
 FACEBOOK_APP_SECRET=your-app-secret-here
-FACEBOOK_REDIRECT_URI=http://localhost:3000/api/auth/facebook/callback
+FACEBOOK_REDIRECT_URI=http://localhost:5500/api/auth/facebook/callback
 ```
 
 ## Step 9: Deploy Configuration

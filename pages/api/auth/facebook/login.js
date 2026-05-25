@@ -14,6 +14,7 @@
 import { getFacebookAuthUrl } from '../../../../lib/facebook.mjs'
 import logger from '../../../../lib/logger.mjs'
 import { ensureCsrfToken } from '../../../../lib/middleware/csrf.mjs'
+import { getSocialCallbackRedirectUri } from '../../../../lib/oauth/socialRedirectUri.mjs'
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
@@ -25,15 +26,21 @@ export default async function handler(req, res) {
 
     await new Promise((resolve) => ensureCsrfToken(req, res, resolve))
     const csrfToken = req.csrfToken
+    const redirectUri = getSocialCallbackRedirectUri(
+      req,
+      process.env.FACEBOOK_REDIRECT_URI,
+      '/api/auth/facebook/callback'
+    )
 
     // WHAT: Build Facebook OAuth authorization URL with OAuth request
     // WHY: Need to preserve OAuth flow context through Facebook redirect
     // HOW: Pass oauth_request to getFacebookAuthUrl, which encodes it in state parameter
-    const facebookAuthUrl = getFacebookAuthUrl(csrfToken, oauth_request)
+    const facebookAuthUrl = getFacebookAuthUrl(csrfToken, oauth_request, redirectUri)
 
     logger.info('Initiating Facebook login', {
       csrf: csrfToken,
       hasOAuthRequest: !!oauth_request,
+      redirectUri,
     })
 
     // WHAT: Redirect user to Facebook OAuth page
