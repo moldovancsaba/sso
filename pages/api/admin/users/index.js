@@ -10,7 +10,9 @@ import { auditLog } from '../../../../lib/adminHelpers.mjs'
 import { AuditAction } from '../../../../lib/auditLog.mjs'
 
 export default async function handler(req, res) {
-  const admin = await requireUnifiedAdmin(req, res)
+  const admin = await requireUnifiedAdmin(req, res, {
+    requireFreshAuth: req.method === 'POST',
+  })
   if (!admin) return // requireUnifiedAdmin already sent error response
 
   if (req.method === 'GET') {
@@ -80,4 +82,3 @@ export default async function handler(req, res) {
   res.setHeader('Allow', 'GET, POST')
   return res.status(405).end(`Method ${req.method} Not Allowed`)
 }
-

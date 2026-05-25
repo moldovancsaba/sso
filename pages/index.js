@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import {
+  Badge,
   Button,
   Card,
   Code,
@@ -10,9 +11,10 @@ import {
   SimpleGrid,
   Stack,
   Text,
+  ThemeIcon,
   Title,
 } from '@mantine/core'
-import { IconApps, IconLock, IconUser } from '@tabler/icons-react'
+import { IconApps, IconBuilding, IconLock, IconShieldCheck, IconUser, IconWorld } from '@tabler/icons-react'
 
 export default function Home() {
   const [hasAdminAccess, setHasAdminAccess] = useState(false)
@@ -131,17 +133,60 @@ const session = await sso.validateSession()`}</Code>
           </Card>
         </SimpleGrid>
 
-        <Card>
-          <Group mb="sm">
-            <IconLock size={22} />
-            <Title order={2}>Operational Model</Title>
-          </Group>
-          <Text c="dimmed">
-            This repo now uses Mantine as the live product UI foundation, while the shared design, UI, and UX contracts live in
-            {' '}
-            <Code>/Users/Shared/Projects/GENERAL_DESIGN_SYSTEM</Code>.
-          </Text>
-        </Card>
+        <SimpleGrid cols={{ base: 1, md: 2 }}>
+          <Card>
+            <Stack gap="md">
+              <Group>
+                <ThemeIcon radius="xl" size="lg" variant="light">
+                  <IconShieldCheck size={18} />
+                </ThemeIcon>
+                <Title order={2}>What the Service Does</Title>
+              </Group>
+              <Text c="dimmed">
+                DoneIsBetter SSO gives your products one trusted identity layer for sign-in, session management, access control,
+                and OAuth-based application access.
+              </Text>
+              <List
+                icon={(
+                  <ThemeIcon color="blue" radius="xl" size={20} variant="light">
+                    <IconLock size={12} />
+                  </ThemeIcon>
+                )}
+                spacing="sm"
+                size="sm"
+              >
+                <List.Item>Centralized authentication for public users and internal operators</List.Item>
+                <List.Item>OAuth and OIDC flows for connected applications and internal tools</List.Item>
+                <List.Item>Account recovery, approval workflows, and audited admin operations</List.Item>
+                <List.Item>Reusable session controls across multiple products and environments</List.Item>
+              </List>
+            </Stack>
+          </Card>
+
+          <Card>
+            <Stack gap="md">
+              <Group>
+                <ThemeIcon radius="xl" size="lg" variant="light">
+                  <IconBuilding size={18} />
+                </ThemeIcon>
+                <Title order={2}>Connected Applications</Title>
+              </Group>
+              <Text c="dimmed">
+                Current integrations in this service include internal and partner-facing applications that rely on the same
+                identity, session, and authorization backbone.
+              </Text>
+              <Group gap="sm">
+                <Badge leftSection={<IconWorld size={12} />} size="lg" variant="light">LaunchMass</Badge>
+                <Badge leftSection={<IconWorld size={12} />} size="lg" variant="light">Amanoba</Badge>
+                <Badge leftSection={<IconWorld size={12} />} size="lg" variant="light">Camera</Badge>
+                <Badge leftSection={<IconApps size={12} />} size="lg" variant="light">SSO Admin Dashboard</Badge>
+              </Group>
+              <Text c="dimmed" size="sm">
+                Customer or company logos should only be added when there is explicit approval to present them publicly.
+              </Text>
+            </Stack>
+          </Card>
+        </SimpleGrid>
       </Stack>
     </Container>
   )

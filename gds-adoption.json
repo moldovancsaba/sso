@@ -1,0 +1,79 @@
+{
+  "schemaVersion": 1,
+  "gdsVersion": "2.4.3",
+  "productArchetype": "hybrid",
+  "requiredContracts": [
+    "AppShell",
+    "PageHeader",
+    "DataToolbar",
+    "ResponsiveDataView",
+    "AuthShell",
+    "ArticleShell",
+    "PublicShell",
+    "StateBlock"
+  ],
+  "localAdapters": [
+    {
+      "contract": "AppShell",
+      "path": "components/AdminShell.js",
+      "status": "active"
+    },
+    {
+      "contract": "AppShell",
+      "path": "components/AccountShell.js",
+      "status": "active"
+    },
+    {
+      "contract": "AuthShell",
+      "path": "components/AuthSurface.js",
+      "status": "active"
+    },
+    {
+      "contract": "ArticleShell",
+      "path": "components/DocsLayout.js",
+      "status": "active"
+    },
+    {
+      "contract": "PublicShell",
+      "path": "components/PublicPageLayout.js",
+      "status": "active"
+    },
+    {
+      "contract": "DataToolbar",
+      "path": "components/AdminDataToolbar.js",
+      "status": "active"
+    },
+    {
+      "contract": "ResponsiveDataView",
+      "path": "components/ResponsiveDataView.js",
+      "status": "active"
+    },
+    {
+      "contract": "StateBlock",
+      "path": "components/StateBlock.js",
+      "status": "active"
+    },
+    {
+      "contract": "ThemeProvider",
+      "path": "components/AppProviders.js",
+      "status": "active"
+    }
+  ],
+  "approvedExceptions": [
+    {
+      "surface": "OAuth provider buttons",
+      "reason": "Google and Facebook provider branding rules still require narrow custom presentation during the current migration phase.",
+      "owner": "sso-platform",
+      "reviewDate": "2026-05-25"
+    },
+    {
+      "surface": "Docs editorial surfaces",
+      "reason": "The docs area still carries legacy editorial layout/CSS while the repo remains on local Mantine wrappers instead of direct public/editorial GDS package primitives.",
+      "owner": "sso-platform",
+      "reviewDate": "2026-05-25"
+    }
+  ],
+  "migrationStatus": "partial",
+  "owner": "sso-platform",
+  "lastReviewedAt": "2026-05-25"
+}

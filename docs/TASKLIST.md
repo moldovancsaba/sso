@@ -21,6 +21,6 @@ Last updated: 2026-05-11T12:00:00.000Z
    - Prioritize Microsoft, Apple, and GitHub before lower-value providers
    - Avoid adding more providers until docs and operator guidance are aligned
 
-4. Enterprise federation groundwork
-   - Define the target approach for OIDC enterprise connections, SAML, and SCIM
-   - Separate this from consumer/social login work
+4. Enterprise federation runtime
+   - Turn the new org and enterprise-connection groundwork into live OIDC / SAML federation
+   - Define and implement SCIM provisioning boundaries separately from social login

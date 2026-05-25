@@ -59,7 +59,9 @@ async function updateSetting(key, value) {
 export default async function handler(req, res) {
   // WHAT: Verify admin authentication via unified system
   // WHY: Only users with admin permissions should be able to view/change system settings
-  const admin = await requireUnifiedAdmin(req, res)
+  const admin = await requireUnifiedAdmin(req, res, {
+    requireFreshAuth: req.method === 'POST',
+  })
   if (!admin) return
   
   try {

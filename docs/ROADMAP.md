@@ -20,6 +20,9 @@ Last updated: 2026-05-10T00:00:00.000Z
 - Normalized permission roles and statuses at runtime
 - Normalized legacy admin roles to `admin`
 - Hardened redirect handling in magic-link flows
+- Tightened high-risk admin mutations so fresh-auth checks also require a bound unified public session
+- Restored organization CRUD and org-user CRUD admin APIs
+- Added enterprise connection inventory groundwork for future OIDC, SAML, and SCIM rollout
 
 ## Next Roadmap Phases
 
@@ -43,21 +46,21 @@ Last updated: 2026-05-10T00:00:00.000Z
 - GitHub login
 - LinkedIn or Discord only if product demand justifies them
 
-### Phase 5: Enterprise federation
-- Evaluate OIDC enterprise connections
-- Evaluate SAML support
-- Define SCIM provisioning scope
-- Separate enterprise federation concerns from public social login concerns
+### Phase 5: Enterprise federation runtime
+- Turn enterprise connection inventory into live enterprise OIDC connections
+- Add SAML runtime once the contract is frozen
+- Define and implement scoped SCIM provisioning
+- Keep enterprise federation concerns separate from public social login concerns
 
-### Phase 6: Zero-trust-oriented hardening
-- Shorter-lived high-risk sessions
-- Step-up authentication for sensitive workflows
-- Stronger token binding and continuous session verification where justified
+### Phase 6: Deeper zero-trust hardening
+- Decide whether additional step-up factors should be passkeys, PIN, or both
+- Shorten high-risk session lifetimes further where the operator cost is justified
+- Expand continuous verification beyond the current admin-mutation assurance gate if production signals justify it
 
 ## Explicitly Not Yet Delivered
 
 - Apple Sign In
 - Passkeys
-- SAML
-- SCIM
-- Zero-trust session architecture
+- Live SAML federation
+- Live SCIM provisioning
+- End-to-end zero-trust session architecture

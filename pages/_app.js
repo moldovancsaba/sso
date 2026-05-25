@@ -2,13 +2,9 @@ import '@mantine/core/styles.css';
 import '@mantine/notifications/styles.css';
 import '../styles/globals.css';
 import { useState, useEffect, useCallback } from 'react';
-import { Box, MantineProvider } from '@mantine/core';
-import { ModalsProvider } from '@mantine/modals';
-import { Notifications, notifications } from '@mantine/notifications';
+import { notifications } from '@mantine/notifications';
 import { useRouter } from 'next/router';
-import AppFooter from '../components/AppFooter';
-import { mantineTheme } from '../lib/ui/mantineTheme';
-import packageJson from '../package.json';
+import AppProviders from '../components/AppProviders';
 
 export default function App({ Component, pageProps }) {
   const router = useRouter();
@@ -112,14 +108,8 @@ export default function App({ Component, pageProps }) {
   }, [handleFormSubmit, handleSignOut]);
 
   return (
-    <MantineProvider defaultColorScheme="light" theme={mantineTheme}>
-      <ModalsProvider>
-        <Notifications position="top-right" />
-        <Box pb={48}>
-          <Component {...pageProps} />
-          <AppFooter version={packageJson.version} />
-        </Box>
-      </ModalsProvider>
-    </MantineProvider>
+    <AppProviders>
+      <Component {...pageProps} />
+    </AppProviders>
   );
 }

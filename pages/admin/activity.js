@@ -13,7 +13,9 @@ import {
   Text,
 } from '@mantine/core'
 import { IconAlertCircle } from '@tabler/icons-react'
+import AdminDataToolbar from '../../components/AdminDataToolbar'
 import AdminShell from '../../components/AdminShell'
+import StateBlock from '../../components/StateBlock'
 
 export async function getServerSideProps(context) {
   const { getAdminUser } = await import('../../lib/auth.mjs')
@@ -131,8 +133,11 @@ export default function ActivityDashboard({ admin }) {
         description="Cross-app user access attempts, permission changes, and login events."
         title="Activity Dashboard"
       >
-        <Card>
-          <Grid>
+        <AdminDataToolbar
+          count={pagination.total}
+          description="Filter audit activity by time range and event family."
+          title="Activity Filters"
+        >
             <Grid.Col span={{ base: 12, md: 6 }}>
               <NativeSelect
                 data={[
@@ -165,12 +170,7 @@ export default function ActivityDashboard({ admin }) {
                 value={eventType}
               />
             </Grid.Col>
-          </Grid>
-
-          <Text c="dimmed" mt="md" size="sm">
-            Showing {logs.length} of {pagination.total} total events.
-          </Text>
-        </Card>
+        </AdminDataToolbar>
 
         {error ? (
           <Alert color="red" icon={<IconAlertCircle size={18} />}>
@@ -180,15 +180,19 @@ export default function ActivityDashboard({ admin }) {
 
         {loading ? (
           <Card>
-            <Stack align="center" py="xl">
-              <Loader />
-            </Stack>
+            <StateBlock
+              description="Fetching cross-app access attempts and login events."
+              kind="loading"
+              title="Loading activity"
+            />
           </Card>
         ) : logs.length === 0 ? (
           <Card>
-            <Text c="dimmed" ta="center">
-              No activity logs found for the selected filters.
-            </Text>
+            <StateBlock
+              description="No activity logs match the selected filters yet."
+              kind="empty"
+              title="No activity logs found"
+            />
           </Card>
         ) : (
           <Stack gap="md">

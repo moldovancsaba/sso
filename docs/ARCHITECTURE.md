@@ -35,6 +35,7 @@ Last updated: 2026-05-21T00:00:00.000Z
 - Session cookie: `public-session`
 - Session storage: `publicSessions` with hashed token storage
 - Session timeout: 30 days with sliding extension on activity
+- Elevated admin actions on the unified public-session path require the session fingerprint to continue matching the current request
 
 ### OAuth clients
 - Collection: `oauthClients`
@@ -58,6 +59,7 @@ Last updated: 2026-05-21T00:00:00.000Z
 2. Successful admin OAuth login creates a public session and checks `appPermissions` for admin access
 3. `GET /api/admin/session` validates that admin access, and still supports legacy `admin-session` users
 4. Sensitive admin mutations may require recent authentication and can return `REAUTH_REQUIRED`
+5. Sensitive unified-admin mutations also reject unbound or stale legacy public sessions and force re-auth to refresh the session binding
 
 ### Public authentication
 1. User authenticates with password, magic link, PIN, Google, or Facebook
@@ -113,6 +115,15 @@ Last updated: 2026-05-21T00:00:00.000Z
 - OAuth client registrations
 - Holds client metadata, allowed scopes, grant settings, and redirect URIs
 
+### `organizations`
+- Enterprise tenant records used to scope federation groundwork
+
+### `orgUsers`
+- Organization-scoped identities for tenant-managed access
+
+### `enterpriseConnections`
+- Enterprise OIDC / SAML metadata inventory and future SCIM attachment point
+
 ### `appPermissions`
 - Central per-user, per-app authorization records
 - Canonical source of app access state
@@ -128,5 +139,6 @@ Last updated: 2026-05-21T00:00:00.000Z
 - Passkeys are not implemented yet
 - Apple Sign In is not implemented yet
 - Enterprise federation features such as SAML and SCIM are not implemented yet
+- Enterprise groundwork endpoints exist, but they currently stop at metadata/configuration inventory rather than live federation runtime
 - Documentation pages under `pages/docs` may still lag behind this file and should be treated as secondary until reconciled
 - The current repo still contains legacy local styling infrastructure that has not yet been replaced by the shared Mantine-first design-system target

@@ -24,7 +24,9 @@ import logger from '../../../../lib/logger.mjs'
 export default async function handler(req, res) {
   // WHAT: Enforce admin authentication via unified system for all methods
   // WHY: Only SSO admins should manage cross-app permissions (security)
-  const adminUser = await requireUnifiedAdmin(req, res)
+  const adminUser = await requireUnifiedAdmin(req, res, {
+    requireFreshAuth: req.method !== 'GET',
+  })
   if (!adminUser) return // requireUnifiedAdmin already sent 401/403
 
   const { userId } = req.query
