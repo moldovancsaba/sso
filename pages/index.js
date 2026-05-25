@@ -14,7 +14,19 @@ import {
   ThemeIcon,
   Title,
 } from '@mantine/core'
-import { IconApps, IconBuilding, IconLock, IconShieldCheck, IconUser, IconWorld } from '@tabler/icons-react'
+import {
+  IconApps,
+  IconArrowRight,
+  IconBook,
+  IconBuilding,
+  IconKey,
+  IconLock,
+  IconLogin2,
+  IconShieldCheck,
+  IconUser,
+  IconUserPlus,
+  IconWorld,
+} from '@tabler/icons-react'
 
 export default function Home() {
   const [hasAdminAccess, setHasAdminAccess] = useState(false)
@@ -70,15 +82,15 @@ export default function Home() {
                     Your session is active and available for account management.
                   </Text>
                   <Group>
-                    <Button component={Link} href="/account">
+                    <Button component={Link} href="/account" leftSection={<IconUser size={16} />}>
                       My Account
                     </Button>
                     {hasAdminAccess ? (
-                      <Button color="yellow" component={Link} href="/admin" variant="filled">
+                      <Button color="yellow" component={Link} href="/admin" leftSection={<IconApps size={16} />} variant="filled">
                         SSO Admin
                       </Button>
                     ) : null}
-                    <Button component={Link} href="/logout" variant="default">
+                    <Button component={Link} href="/logout" leftSection={<IconLogin2 size={16} />} variant="default">
                       Logout
                     </Button>
                   </Group>
@@ -95,10 +107,10 @@ export default function Home() {
                     <List.Item>PIN Verification</List.Item>
                   </List>
                   <Group>
-                    <Button component={Link} href="/login">
+                    <Button component={Link} href="/login" leftSection={<IconLogin2 size={16} />}>
                       Sign In
                     </Button>
-                    <Button component={Link} href="/register" variant="default">
+                    <Button component={Link} href="/register" leftSection={<IconUserPlus size={16} />} variant="default">
                       Create Account
                     </Button>
                   </Group>
@@ -117,13 +129,13 @@ export default function Home() {
                 Integrate centralized authentication into your application with the documented OAuth and session APIs.
               </Text>
               <Group>
-                <Button component={Link} href="/docs/integration">
+                <Button component={Link} href="/docs/integration" leftSection={<IconApps size={16} />}>
                   Integration Guide
                 </Button>
-                <Button component={Link} href="/docs/api" variant="default">
+                <Button component={Link} href="/docs/api" leftSection={<IconBook size={16} />} variant="default">
                   API Documentation
                 </Button>
-                <Button component={Link} href="/docs/quickstart" variant="default">
+                <Button component={Link} href="/docs/quickstart" leftSection={<IconArrowRight size={16} />} variant="default">
                   Quick Start
                 </Button>
               </Group>
