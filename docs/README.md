@@ -76,7 +76,16 @@ Legacy compatibility inputs are normalized in runtime:
 - Public session tokens are hashed at rest in the `publicSessions` collection
 - Production public sessions use `SameSite=None`, `Secure`, and the configured shared cookie domain when cross-subdomain SSO is enabled
 - High-risk admin mutations require recent authentication and can return `REAUTH_REQUIRED` after the freshness window expires
+- High-risk unified-admin mutations also require the session fingerprint to still match the current request; stale legacy public sessions are forced back through re-auth before mutation
 - Admin UI routes preserve the current `/admin/*` path during that forced re-login and return to the same screen after OAuth completes
+
+### Enterprise groundwork
+
+- Organizations live in `organizations`
+- Organization-scoped users live in `orgUsers`
+- Enterprise identity-provider metadata lives in `enterpriseConnections`
+- Admin CRUD endpoints now exist for organizations, organization users, and enterprise connection inventory under `/api/admin/orgs/*`
+- Live enterprise OIDC, SAML login, and SCIM provisioning are still not implemented
 
 ### OAuth / OIDC contract
 
@@ -103,6 +112,8 @@ The May 2026 hardening pass delivered these changes:
 - real bearer-token validation for access-request flows
 - normalized app-permission and admin-role handling in runtime compatibility paths
 - repository guardrails and documentation-maintenance checks
+- fresh-auth admin mutations now also require a bound unified public session
+- organization and enterprise federation groundwork endpoints are active again
 
 ## Recommended Reading
 

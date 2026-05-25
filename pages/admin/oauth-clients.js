@@ -24,6 +24,8 @@ import {
   IconPlus,
 } from '@tabler/icons-react'
 import AdminShell from '../../components/AdminShell'
+import ResponsiveDataView from '../../components/ResponsiveDataView'
+import StateBlock from '../../components/StateBlock'
 import { fetchAdminJson, isAuthRedirectError } from '../../lib/adminAuthFlow.js'
 
 function initialClientForm() {
@@ -419,104 +421,136 @@ export default function OAuthClientsPage() {
             <Badge variant="light">{clients.length}</Badge>
           </Group>
 
-          {loading ? (
-            <Stack align="center" py="xl">
-              <Loader />
-            </Stack>
-          ) : clients.length === 0 ? (
-            <Text c="dimmed" ta="center">
-              No OAuth clients registered yet.
-            </Text>
-          ) : (
-            <Stack gap="md">
-              {clients.map((client) => (
-                <Paper key={client.client_id} p="lg">
-                  <Stack gap="md">
-                    <Group justify="space-between" align="flex-start">
-                      <Stack gap={4}>
-                        <Text fw={700} size="lg">
-                          {client.name}
-                        </Text>
-                        {client.description ? (
-                          <Text c="dimmed" size="sm">
-                            {client.description}
-                          </Text>
-                        ) : null}
-                        <Group gap="xs">
-                          <Badge color={client.status === 'active' ? 'green' : 'yellow'}>
-                            {client.status}
-                          </Badge>
-                          <Badge color={client.require_pkce ? 'blue' : 'gray'} variant="light">
-                            {client.require_pkce ? 'PKCE Required' : 'PKCE Optional'}
-                          </Badge>
-                        </Group>
-                      </Stack>
-
-                      {admin?.role === 'admin' ? (
-                        <Group gap="xs" wrap="wrap">
-                          <Button onClick={() => handleStartEdit(client)} variant="default">
-                            Edit
-                          </Button>
-                          <Button onClick={() => handleRegenerateSecret(client.client_id, client.name)} variant="default">
-                            Regenerate Secret
-                          </Button>
-                          <Button onClick={() => handleToggleStatus(client.client_id, client.status)} variant="default">
-                            {client.status === 'active' ? 'Suspend' : 'Activate'}
-                          </Button>
-                          <Button color="red" onClick={() => handleDeleteClient(client.client_id, client.name)}>
-                            Delete
-                          </Button>
-                        </Group>
-                      ) : null}
-                    </Group>
-
-                    <div>
-                      <Text fw={600} size="sm">Client ID</Text>
-                      <Group align="center" wrap="nowrap">
-                        <Code block style={{ flex: 1, whiteSpace: 'pre-wrap' }}>
-                          {client.client_id}
-                        </Code>
-                        <CopyButton value={client.client_id}>
-                          {({ copied, copy }) => (
-                            <Button leftSection={<IconCopy size={18} />} onClick={copy} variant="default">
-                              {copied ? 'Copied' : 'Copy'}
-                            </Button>
-                          )}
-                        </CopyButton>
-                      </Group>
-                    </div>
-
-                    <div>
-                      <Text fw={600} size="sm">Redirect URIs</Text>
-                      <Stack gap={4} mt="xs">
-                        {client.redirect_uris.map((uri) => (
-                          <Code key={uri} block>{uri}</Code>
-                        ))}
-                      </Stack>
-                    </div>
-
-                    <div>
-                      <Text fw={600} size="sm">Allowed Scopes</Text>
-                      <Group gap="xs" mt="xs">
-                        {client.allowed_scopes.map((scope) => (
-                          <Badge key={scope} variant="light">
-                            {scope}
-                          </Badge>
-                        ))}
-                      </Group>
-                    </div>
-
-                    <Group c="dimmed" gap="md">
-                      <Text size="sm">Created: {new Date(client.created_at).toLocaleDateString()}</Text>
-                      <Text size="sm">Updated: {new Date(client.updated_at).toLocaleDateString()}</Text>
-                    </Group>
-                  </Stack>
-                </Paper>
-              ))}
-            </Stack>
-          )}
+          <ResponsiveDataView
+            emptyDescription="Create an OAuth client to register the first integrated application."
+            emptyTitle="No OAuth clients registered"
+            hasItems={clients.length > 0}
+            loading={loading}
+            loadingDescription="Fetching registered OAuth client applications."
+            loadingTitle="Loading OAuth clients"
+            mobile={clients.map((client) => (
+              <Paper key={client.client_id} p="lg">
+                <ClientCardContent
+                  admin={admin}
+                  client={client}
+                  handleDeleteClient={handleDeleteClient}
+                  handleRegenerateSecret={handleRegenerateSecret}
+                  handleStartEdit={handleStartEdit}
+                  handleToggleStatus={handleToggleStatus}
+                />
+              </Paper>
+            ))}
+            desktop={() => (
+              <Stack gap="md">
+                {clients.map((client) => (
+                  <Paper key={client.client_id} p="lg">
+                    <ClientCardContent
+                      admin={admin}
+                      client={client}
+                      handleDeleteClient={handleDeleteClient}
+                      handleRegenerateSecret={handleRegenerateSecret}
+                      handleStartEdit={handleStartEdit}
+                      handleToggleStatus={handleToggleStatus}
+                    />
+                  </Paper>
+                ))}
+              </Stack>
+            )}
+          />
         </Stack>
       </Card>
     </AdminShell>
+  )
+}
+
+function ClientCardContent({
+  admin,
+  client,
+  handleDeleteClient,
+  handleRegenerateSecret,
+  handleStartEdit,
+  handleToggleStatus,
+}) {
+  return (
+    <Stack gap="md">
+      <Group justify="space-between" align="flex-start">
+        <Stack gap={4}>
+          <Text fw={700} size="lg">
+            {client.name}
+          </Text>
+          {client.description ? (
+            <Text c="dimmed" size="sm">
+              {client.description}
+            </Text>
+          ) : null}
+          <Group gap="xs">
+            <Badge color={client.status === 'active' ? 'green' : 'yellow'}>
+              {client.status}
+            </Badge>
+            <Badge color={client.require_pkce ? 'blue' : 'gray'} variant="light">
+              {client.require_pkce ? 'PKCE Required' : 'PKCE Optional'}
+            </Badge>
+          </Group>
+        </Stack>
+
+        {admin?.role === 'admin' ? (
+          <Group gap="xs" wrap="wrap">
+            <Button onClick={() => handleStartEdit(client)} variant="default">
+              Edit
+            </Button>
+            <Button onClick={() => handleRegenerateSecret(client.client_id, client.name)} variant="default">
+              Regenerate Secret
+            </Button>
+            <Button onClick={() => handleToggleStatus(client.client_id, client.status)} variant="default">
+              {client.status === 'active' ? 'Suspend' : 'Activate'}
+            </Button>
+            <Button color="red" onClick={() => handleDeleteClient(client.client_id, client.name)}>
+              Delete
+            </Button>
+          </Group>
+        ) : null}
+      </Group>
+
+      <div>
+        <Text fw={600} size="sm">Client ID</Text>
+        <Group align="center" wrap="nowrap">
+          <Code block style={{ flex: 1, whiteSpace: 'pre-wrap' }}>
+            {client.client_id}
+          </Code>
+          <CopyButton value={client.client_id}>
+            {({ copied, copy }) => (
+              <Button leftSection={<IconCopy size={18} />} onClick={copy} variant="default">
+                {copied ? 'Copied' : 'Copy'}
+              </Button>
+            )}
+          </CopyButton>
+        </Group>
+      </div>
+
+      <div>
+        <Text fw={600} size="sm">Redirect URIs</Text>
+        <Stack gap={4} mt="xs">
+          {client.redirect_uris.map((uri) => (
+            <Code key={uri} block>{uri}</Code>
+          ))}
+        </Stack>
+      </div>
+
+      <div>
+        <Text fw={600} size="sm">Allowed Scopes</Text>
+        <Group gap="xs" mt="xs">
+          {client.allowed_scopes.map((scope) => (
+            <Badge key={scope} variant="light">
+              {scope}
+            </Badge>
+          ))}
+        </Group>
+      </div>
+
+      <Group c="dimmed" gap="md">
+        <Text size="sm">Created: {new Date(client.created_at).toLocaleDateString()}</Text>
+        <Text size="sm">Updated: {new Date(client.updated_at).toLocaleDateString()}</Text>
+      </Group>
+    </Stack>
   )
 }

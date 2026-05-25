@@ -68,7 +68,9 @@ export default async function handler(req, res) {
 
     // WHAT: Validate admin session
     // WHY: Only authenticated admins can modify permissions
-    const adminUser = await requireUnifiedAdmin(req, res)
+    const adminUser = await requireUnifiedAdmin(req, res, {
+      requireFreshAuth: req.method !== 'GET',
+    })
 
 
     // WHAT: Get full admin user details from database

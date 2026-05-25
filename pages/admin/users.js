@@ -21,7 +21,10 @@ import {
   Title,
 } from '@mantine/core'
 import { IconAlertCircle, IconCircleCheck } from '@tabler/icons-react'
+import AdminDataToolbar from '../../components/AdminDataToolbar'
 import AdminShell from '../../components/AdminShell'
+import ResponsiveDataView from '../../components/ResponsiveDataView'
+import StateBlock from '../../components/StateBlock'
 import { fetchAdminJson, isAuthRedirectError } from '../../lib/adminAuthFlow.js'
 
 function loginMethodColor(method) {
@@ -371,9 +374,13 @@ export default function AdminUsersPage() {
   if (!admin) {
     return (
       <AdminShell description="Loading the admin user list." title="User Management">
-        <Group justify="center" py="xl">
-          <Loader />
-        </Group>
+        <Card>
+          <StateBlock
+            description="Loading the current admin user list."
+            kind="loading"
+            title="Loading users"
+          />
+        </Card>
       </AdminShell>
     )
   }
@@ -398,8 +405,10 @@ export default function AdminUsersPage() {
           </Alert>
         ) : null}
 
-        <Card>
-          <Grid>
+        <AdminDataToolbar
+          description="Search, filter, and sort the public user directory."
+          title="Directory Controls"
+        >
             <Grid.Col span={{ base: 12, md: 6 }}>
               <TextInput
                 label="Search"
@@ -443,74 +452,110 @@ export default function AdminUsersPage() {
                 value={sortOrder}
               />
             </Grid.Col>
-          </Grid>
-        </Card>
+        </AdminDataToolbar>
 
         <Card>
-          <Group justify="space-between" mb="md">
-            <Title order={2}>Users</Title>
-            <Badge variant="light">{filteredUsers.length}</Badge>
-          </Group>
-
-          {loading ? (
-            <Group justify="center" py="xl">
-              <Loader />
+          <Stack gap="md">
+            <Group justify="space-between">
+              <Title order={2}>Users</Title>
+              <Badge variant="light">{filteredUsers.length}</Badge>
             </Group>
-          ) : filteredUsers.length === 0 ? (
-            <Text c="dimmed" ta="center">No users found.</Text>
-          ) : (
-            <TableScrollContainer minWidth={980}>
-              <Table highlightOnHover striped>
-                <Table.Thead>
-                  <Table.Tr>
-                    <Table.Th>Email</Table.Th>
-                    <Table.Th>Name</Table.Th>
-                    <Table.Th>Login Methods</Table.Th>
-                    <Table.Th>Status</Table.Th>
-                    <Table.Th>Registered</Table.Th>
-                    <Table.Th>Last Login</Table.Th>
-                    <Table.Th>Actions</Table.Th>
-                  </Table.Tr>
-                </Table.Thead>
-                <Table.Tbody>
-                  {filteredUsers.map((user) => (
-                    <Table.Tr key={user.id}>
-                      <Table.Td>{user.email}</Table.Td>
-                      <Table.Td>{user.name || '-'}</Table.Td>
-                      <Table.Td>
-                        <Group gap={4}>
-                          {user.loginMethods?.length ? user.loginMethods.map((method) => (
-                            <Badge key={method} color={loginMethodColor(method)}>
-                              {loginMethodLabel(method)}
-                            </Badge>
-                          )) : <Text c="dimmed" size="sm">-</Text>}
-                        </Group>
-                      </Table.Td>
-                      <Table.Td>
-                        <Badge color={user.status === 'active' ? 'green' : 'red'} variant="light">
-                          {user.status || 'active'}
+
+            <ResponsiveDataView
+              emptyDescription="No users match the current search and status filters."
+              emptyTitle="No users found"
+              hasItems={filteredUsers.length > 0}
+              loading={loading}
+              loadingDescription="Fetching the public user directory."
+              loadingTitle="Loading users"
+              mobile={filteredUsers.map((user) => (
+                <Paper key={user.id} p="md">
+                  <Stack gap="sm">
+                    <Group justify="space-between" align="flex-start">
+                      <Stack gap={4}>
+                        <Text fw={600}>{user.email}</Text>
+                        <Text c="dimmed" size="sm">{user.name || 'No name set'}</Text>
+                      </Stack>
+                      <Badge color={user.status === 'active' ? 'green' : 'red'} variant="light">
+                        {user.status || 'active'}
+                      </Badge>
+                    </Group>
+                    <Group gap={4} wrap="wrap">
+                      {user.loginMethods?.length ? user.loginMethods.map((method) => (
+                        <Badge key={method} color={loginMethodColor(method)}>
+                          {loginMethodLabel(method)}
                         </Badge>
-                      </Table.Td>
-                      <Table.Td>{formatDate(user.createdAt)}</Table.Td>
-                      <Table.Td>{formatDate(user.lastLoginAt)}</Table.Td>
-                      <Table.Td>
-                        <Button
-                          onClick={() => {
-                            setSelectedUser(user)
-                            setShowDetails(true)
-                          }}
-                          size="compact-sm"
-                          variant="default"
-                        >
-                          Manage
-                        </Button>
-                      </Table.Td>
-                    </Table.Tr>
-                  ))}
-                </Table.Tbody>
-              </Table>
-            </TableScrollContainer>
-          )}
+                      )) : <Text c="dimmed" size="sm">No login methods</Text>}
+                    </Group>
+                    <Text c="dimmed" size="sm">Registered: {formatDate(user.createdAt)}</Text>
+                    <Text c="dimmed" size="sm">Last login: {formatDate(user.lastLoginAt)}</Text>
+                    <Button
+                      onClick={() => {
+                        setSelectedUser(user)
+                        setShowDetails(true)
+                      }}
+                      variant="default"
+                    >
+                      Manage
+                    </Button>
+                  </Stack>
+                </Paper>
+              ))}
+              desktop={(minWidth) => (
+                <TableScrollContainer minWidth={minWidth}>
+                  <Table highlightOnHover striped>
+                    <Table.Thead>
+                      <Table.Tr>
+                        <Table.Th>Email</Table.Th>
+                        <Table.Th>Name</Table.Th>
+                        <Table.Th>Login Methods</Table.Th>
+                        <Table.Th>Status</Table.Th>
+                        <Table.Th>Registered</Table.Th>
+                        <Table.Th>Last Login</Table.Th>
+                        <Table.Th>Actions</Table.Th>
+                      </Table.Tr>
+                    </Table.Thead>
+                    <Table.Tbody>
+                      {filteredUsers.map((user) => (
+                        <Table.Tr key={user.id}>
+                          <Table.Td>{user.email}</Table.Td>
+                          <Table.Td>{user.name || '-'}</Table.Td>
+                          <Table.Td>
+                            <Group gap={4}>
+                              {user.loginMethods?.length ? user.loginMethods.map((method) => (
+                                <Badge key={method} color={loginMethodColor(method)}>
+                                  {loginMethodLabel(method)}
+                                </Badge>
+                              )) : <Text c="dimmed" size="sm">-</Text>}
+                            </Group>
+                          </Table.Td>
+                          <Table.Td>
+                            <Badge color={user.status === 'active' ? 'green' : 'red'} variant="light">
+                              {user.status || 'active'}
+                            </Badge>
+                          </Table.Td>
+                          <Table.Td>{formatDate(user.createdAt)}</Table.Td>
+                          <Table.Td>{formatDate(user.lastLoginAt)}</Table.Td>
+                          <Table.Td>
+                            <Button
+                              onClick={() => {
+                                setSelectedUser(user)
+                                setShowDetails(true)
+                              }}
+                              size="compact-sm"
+                              variant="default"
+                            >
+                              Manage
+                            </Button>
+                          </Table.Td>
+                        </Table.Tr>
+                      ))}
+                    </Table.Tbody>
+                  </Table>
+                </TableScrollContainer>
+              )}
+            />
+          </Stack>
         </Card>
 
         <Modal
@@ -584,11 +629,17 @@ export default function AdminUsersPage() {
               ) : null}
 
               {appPermissionsLoading ? (
-                <Group justify="center" py="lg">
-                  <Loader />
-                </Group>
+                <StateBlock
+                  description="Loading the selected user's application permissions."
+                  kind="loading"
+                  title="Loading application access"
+                />
               ) : appPermissions.length === 0 ? (
-                <Text c="dimmed" size="sm">No integrated applications available.</Text>
+                <StateBlock
+                  description="This user has no integrated applications available for permission management."
+                  kind="empty"
+                  title="No applications available"
+                />
               ) : (
                 <SimpleGrid cols={{ base: 1, md: 2 }}>
                   {appPermissions.map((app) => {

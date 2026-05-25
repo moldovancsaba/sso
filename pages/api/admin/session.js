@@ -6,7 +6,7 @@
 
 import { getAdminUser } from '../../../lib/auth.mjs'
 import logger from '../../../lib/logger.mjs'
-import { getPublicUserWithAdminCheck, isFreshAuthenticationTimestamp } from '../../../lib/auth.mjs'
+import { getPublicUserWithAdminCheck, hasBoundAdminSession, isFreshAuthenticationTimestamp } from '../../../lib/auth.mjs'
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
@@ -19,6 +19,7 @@ export default async function handler(req, res) {
 
     if (unifiedAdmin?.adminPermission?.role === 'admin') {
       const authenticatedAt = unifiedAdmin.session?.authenticatedAt || unifiedAdmin.session?.createdAt || null
+      const hasBoundSession = hasBoundAdminSession(unifiedAdmin.session, req)
 
       return res.status(200).json({
         isValid: true,
@@ -33,6 +34,8 @@ export default async function handler(req, res) {
           model: 'unified-public-session',
           authenticatedAt,
           requiresRecentAuth: !isFreshAuthenticationTimestamp(authenticatedAt),
+          hasBoundSession,
+          requiresBoundSession: !hasBoundSession,
         }
       })
     }
