@@ -3,44 +3,39 @@ import {
   Stack,
   Title,
   Text,
-  Paper,
   Code,
   List,
   Box,
   Anchor,
-  Container,
-  Divider,
-  Group,
 } from '@mantine/core';
+import { AccentPanel } from '@doneisbetter/gds-core/server'
 // WHAT: Integration guide for developers adding SSO to their applications
 // WHY: Developers need clear steps to integrate OAuth 2.0 SSO into their apps
 // HOW: Provides step-by-step setup, environment configuration, and verification
 
 import DocsLayout from '../../components/DocsLayout';
-import packageJson from '../../package.json';
 
 export default function Installation() {
   return (
-    <DocsLayout>
+    <DocsLayout
+      eyebrow="Integration Guide"
+      lead="Step-by-step setup for integrating OAuth-based SSO into an external application."
+      title="Integration Guide"
+      versionLabel="SSO Version"
+    >
       <Stack gap="xl">
         <Box>
-          <Title order={1} mb="xs">Integration Guide</Title>
-          <Text size="sm" c="dimmed" fw={500} mb="xs">SSO Version: {packageJson.version}</Text>
-        </Box>
-        
-          <Box>
             <Title order={2} mb="sm">Overview</Title>
             <Text size="sm">
               This guide walks you through integrating the SSO service into your application using OAuth 2.0.
               Follow these steps to enable secure authentication for your users.
             </Text>
-            <Paper withBorder p="md" shadow="sm" radius="md" style={{ borderLeft: "4px solid var(--mantine-color-red-6)" }} bg="var(--mantine-color-red-light)">
+            <AccentPanel title="Important" tone="red" variant="soft-outline">
               <Text size="sm">
-                <strong>⚠️ Important:</strong> This guide is for application developers integrating with the SSO service,
-              not for deploying the SSO service itself.
+                This guide is for application developers integrating with the SSO service, not for deploying the SSO service itself.
               </Text>
-            </Paper>
-          </Box>
+            </AccentPanel>
+        </Box>
 
           <Box>
             <Title order={2} mb="sm">Prerequisites</Title>
@@ -59,7 +54,7 @@ export default function Installation() {
               <List.Item>Contact SSO admin: <code>sso@doneisbetter.com</code></List.Item>
               <List.Item>Provide the following information:
                 <List spacing="xs">
-                  <List.Item><strong>Application Name:</strong> e.g., "MyApp Production"</List.Item>
+                  <List.Item><strong>Application Name:</strong> e.g., &quot;MyApp Production&quot;</List.Item>
                   <List.Item><strong>Redirect URIs:</strong> e.g., <code>https://myapp.com/api/auth/callback</code></List.Item>
                   <List.Item><strong>Allowed Origins:</strong> e.g., <code>https://myapp.com</code></List.Item>
                   <List.Item><strong>Application Description:</strong> Brief description of your app</List.Item>
@@ -68,12 +63,11 @@ export default function Installation() {
               <List.Item>Wait for approval (typically within 24 hours)</List.Item>
               <List.Item>Receive your <code>client_id</code> and <code>client_secret</code></List.Item>
             </List>
-            <Paper withBorder p="md" shadow="sm" radius="md" style={{ borderLeft: "4px solid var(--mantine-color-red-6)" }} bg="var(--mantine-color-red-light)">
+            <AccentPanel title="Local development note" tone="amber" variant="soft-outline">
               <Text size="sm">
-                <strong>📝 Note:</strong> For local development, use <code>http://localhost:PORT/api/auth/callback</code> as your redirect URI.
-              Localhost origins are automatically allowed.
+                For local development, use <code>http://localhost:PORT/api/auth/callback</code> as your redirect URI. Localhost origins are automatically allowed.
               </Text>
-            </Paper>
+            </AccentPanel>
           </Box>
 
           <Box>
@@ -136,10 +130,10 @@ openssl rand -base64 32`}
             <List spacing="xs" type="ordered">
               <List.Item>Start your application: <code>npm run dev</code></List.Item>
               <List.Item>Navigate to your login page</List.Item>
-              <List.Item>Click "Sign in with SSO"</List.Item>
+              <List.Item>Click &quot;Sign in with SSO&quot;</List.Item>
               <List.Item>You should be redirected to <code>https://sso.doneisbetter.com</code></List.Item>
               <List.Item>Login with test credentials (provided by SSO admin)</List.Item>
-              <List.Item>Verify you're redirected back to your app</List.Item>
+              <List.Item>Verify you&apos;re redirected back to your app</List.Item>
               <List.Item>Check that user info is displayed correctly</List.Item>
             </List>
 
@@ -166,7 +160,7 @@ console.log('Permission should come from your backend session endpoint, not dire
               <List.Item>Contact SSO admin to register your production domain</List.Item>
               <List.Item>Update environment variables with production values</List.Item>
               <List.Item>Deploy your application</List.Item>
-              <List.Item>Request SSO admin to grant you "approved" permission status</List.Item>
+              <List.Item>Request SSO admin to grant you &quot;approved&quot; permission status</List.Item>
             </List>
           </Box>
 
@@ -191,7 +185,7 @@ console.log('Permission should come from your backend session endpoint, not dire
               <List.Item>Ensure token exchange happens on backend (not frontend)</List.Item>
               <List.Item>Verify <code>client_secret</code> is not exposed in browser</List.Item>
               <List.Item>Check authorization code is used within 10 minutes</List.Item>
-              <List.Item>Confirm code hasn't been used already (single-use)</List.Item>
+              <List.Item>Confirm code hasn&apos;t been used already (single-use)</List.Item>
             </List>
           </Box>
 

@@ -3,50 +3,45 @@ import {
   Stack,
   Title,
   Text,
-  Paper,
   Code,
   List,
   Box,
   Anchor,
-  Container,
-  Divider,
-  Group,
 } from '@mantine/core';
+import { AccentPanel } from '@doneisbetter/gds-core/server'
 // WHAT: Vanilla JavaScript OAuth 2.0 integration example without frameworks
 // WHY: Developers need pure JavaScript implementation for non-framework projects
 // HOW: Provides complete OAuth flow using standard web APIs and server-side backend
 
 import DocsLayout from '../../../components/DocsLayout';
-import packageJson from '../../../package.json';
 
 export default function VanillaExample() {
   return (
-    <DocsLayout>
+    <DocsLayout
+      eyebrow="Examples"
+      lead="Reference framework-free integration using OAuth Authorization Code flow with backend token exchange."
+      title="Vanilla JavaScript Integration Example"
+      versionLabel="SSO Version"
+    >
       <Stack gap="xl">
         <Box>
-          <Title order={1} mb="xs">Vanilla JavaScript Integration Example</Title>
-          <Text size="sm" c="dimmed" fw={500} mb="xs">SSO Version: {packageJson.version}</Text>
-        </Box>
-        
-          <Box>
             <Title order={2} mb="sm">Overview</Title>
             <Text size="sm">
               This guide demonstrates OAuth 2.0 Authorization Code Flow integration using pure JavaScript
               without any framework dependencies. The frontend handles authorization redirect while the backend
               manages token exchange securely.
             </Text>
-            <Paper withBorder p="md" shadow="sm" radius="md" style={{ borderLeft: "4px solid var(--mantine-color-red-6)" }} bg="var(--mantine-color-red-light)">
+            <AccentPanel title="Security note" tone="red" variant="soft-outline">
               <Text size="sm">
-                <strong>⚠️ Security Note:</strong> Never expose <code>client_secret</code> in your frontend code.
-              All token operations must happen on your backend server.
+                Never expose <code>client_secret</code> in your frontend code. All token operations must happen on your backend server.
               </Text>
-            </Paper>
-            <Paper withBorder p="md" shadow="sm" radius="md" style={{ borderLeft: "4px solid var(--mantine-color-yellow-6)" }} bg="var(--mantine-color-yellow-light)">
+            </AccentPanel>
+            <AccentPanel title="Current contract note" tone="amber" variant="soft-outline">
               <Text size="sm">
-                <strong>Current contract note:</strong> your backend session layer should fetch canonical app-permission state from the permission APIs and return it to the frontend. Do not treat raw <code>id_token</code> claims as the source of truth for app approval status.
+                Your backend session layer should fetch canonical app-permission state from the permission APIs and return it to the frontend. Do not treat raw <code>id_token</code> claims as the source of truth for app approval status.
               </Text>
-            </Paper>
-          </Box>
+            </AccentPanel>
+        </Box>
 
           <Box>
             <Title order={2} mb="sm">1. HTML Structure</Title>
@@ -513,16 +508,13 @@ router.post('/api/auth/refresh', async (req, res) => {
               <List.Item>✅ Clean separation of frontend and backend concerns</List.Item>
               <List.Item>✅ Token refresh capability</List.Item>
             </List>
-            <Paper withBorder p="md" shadow="sm" radius="md" style={{ borderLeft: "4px solid var(--mantine-color-red-6)" }} bg="var(--mantine-color-red-light)">
-              <Text size="sm">
-                <strong>🔗 Next Steps:</strong>
+            <AccentPanel title="Next Steps" tone="red" variant="soft-outline">
               <List spacing="xs">
                 <List.Item>Review <Anchor component={Link} href="/docs/authentication">Authentication Flow</Anchor> for detailed OAuth 2.0 explanation</List.Item>
                 <List.Item>Check <Anchor component={Link} href="/docs/app-permissions">App Permissions</Anchor> to understand permission lifecycle</List.Item>
                 <List.Item>See <Anchor component={Link} href="/docs/api/endpoints">API Reference</Anchor> for complete endpoint documentation</List.Item>
               </List>
-              </Text>
-            </Paper>
+            </AccentPanel>
           </Box>
         
       </Stack>

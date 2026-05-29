@@ -216,6 +216,18 @@ User document with Google social provider data:
 2. Restart development server: `npm run dev`
 3. Clear browser cache and reload page
 
+### Production endpoint hangs before redirecting to Google
+**Symptom**: `GET https://sso.doneisbetter.com/api/auth/google/login` times out or returns no bytes instead of `302`.
+
+**What this usually means**: Treat this as a broader SSO API runtime failure first, not immediately as a Google OAuth credential problem. In May 2026 the root cause was a Next.js Pages Router dynamic-route conflict in the admin org API tree, which broke the shared production Node runtime even though `next build` was green.
+
+**Fix / verification path**:
+1. Check a lightweight route like `GET /api/auth/login` or `GET /api/public/session`.
+2. If those also hang, run a real local production server with `npm run build` followed by `npm run start`.
+3. Look for startup errors such as `You cannot use different slug names for the same dynamic path`.
+4. Fix the route-tree/runtime error first, redeploy, then retest the Google login endpoint.
+5. Use a real `GET` request when testing; `curl -I` sends `HEAD` and this route correctly returns `405` for non-GET methods.
+
 ## Admin Dashboard
 
 Google login users appear in the admin dashboard (`/admin/users`) with a "Google" badge next to their email. You can:

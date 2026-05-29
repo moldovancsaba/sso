@@ -55,5 +55,5 @@ npm run test-connection
 - `GET /api/admin/session` is the canonical admin-session check for the admin UI.
 - `GET /api/sso/validate` remains a compatibility endpoint for mixed admin/public shared-domain checks.
 - Legacy role/status inputs are normalized in runtime compatibility paths, but documentation uses only canonical values.
-- Design, UI, and UX rules are governed by the shared SSOT in [`/Users/Shared/Projects/GENERAL_DESIGN_SYSTEM`](/Users/Shared/Projects/GENERAL_DESIGN_SYSTEM).
+- Design, UI, and UX rules are governed by the shared SSOT in the [general-design-system repo](https://github.com/sovereignsquad/general-design-system) and locally tracked in [docs/DESIGN_SYSTEM.md](/Users/Shared/Projects/sso/docs/DESIGN_SYSTEM.md).
 - Current local CSS and theme infrastructure should be treated as legacy implementation to migrate toward that Mantine-first SSOT.

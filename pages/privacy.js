@@ -1,15 +1,44 @@
 import Link from 'next/link'
-import { Anchor, List, Stack, Text, Title } from '@mantine/core'
-import PublicPageLayout from '../components/PublicPageLayout'
+import { Anchor, Box, Group, List, Stack, Text, Title } from '@mantine/core'
+import { ArticleShell, PublicBrandFooter, PublicShell } from '@doneisbetter/gds-core/server'
 
 export default function PrivacyPage() {
   return (
-    <PublicPageLayout subtitle="Last Updated: 2025-10-13T16:22:35.000Z" title="Privacy Policy">
+    <PublicShell
+      brand={
+        <Anchor component={Link} href="/" fw={700} td="none">
+          DoneIsBetter SSO
+        </Anchor>
+      }
+      compact
+      footer={
+        <PublicBrandFooter
+          brandTitle="DoneIsBetter"
+          compact
+          description="Universal SSO service for shared identity, OAuth, and centralized account access."
+          legal={<Text c="dimmed" size="xs">© 2025 DoneIsBetter. All rights reserved.</Text>}
+          secondary={
+            <Group gap="md">
+              <Anchor component={Link} href="/" size="xs">Home</Anchor>
+              <Anchor component={Link} href="/terms" size="xs">Terms of Service</Anchor>
+              <Anchor component={Link} href="/data-deletion" size="xs">Data Deletion</Anchor>
+            </Group>
+          }
+        />
+      }
+      maxContentWidth="md"
+    >
+      <Box py="xl">
+        <ArticleShell
+          eyebrow="Information"
+          lead="Last Updated: 2025-10-13T16:22:35.000Z"
+          title="Privacy Policy"
+        >
       <Stack gap="xl">
         <Stack gap="xs">
           <Title order={2}>Introduction</Title>
           <Text size="sm">
-            DoneIsBetter SSO ("we", "our", or "us") is committed to protecting your privacy. This
+            DoneIsBetter SSO (&quot;we&quot;, &quot;our&quot;, or &quot;us&quot;) is committed to protecting your privacy. This
             Privacy Policy explains how we collect, use, disclose, and safeguard your information
             when you use our Single Sign-On authentication service.
           </Text>
@@ -174,6 +203,8 @@ export default function PrivacyPage() {
           </List>
         </Stack>
       </Stack>
-    </PublicPageLayout>
+        </ArticleShell>
+      </Box>
+    </PublicShell>
   )
 }

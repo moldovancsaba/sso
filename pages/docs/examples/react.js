@@ -3,49 +3,44 @@ import {
   Stack,
   Title,
   Text,
-  Paper,
   Code,
   List,
   Box,
   Anchor,
-  Container,
-  Divider,
-  Group,
 } from '@mantine/core';
+import { AccentPanel } from '@doneisbetter/gds-core/server'
 // WHAT: React OAuth 2.0 integration example with complete implementation
 // WHY: Developers need copy-paste ready code for React apps using SSO
 // HOW: Provides AuthContext, callback handler, and protected route examples
 
 import DocsLayout from '../../../components/DocsLayout';
-import packageJson from '../../../package.json';
 
 export default function ReactExample() {
   return (
-    <DocsLayout>
+    <DocsLayout
+      eyebrow="Examples"
+      lead="Reference React integration using OAuth Authorization Code flow with backend token exchange."
+      title="React Integration Example"
+      versionLabel="SSO Version"
+    >
       <Stack gap="xl">
         <Box>
-          <Title order={1} mb="xs">React Integration Example</Title>
-          <Text size="sm" c="dimmed" fw={500} mb="xs">SSO Version: {packageJson.version}</Text>
-        </Box>
-        
-          <Box>
             <Title order={2} mb="sm">Overview</Title>
             <Text size="sm">
               This guide demonstrates OAuth 2.0 Authorization Code Flow integration in a React application.
               No special library is required—just standard OAuth 2.0 flow with your backend handling token exchange.
             </Text>
-            <Paper withBorder p="md" shadow="sm" radius="md" style={{ borderLeft: "4px solid var(--mantine-color-red-6)" }} bg="var(--mantine-color-red-light)">
+            <AccentPanel title="Security note" tone="red" variant="soft-outline">
               <Text size="sm">
-                <strong>⚠️ Security Note:</strong> Never expose <code>client_secret</code> in your React app.
-              All token exchange operations must happen on your backend server.
+                Never expose <code>client_secret</code> in your React app. All token exchange operations must happen on your backend server.
               </Text>
-            </Paper>
-            <Paper withBorder p="md" shadow="sm" radius="md" style={{ borderLeft: "4px solid var(--mantine-color-yellow-6)" }} bg="var(--mantine-color-yellow-light)">
+            </AccentPanel>
+            <AccentPanel title="Current contract note" tone="amber" variant="soft-outline">
               <Text size="sm">
-                <strong>Current contract note:</strong> when these examples talk about app approval state, your backend should derive it from the permission APIs and expose it through your own session endpoint. Do not assume raw <code>id_token</code> claims already contain canonical app-permission status.
+                When these examples talk about app approval state, your backend should derive it from the permission APIs and expose it through your own session endpoint. Do not assume raw <code>id_token</code> claims already contain canonical app-permission status.
               </Text>
-            </Paper>
-          </Box>
+            </AccentPanel>
+        </Box>
 
           <Box>
             <Title order={2} mb="sm">1. Environment Setup</Title>
@@ -438,16 +433,13 @@ export default async function handler(req, res) {
               <List.Item>✅ Protected routes with automatic redirects</List.Item>
               <List.Item>✅ Token refresh capability</List.Item>
             </List>
-            <Paper withBorder p="md" shadow="sm" radius="md" style={{ borderLeft: "4px solid var(--mantine-color-red-6)" }} bg="var(--mantine-color-red-light)">
-              <Text size="sm">
-                <strong>🔗 Next Steps:</strong>
+            <AccentPanel title="Next Steps" tone="red" variant="soft-outline">
               <List spacing="xs">
                 <List.Item>Review <Anchor component={Link} href="/docs/authentication">Authentication Flow</Anchor> for detailed OAuth 2.0 explanation</List.Item>
                 <List.Item>Check <Anchor component={Link} href="/docs/app-permissions">App Permissions</Anchor> to understand permission lifecycle</List.Item>
                 <List.Item>See <Anchor component={Link} href="/docs/api/endpoints">API Reference</Anchor> for complete endpoint documentation</List.Item>
               </List>
-              </Text>
-            </Paper>
+            </AccentPanel>
           </Box>
         
       </Stack>

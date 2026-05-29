@@ -1,50 +1,42 @@
-import Link from 'next/link';
 import {
   Stack,
   Title,
   Text,
-  Paper,
   Code,
-  List,
   Box,
-  Anchor,
-  Container,
-  Divider,
-  Group,
-} from '@mantine/core';
-import DocsLayout from '../../../components/DocsLayout';
-import packageJson from '../../../package.json';
+} from '@mantine/core'
+import DocsLayout from '../../../components/DocsLayout'
 
 export default function ApiResponses() {
   return (
-    <DocsLayout>
+    <DocsLayout
+      eyebrow="API Reference"
+      footerNext={{ href: '/docs/api/errors', label: 'Error reference' }}
+      lead="Canonical response shapes for tokens, sessions, registration, permissions, and errors."
+      title="API Response Formats"
+    >
       <Stack gap="xl">
         <Box>
-          <Title order={1} mb="xs">API Response Formats</Title>
-          <Text size="sm" c="dimmed" fw={500} mb="xs">API Version: {packageJson.version}</Text>
-        </Box>
-        
-          <Box>
-            <Title order={2} mb="sm">OAuth Token Response</Title>
-            <Code block>
-              {`{
+          <Title mb="sm" order={2}>OAuth Token Response</Title>
+          <Code block>
+            {`{
   "access_token": "JWT_ACCESS_TOKEN",
   "token_type": "Bearer",
   "expires_in": 3600,
   "refresh_token": "REFRESH_TOKEN",
   "id_token": "JWT_ID_TOKEN"
 }`}
-            </Code>
-            <Text size="sm">
-              <code>access_token</code> is used for API authorization. <code>id_token</code> carries identity claims.
-              <code>refresh_token</code> is used to obtain a new access token without re-authentication.
-            </Text>
-          </Box>
+          </Code>
+          <Text size="sm">
+            <code>access_token</code> is used for API authorization. <code>id_token</code> carries identity claims.
+            <code>refresh_token</code> is used to obtain a new access token without re-authentication.
+          </Text>
+        </Box>
 
-          <Box>
-            <Title order={2} mb="sm">ID Token Claims</Title>
-            <Code block>
-              {`{
+        <Box>
+          <Title mb="sm" order={2}>ID Token Claims</Title>
+          <Code block>
+            {`{
   "sub": "user-uuid",
   "email": "user@example.com",
   "name": "User Name",
@@ -54,17 +46,17 @@ export default function ApiResponses() {
   "exp": 1234567890,
   "iat": 1234560000
 }`}
-            </Code>
-            <Text size="sm">
-              App-level permission state is not the same thing as public-user authentication state.
-              If your app depends on per-app access or per-app role, also read the permission APIs.
-            </Text>
-          </Box>
+          </Code>
+          <Text size="sm">
+            App-level permission state is not the same thing as public-user authentication state.
+            If your app depends on per-app access or per-app role, also read the permission APIs.
+          </Text>
+        </Box>
 
-          <Box>
-            <Title order={2} mb="sm">Public Session Validation</Title>
-            <Code block>
-              {`{
+        <Box>
+          <Title mb="sm" order={2}>Public Session Validation</Title>
+          <Code block>
+            {`{
   "isValid": true,
   "user": {
     "id": "user-uuid",
@@ -76,14 +68,14 @@ export default function ApiResponses() {
     "loginMethods": ["password", "google"]
   }
 }`}
-            </Code>
-            <Text size="sm">This is the response shape for <code>GET /api/public/session</code>.</Text>
-          </Box>
+          </Code>
+          <Text size="sm">This is the response shape for <code>GET /api/public/session</code>.</Text>
+        </Box>
 
-          <Box>
-            <Title order={2} mb="sm">Registration Response</Title>
-            <Code block>
-              {`{
+        <Box>
+          <Title mb="sm" order={2}>Registration Response</Title>
+          <Code block>
+            {`{
   "success": true,
   "message": "Registration successful",
   "isAccountLinking": false,
@@ -96,14 +88,14 @@ export default function ApiResponses() {
     "createdAt": "2026-05-11T10:00:00.000Z"
   }
 }`}
-            </Code>
-            <Text size="sm">If the email already belongs to a social-only account, the endpoint can return a successful password-linking response instead of creating a new record.</Text>
-          </Box>
+          </Code>
+          <Text size="sm">If the email already belongs to a social-only account, the endpoint can return a successful password-linking response instead of creating a new record.</Text>
+        </Box>
 
-          <Box>
-            <Title order={2} mb="sm">Permission Record Response</Title>
-            <Code block>
-              {`{
+        <Box>
+          <Title mb="sm" order={2}>Permission Record Response</Title>
+          <Code block>
+            {`{
   "userId": "user-uuid",
   "clientId": "client-uuid",
   "appName": "Launchmass",
@@ -116,14 +108,14 @@ export default function ApiResponses() {
   "createdAt": "2026-05-11T10:00:00.000Z",
   "updatedAt": "2026-05-11T10:05:00.000Z"
 }`}
-            </Code>
-            <Text size="sm">Canonical permission roles are <code>none</code>, <code>user</code>, <code>admin</code>. Canonical statuses are <code>pending</code>, <code>approved</code>, <code>revoked</code>.</Text>
-          </Box>
+          </Code>
+          <Text size="sm">Canonical permission roles are <code>none</code>, <code>user</code>, <code>admin</code>. Canonical statuses are <code>pending</code>, <code>approved</code>, <code>revoked</code>.</Text>
+        </Box>
 
-          <Box>
-            <Title order={2} mb="sm">Access Request Response</Title>
-            <Code block>
-              {`{
+        <Box>
+          <Title mb="sm" order={2}>Access Request Response</Title>
+          <Code block>
+            {`{
   "message": "Access request created",
   "permission": {
     "userId": "user-uuid",
@@ -135,28 +127,27 @@ export default function ApiResponses() {
     "requestedAt": "2026-05-11T10:00:00.000Z"
   }
 }`}
-            </Code>
-          </Box>
+          </Code>
+        </Box>
 
-          <Box>
-            <Title order={2} mb="sm">Error Shapes</Title>
-            <Text size="sm">OAuth endpoints use RFC-style errors:</Text>
-            <Code block>
-              {`{
+        <Box>
+          <Title mb="sm" order={2}>Error Shapes</Title>
+          <Text size="sm">OAuth endpoints use RFC-style errors:</Text>
+          <Code block>
+            {`{
   "error": "invalid_grant",
   "error_description": "Authorization code expired or invalid"
 }`}
-            </Code>
-            <Text size="sm">Application endpoints usually use simple JSON error messages:</Text>
-            <Code block>
-              {`{
+          </Code>
+          <Text size="sm">Application endpoints usually use simple JSON error messages:</Text>
+          <Code block>
+            {`{
   "error": "Forbidden",
   "message": "Access token client does not match requested client"
 }`}
-            </Code>
-          </Box>
-        
+          </Code>
+        </Box>
       </Stack>
     </DocsLayout>
-  );
+  )
 }

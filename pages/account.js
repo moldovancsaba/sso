@@ -6,16 +6,18 @@ import {
   Badge,
   Button,
   Card,
+  Container,
   Group,
   Loader,
   Modal,
   PasswordInput,
+  Paper,
   Stack,
   Text,
   TextInput,
 } from '@mantine/core'
+import { PageHeader } from '@doneisbetter/gds-admin/server'
 import { IconAlertCircle, IconCircleCheck } from '@tabler/icons-react'
-import AccountShell from '../components/AccountShell'
 
 export async function getServerSideProps(context) {
   const { getPublicUserFromRequest } = await import('../lib/publicSessions.mjs')
@@ -317,15 +319,27 @@ export default function AccountPage({ initialUser }) {
         <meta name="description" content="Manage your SSO account" />
       </Head>
 
-      <AccountShell
-        actions={(
-          <Button component={Link} href="/logout" variant="default">
-            Logout
-          </Button>
-        )}
-        description="Manage your SSO profile, login methods, and connected services."
-        title="My Account"
-      >
+      <Container py="xl" size="md">
+        <Stack gap="lg">
+          <Paper p="lg">
+            <PageHeader
+              description="Manage your SSO profile, login methods, and connected services."
+              secondaryActions={
+                <Group gap="sm">
+                  <Button component={Link} href="/logout" variant="default">
+                    Logout
+                  </Button>
+                </Group>
+              }
+              title="My Account"
+              primaryAction={
+                <Button component={Link} href="/" size="compact-sm" variant="subtle">
+                  Back to home
+                </Button>
+              }
+            />
+          </Paper>
+
         <Card>
           <Stack gap="md">
             <Text fw={600} size="lg">Login Methods</Text>
@@ -605,7 +619,8 @@ export default function AccountPage({ initialUser }) {
             </Group>
           </Stack>
         </Modal>
-      </AccountShell>
+        </Stack>
+      </Container>
     </>
   )
 }

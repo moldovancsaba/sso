@@ -13,14 +13,15 @@ import { useRouter } from 'next/router'
 import {
   Alert,
   Anchor,
+  Box,
   Button,
   PasswordInput,
   Stack,
   Text,
   TextInput,
 } from '@mantine/core'
+import { AuthShell } from '@doneisbetter/gds-core/server'
 import { IconAlertCircle, IconAt, IconLock, IconUser, IconUserPlus } from '@tabler/icons-react'
-import AuthSurface from '../components/AuthSurface'
 
 export async function getServerSideProps(context) {
   const { redirect, oauth_request } = context.query
@@ -182,12 +183,24 @@ export default function RegisterPage({ initialRedirect, initialOAuthRequest }) {
         <meta name="description" content="Create your SSO account" />
       </Head>
 
-      <AuthSurface
-        description="Create your account to continue into the SSO service."
-        icon={IconUserPlus}
-        maxWidth={560}
-        title="Create Account"
-      >
+      <Box maw={560} mx="auto">
+        <AuthShell
+          brand={(
+            <Box
+              bg="var(--mantine-color-brand-light)"
+              c="var(--mantine-color-brand-filled)"
+              component="span"
+              display="inline-flex"
+              h={56}
+              style={{ borderRadius: '9999px', alignItems: 'center', justifyContent: 'center' }}
+              w={56}
+            >
+              <IconUserPlus size={28} stroke={1.8} />
+            </Box>
+          )}
+          description="Create your account to continue into the SSO service."
+          title="Create Account"
+        >
         <Stack gap="lg">
           {serverError ? (
             <Alert color="red" icon={<IconAlertCircle size={16} />} title="Registration failed">
@@ -256,7 +269,8 @@ export default function RegisterPage({ initialRedirect, initialOAuthRequest }) {
             </Anchor>
           </Stack>
         </Stack>
-      </AuthSurface>
+        </AuthShell>
+      </Box>
     </>
   )
 }

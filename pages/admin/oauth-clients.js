@@ -1,14 +1,17 @@
 import { useCallback, useEffect, useState } from 'react'
+import Link from 'next/link'
+import { useRouter } from 'next/router'
 import {
+  ActionIcon,
   Alert,
   Badge,
   Button,
   Card,
   Checkbox,
   Code,
+  Container,
   CopyButton,
   Group,
-  Loader,
   Modal,
   Paper,
   Stack,
@@ -21,12 +24,19 @@ import {
   IconAlertCircle,
   IconCircleCheck,
   IconCopy,
+  IconLogout,
   IconPlus,
 } from '@tabler/icons-react'
-import AdminShell from '../../components/AdminShell'
-import ResponsiveDataView from '../../components/ResponsiveDataView'
-import StateBlock from '../../components/StateBlock'
+import { ResponsiveDataView } from '@doneisbetter/gds-admin/client'
+import { PageHeader } from '@doneisbetter/gds-admin/server'
 import { fetchAdminJson, isAuthRedirectError } from '../../lib/adminAuthFlow.js'
+
+const adminNavItems = [
+  { href: '/admin/dashboard', label: 'Dashboard' },
+  { href: '/admin/users', label: 'Users' },
+  { href: '/admin/activity', label: 'Activity' },
+  { href: '/admin/oauth-clients', label: 'Clients' },
+]
 
 function initialClientForm() {
   return {
@@ -117,6 +127,7 @@ function ClientForm({ formData, loading, onChange, onSubmit, submitLabel, onCanc
 }
 
 export default function OAuthClientsPage() {
+  const router = useRouter()
   const [admin, setAdmin] = useState(null)
   const [clients, setClients] = useState([])
   const [editingClientId, setEditingClientId] = useState(null)
@@ -320,34 +331,101 @@ export default function OAuthClientsPage() {
     setShowCreateForm(false)
   }
 
+  async function handleLogout() {
+    try {
+      await fetch('/api/admin/login', { method: 'DELETE', credentials: 'include' })
+      window.location.href = '/admin'
+    } catch (logoutError) {
+      console.error('Logout error:', logoutError)
+      setMessage('Logout failed. Please try again.')
+    }
+  }
+
   if (!admin && !loading) {
     return (
-      <AdminShell description="Admin login is required for OAuth client management." title="OAuth Clients">
-        <Alert color="red" icon={<IconAlertCircle size={18} />}>
-          Please log in to access OAuth client management.
-        </Alert>
-      </AdminShell>
+      <Container py="xl" size="xl">
+        <Stack gap="lg">
+          <Paper p="lg">
+            <Stack gap="md">
+              <PageHeader
+                description="Admin login is required for OAuth client management."
+                title="OAuth Clients"
+              />
+              <Group gap="sm" wrap="wrap">
+                {adminNavItems.map((item) => (
+                  <Button
+                    key={item.href}
+                    component={Link}
+                    href={item.href}
+                    variant={router.pathname === item.href ? 'filled' : 'default'}
+                  >
+                    {item.label}
+                  </Button>
+                ))}
+              </Group>
+            </Stack>
+          </Paper>
+          <Alert color="red" icon={<IconAlertCircle size={18} />}>
+            Please log in to access OAuth client management.
+          </Alert>
+        </Stack>
+      </Container>
     )
   }
 
   return (
-    <AdminShell
-      actions={admin?.role === 'admin' ? (
-        <Button
-          leftSection={<IconPlus size={18} />}
-          onClick={() => {
-            setEditingClientId(null)
-            setFormData(initialClientForm())
-            setShowCreateForm((current) => !current)
-          }}
-        >
-          {showCreateForm ? 'Close Create Form' : 'New Client'}
-        </Button>
-      ) : null}
-      admin={admin}
-      description="Create, rotate, suspend, and inspect OAuth client applications."
-      title="OAuth Clients"
-    >
+    <Container py="xl" size="xl">
+      <Stack gap="lg">
+        <Paper p="lg">
+          <Stack gap="md">
+            <PageHeader
+              description="Create, rotate, suspend, and inspect OAuth client applications."
+              primaryAction={(
+                <ActionIcon
+                  aria-label="Logout"
+                  color="gray"
+                  onClick={handleLogout}
+                  variant="default"
+                >
+                  <IconLogout size={18} />
+                </ActionIcon>
+              )}
+              secondaryActions={(
+                <Group gap="sm" justify="flex-end" wrap="wrap">
+                  <Text c="dimmed" size="sm">
+                    {admin?.email} ({admin?.role})
+                  </Text>
+                  {admin?.role === 'admin' ? (
+                    <Button
+                      leftSection={<IconPlus size={18} />}
+                      onClick={() => {
+                        setEditingClientId(null)
+                        setFormData(initialClientForm())
+                        setShowCreateForm((current) => !current)
+                      }}
+                    >
+                      {showCreateForm ? 'Close Create Form' : 'New Client'}
+                    </Button>
+                  ) : null}
+                </Group>
+              )}
+              title="OAuth Clients"
+            />
+            <Group gap="sm" wrap="wrap">
+              {adminNavItems.map((item) => (
+                <Button
+                  key={item.href}
+                  component={Link}
+                  href={item.href}
+                  variant={router.pathname === item.href ? 'filled' : 'default'}
+                >
+                  {item.label}
+                </Button>
+              ))}
+            </Group>
+          </Stack>
+        </Paper>
+
       {message ? (
         <Alert
           color={isErrorMessage(message) ? 'red' : 'blue'}
@@ -422,13 +500,60 @@ export default function OAuthClientsPage() {
           </Group>
 
           <ResponsiveDataView
+            columns={[
+              {
+                key: 'name',
+                label: 'Client',
+                render: (client) => (
+                  <Stack gap={4}>
+                    <Text fw={700}>{client.name}</Text>
+                    {client.description ? (
+                      <Text c="dimmed" size="sm">
+                        {client.description}
+                      </Text>
+                    ) : null}
+                  </Stack>
+                ),
+              },
+              {
+                key: 'status',
+                label: 'Status',
+                render: (client) => (
+                  <Group gap="xs">
+                    <Badge color={client.status === 'active' ? 'green' : 'yellow'}>
+                      {client.status}
+                    </Badge>
+                    <Badge color={client.require_pkce ? 'blue' : 'gray'} variant="light">
+                      {client.require_pkce ? 'PKCE Required' : 'PKCE Optional'}
+                    </Badge>
+                  </Group>
+                ),
+              },
+              {
+                key: 'allowed_scopes',
+                label: 'Scopes',
+                render: (client) => (
+                  <Group gap="xs">
+                    {client.allowed_scopes.map((scope) => (
+                      <Badge key={scope} variant="light">
+                        {scope}
+                      </Badge>
+                    ))}
+                  </Group>
+                ),
+              },
+              {
+                key: 'updated_at',
+                label: 'Updated',
+                render: (client) => new Date(client.updated_at).toLocaleDateString(),
+              },
+            ]}
+            data={clients}
             emptyDescription="Create an OAuth client to register the first integrated application."
             emptyTitle="No OAuth clients registered"
-            hasItems={clients.length > 0}
+            getRowKey={(client) => client.client_id}
             loading={loading}
-            loadingDescription="Fetching registered OAuth client applications."
-            loadingTitle="Loading OAuth clients"
-            mobile={clients.map((client) => (
+            renderCard={(client) => (
               <Paper key={client.client_id} p="lg">
                 <ClientCardContent
                   admin={admin}
@@ -439,27 +564,12 @@ export default function OAuthClientsPage() {
                   handleToggleStatus={handleToggleStatus}
                 />
               </Paper>
-            ))}
-            desktop={() => (
-              <Stack gap="md">
-                {clients.map((client) => (
-                  <Paper key={client.client_id} p="lg">
-                    <ClientCardContent
-                      admin={admin}
-                      client={client}
-                      handleDeleteClient={handleDeleteClient}
-                      handleRegenerateSecret={handleRegenerateSecret}
-                      handleStartEdit={handleStartEdit}
-                      handleToggleStatus={handleToggleStatus}
-                    />
-                  </Paper>
-                ))}
-              </Stack>
             )}
           />
         </Stack>
       </Card>
-    </AdminShell>
+      </Stack>
+    </Container>
   )
 }
 

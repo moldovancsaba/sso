@@ -3,41 +3,33 @@ import {
   Stack,
   Title,
   Text,
-  Paper,
   Code,
   List,
   Box,
-  Anchor,
-  Container,
-  Divider,
-  Group,
 } from '@mantine/core';
+import { AccentPanel } from '@doneisbetter/gds-core/server'
 import DocsLayout from '../../components/DocsLayout';
-import packageJson from '../../package.json';
 
 export default function Quickstart() {
   return (
-    <DocsLayout>
+    <DocsLayout
+      eyebrow="Getting Started"
+      lead="The shortest safe path from client registration to a working OAuth integration."
+      title="Quick Start Guide"
+    >
       <Stack gap="xl">
-        <Box>
-          <Title order={1} mb="xs">Quick Start Guide</Title>
-          <Text size="sm" c="dimmed" fw={500} mb="xs">API Version: {packageJson.version}</Text>
-        </Box>
-        
-          <Box>
-            <Paper withBorder p="md" shadow="sm" radius="md" style={{ borderLeft: "4px solid var(--mantine-color-yellow-6)" }} bg="var(--mantine-color-yellow-light)">
-              <Text size="sm">
-                <strong>Recommended path:</strong> use OAuth 2.0 Authorization Code flow. Do not treat the public
-                password-login endpoint as a replacement for OAuth token issuance.
-              </Text>
-              <Text size="sm">
-                <strong>Design / UI / UX SSOT:</strong> if you are implementing login screens, auth forms, or app UI around this flow,
-                follow <code>/Users/Shared/Projects/GENERAL_DESIGN_SYSTEM</code> as the authoritative cross-project design system.
-              </Text>
-            </Paper>
-          </Box>
+        <AccentPanel title="Recommended path" tone="amber" variant="soft-outline">
+          <Stack gap="sm">
+            <Text size="sm">
+              Use OAuth 2.0 Authorization Code flow. Do not treat the public password-login endpoint as a replacement for OAuth token issuance.
+            </Text>
+            <Text size="sm">
+              If you are implementing login screens, auth forms, or app UI around this flow, follow the shared <Link href="https://github.com/sovereignsquad/general-design-system">General Design System</Link> as the authoritative cross-project design system.
+            </Text>
+          </Stack>
+        </AccentPanel>
 
-          <Box>
+        <Box>
             <Title order={2} mb="sm">1. Register Your OAuth Client</Title>
             <Text size="sm">Create an OAuth client in the SSO admin UI and store:</Text>
             <Code block>
@@ -45,9 +37,9 @@ export default function Quickstart() {
 SSO_CLIENT_SECRET=your-client-secret
 SSO_REDIRECT_URI=https://yourapp.com/auth/callback`}
             </Code>
-          </Box>
+        </Box>
 
-          <Box>
+        <Box>
             <Title order={2} mb="sm">2. Redirect to Authorization</Title>
             <Code block>
               {`GET /api/oauth/authorize
@@ -61,9 +53,9 @@ SSO_REDIRECT_URI=https://yourapp.com/auth/callback`}
   &code_challenge_method=S256`}
             </Code>
             <Text size="sm">Users can authenticate there with password, magic link, PIN, Google, or Facebook.</Text>
-          </Box>
+        </Box>
 
-          <Box>
+        <Box>
             <Title order={2} mb="sm">3. Exchange the Code Server-Side</Title>
             <Code block>
               {`POST /api/oauth/token
@@ -78,25 +70,24 @@ Content-Type: application/json
   "code_verifier": "PKCE_VERIFIER"
 }`}
             </Code>
-          </Box>
+        </Box>
 
-          <Box>
+        <Box>
             <Title order={2} mb="sm">4. Use Tokens Correctly</Title>
             <List spacing="xs">
               <List.Item>Use <code>id_token</code> for identity claims.</List.Item>
               <List.Item>Use <code>access_token</code> for SSO API authorization.</List.Item>
               <List.Item>Refresh expired access tokens with <code>grant_type=refresh_token</code>.</List.Item>
             </List>
-          </Box>
+        </Box>
 
-          <Box>
+        <Box>
             <Title order={2} mb="sm">5. Check App Permission State</Title>
             <Text size="sm">
               Authentication alone is not enough for per-app access. Check or manage permission state with the
               relevant permission endpoints.
             </Text>
-          </Box>
-        
+        </Box>
       </Stack>
     </DocsLayout>
   );

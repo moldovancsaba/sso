@@ -3,6 +3,7 @@ import Link from 'next/link'
 import {
   Alert,
   Anchor,
+  Box,
   Button,
   Card,
   Group,
@@ -11,8 +12,8 @@ import {
   Text,
   Title,
 } from '@mantine/core'
+import { ArticleShell, PublicBrandFooter, PublicShell } from '@doneisbetter/gds-core/server'
 import { IconAlertTriangle, IconCheck, IconInfoCircle, IconTrash } from '@tabler/icons-react'
-import PublicPageLayout from '../components/PublicPageLayout'
 
 export default function DataDeletionPage() {
   const [user, setUser] = useState(null)
@@ -74,7 +75,36 @@ export default function DataDeletionPage() {
   }
 
   return (
-    <PublicPageLayout subtitle="Your right to be forgotten." title="Data Deletion Request">
+    <PublicShell
+      brand={
+        <Anchor component={Link} href="/" fw={700} td="none">
+          DoneIsBetter SSO
+        </Anchor>
+      }
+      compact
+      footer={
+        <PublicBrandFooter
+          brandTitle="DoneIsBetter"
+          compact
+          description="Universal SSO service for shared identity, OAuth, and centralized account access."
+          legal={<Text c="dimmed" size="xs">© 2025 DoneIsBetter. All rights reserved.</Text>}
+          secondary={
+            <Group gap="md">
+              <Anchor component={Link} href="/" size="xs">Home</Anchor>
+              <Anchor component={Link} href="/privacy" size="xs">Privacy Policy</Anchor>
+              <Anchor component={Link} href="/terms" size="xs">Terms of Service</Anchor>
+            </Group>
+          }
+        />
+      }
+      maxContentWidth="md"
+    >
+      <Box py="xl">
+        <ArticleShell
+          eyebrow="Information"
+          lead="Your right to be forgotten."
+          title="Data Deletion Request"
+        >
       <Stack gap="xl">
         <Stack gap="xs">
           <Title order={2}>Account and Data Deletion</Title>
@@ -284,6 +314,8 @@ export default function DataDeletionPage() {
           </List>
         </Stack>
       </Stack>
-    </PublicPageLayout>
+        </ArticleShell>
+      </Box>
+    </PublicShell>
   )
 }

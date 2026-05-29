@@ -23,6 +23,9 @@ Security:
 
 Backend (Stability):
 - Avoid import-time DB client instantiation in serverless environments; lazily create the Mongo client inside getDb() to prevent function cold-start crashes and "Empty reply from server".
+- Next.js Pages Router API trees must use one canonical slug name per dynamic path level. Mixing names such as `pages/api/admin/orgs/[id].js` and `pages/api/admin/orgs/[orgId]/...` can crash the production server runtime with `You cannot use different slug names for the same dynamic path`, even when `next build` succeeds.
+- When production OAuth endpoints time out before redirecting, do not assume the provider setup is the first problem. Verify unrelated lightweight API routes like `GET /api/auth/login` and `GET /api/public/session`; if they also hang, reproduce with local `next start` before debugging Google or Facebook settings.
+- `curl -I` sends `HEAD`, not `GET`. For auth login routes that intentionally only allow `GET`, a `405` to `HEAD` is expected and should not be misread as a broken OAuth redirect flow.
 
 Session Management (Critical):
 - Cookie-only validation is insufficient for proper session management; always validate against database to enable revocation

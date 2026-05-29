@@ -1,31 +1,38 @@
 import { useCallback, useEffect, useState } from 'react'
 import Head from 'next/head'
+import Link from 'next/link'
+import { useRouter } from 'next/router'
 import {
+  ActionIcon,
   Alert,
   Badge,
   Button,
   Card,
+  Container,
   Divider,
   Grid,
   Group,
-  Loader,
   Modal,
   NativeSelect,
   Paper,
   SimpleGrid,
   Stack,
-  Table,
-  TableScrollContainer,
   Text,
   TextInput,
   Title,
 } from '@mantine/core'
-import { IconAlertCircle, IconCircleCheck } from '@tabler/icons-react'
-import AdminDataToolbar from '../../components/AdminDataToolbar'
-import AdminShell from '../../components/AdminShell'
-import ResponsiveDataView from '../../components/ResponsiveDataView'
-import StateBlock from '../../components/StateBlock'
+import { IconAlertCircle, IconCircleCheck, IconLogout } from '@tabler/icons-react'
+import { DataToolbar, StateBlock } from '@doneisbetter/gds-core/server'
+import { ResponsiveDataView } from '@doneisbetter/gds-admin/client'
+import { PageHeader } from '@doneisbetter/gds-admin/server'
 import { fetchAdminJson, isAuthRedirectError } from '../../lib/adminAuthFlow.js'
+
+const adminNavItems = [
+  { href: '/admin/dashboard', label: 'Dashboard' },
+  { href: '/admin/users', label: 'Users' },
+  { href: '/admin/activity', label: 'Activity' },
+  { href: '/admin/oauth-clients', label: 'Clients' },
+]
 
 function loginMethodColor(method) {
   if (method === 'facebook') return 'blue'
@@ -38,7 +45,13 @@ function loginMethodLabel(method) {
   return method.charAt(0).toUpperCase() + method.slice(1)
 }
 
+function openUserDetails(user, setSelectedUser, setShowDetails) {
+  setSelectedUser(user)
+  setShowDetails(true)
+}
+
 export default function AdminUsersPage() {
+  const router = useRouter()
   const [admin, setAdmin] = useState(null)
   const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(true)
@@ -371,17 +384,49 @@ export default function AdminUsersPage() {
     }
   }
 
+  async function handleLogout() {
+    try {
+      await fetch('/api/admin/login', { method: 'DELETE', credentials: 'include' })
+      window.location.href = '/admin'
+    } catch (logoutError) {
+      console.error('Logout error:', logoutError)
+      setMessage({ type: 'error', text: 'Logout failed. Please try again.' })
+    }
+  }
+
   if (!admin) {
     return (
-      <AdminShell description="Loading the admin user list." title="User Management">
-        <Card>
-          <StateBlock
-            description="Loading the current admin user list."
-            kind="loading"
-            title="Loading users"
-          />
-        </Card>
-      </AdminShell>
+      <Container py="xl" size="xl">
+        <Stack gap="lg">
+          <Paper p="lg">
+            <Stack gap="md">
+              <PageHeader
+                description="Loading the admin user list."
+                title="User Management"
+              />
+              <Group gap="sm" wrap="wrap">
+                {adminNavItems.map((item) => (
+                  <Button
+                    key={item.href}
+                    component={Link}
+                    href={item.href}
+                    variant={router.pathname === item.href ? 'filled' : 'default'}
+                  >
+                    {item.label}
+                  </Button>
+                ))}
+              </Group>
+            </Stack>
+          </Paper>
+          <Card>
+            <StateBlock
+              description="Loading the current admin user list."
+              variant="loading"
+              title="Loading users"
+            />
+          </Card>
+        </Stack>
+      </Container>
     )
   }
 
@@ -391,11 +436,46 @@ export default function AdminUsersPage() {
         <title>User Management - SSO Admin</title>
       </Head>
 
-      <AdminShell
-        admin={admin}
-        description="Manage public users, linked login methods, and per-application access."
-        title="User Management"
-      >
+      <Container py="xl" size="xl">
+        <Stack gap="lg">
+          <Paper p="lg">
+            <Stack gap="md">
+              <PageHeader
+                description="Manage public users, linked login methods, and per-application access."
+                primaryAction={(
+                  <ActionIcon
+                    aria-label="Logout"
+                    color="gray"
+                    onClick={handleLogout}
+                    variant="default"
+                  >
+                    <IconLogout size={18} />
+                  </ActionIcon>
+                )}
+                secondaryActions={(
+                  <Group gap="sm" justify="flex-end" wrap="wrap">
+                    <Text c="dimmed" size="sm">
+                      {admin.email} ({admin.role})
+                    </Text>
+                  </Group>
+                )}
+                title="User Management"
+              />
+              <Group gap="sm" wrap="wrap">
+                {adminNavItems.map((item) => (
+                  <Button
+                    key={item.href}
+                    component={Link}
+                    href={item.href}
+                    variant={router.pathname === item.href ? 'filled' : 'default'}
+                  >
+                    {item.label}
+                  </Button>
+                ))}
+              </Group>
+            </Stack>
+          </Paper>
+
         {message ? (
           <Alert
             color={message.type === 'error' ? 'red' : 'green'}
@@ -405,10 +485,16 @@ export default function AdminUsersPage() {
           </Alert>
         ) : null}
 
-        <AdminDataToolbar
-          description="Search, filter, and sort the public user directory."
-          title="Directory Controls"
-        >
+        <Card>
+          <Stack gap="md">
+            <Stack gap={4}>
+              <Title order={2}>Directory Controls</Title>
+              <Text c="dimmed" size="sm">
+                Search, filter, and sort the public user directory.
+              </Text>
+            </Stack>
+            <DataToolbar />
+            <Grid>
             <Grid.Col span={{ base: 12, md: 6 }}>
               <TextInput
                 label="Search"
@@ -452,7 +538,9 @@ export default function AdminUsersPage() {
                 value={sortOrder}
               />
             </Grid.Col>
-        </AdminDataToolbar>
+            </Grid>
+          </Stack>
+        </Card>
 
         <Card>
           <Stack gap="md">
@@ -462,13 +550,69 @@ export default function AdminUsersPage() {
             </Group>
 
             <ResponsiveDataView
+              columns={[
+                { key: 'email', label: 'Email' },
+                {
+                  key: 'name',
+                  label: 'Name',
+                  render: (user) => user.name || '-',
+                },
+                {
+                  key: 'loginMethods',
+                  label: 'Login Methods',
+                  render: (user) => (
+                    <Group gap={4}>
+                      {user.loginMethods?.length ? user.loginMethods.map((method) => (
+                        <Badge key={method} color={loginMethodColor(method)}>
+                          {loginMethodLabel(method)}
+                        </Badge>
+                      )) : (
+                        <Text c="dimmed" size="sm">
+                          -
+                        </Text>
+                      )}
+                    </Group>
+                  ),
+                },
+                {
+                  key: 'status',
+                  label: 'Status',
+                  render: (user) => (
+                    <Badge color={user.status === 'active' ? 'green' : 'red'} variant="light">
+                      {user.status || 'active'}
+                    </Badge>
+                  ),
+                },
+                {
+                  key: 'createdAt',
+                  label: 'Registered',
+                  render: (user) => formatDate(user.createdAt),
+                },
+                {
+                  key: 'lastLoginAt',
+                  label: 'Last Login',
+                  render: (user) => formatDate(user.lastLoginAt),
+                },
+                {
+                  key: 'actions',
+                  label: 'Actions',
+                  render: (user) => (
+                    <Button
+                      onClick={() => openUserDetails(user, setSelectedUser, setShowDetails)}
+                      size="compact-sm"
+                      variant="default"
+                    >
+                      Manage
+                    </Button>
+                  ),
+                },
+              ]}
+              data={filteredUsers}
               emptyDescription="No users match the current search and status filters."
               emptyTitle="No users found"
-              hasItems={filteredUsers.length > 0}
+              getRowKey={(user) => user.id}
               loading={loading}
-              loadingDescription="Fetching the public user directory."
-              loadingTitle="Loading users"
-              mobile={filteredUsers.map((user) => (
+              renderCard={(user) => (
                 <Paper key={user.id} p="md">
                   <Stack gap="sm">
                     <Group justify="space-between" align="flex-start">
@@ -490,69 +634,13 @@ export default function AdminUsersPage() {
                     <Text c="dimmed" size="sm">Registered: {formatDate(user.createdAt)}</Text>
                     <Text c="dimmed" size="sm">Last login: {formatDate(user.lastLoginAt)}</Text>
                     <Button
-                      onClick={() => {
-                        setSelectedUser(user)
-                        setShowDetails(true)
-                      }}
+                      onClick={() => openUserDetails(user, setSelectedUser, setShowDetails)}
                       variant="default"
                     >
                       Manage
                     </Button>
                   </Stack>
                 </Paper>
-              ))}
-              desktop={(minWidth) => (
-                <TableScrollContainer minWidth={minWidth}>
-                  <Table highlightOnHover striped>
-                    <Table.Thead>
-                      <Table.Tr>
-                        <Table.Th>Email</Table.Th>
-                        <Table.Th>Name</Table.Th>
-                        <Table.Th>Login Methods</Table.Th>
-                        <Table.Th>Status</Table.Th>
-                        <Table.Th>Registered</Table.Th>
-                        <Table.Th>Last Login</Table.Th>
-                        <Table.Th>Actions</Table.Th>
-                      </Table.Tr>
-                    </Table.Thead>
-                    <Table.Tbody>
-                      {filteredUsers.map((user) => (
-                        <Table.Tr key={user.id}>
-                          <Table.Td>{user.email}</Table.Td>
-                          <Table.Td>{user.name || '-'}</Table.Td>
-                          <Table.Td>
-                            <Group gap={4}>
-                              {user.loginMethods?.length ? user.loginMethods.map((method) => (
-                                <Badge key={method} color={loginMethodColor(method)}>
-                                  {loginMethodLabel(method)}
-                                </Badge>
-                              )) : <Text c="dimmed" size="sm">-</Text>}
-                            </Group>
-                          </Table.Td>
-                          <Table.Td>
-                            <Badge color={user.status === 'active' ? 'green' : 'red'} variant="light">
-                              {user.status || 'active'}
-                            </Badge>
-                          </Table.Td>
-                          <Table.Td>{formatDate(user.createdAt)}</Table.Td>
-                          <Table.Td>{formatDate(user.lastLoginAt)}</Table.Td>
-                          <Table.Td>
-                            <Button
-                              onClick={() => {
-                                setSelectedUser(user)
-                                setShowDetails(true)
-                              }}
-                              size="compact-sm"
-                              variant="default"
-                            >
-                              Manage
-                            </Button>
-                          </Table.Td>
-                        </Table.Tr>
-                      ))}
-                    </Table.Tbody>
-                  </Table>
-                </TableScrollContainer>
               )}
             />
           </Stack>
@@ -631,13 +719,13 @@ export default function AdminUsersPage() {
               {appPermissionsLoading ? (
                 <StateBlock
                   description="Loading the selected user's application permissions."
-                  kind="loading"
+                  variant="loading"
                   title="Loading application access"
                 />
               ) : appPermissions.length === 0 ? (
                 <StateBlock
                   description="This user has no integrated applications available for permission management."
-                  kind="empty"
+                  variant="empty"
                   title="No applications available"
                 />
               ) : (
@@ -807,7 +895,8 @@ export default function AdminUsersPage() {
             </Stack>
           ) : null}
         </Modal>
-      </AdminShell>
+        </Stack>
+      </Container>
     </>
   )
 }

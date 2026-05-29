@@ -1,10 +1,39 @@
 import Link from 'next/link'
-import { Anchor, List, Stack, Text, Title } from '@mantine/core'
-import PublicPageLayout from '../components/PublicPageLayout'
+import { Anchor, Box, Group, List, Stack, Text, Title } from '@mantine/core'
+import { ArticleShell, PublicBrandFooter, PublicShell } from '@doneisbetter/gds-core/server'
 
 export default function TermsPage() {
   return (
-    <PublicPageLayout subtitle="Last Updated: 2025-10-13T16:22:35.000Z" title="Terms of Service">
+    <PublicShell
+      brand={
+        <Anchor component={Link} href="/" fw={700} td="none">
+          DoneIsBetter SSO
+        </Anchor>
+      }
+      compact
+      footer={
+        <PublicBrandFooter
+          brandTitle="DoneIsBetter"
+          compact
+          description="Universal SSO service for shared identity, OAuth, and centralized account access."
+          legal={<Text c="dimmed" size="xs">© 2025 DoneIsBetter. All rights reserved.</Text>}
+          secondary={
+            <Group gap="md">
+              <Anchor component={Link} href="/" size="xs">Home</Anchor>
+              <Anchor component={Link} href="/privacy" size="xs">Privacy Policy</Anchor>
+              <Anchor component={Link} href="/data-deletion" size="xs">Data Deletion</Anchor>
+            </Group>
+          }
+        />
+      }
+      maxContentWidth="md"
+    >
+      <Box py="xl">
+        <ArticleShell
+          eyebrow="Information"
+          lead="Last Updated: 2025-10-13T16:22:35.000Z"
+          title="Terms of Service"
+        >
       <Stack gap="xl">
         <Stack gap="xs">
           <Title order={2}>1. Acceptance of Terms</Title>
@@ -285,6 +314,8 @@ export default function TermsPage() {
           </List>
         </Stack>
       </Stack>
-    </PublicPageLayout>
+        </ArticleShell>
+      </Box>
+    </PublicShell>
   )
 }

@@ -3,32 +3,46 @@ import {
   Stack,
   Title,
   Text,
-  Paper,
   Code,
   List,
   Box,
   Anchor,
-  Container,
-  Divider,
-  Group,
 } from '@mantine/core';
+import { AccentPanel, SimpleDataTable } from '@doneisbetter/gds-core/server'
 // WHAT: App permissions system documentation for OAuth 2.0 SSO integration
 // WHY: Developers need to understand app-level permissions and roles
 // HOW: Explains backend-derived permissionStatus, app roles, and two-level access control
 
 import DocsLayout from '../../../components/DocsLayout';
-import packageJson from '../../../package.json';
+
+const permissionStatusRows = [
+  {
+    status: 'approved',
+    meaning: 'User has been granted access by SSO admin',
+    userAction: 'Can use the application',
+  },
+  {
+    status: 'pending',
+    meaning: 'User requested access, awaiting admin approval',
+    userAction: 'Show "Access Pending" message',
+  },
+  {
+    status: 'revoked',
+    meaning: 'User access was revoked by SSO admin',
+    userAction: 'Show "Access Denied" message',
+  },
+]
 
 export default function SecurityPermissions() {
   return (
-    <DocsLayout>
+    <DocsLayout
+      eyebrow="Security"
+      lead="Operational model and UI expectations for permission-aware access control."
+      title="App Permissions System"
+      versionLabel="SSO Version"
+    >
       <Stack gap="xl">
         <Box>
-          <Title order={1} mb="xs">App Permissions System</Title>
-          <Text size="sm" c="dimmed" fw={500} mb="xs">SSO Version: {packageJson.version}</Text>
-        </Box>
-        
-          <Box>
             <Title order={2} mb="sm">Overview</Title>
             <Text size="sm">
               The SSO service implements a two-level access control system:
@@ -40,42 +54,34 @@ export default function SecurityPermissions() {
             <Text size="sm">
               This document focuses on <strong>SSO-level permissions</strong> that affect OAuth 2.0 authentication.
             </Text>
-            <Paper withBorder p="md" shadow="sm" radius="md" style={{ borderLeft: "4px solid var(--mantine-color-yellow-6)" }} bg="var(--mantine-color-yellow-light)">
+            <AccentPanel title="Current contract note" tone="amber" variant="soft-outline">
               <Text size="sm">
-                <strong>Current contract note:</strong> canonical app-permission state comes from the permission APIs. If your app exposes a <code>permissionStatus</code> field internally, that should be your own backend&apos;s derived session field, not an assumed raw ID-token claim.
+                Canonical app-permission state comes from the permission APIs. If your app exposes a <code>permissionStatus</code> field internally, that should be your own backend&apos;s derived session field, not an assumed raw ID-token claim.
               </Text>
-            </Paper>
-          </Box>
+            </AccentPanel>
+        </Box>
 
           <Box>
             <Title order={2} mb="sm">Permission Status (SSO-Level)</Title>
             <Text size="sm">Every user has a backend-derived <code>permissionStatus</code> for each application they attempt to access:</Text>
-            <table style={{width: '100%', marginTop: '1rem', borderCollapse: 'collapse'}}>
-              <thead>
-                <tr style={{borderBottom: '2px solid #333'}}>
-                  <th style={{textAlign: 'left', padding: '0.5rem'}}>Status</th>
-                  <th style={{textAlign: 'left', padding: '0.5rem'}}>Meaning</th>
-                  <th style={{textAlign: 'left', padding: '0.5rem'}}>User Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td style={{padding: '0.5rem'}}><code>approved</code></td>
-                  <td style={{padding: '0.5rem'}}>User has been granted access by SSO admin</td>
-                  <td style={{padding: '0.5rem'}}>✅ Can use the application</td>
-                </tr>
-                <tr>
-                  <td style={{padding: '0.5rem'}}><code>pending</code></td>
-                  <td style={{padding: '0.5rem'}}>User requested access, awaiting admin approval</td>
-                  <td style={{padding: '0.5rem'}}>⏳ Show "Access Pending" message</td>
-                </tr>
-                <tr>
-                  <td style={{padding: '0.5rem'}}><code>revoked</code></td>
-                  <td style={{padding: '0.5rem'}}>User's access was revoked by SSO admin</td>
-                  <td style={{padding: '0.5rem'}}>❌ Show "Access Denied" message</td>
-                </tr>
-              </tbody>
-            </table>
+            <SimpleDataTable
+              columns={[
+                {
+                  key: 'status',
+                  header: 'Status',
+                  render: (row) => <code>{row.status}</code>,
+                },
+                {
+                  key: 'meaning',
+                  header: 'Meaning',
+                },
+                {
+                  key: 'userAction',
+                  header: 'User Action',
+                },
+              ]}
+              rows={permissionStatusRows}
+            />
           </Box>
 
           <Box>
@@ -85,12 +91,12 @@ export default function SecurityPermissions() {
               <List.Item><code>admin</code> - Full application access (intended for app administrators)</List.Item>
               <List.Item><code>user</code> - Standard application access (intended for regular users)</List.Item>
             </List>
-            <Paper withBorder p="md" shadow="sm" radius="md" style={{ borderLeft: "4px solid var(--mantine-color-red-6)" }} bg="var(--mantine-color-red-light)">
+            <AccentPanel title="Implementation note" tone="red" variant="soft-outline">
               <Text size="sm">
                 <strong>📝 Note:</strong> These roles are <em>suggestions</em> from the SSO admin.
-              Your application decides what features each role can access.
+                {' '}Your application decides what features each role can access.
               </Text>
-            </Paper>
+            </AccentPanel>
           </Box>
 
           <Box>
@@ -309,7 +315,7 @@ export default function AccessDenied() {
 
           <Box>
             <Title order={2} mb="sm">Two-Level Access Control Architecture</Title>
-            <Text size="sm">Here's how SSO-level and app-level permissions work together:</Text>
+            <Text size="sm">Here&apos;s how SSO-level and app-level permissions work together:</Text>
             <Code block>
               {`// Level 1: SSO Admin controls WHO can access the app
 // -------------------------------------------------------
@@ -349,21 +355,18 @@ if (role === 'admin') {
             <List spacing="xs">
               <List.Item>☑️ Always check backend-derived permission status before granting access</List.Item>
               <List.Item>☑️ Handle <code>pending</code> and <code>revoked</code> states gracefully</List.Item>
-              <List.Item>☑️ Use <code>role</code> field to determine user's capabilities</List.Item>
+              <List.Item>☑️ Use <code>role</code> field to determine user&apos;s capabilities</List.Item>
               <List.Item>☑️ Implement backend middleware for permission checks</List.Item>
               <List.Item>☑️ Provide clear UI feedback for permission states</List.Item>
             </List>
-            <Paper withBorder p="md" shadow="sm" radius="md" style={{ borderLeft: "4px solid var(--mantine-color-red-6)" }} bg="var(--mantine-color-red-light)">
-              <Text size="sm">
-                <strong>🔗 Related Resources:</strong>
+            <AccentPanel title="Related Resources" tone="red" variant="soft-outline">
               <List spacing="xs">
                 <List.Item><Anchor component={Link} href="/docs/app-permissions">App Permissions Guide</Anchor></List.Item>
                 <List.Item><Anchor component={Link} href="/docs/admin-approval">Admin Approval Workflow</Anchor></List.Item>
                 <List.Item><Anchor component={Link} href="/docs/authentication">OAuth 2.0 Authentication</Anchor></List.Item>
                 <List.Item><Anchor component={Link} href="/docs/security/best-practices">Security Best Practices</Anchor></List.Item>
               </List>
-              </Text>
-            </Paper>
+            </AccentPanel>
           </Box>
         
       </Stack>

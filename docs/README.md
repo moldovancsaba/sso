@@ -17,7 +17,7 @@ It currently acts as:
 All design, UI, and UX rules now defer to the shared cross-project source of truth:
 
 - [docs/DESIGN_SYSTEM.md](/Users/moldovancsaba/Projects/sso/docs/DESIGN_SYSTEM.md)
-- [`/Users/Shared/Projects/GENERAL_DESIGN_SYSTEM/README.md`](/Users/Shared/Projects/GENERAL_DESIGN_SYSTEM/README.md)
+- [general-design-system README](https://github.com/sovereignsquad/general-design-system/blob/main/README.md)
 
 That shared directory is normative for:
 

@@ -3,41 +3,33 @@ import {
   Stack,
   Title,
   Text,
-  Paper,
-  Code,
   List,
   Box,
-  Anchor,
-  Container,
-  Divider,
-  Group,
 } from '@mantine/core';
 import DocsLayout from '../../components/DocsLayout';
-import packageJson from '../../package.json';
 
 export default function Authentication() {
   return (
-    <DocsLayout>
+    <DocsLayout
+      eyebrow="Integration Guide"
+      lead="Recommended authentication and hosted-login model for OAuth-based consumers."
+      title="Authentication Guide"
+    >
       <Stack gap="xl">
         <Box>
-          <Title order={1} mb="xs">Authentication Guide</Title>
-          <Text size="sm" c="dimmed" fw={500} mb="xs">API Version: {packageJson.version}</Text>
+          <Title order={2} mb="sm">Overview</Title>
+          <Text size="sm">
+            The recommended integration path is OAuth 2.0 Authorization Code flow with OIDC claims
+            and PKCE where appropriate. Public-user hosted auth and social login feed into that same
+            authorization flow.
+          </Text>
+          <Text size="sm">
+            Design, UI, and UX rules for those hosted auth surfaces now defer to
+            {' '}the shared <Link href="https://github.com/sovereignsquad/general-design-system">General Design System</Link>.
+          </Text>
         </Box>
-        
-          <Box>
-            <Title order={2} mb="sm">Overview</Title>
-            <Text size="sm">
-              The recommended integration path is OAuth 2.0 Authorization Code flow with OIDC claims
-              and PKCE where appropriate. Public-user hosted auth and social login feed into that same
-              authorization flow.
-            </Text>
-            <Text size="sm">
-              Design, UI, and UX rules for those hosted auth surfaces now defer to
-              {' '}<code>/Users/Shared/Projects/GENERAL_DESIGN_SYSTEM</code>.
-            </Text>
-          </Box>
 
-          <Box>
+        <Box>
             <Title order={2} mb="sm">Current Authentication Methods</Title>
             <List spacing="xs">
               <List.Item>Email and password</List.Item>
@@ -47,9 +39,9 @@ export default function Authentication() {
               <List.Item>Facebook</List.Item>
             </List>
             <Text size="sm">Apple Sign In and passkeys are planned backlog work and are not active today.</Text>
-          </Box>
+        </Box>
 
-          <Box>
+        <Box>
             <Title order={2} mb="sm">OAuth Flow</Title>
             <List spacing="xs" type="ordered">
               <List.Item>Redirect the user to <code>/api/oauth/authorize</code>.</List.Item>
@@ -58,9 +50,9 @@ export default function Authentication() {
               <List.Item>SSO redirects back with an authorization code.</List.Item>
               <List.Item>Your backend exchanges that code at <code>/api/oauth/token</code>.</List.Item>
             </List>
-          </Box>
+        </Box>
 
-          <Box>
+        <Box>
             <Title order={2} mb="sm">Important Distinction</Title>
             <Text size="sm">
               Public-auth endpoints and OAuth endpoints are not interchangeable:
@@ -73,16 +65,15 @@ export default function Authentication() {
               If your application needs bearer tokens, use the OAuth flow. If your shared-domain UI only
               needs hosted session validation, use the public session endpoints.
             </Text>
-          </Box>
+        </Box>
 
-          <Box>
+        <Box>
             <Title order={2} mb="sm">Social Login Security</Title>
             <Text size="sm">
               Google and Facebook callbacks use a canonical encoded state payload tied to the signed CSRF cookie.
               After successful callback validation, the callback CSRF cookie is cleared to reduce replay value.
             </Text>
-          </Box>
-        
+        </Box>
       </Stack>
     </DocsLayout>
   );

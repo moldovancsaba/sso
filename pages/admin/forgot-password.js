@@ -3,6 +3,7 @@ import Link from 'next/link'
 import {
   Alert,
   Anchor,
+  Box,
   Button,
   List,
   Paper,
@@ -10,8 +11,8 @@ import {
   Text,
   TextInput,
 } from '@mantine/core'
+import { AuthShell } from '@doneisbetter/gds-core/server'
 import { IconAlertCircle, IconCircleCheck } from '@tabler/icons-react'
-import AuthSurface from '../../components/AuthSurface'
 
 export async function getServerSideProps() {
   return { props: {} }
@@ -59,10 +60,11 @@ export default function AdminForgotPassword() {
   }
 
   return (
-    <AuthSurface
-      description="Request a new admin password for the SSO control plane."
-      title="Forgot Password"
-    >
+    <Box maw={520} mx="auto">
+      <AuthShell
+        description="Request a new admin password for the SSO control plane."
+        title="Forgot Password"
+      >
       <Paper p="lg">
         <Stack component="form" gap="md" onSubmit={handleSubmit}>
           {success ? (
@@ -115,6 +117,7 @@ export default function AdminForgotPassword() {
           </List>
         </Stack>
       </Paper>
-    </AuthSurface>
+      </AuthShell>
+    </Box>
   )
 }

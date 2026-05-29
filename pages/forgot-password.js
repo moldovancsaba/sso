@@ -3,6 +3,7 @@ import Link from 'next/link'
 import {
   Alert,
   Anchor,
+  Box,
   Button,
   List,
   Stack,
@@ -10,8 +11,8 @@ import {
   TextInput,
   ThemeIcon,
 } from '@mantine/core'
+import { AuthShell } from '@doneisbetter/gds-core/server'
 import { IconAlertCircle, IconCheck, IconKey, IconMail } from '@tabler/icons-react'
-import AuthSurface from '../components/AuthSurface'
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState('')
@@ -55,12 +56,16 @@ export default function ForgotPassword() {
   }
 
   return (
-    <AuthSurface
-      description="No worries. Enter your email and we will send a replacement password if the account exists."
-      icon={IconKey}
-      maxWidth={520}
-      title="Forgot Password?"
-    >
+    <Box maw={520} mx="auto">
+      <AuthShell
+        brand={
+          <ThemeIcon color="brand" radius="xl" size={56} variant="light">
+            <IconKey size={28} stroke={1.8} />
+          </ThemeIcon>
+        }
+        description="No worries. Enter your email and we will send a replacement password if the account exists."
+        title="Forgot Password?"
+      >
       <Stack gap="lg">
         {!success ? (
           <form onSubmit={handleSubmit}>
@@ -120,6 +125,7 @@ export default function ForgotPassword() {
           </Anchor>
         </Stack>
       </Stack>
-    </AuthSurface>
+      </AuthShell>
+    </Box>
   )
 }

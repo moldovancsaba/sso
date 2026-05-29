@@ -1,11 +1,16 @@
 import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/router'
 import {
+  ActionIcon,
   Alert,
   Button,
   Card,
+  Container,
   Grid,
   Loader,
+  Group,
+  Paper,
   SimpleGrid,
   Stack,
   Text,
@@ -16,10 +21,18 @@ import {
   IconAlertCircle,
   IconApps,
   IconChecklist,
+  IconLogout,
   IconUsers,
 } from '@tabler/icons-react'
-import AdminShell from '../../components/AdminShell'
 import { fetchAdminJson, isAuthRedirectError } from '../../lib/adminAuthFlow.js'
+import { PageHeader as GdsPageHeader } from '@doneisbetter/gds-admin/server'
+
+const adminNavItems = [
+  { href: '/admin/dashboard', label: 'Dashboard' },
+  { href: '/admin/users', label: 'Users' },
+  { href: '/admin/activity', label: 'Activity' },
+  { href: '/admin/oauth-clients', label: 'Clients' },
+]
 
 function StatCard({ description, href, icon: Icon, title, value }) {
   return (
@@ -47,6 +60,7 @@ function StatCard({ description, href, icon: Icon, title, value }) {
 }
 
 export default function AdminDashboard() {
+  const router = useRouter()
   const [admin, setAdmin] = useState(null)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
@@ -100,100 +114,173 @@ export default function AdminDashboard() {
 
   if (loading) {
     return (
-      <AdminShell
-        description="Loading the current admin session."
-        title="Admin Dashboard"
-      >
-        <Stack align="center" py="xl">
-          <Loader />
+      <Container py="xl" size="xl">
+        <Stack gap="lg">
+          <Paper p="lg">
+            <Stack gap="md">
+              <GdsPageHeader
+                description="Loading the current admin session."
+                title="Admin Dashboard"
+              />
+              <Group gap="sm" wrap="wrap">
+                {adminNavItems.map((item) => (
+                  <Button
+                    key={item.href}
+                    component={Link}
+                    href={item.href}
+                    variant={router.pathname === item.href ? 'filled' : 'default'}
+                  >
+                    {item.label}
+                  </Button>
+                ))}
+              </Group>
+            </Stack>
+          </Paper>
+          <Stack align="center" py="xl">
+            <Loader />
+          </Stack>
         </Stack>
-      </AdminShell>
+      </Container>
     )
   }
 
   if (!admin) {
     return (
-      <AdminShell
-        description="Admin session is not available."
-        title="Admin Dashboard"
-      >
-        <Alert color="red" icon={<IconAlertCircle size={18} />}>
-          {error || 'Admin session is not available.'}
-        </Alert>
-      </AdminShell>
+      <Container py="xl" size="xl">
+        <Stack gap="lg">
+          <Paper p="lg">
+            <Stack gap="md">
+              <GdsPageHeader
+                description="Admin session is not available."
+                title="Admin Dashboard"
+              />
+              <Group gap="sm" wrap="wrap">
+                {adminNavItems.map((item) => (
+                  <Button
+                    key={item.href}
+                    component={Link}
+                    href={item.href}
+                    variant={router.pathname === item.href ? 'filled' : 'default'}
+                  >
+                    {item.label}
+                  </Button>
+                ))}
+              </Group>
+            </Stack>
+          </Paper>
+          <Alert color="red" icon={<IconAlertCircle size={18} />}>
+            {error || 'Admin session is not available.'}
+          </Alert>
+        </Stack>
+      </Container>
     )
   }
 
   return (
-    <AdminShell
-      admin={admin}
-      description="Operational overview for public users, OAuth clients, and system access."
-      onLogout={handleLogout}
-      title="Admin Dashboard"
-    >
-      {error ? (
-        <Alert color="red" icon={<IconAlertCircle size={18} />}>
-          {error}
+    <Container py="xl" size="xl">
+      <Stack gap="lg">
+        <Paper p="lg">
+          <Stack gap="md">
+            <GdsPageHeader
+              description="Operational overview for public users, OAuth clients, and system access."
+              primaryAction={
+                <ActionIcon
+                  aria-label="Logout"
+                  color="gray"
+                  onClick={handleLogout}
+                  variant="default"
+                >
+                  <IconLogout size={18} />
+                </ActionIcon>
+              }
+              secondaryActions={(
+                <Group gap="sm" justify="flex-end" wrap="wrap">
+                  <Text c="dimmed" size="sm">
+                    {admin.email} ({admin.role})
+                  </Text>
+                </Group>
+              )}
+              title="Admin Dashboard"
+            />
+            <Group gap="sm" wrap="wrap">
+              {adminNavItems.map((item) => (
+                <Button
+                  key={item.href}
+                  component={Link}
+                  href={item.href}
+                  variant={router.pathname === item.href ? 'filled' : 'default'}
+                >
+                  {item.label}
+                </Button>
+              ))}
+            </Group>
+          </Stack>
+        </Paper>
+
+        {error ? (
+          <Alert color="red" icon={<IconAlertCircle size={18} />}>
+            {error}
+          </Alert>
+        ) : null}
+
+        <SimpleGrid cols={{ base: 1, md: 3 }}>
+          <StatCard
+            description="Registered public accounts managed by this SSO instance."
+            href="/admin/users"
+            icon={IconUsers}
+            title="Total Users"
+            value={stats.totalUsers}
+          />
+          <StatCard
+            description="OAuth applications currently configured for the platform."
+            href="/admin/oauth-clients"
+            icon={IconApps}
+            title="OAuth Clients"
+            value={stats.totalClients}
+          />
+          <StatCard
+            description="Centralized access and permission activity across the system."
+            href="/admin/activity"
+            icon={IconActivityHeartbeat}
+            title="System Status"
+            value="Operational"
+          />
+        </SimpleGrid>
+
+        <Card>
+          <Stack gap="md">
+            <Text fw={600} size="lg">
+              Quick Actions
+            </Text>
+            <Grid>
+              <Grid.Col span={{ base: 12, sm: 6 }}>
+                <Button component={Link} fullWidth href="/admin/users" leftSection={<IconUsers size={18} />}>
+                  Manage Users
+                </Button>
+              </Grid.Col>
+              <Grid.Col span={{ base: 12, sm: 6 }}>
+                <Button component={Link} fullWidth href="/admin/oauth-clients" leftSection={<IconApps size={18} />} variant="default">
+                  Manage OAuth Clients
+                </Button>
+              </Grid.Col>
+              <Grid.Col span={{ base: 12, sm: 6 }}>
+                <Button component={Link} fullWidth href="/admin/activity" leftSection={<IconChecklist size={18} />} variant="default">
+                  View Activity
+                </Button>
+              </Grid.Col>
+              <Grid.Col span={{ base: 12, sm: 6 }}>
+                <Button component={Link} fullWidth href="/docs" leftSection={<IconChecklist size={18} />} variant="default">
+                  Open Documentation
+                </Button>
+              </Grid.Col>
+            </Grid>
+          </Stack>
+        </Card>
+
+        <Alert color="blue" icon={<IconChecklist size={18} />}>
+          Welcome back, <strong>{admin.name || admin.email}</strong>. Your current runtime role is <strong>{admin.role}</strong>.
         </Alert>
-      ) : null}
-
-      <SimpleGrid cols={{ base: 1, md: 3 }}>
-        <StatCard
-          description="Registered public accounts managed by this SSO instance."
-          href="/admin/users"
-          icon={IconUsers}
-          title="Total Users"
-          value={stats.totalUsers}
-        />
-        <StatCard
-          description="OAuth applications currently configured for the platform."
-          href="/admin/oauth-clients"
-          icon={IconApps}
-          title="OAuth Clients"
-          value={stats.totalClients}
-        />
-        <StatCard
-          description="Centralized access and permission activity across the system."
-          href="/admin/activity"
-          icon={IconActivityHeartbeat}
-          title="System Status"
-          value="Operational"
-        />
-      </SimpleGrid>
-
-      <Card>
-        <Stack gap="md">
-          <Text fw={600} size="lg">
-            Quick Actions
-          </Text>
-          <Grid>
-            <Grid.Col span={{ base: 12, sm: 6 }}>
-              <Button component={Link} fullWidth href="/admin/users" leftSection={<IconUsers size={18} />}>
-                Manage Users
-              </Button>
-            </Grid.Col>
-            <Grid.Col span={{ base: 12, sm: 6 }}>
-              <Button component={Link} fullWidth href="/admin/oauth-clients" leftSection={<IconApps size={18} />} variant="default">
-                Manage OAuth Clients
-              </Button>
-            </Grid.Col>
-            <Grid.Col span={{ base: 12, sm: 6 }}>
-              <Button component={Link} fullWidth href="/admin/activity" leftSection={<IconChecklist size={18} />} variant="default">
-                View Activity
-              </Button>
-            </Grid.Col>
-            <Grid.Col span={{ base: 12, sm: 6 }}>
-              <Button component={Link} fullWidth href="/docs" leftSection={<IconChecklist size={18} />} variant="default">
-                Open Documentation
-              </Button>
-            </Grid.Col>
-          </Grid>
-        </Stack>
-      </Card>
-
-      <Alert color="blue" icon={<IconChecklist size={18} />}>
-        Welcome back, <strong>{admin.name || admin.email}</strong>. Your current runtime role is <strong>{admin.role}</strong>.
-      </Alert>
-    </AdminShell>
+      </Stack>
+    </Container>
   )
 }

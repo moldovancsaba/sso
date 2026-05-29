@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
-import { Loader, Stack, Text } from '@mantine/core'
+import { Box, Loader, Stack, Text, ThemeIcon } from '@mantine/core'
+import { AuthShell } from '@doneisbetter/gds-core/server'
 import { IconLogout } from '@tabler/icons-react'
-import AuthSurface from '../components/AuthSurface'
 
 export default function LogoutPage() {
   const router = useRouter()
@@ -78,18 +78,24 @@ export default function LogoutPage() {
         <meta name="description" content="Logging out of SSO" />
       </Head>
 
-      <AuthSurface
-        description="Please wait while we clear your active sessions and return you to a safe destination."
-        icon={IconLogout}
-        title={status}
-      >
+      <Box maw={520} mx="auto">
+        <AuthShell
+          brand={
+            <ThemeIcon color="brand" radius="xl" size={56} variant="light">
+              <IconLogout size={28} stroke={1.8} />
+            </ThemeIcon>
+          }
+          description="Please wait while we clear your active sessions and return you to a safe destination."
+          title={status}
+        >
         <Stack align="center" gap="md" py="sm">
           <Loader size="lg" />
           <Text c="dimmed" size="sm">
             Please wait...
           </Text>
         </Stack>
-      </AuthSurface>
+        </AuthShell>
+      </Box>
     </>
   )
 }

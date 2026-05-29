@@ -1,36 +1,31 @@
+/* eslint-disable react/no-unescaped-entities */
 import Link from 'next/link';
 import {
   Stack,
   Title,
   Text,
-  Paper,
   Code,
   List,
   Box,
   Anchor,
-  Container,
-  Divider,
-  Group,
 } from '@mantine/core';
+import { AccentPanel } from '@doneisbetter/gds-core/server'
+import { DocsCodeBlock } from '@doneisbetter/gds-core/client'
 // WHAT: App Permissions documentation explaining permission lifecycle
 // WHY: Developers need to understand how app-level permissions work in SSO
 // HOW: Explains pending → approved → revoked states and role management
 
 import DocsLayout from '../../components/DocsLayout';
-import packageJson from '../../package.json';
 
 export default function AppPermissions() {
   return (
-    <DocsLayout>
+    <DocsLayout
+      eyebrow="Authorization"
+      lead="Canonical permission states, role semantics, and lifecycle behavior for application access."
+      title="App Permissions"
+    >
       <Stack gap="xl">
         <Box>
-          <Title order={1} mb="xs">App Permissions</Title>
-          <Text size="sm" c="dimmed" fw={500} mb="xs">API Version: {packageJson.version}</Text>
-        </Box>
-        
-          {/* WHAT: Overview of app permissions system */}
-          {/* WHY: Set context before diving into details */}
-          <Box>
             <Title order={2} mb="sm">Overview</Title>
             <Text size="sm">
               DoneIsBetter SSO implements <strong>app-level permission control</strong> to manage which users 
@@ -45,20 +40,19 @@ export default function AppPermissions() {
               <List.Item><strong>No Record</strong> - Represented operationally as no permission record and surfaced as <code>status: "none"</code> in some read APIs</List.Item>
               <List.Item><strong>App Role</strong> - User&apos;s role within app: user or admin</List.Item>
             </List>
-            <Paper withBorder p="md" shadow="sm" radius="md" style={{ borderLeft: "4px solid var(--mantine-color-yellow-6)" }} bg="var(--mantine-color-yellow-light)">
+            <AccentPanel title="Important" tone="amber" variant="soft-outline">
               <Text size="sm">
-                <strong>Important:</strong> the app-permission contract lives in permission APIs, not in the OIDC <code>id_token</code>.
+                The app-permission contract lives in permission APIs, not in the OIDC <code>id_token</code>.
               </Text>
-            </Paper>
-          </Box>
+            </AccentPanel>
+        </Box>
 
           {/* WHAT: Permission lifecycle diagram */}
           {/* WHY: Visual understanding of state transitions */}
           <Box>
             <Title order={2} mb="sm">Permission Lifecycle</Title>
-            <div style={{ background: '#f5f5f5', border: '1px solid #ddd', borderRadius: '8px', padding: '20px', fontFamily: 'monospace', fontSize: '14px' }}>
-              <pre style={{ margin: 0, whiteSpace: 'pre' }}>
-{`           ┌──────────┐
+            <DocsCodeBlock
+              code={`           ┌──────────┐
            │   none   │  Initial state - no permission record exists
            └────┬─────┘
                 │
@@ -79,8 +73,10 @@ export default function AppPermissions() {
            ┌──────────┐
            │ revoked  │  Status: Access denied
            └──────────┘  Can be re-approved later`}
-              </pre>
-            </div>
+              language="text"
+              title="Permission lifecycle"
+              withCopy={false}
+            />
           </Box>
 
           {/* WHAT: Detailed explanation of each status */}
@@ -185,16 +181,17 @@ export default function AppPermissions() {
               <List.Item>Example use: Admins in Launchmass can manage all users and organizations</List.Item>
             </List>
 
-            <div style={{ background: '#fff3e0', border: '1px solid #f57c00', borderRadius: '8px', padding: '16px', marginTop: '16px' }}>
-              <Text size="sm" style={{ margin: 0, fontSize: '14px', color: '#e65100' }}>
-                <strong>⚠️ Important Distinction:</strong><br />
-                • <strong>SSO Admin</strong> - Manages SSO service itself (grants app permissions)<br />
-                • <strong>App Admin</strong> - User with <code>role: "admin"</code> for a specific app (manages app features)<br />
-                <br />
-                These are separate! An SSO admin might not have any app permissions, 
-                and an app admin might not be an SSO admin.
+            <AccentPanel title="Important Distinction" tone="amber" variant="soft-outline">
+              <Text size="sm">
+                <strong>SSO Admin</strong> manages the SSO service itself and grants app permissions.
               </Text>
-            </div>
+              <Text size="sm">
+                <strong>App Admin</strong> is a user with <code>role: "admin"</code> for a specific app and manages app features.
+              </Text>
+              <Text size="sm">
+                These are separate. An SSO admin might not have any app permissions, and an app admin might not be an SSO admin.
+              </Text>
+            </AccentPanel>
           </Box>
 
           {/* WHAT: How apps should handle permissions */}
