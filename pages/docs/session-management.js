@@ -3,45 +3,39 @@ import {
   Stack,
   Title,
   Text,
-  Paper,
   Code,
   List,
   Box,
   Anchor,
-  Container,
-  Divider,
-  Group,
 } from '@mantine/core';
+import { AccentPanel } from '@doneisbetter/gds-core/server'
 // WHAT: OAuth 2.0 token lifecycle and session management documentation
 // WHY: Developers need to understand token types, expiry, and refresh mechanisms
 // HOW: Explains access tokens, refresh tokens, ID tokens, and session validation
 
 import DocsLayout from '../../components/DocsLayout';
-import packageJson from '../../package.json';
 
 export default function SessionManagementDocs() {
   return (
-    <DocsLayout>
+    <DocsLayout
+      eyebrow="Integration Guide"
+      lead="Token lifecycle, refresh behavior, and public-session expectations for SSO consumers."
+      title="Session Management"
+      versionLabel="SSO Version"
+    >
       <Stack gap="xl">
         <Box>
-          <Title order={1} mb="xs">Session Management</Title>
-          <Text size="sm" c="dimmed" fw={500} mb="xs">SSO Version: {packageJson.version}</Text>
-        </Box>
-
-        
-          <Box>
             <Title order={2} mb="sm">Overview</Title>
             <Text size="sm">
               The SSO service uses OAuth 2.0 tokens to manage user sessions. Understanding token types,
               lifetimes, and refresh mechanisms is essential for building secure, seamless applications.
             </Text>
-            <Paper withBorder p="md" shadow="sm" radius="md" style={{ borderLeft: "4px solid var(--mantine-color-red-6)" }} bg="var(--mantine-color-red-light)">
+            <AccentPanel title="Application boundary" tone="red" variant="soft-outline">
               <Text size="sm">
-                <strong>📝 Note:</strong> This guide focuses on session management from the application's perspective.
-              All token operations should happen on your backend server, not in the browser.
+                This guide focuses on session management from the application&apos;s perspective. All token operations should happen on your backend server, not in the browser.
               </Text>
-            </Paper>
-          </Box>
+            </AccentPanel>
+        </Box>
 
           <Box>
             <Title order={2} mb="sm">Token Types</Title>
@@ -106,7 +100,7 @@ export default function SessionManagementDocs() {
 
             <Title order={3} mb="xs">Phase 1: Initial Authentication</Title>
             <List spacing="xs" type="ordered">
-              <List.Item>User clicks "Sign in with SSO"</List.Item>
+              <List.Item>User clicks &quot;Sign in with SSO&quot;</List.Item>
               <List.Item>Your app redirects to SSO authorization page</List.Item>
               <List.Item>User authenticates with SSO</List.Item>
               <List.Item>SSO redirects back to your app with authorization code</List.Item>
@@ -135,7 +129,7 @@ export default function SessionManagementDocs() {
 
             <Title order={3} mb="xs">Phase 4: Session End</Title>
             <List spacing="xs">
-              <List.Item>User clicks "Sign out"</List.Item>
+              <List.Item>User clicks &quot;Sign out&quot;</List.Item>
               <List.Item>Your backend revokes tokens with SSO</List.Item>
               <List.Item>Your backend clears cookies</List.Item>
               <List.Item>User is redirected to logout page</List.Item>
@@ -337,7 +331,7 @@ export async function logout(req, res) {
               <List.Item>✅ <strong>Store tokens in HTTP-only cookies</strong> (never in localStorage/sessionStorage)</List.Item>
               <List.Item>✅ <strong>Implement proactive token refresh</strong> (5 minutes before expiry)</List.Item>
               <List.Item>✅ <strong>Validate tokens on every request</strong> (check expiry and permission status)</List.Item>
-              <List.Item>✅ <strong>Use refresh tokens correctly</strong> (they're single-use and rotate on refresh)</List.Item>
+              <List.Item>✅ <strong>Use refresh tokens correctly</strong> (they&apos;re single-use and rotate on refresh)</List.Item>
               <List.Item>✅ <strong>Revoke tokens on logout</strong> (prevent reuse even if intercepted)</List.Item>
               <List.Item>✅ <strong>Handle token expiry gracefully</strong> (redirect to login or show message)</List.Item>
               <List.Item>✅ <strong>Monitor token operations</strong> (log refresh failures for debugging)</List.Item>
@@ -356,15 +350,15 @@ export async function logout(req, res) {
             <Text size="sm"><strong>Symptom:</strong> Token refresh fails with 401 error</Text>
             <Text size="sm"><strong>Causes:</strong></Text>
             <List spacing="xs">
-              <List.Item>Refresh token already used (they're single-use)</List.Item>
+              <List.Item>Refresh token already used (they&apos;re single-use)</List.Item>
               <List.Item>Refresh token expired (30 day lifetime)</List.Item>
-              <List.Item>User's access was revoked</List.Item>
+              <List.Item>User&apos;s access was revoked</List.Item>
             </List>
             <Text size="sm"><strong>Solution:</strong> Redirect user to login page</Text>
 
             <Title order={3} mb="xs">Permission status changed</Title>
             <Text size="sm"><strong>Symptom:</strong> User was approved but now gets 403 errors</Text>
-            <Text size="sm"><strong>Cause:</strong> SSO admin changed user's permission status</Text>
+            <Text size="sm"><strong>Cause:</strong> SSO admin changed user&apos;s permission status</Text>
             <Text size="sm"><strong>Solution:</strong> Check backend-derived permission status in your session layer and redirect accordingly</Text>
 
             <Title order={3} mb="xs">Session not persisting</Title>
@@ -387,17 +381,14 @@ export async function logout(req, res) {
               <List.Item>☑️ Revoke tokens on logout</List.Item>
               <List.Item>☑️ Check backend-derived permission status on every request</List.Item>
             </List>
-            <Paper withBorder p="md" shadow="sm" radius="md" style={{ borderLeft: "4px solid var(--mantine-color-red-6)" }} bg="var(--mantine-color-red-light)">
-              <Text size="sm">
-                <strong>🔗 Related Resources:</strong>
+            <AccentPanel title="Related Resources" tone="red" variant="soft-outline">
               <List spacing="xs">
                 <List.Item><Anchor component={Link} href="/docs/authentication">OAuth 2.0 Authentication Flow</Anchor></List.Item>
                 <List.Item><Anchor component={Link} href="/docs/security/best-practices">Security Best Practices</Anchor></List.Item>
                 <List.Item><Anchor component={Link} href="/docs/app-permissions">App Permissions System</Anchor></List.Item>
                 <List.Item><Anchor component={Link} href="/docs/api/endpoints">API Reference</Anchor></List.Item>
               </List>
-              </Text>
-            </Paper>
+            </AccentPanel>
           </Box>
         
       </Stack>

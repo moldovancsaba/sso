@@ -166,7 +166,7 @@ export default async function handler(req, res) {
               justify-content: center;
               min-height: 100vh;
               margin: 0;
-              background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+              background: linear-gradient(135deg, var(--mantine-color-blue-filled) 0%, var(--mantine-color-violet-filled) 100%);
               color: white;
             }
             .container {
@@ -179,13 +179,13 @@ export default async function handler(req, res) {
             a {
               display: inline-block;
               padding: 0.75rem 1.5rem;
-              background: rgba(255,255,255,0.2);
+              background: color-mix(in srgb, white 20%, transparent);
               color: white;
               text-decoration: none;
               border-radius: 8px;
               transition: background 0.3s;
             }
-            a:hover { background: rgba(255,255,255,0.3); }
+            a:hover { background: color-mix(in srgb, white 30%, transparent); }
           </style>
         </head>
         <body>

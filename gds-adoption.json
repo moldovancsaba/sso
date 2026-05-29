@@ -1,7 +1,14 @@
 {
   "schemaVersion": 1,
-  "gdsVersion": "2.4.3",
+  "gdsVersion": "2.6.3",
   "productArchetype": "hybrid",
+  "supportedEntryPoints": [
+    "@doneisbetter/gds-theme/client",
+    "@doneisbetter/gds-theme/server",
+    "@doneisbetter/gds-core/server",
+    "@doneisbetter/gds-admin/client",
+    "@doneisbetter/gds-admin/server"
+  ],
   "requiredContracts": [
     "AppShell",
     "PageHeader",
@@ -10,52 +17,16 @@
     "AuthShell",
     "ArticleShell",
     "PublicShell",
-    "StateBlock"
+    "StateBlock",
+    "EditorialHero",
+    "FeatureBand",
+    "ConsumerSection",
+    "EditorialCard"
   ],
   "localAdapters": [
     {
-      "contract": "AppShell",
-      "path": "components/AdminShell.js",
-      "status": "active"
-    },
-    {
-      "contract": "AppShell",
-      "path": "components/AccountShell.js",
-      "status": "active"
-    },
-    {
-      "contract": "AuthShell",
-      "path": "components/AuthSurface.js",
-      "status": "active"
-    },
-    {
       "contract": "ArticleShell",
       "path": "components/DocsLayout.js",
-      "status": "active"
-    },
-    {
-      "contract": "PublicShell",
-      "path": "components/PublicPageLayout.js",
-      "status": "active"
-    },
-    {
-      "contract": "DataToolbar",
-      "path": "components/AdminDataToolbar.js",
-      "status": "active"
-    },
-    {
-      "contract": "ResponsiveDataView",
-      "path": "components/ResponsiveDataView.js",
-      "status": "active"
-    },
-    {
-      "contract": "StateBlock",
-      "path": "components/StateBlock.js",
-      "status": "active"
-    },
-    {
-      "contract": "ThemeProvider",
-      "path": "components/AppProviders.js",
       "status": "active"
     }
   ],
@@ -64,16 +35,46 @@
       "surface": "OAuth provider buttons",
       "reason": "Google and Facebook provider branding rules still require narrow custom presentation during the current migration phase.",
       "owner": "sso-platform",
-      "reviewDate": "2026-05-25"
+      "reviewDate": "2026-05-27"
     },
     {
       "surface": "Docs editorial surfaces",
-      "reason": "The docs area still carries legacy editorial layout/CSS while the repo remains on local Mantine wrappers instead of direct public/editorial GDS package primitives.",
+      "reason": "The docs area still carries a local docs-site shell wrapper and two targeted lint waivers on long-form prose-heavy docs pages.",
       "owner": "sso-platform",
-      "reviewDate": "2026-05-25"
+      "reviewDate": "2026-05-29"
     }
   ],
-  "migrationStatus": "partial",
+  "compliance": {
+    "documentationPaths": [
+      "README.md",
+      "docs/README.md",
+      "docs/ARCHITECTURE.md",
+      "docs/DESIGN_SYSTEM.md"
+    ],
+    "staleDocumentationReferences": [
+      "@gds/",
+      "/Users/Shared/Projects/GENERAL_DESIGN_SYSTEM"
+    ],
+    "protectedSurfacePaths": [
+      "components",
+      "lib/theme",
+      "pages"
+    ],
+    "bannedImports": [
+      "@gds/theme",
+      "@gds/theme/client",
+      "@gds/theme/server",
+      "@gds/core",
+      "@gds/core/client",
+      "@gds/core/server",
+      "@gds/admin",
+      "@gds/admin/client",
+      "@gds/admin/server",
+      "@gds/eslint-config",
+      "@gds/compliance"
+    ]
+  },
+  "migrationStatus": "mostly-direct",
   "owner": "sso-platform",
-  "lastReviewedAt": "2026-05-25"
+  "lastReviewedAt": "2026-05-29"
 }

@@ -223,6 +223,23 @@ User document with Facebook social provider data:
 1. Verify all three Facebook OAuth environment variables are set
 2. Restart development server: `npm run dev`
 3. Clear browser cache and reload page
+
+### Production endpoint hangs before redirecting to Facebook
+**Symptom**: `GET https://sso.doneisbetter.com/api/auth/facebook/login` times out or returns no bytes instead of `302`.
+
+**What this usually means**: Treat this as a broader SSO API runtime failure first, not immediately as a Facebook app configuration problem. In May 2026 the root cause was a Next.js Pages Router dynamic-route conflict in the admin org API tree, which broke the shared production Node runtime even though `next build` succeeded.
+
+**Fix / verification path**:
+1. Check a lightweight route like `GET /api/auth/login` or `GET /api/public/session`.
+2. If those also hang, run a real local production server with `npm run build` followed by `npm run start`.
+3. Look for startup errors such as `You cannot use different slug names for the same dynamic path`.
+4. Fix the route-tree/runtime error first, redeploy, then retest the Facebook login endpoint.
+5. Use a real `GET` request when testing; `curl -I` sends `HEAD` and this route correctly returns `405` for non-GET methods.
+
+**Fix**:
+1. Verify all three Facebook OAuth environment variables are set
+2. Restart development server: `npm run dev`
+3. Clear browser cache and reload page
 4. Check browser console for JavaScript errors
 
 ### Error: "App Not Setup: This app is still in development mode"

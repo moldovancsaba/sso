@@ -1,36 +1,30 @@
+/* eslint-disable react/no-unescaped-entities */
 import Link from 'next/link';
 import {
   Stack,
   Title,
   Text,
-  Paper,
   Code,
   List,
   Box,
   Anchor,
-  Container,
-  Divider,
-  Group,
 } from '@mantine/core';
+import { AccentPanel } from '@doneisbetter/gds-core/server'
 // WHAT: Admin Approval Process documentation for SSO administrators
 // WHY: SSO admins need guidance on managing user access to apps
 // HOW: Step-by-step workflows for granting/revoking app permissions
 
 import DocsLayout from '../../components/DocsLayout';
-import packageJson from '../../package.json';
 
 export default function AdminApproval() {
   return (
-    <DocsLayout>
+    <DocsLayout
+      eyebrow="Operations"
+      lead="Administrative workflow for approving, revoking, and auditing application access."
+      title="Admin Approval Process"
+    >
       <Stack gap="xl">
         <Box>
-          <Title order={1} mb="xs">Admin Approval Process</Title>
-          <Text size="sm" c="dimmed" fw={500} mb="xs">API Version: {packageJson.version}</Text>
-        </Box>
-        
-          {/* WHAT: Overview for SSO admins */}
-          {/* WHY: Set context for administrative responsibilities */}
-          <Box>
             <Title order={2} mb="sm">Overview</Title>
             <Text size="sm">
               As an <strong>SSO Administrator</strong>, you control which users can access which applications 
@@ -45,7 +39,7 @@ export default function AdminApproval() {
               <List.Item>Revoke access when needed (security incidents, role changes)</List.Item>
               <List.Item>Maintain audit trail of permission changes</List.Item>
             </List>
-          </Box>
+        </Box>
 
           {/* WHAT: Access the admin panel */}
           {/* WHY: First step for any admin task */}
@@ -183,13 +177,12 @@ Application Access
               <List.Item>Change applies immediately</List.Item>
             </List>
             
-            <Paper withBorder p="md" shadow="sm" radius="md" style={{ borderLeft: "4px solid var(--mantine-color-yellow-6)" }} bg="var(--mantine-color-yellow-light)">
-              <Text size="sm" fw={600} mb="xs">⚠️ Token Lag</Text>
+            <AccentPanel title="Token Lag" tone="amber" variant="soft-outline">
               <Text size="sm">
                 Role changes don't affect existing access tokens until they expire or refresh (max 1 hour). 
                 For immediate effect, consider revoking and re-granting access.
               </Text>
-            </Paper>
+            </AccentPanel>
 
             <Title order={3} mb="xs">Common Role Change Scenarios</Title>
             <List spacing="xs">
@@ -237,13 +230,12 @@ Application Access
               <List.Item><strong>Re-approval:</strong> Can grant access again later if needed</List.Item>
             </List>
 
-            <Paper withBorder p="md" shadow="sm" radius="md" style={{ borderLeft: "4px solid var(--mantine-color-red-6)" }} bg="var(--mantine-color-red-light)">
-              <Text size="sm" fw={600} mb="xs">🚨 Token Delay</Text>
+            <AccentPanel title="Token Delay" tone="red" variant="soft-outline">
               <Text size="sm">
                 Revoked users can still use existing access tokens for up to 1 hour. 
                 For immediate lockout, contact app administrators to implement server-side session validation.
               </Text>
-            </Paper>
+            </AccentPanel>
           </Box>
 
           {/* WHAT: Bulk operations */}

@@ -3,30 +3,21 @@ import {
   Stack,
   Title,
   Text,
-  Paper,
-  Code,
   List,
   Box,
-  Anchor,
-  Container,
-  Divider,
-  Group,
 } from '@mantine/core';
 import DocsLayout from '../../components/DocsLayout';
-import packageJson from '../../package.json';
 
 export default function IntegrationGuidePage() {
   return (
-    <DocsLayout>
+    <DocsLayout
+      eyebrow="Integration Guide"
+      lead="Choose the right integration surface for your application."
+      title="Third-Party Integration Guide"
+      versionLabel="SSO Version"
+    >
       <Stack gap="xl">
         <Box>
-          <Title order={1} mb="xs">Third-Party Integration Guide</Title>
-          <Text size="sm" c="dimmed" fw={500} mb="xs">SSO v{packageJson.version}</Text>
-          <Text size="lg" c="dimmed">Choose the right integration surface for your application.</Text>
-        </Box>
-
-        
-          <Box>
             <Title order={2} mb="sm">Integration Options</Title>
             <List spacing="xs">
               <List.Item><strong>OAuth2 / OIDC</strong> - recommended for most apps</List.Item>
@@ -34,17 +25,17 @@ export default function IntegrationGuidePage() {
               <List.Item><strong>Hosted Social Login</strong> - Google and Facebook through the SSO login page</List.Item>
               <List.Item><strong>Centralized App Permissions</strong> - per-app access and role management in SSO</List.Item>
             </List>
-          </Box>
+        </Box>
 
-          <Box>
+        <Box>
             <Title order={2} mb="sm">Recommended Default</Title>
             <Text size="sm">
               Start with OAuth 2.0 Authorization Code flow plus OIDC claims. Use the cookie-session endpoints only
               when your app truly shares the configured cookie domain and does not need its own OAuth token lifecycle.
             </Text>
-          </Box>
+        </Box>
 
-          <Box>
+        <Box>
             <Title order={2} mb="sm">Key Runtime Facts</Title>
             <List spacing="xs">
               <List.Item>Public login endpoints set cookies; they do not issue bearer tokens.</List.Item>
@@ -52,17 +43,16 @@ export default function IntegrationGuidePage() {
               <List.Item>Canonical app-permission statuses are <code>pending</code>, <code>approved</code>, <code>revoked</code>.</List.Item>
               <List.Item>Access requests require a valid user-bound token for the same user and same client.</List.Item>
             </List>
-          </Box>
+        </Box>
 
-          <Box>
+        <Box>
             <Title order={2} mb="sm">Read Next</Title>
             <List spacing="xs">
               <List.Item><Link href="/docs/quickstart">Quick Start Guide</Link></List.Item>
               <List.Item><Link href="/docs/authentication">Authentication Guide</Link></List.Item>
               <List.Item><Link href="/docs/api">API Reference</Link></List.Item>
             </List>
-          </Box>
-        
+        </Box>
       </Stack>
     </DocsLayout>
   );

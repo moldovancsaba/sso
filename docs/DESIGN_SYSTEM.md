@@ -1,116 +1,148 @@
 # Design System Adapter
 
-Status: Migrating  
-Last updated: 2026-05-25
+Status: Mostly direct package adoption  
+Last updated: 2026-05-29
 
-Design / UI / UX SSOT: `/Users/Shared/Projects/GENERAL_DESIGN_SYSTEM`
-Aligned SSOT version/date: `2.4.3 / 2026-05-25`
+Design / UI / UX SSOT:
+- [GDS README](https://github.com/sovereignsquad/general-design-system/blob/main/README.md)
+- [Compatibility & Releases](https://github.com/sovereignsquad/general-design-system/blob/main/COMPATIBILITY_AND_RELEASES.md)
+- [Components & Patterns](https://github.com/sovereignsquad/general-design-system/blob/main/COMPONENTS_AND_PATTERNS.md)
+- [Governance & Adoption](https://github.com/sovereignsquad/general-design-system/blob/main/GOVERNANCE_AND_ADOPTION.md)
+- [Adoption & Migration Playbook](https://github.com/sovereignsquad/general-design-system/blob/main/ADOPTION_AND_MIGRATION_PLAYBOOK.md)
+- [Compliance Toolkit](https://github.com/sovereignsquad/general-design-system/blob/main/COMPLIANCE_TOOLKIT.md)
+- Local checkout: [general-design-system](/Users/Shared/Projects/general-design-system)
 
-`/Users/Shared/Projects/GENERAL_DESIGN_SYSTEM` is the single source of truth for design, UI, and UX. Project-local files describe only implementation adapter details, migration state, validation commands, and approved exceptions.
+Aligned SSOT version/date: `2.6.3 / 2026-05-27`
 
-Canonical shared documents for this repo:
+This file records only local adapter state, migration blockers, validation commands, and approved exceptions. The shared GDS repo is authoritative for design rules, runtime contracts, and package usage.
 
-- [`/Users/Shared/Projects/GENERAL_DESIGN_SYSTEM/README.md`](/Users/Shared/Projects/GENERAL_DESIGN_SYSTEM/README.md)
-- [`/Users/Shared/Projects/GENERAL_DESIGN_SYSTEM/FOUNDATION.md`](/Users/Shared/Projects/GENERAL_DESIGN_SYSTEM/FOUNDATION.md)
-- [`/Users/Shared/Projects/GENERAL_DESIGN_SYSTEM/COMPONENTS_AND_PATTERNS.md`](/Users/Shared/Projects/GENERAL_DESIGN_SYSTEM/COMPONENTS_AND_PATTERNS.md)
-- [`/Users/Shared/Projects/GENERAL_DESIGN_SYSTEM/PATTERN_SERVICE_MODEL.md`](/Users/Shared/Projects/GENERAL_DESIGN_SYSTEM/PATTERN_SERVICE_MODEL.md)
-- [`/Users/Shared/Projects/GENERAL_DESIGN_SYSTEM/SERVICE_BACKBONE_IMPLEMENTATION_PLAN.md`](/Users/Shared/Projects/GENERAL_DESIGN_SYSTEM/SERVICE_BACKBONE_IMPLEMENTATION_PLAN.md)
-- [`/Users/Shared/Projects/GENERAL_DESIGN_SYSTEM/GOVERNANCE_AND_ADOPTION.md`](/Users/Shared/Projects/GENERAL_DESIGN_SYSTEM/GOVERNANCE_AND_ADOPTION.md)
-- [`/Users/Shared/Projects/GENERAL_DESIGN_SYSTEM/COMPATIBILITY_AND_RELEASES.md`](/Users/Shared/Projects/GENERAL_DESIGN_SYSTEM/COMPATIBILITY_AND_RELEASES.md)
-- [`/Users/Shared/Projects/GENERAL_DESIGN_SYSTEM/RELEASE_PUBLISH.md`](/Users/Shared/Projects/GENERAL_DESIGN_SYSTEM/RELEASE_PUBLISH.md)
-- [`/Users/Shared/Projects/GENERAL_DESIGN_SYSTEM/THEME_GOVERNANCE.md`](/Users/Shared/Projects/GENERAL_DESIGN_SYSTEM/THEME_GOVERNANCE.md)
-- [`/Users/Shared/Projects/GENERAL_DESIGN_SYSTEM/EXCEPTION_SURFACES.md`](/Users/Shared/Projects/GENERAL_DESIGN_SYSTEM/EXCEPTION_SURFACES.md)
-- [`/Users/Shared/Projects/GENERAL_DESIGN_SYSTEM/DEPRECATIONS_AND_MIGRATIONS.md`](/Users/Shared/Projects/GENERAL_DESIGN_SYSTEM/DEPRECATIONS_AND_MIGRATIONS.md)
-- [`/Users/Shared/Projects/GENERAL_DESIGN_SYSTEM/PROJECTS/PORTFOLIO_ADOPTION_MATRIX.md`](/Users/Shared/Projects/GENERAL_DESIGN_SYSTEM/PROJECTS/PORTFOLIO_ADOPTION_MATRIX.md)
-- [`/Users/Shared/Projects/GENERAL_DESIGN_SYSTEM/PROJECTS/SSO_MANTINE_REFACTOR.md`](/Users/Shared/Projects/GENERAL_DESIGN_SYSTEM/PROJECTS/SSO_MANTINE_REFACTOR.md)
+## Current Truth
 
-## Local Adapter
+- Canonical package names are now:
+  - `@doneisbetter/gds-theme`
+  - `@doneisbetter/gds-core`
+  - `@doneisbetter/gds-admin`
+  - `@doneisbetter/gds-eslint-config`
+  - `@doneisbetter/gds-compliance`
+- Canonical import split is now:
+  - `@doneisbetter/gds-theme/client`
+  - `@doneisbetter/gds-theme/server`
+  - `@doneisbetter/gds-core/client`
+  - `@doneisbetter/gds-core/server`
+  - `@doneisbetter/gds-admin/client`
+  - `@doneisbetter/gds-admin/server`
 
-- Current UI foundation: Mantine root provider plus narrow editorial CSS on docs surfaces
-- Target UI foundation: pure Mantine
-- Theme/provider path: `pages/_app.js`, `pages/_document.js`, and `lib/ui/mantineTheme.js`
-- Root provider seam for future package adoption: `components/AppProviders.js`
-- Local package-compat provider API: `components/AppProviders.js` mirrors `GdsProvider` shape with `locale` and `messages` inputs
-- Notifications/modals setup: `pages/_app.js` via `@mantine/notifications` and `@mantine/modals`
-- Primitive policy: Mantine primitives by default, with only thin approved wrappers where necessary
-- Consumed GDS version: `2.4.3`
-- Shared package install path: not yet adopted; this repo currently consumes the GDS as governance/docs plus local Mantine packages
-- Package adoption target: `@gds/theme`, `@gds/core`, `@gds/admin`
-- Recommended future import path: `@gds/theme/client` for root provider wiring and `@gds/theme/server` for theme data helpers once compatibility is aligned
-- Current package-adoption blocker: this repo uses Mantine `9.2.1`, while the published GDS package peer contract is `^7.9.0`
-- Formal adoption manifest: `gds-adoption.json`
-- Shared compliance path: documented locally, but `@gds/eslint-config` and `@gds/compliance` are not yet wired because this repo is not on the published package-consumption path
-- UI validation commands: `npm run lint`, `npm run check:docs`
+## Current Repo State
 
-## Local Contract Inventory
+- Current UI foundation: direct GDS runtime packages with a single remaining docs-site shell adapter
+- Current root provider wiring: [pages/_app.js](/Users/Shared/Projects/sso/pages/_app.js) via direct `@doneisbetter/gds-theme/client`
+- Current token/theme authority: [lib/theme/mantineTheme.js](/Users/Shared/Projects/sso/lib/theme/mantineTheme.js) via `@doneisbetter/gds-theme/server`
+- Current app root wiring: [pages/_app.js](/Users/Shared/Projects/sso/pages/_app.js)
+- Current manifest: [gds-adoption.json](/Users/Shared/Projects/sso/gds-adoption.json)
+- Installed runtime packages:
+  - `@doneisbetter/gds-theme@2.6.3`
+  - `@doneisbetter/gds-core@2.6.3`
+  - `@doneisbetter/gds-admin@2.6.3`
 
-- App shell/page header: [components/AdminShell.js](/Users/Shared/Projects/sso/components/AdminShell.js), [components/AccountShell.js](/Users/Shared/Projects/sso/components/AccountShell.js)
-- Auth shell: [components/AuthSurface.js](/Users/Shared/Projects/sso/components/AuthSurface.js)
-- Article/docs shell: [components/DocsLayout.js](/Users/Shared/Projects/sso/components/DocsLayout.js)
-- Public shell: [components/PublicPageLayout.js](/Users/Shared/Projects/sso/components/PublicPageLayout.js)
-- Theme/token authority: [lib/ui/mantineTheme.js](/Users/Shared/Projects/sso/lib/ui/mantineTheme.js)
-- Metric card: backlog, no dedicated local contract yet
-- Data toolbar: [components/AdminDataToolbar.js](/Users/Shared/Projects/sso/components/AdminDataToolbar.js)
-- Responsive data view: [components/ResponsiveDataView.js](/Users/Shared/Projects/sso/components/ResponsiveDataView.js)
-- State block: [components/StateBlock.js](/Users/Shared/Projects/sso/components/StateBlock.js)
-- Package-aligned compatibility helpers: `lib/ui/gdsI18n.js`, `components/AppProviders.js`, `components/StateBlock.js`, `components/AdminDataToolbar.js`, `components/ResponsiveDataView.js`
-- Public/editorial package-aligned target primitives: `AccentPanel`, `EditorialHero`, `FeatureBand`, `PublicBrandFooter` are not directly consumed yet; local public surfaces still use `components/PublicPageLayout.js` and `components/AppFooter.js`
+## Current Direct Consumption
 
-## Known Exceptions
+- `@doneisbetter/gds-theme/client`
+  - [pages/_app.js](/Users/Shared/Projects/sso/pages/_app.js)
+- `@doneisbetter/gds-theme/server`
+  - [lib/theme/mantineTheme.js](/Users/Shared/Projects/sso/lib/theme/mantineTheme.js)
+- `@doneisbetter/gds-core/server`
+  - [pages/login.js](/Users/Shared/Projects/sso/pages/login.js), [pages/register.js](/Users/Shared/Projects/sso/pages/register.js), [pages/forgot-password.js](/Users/Shared/Projects/sso/pages/forgot-password.js), [pages/logout.js](/Users/Shared/Projects/sso/pages/logout.js), [pages/admin/index.js](/Users/Shared/Projects/sso/pages/admin/index.js), [pages/admin/callback.js](/Users/Shared/Projects/sso/pages/admin/callback.js), and [pages/admin/forgot-password.js](/Users/Shared/Projects/sso/pages/admin/forgot-password.js) via direct `AuthShell`
+  - [pages/admin/users.js](/Users/Shared/Projects/sso/pages/admin/users.js) and [pages/admin/activity.js](/Users/Shared/Projects/sso/pages/admin/activity.js) via direct `DataToolbar`
+  - [components/DocsLayout.js](/Users/Shared/Projects/sso/components/DocsLayout.js)
+  - [pages/index.js](/Users/Shared/Projects/sso/pages/index.js) via `PublicShell`, `EditorialHero`, `FeatureBand`, `ConsumerSection`, `ConsumerDashboardGrid`, `EditorialCard`, `AccentPanel`, and `CtaButtonGroup`
+  - [pages/privacy.js](/Users/Shared/Projects/sso/pages/privacy.js), [pages/terms.js](/Users/Shared/Projects/sso/pages/terms.js), [pages/data-deletion.js](/Users/Shared/Projects/sso/pages/data-deletion.js), and [pages/test-fetch.js](/Users/Shared/Projects/sso/pages/test-fetch.js) via direct `PublicShell`, `PublicBrandFooter`, and `ArticleShell`
+  - editorial callouts on core docs pages via `AccentPanel`
+- `@doneisbetter/gds-admin/client`
+  - [pages/admin/users.js](/Users/Shared/Projects/sso/pages/admin/users.js)
+  - [pages/admin/oauth-clients.js](/Users/Shared/Projects/sso/pages/admin/oauth-clients.js)
+- `@doneisbetter/gds-admin/server`
+  - [pages/admin/dashboard.js](/Users/Shared/Projects/sso/pages/admin/dashboard.js), [pages/admin/users.js](/Users/Shared/Projects/sso/pages/admin/users.js), [pages/admin/activity.js](/Users/Shared/Projects/sso/pages/admin/activity.js), and [pages/admin/oauth-clients.js](/Users/Shared/Projects/sso/pages/admin/oauth-clients.js) via direct `PageHeader`
+  - [pages/account.js](/Users/Shared/Projects/sso/pages/account.js) and [pages/demo.js](/Users/Shared/Projects/sso/pages/demo.js) via direct `PageHeader`
+
+## Remaining Gaps
+
+This repo is no longer blocked from direct runtime package consumption. It is now partially migrated.
+
+1. Shell migration gap:
+   docs-site composition still relies on a thin local wrapper for shared docs navigation and framing. The previous fake local search and fake version-selector controls were removed; public informational pages and admin pages now consume GDS shells directly at page level.
+
+2. Exception surface gap:
+   Google and Facebook provider-branded entry buttons remain a documented narrow exception surface.
+
+3. Lint debt gap:
+   most docs/editorial waiver debt is removed, but two long-form narrative docs pages still carry explicit localized waivers for prose-heavy quote/apostrophe content:
+   [pages/docs/app-permissions.js](/Users/Shared/Projects/sso/pages/docs/app-permissions.js)
+   and [pages/docs/admin-approval.js](/Users/Shared/Projects/sso/pages/docs/admin-approval.js).
+
+## Local Adapter Inventory
+
+- Docs/article shell:
+  - [components/DocsLayout.js](/Users/Shared/Projects/sso/components/DocsLayout.js) thin adapter over `PublicShell` and `DocsPageShell`
+
+## Approved Exceptions
 
 | Scope | Reason | User impact | Removal condition |
 |-------|--------|-------------|-------------------|
-| OAuth provider buttons | Must remain compliant with Google/Facebook branding rules | visual treatment may stay slightly custom during migration | replace with Mantine-hosted brand-compliant wrappers |
-| Docs/editorial surfaces | current docs pages rely on editorial CSS layout | docs remain partly legacy-styled until later migration phase | migrate `pages/docs/*` to Mantine layout and typography |
+| OAuth provider buttons | Google and Facebook branding remains a narrow exception surface | provider CTA visuals stay slightly custom | replace with canonical GDS provider-branded identity controls once shipped |
+| Docs/editorial surfaces | docs still use a local docs-site shell wrapper and two targeted lint waivers on long narrative docs pages | docs remain partly locally wrapped and two prose-heavy pages remain locally waived | replace the wrapper with a canonical package-level docs-site shell and normalize the remaining long-form page copy |
 
-## Migration Backlog
+## Advanced Package Items Usable Now
 
-1. Migrate docs surfaces.
-2. Delete remaining legacy editorial CSS after the Mantine docs surfaces are complete.
-3. Revisit direct `@gds/*` package consumption after Mantine major-version compatibility is aligned between this repo and the published GDS packages.
-4. Evaluate direct use of the GDS public/editorial primitives after a Mantine-compatible package line exists for this repo.
+These are already present in the published package line and can be adopted in this repo without requesting new GDS features:
 
-## Phase Status
+- Public/editorial:
+  - `EditorialHero`
+  - `FeatureBand`
+  - `ConsumerSection`
+  - `ConsumerDashboardGrid`
+  - `EditorialCard`
+  - `CtaButtonGroup`
+  - `AccentPanel`
+  - `SectionPanel`
+- Documentation/content:
+  - `ArticleShell`
+  - `DocsPageShell`
+  - `SimpleDataTable`
+  - `PlaceholderPanel`
+- Forms/media:
+  - `FormField`
+  - `MediaField`
+  - `MediaCard`
+  - `AccessSummary`
+- Admin/data:
+  - `FilterDrawer`
+  - `StatsSection`
+  - `DataTable`
+  - `ResponsiveDataView`
+  - `EditorScaffold`
 
-### Phase 1: Root Mantine Platform
+Current repo usage proves the public/editorial family is viable on this runtime line. The next low-risk adoptions should come from the documentation/content and admin/data families, not from new local one-off patterns.
 
-- Mantine packages are installed
-- root provider is active in `pages/_app.js`
-- shared Mantine theme exists in `lib/ui/mantineTheme.js`
-- notifications and modals are centralized at the app root
-- auth entry surfaces are no longer on the legacy login CSS module path
+## Rules For This Repo
 
-### Phase 2: Auth Surfaces
+- Do not add new old-placeholder package references.
+- Prefer direct `@doneisbetter/*` imports when a stable package contract already exists.
+- Do not create a second local token or provider authority.
+- Keep local wrappers thin and temporary.
+- Prefer deleting mirrored local contracts family-by-family once direct package imports are actually viable.
 
-- `pages/login.js` is Mantine-based
-- `pages/admin/index.js` is Mantine-based
-- `pages/admin/callback.js` is Mantine-based
-- `pages/oauth/consent.js` is Mantine-based
-- the old auth-page CSS module remains legacy inventory until the deletion phase
+## Validation
 
-### Phase 3: Admin Shell And CRUD
+- `npm run lint`
+- `npm run lint:gds`
+- `npm run gds:validate-manifest`
+- `npm run gds:check`
+- `npm run build`
+- `npm run check:docs`
 
-- `pages/admin/dashboard.js` is Mantine-based
-- `pages/admin/users.js` is Mantine-based
-- `pages/admin/oauth-clients.js` is Mantine-based
-- `pages/admin/activity.js` is Mantine-based
-- `pages/admin/forgot-password.js` is Mantine-based
-- `pages/account.js` is Mantine-based
-- `pages/index.js` is Mantine-based
+`npm run lint` remains the repo's existing baseline lint contract. `npm run lint:gds` wires the shared `@doneisbetter/gds-eslint-config` package and now runs cleanly with only two explicit localized waivers left on long-form docs copy plus the existing server-generated HTML response template exceptions.
 
-### Phase 4: Style Editor Decision
+## Next Honest Migration Step
 
-- the legacy style editor was removed instead of being rewritten as a second theme system
-- `components/ThemeProvider.js` is removed
-- `lib/styleThemes.mjs` is removed
-- `pages/admin/style-editor.js` is removed
-- theme-management APIs under `pages/api/admin/themes/*` and `pages/api/themes/active.js` are removed
-
-## Rules For This Repo During Migration
-
-- treat the shared directory as its own git-managed repository because multiple projects will read from and write to it
-- do not add new product UI CSS modules
-- do not add new product UI token systems outside Mantine
-- do not treat `styles/globals.css` or docs/editorial CSS modules as long-term sources of truth
-- update the shared SSOT first if a reusable design rule changes
-- keep `gds-adoption.json` aligned with the current local contract inventory and exception set
+1. Remove the last two localized editorial lint waivers in [pages/docs/app-permissions.js](/Users/Shared/Projects/sso/pages/docs/app-permissions.js) and [pages/docs/admin-approval.js](/Users/Shared/Projects/sso/pages/docs/admin-approval.js) by normalizing the remaining long-form prose copy.
+2. Collapse [components/DocsLayout.js](/Users/Shared/Projects/sso/components/DocsLayout.js) only after the remaining docs pages no longer require local navigation/framing glue, or after GDS ships a canonical docs-site shell.

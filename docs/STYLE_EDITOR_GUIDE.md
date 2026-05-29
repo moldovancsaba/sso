@@ -21,7 +21,7 @@ Reason:
 
 Source of truth:
 
-- design, UI, and UX rules: [`/Users/Shared/Projects/GENERAL_DESIGN_SYSTEM/README.md`](/Users/Shared/Projects/GENERAL_DESIGN_SYSTEM/README.md)
+- design, UI, and UX rules: [general-design-system README](https://github.com/sovereignsquad/general-design-system/blob/main/README.md)
 - SSO local adapter: [`/Users/moldovancsaba/Projects/sso/docs/DESIGN_SYSTEM.md`](/Users/moldovancsaba/Projects/sso/docs/DESIGN_SYSTEM.md)
 
 If Mantine-native theme management is reintroduced later, document it as a new feature instead of treating this removed guide as active reference.

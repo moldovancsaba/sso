@@ -3,44 +3,39 @@ import {
   Stack,
   Title,
   Text,
-  Paper,
   Code,
   List,
   Box,
   Anchor,
-  Container,
-  Divider,
-  Group,
 } from '@mantine/core';
+import { AccentPanel } from '@doneisbetter/gds-core/server'
 // WHAT: Error handling guide for OAuth 2.0 and app permission errors
 // WHY: Developers need practical error handling patterns for production apps
 // HOW: Covers OAuth errors, app permission errors, and best practices
 
 import DocsLayout from '../../components/DocsLayout';
-import packageJson from '../../package.json';
 
 export default function ErrorHandlingDocs() {
   return (
-    <DocsLayout>
+    <DocsLayout
+      eyebrow="Integration Guide"
+      lead="Production-safe handling of OAuth, session, and permission failures."
+      title="Error Handling"
+      versionLabel="SSO Version"
+    >
       <Stack gap="xl">
         <Box>
-          <Title order={1} mb="xs">Error Handling</Title>
-          <Text size="sm" c="dimmed" fw={500} mb="xs">SSO Version: {packageJson.version}</Text>
-        </Box>
-
-        
-          <Box>
             <Title order={2} mb="sm">Overview</Title>
             <Text size="sm">
               Proper error handling is critical for a robust OAuth 2.0 integration. This guide covers
               OAuth error codes, app permission errors, and best practices for graceful error recovery.
             </Text>
-            <Paper withBorder p="md" shadow="sm" radius="md" style={{ borderLeft: "4px solid var(--mantine-color-red-6)" }} bg="var(--mantine-color-red-light)">
+            <AccentPanel title="Reference note" tone="red" variant="soft-outline">
               <Text size="sm">
-                <strong>📝 Note:</strong> For complete error code reference, see <Anchor component={Link} href="/docs/api/errors">API Error Codes</Anchor>.
+                For complete error code reference, see <Anchor component={Link} href="/docs/api/errors">API Error Codes</Anchor>.
               </Text>
-            </Paper>
-          </Box>
+            </AccentPanel>
+        </Box>
 
           <Box>
             <Title order={2} mb="sm">OAuth 2.0 Error Handling</Title>
@@ -119,7 +114,7 @@ try {
 
           <Box>
             <Title order={2} mb="sm">App Permission Errors</Title>
-            <Text size="sm">After successful authentication, check the user's backend-derived permission status:</Text>
+            <Text size="sm">After successful authentication, check the user&apos;s backend-derived permission status:</Text>
 
             <Code block>
               {`// Fetch canonical permission state from your backend session layer
@@ -174,9 +169,9 @@ if (decoded.exp * 1000 < Date.now()) {
             <Text size="sm"><strong>Error:</strong> <code>invalid_grant</code> when refreshing</Text>
             <Text size="sm"><strong>Causes:</strong></Text>
             <List spacing="xs">
-              <List.Item>Refresh token already used (they're single-use)</List.Item>
+              <List.Item>Refresh token already used (they&apos;re single-use)</List.Item>
               <List.Item>Refresh token expired (30 day lifetime)</List.Item>
-              <List.Item>User's access was revoked</List.Item>
+              <List.Item>User&apos;s access was revoked</List.Item>
             </List>
             <Text size="sm"><strong>Solution:</strong> Redirect to login</Text>
             <Code block>
@@ -303,17 +298,14 @@ function logError(error, context) {
               <List.Item>☑️ Implement rate limiting backoff</List.Item>
               <List.Item>☑️ Log errors with context (but never log secrets)</List.Item>
             </List>
-            <Paper withBorder p="md" shadow="sm" radius="md" style={{ borderLeft: "4px solid var(--mantine-color-red-6)" }} bg="var(--mantine-color-red-light)">
-              <Text size="sm">
-                <strong>🔗 Related Resources:</strong>
+            <AccentPanel title="Related Resources" tone="red" variant="soft-outline">
               <List spacing="xs">
                 <List.Item><Anchor component={Link} href="/docs/api/errors">Complete Error Code Reference</Anchor></List.Item>
                 <List.Item><Anchor component={Link} href="/docs/authentication">OAuth 2.0 Authentication Flow</Anchor></List.Item>
                 <List.Item><Anchor component={Link} href="/docs/session-management">Token Refresh Implementation</Anchor></List.Item>
                 <List.Item><Anchor component={Link} href="/docs/app-permissions">App Permissions System</Anchor></List.Item>
               </List>
-              </Text>
-            </Paper>
+            </AccentPanel>
           </Box>
         
       </Stack>

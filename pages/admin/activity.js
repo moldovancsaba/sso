@@ -1,21 +1,24 @@
 import { useCallback, useEffect, useState } from 'react'
 import Head from 'next/head'
+import Link from 'next/link'
 import {
+  ActionIcon,
   Alert,
   Badge,
   Button,
   Card,
+  Container,
   Grid,
   Group,
   Loader,
   NativeSelect,
+  Paper,
   Stack,
   Text,
 } from '@mantine/core'
-import { IconAlertCircle } from '@tabler/icons-react'
-import AdminDataToolbar from '../../components/AdminDataToolbar'
-import AdminShell from '../../components/AdminShell'
-import StateBlock from '../../components/StateBlock'
+import { IconAlertCircle, IconLogout } from '@tabler/icons-react'
+import { DataToolbar, StateBlock } from '@doneisbetter/gds-core/server'
+import { PageHeader } from '@doneisbetter/gds-admin/server'
 
 export async function getServerSideProps(context) {
   const { getAdminUser } = await import('../../lib/auth.mjs')
@@ -51,6 +54,13 @@ const eventLabels = {
   login_failed: 'Login Failed',
 }
 
+const adminNavItems = [
+  { href: '/admin/dashboard', label: 'Dashboard' },
+  { href: '/admin/users', label: 'Users' },
+  { href: '/admin/activity', label: 'Activity' },
+  { href: '/admin/oauth-clients', label: 'Clients' },
+]
+
 function eventColor(eventType, accessGranted) {
   switch (eventType) {
     case 'access_granted':
@@ -77,6 +87,16 @@ export default function ActivityDashboard({ admin }) {
   const [pagination, setPagination] = useState({ total: 0, hasMore: false })
   const [skip, setSkip] = useState(0)
   const [timeRange, setTimeRange] = useState('7d')
+
+  async function handleLogout() {
+    try {
+      await fetch('/api/admin/login', { method: 'DELETE', credentials: 'include' })
+      window.location.href = '/admin'
+    } catch (logoutError) {
+      console.error('Logout error:', logoutError)
+      setError('Logout failed. Please try again.')
+    }
+  }
 
   const fetchLogs = useCallback(async () => {
     setLoading(true)
@@ -128,16 +148,61 @@ export default function ActivityDashboard({ admin }) {
         <title>Activity Dashboard - SSO Admin</title>
       </Head>
 
-      <AdminShell
-        admin={admin}
-        description="Cross-app user access attempts, permission changes, and login events."
-        title="Activity Dashboard"
-      >
-        <AdminDataToolbar
-          count={pagination.total}
-          description="Filter audit activity by time range and event family."
-          title="Activity Filters"
-        >
+      <Container py="xl" size="xl">
+        <Stack gap="lg">
+          <Paper p="lg">
+            <Stack gap="md">
+              <PageHeader
+                description="Cross-app user access attempts, permission changes, and login events."
+                primaryAction={(
+                  <ActionIcon
+                    aria-label="Logout"
+                    color="gray"
+                    onClick={handleLogout}
+                    variant="default"
+                  >
+                    <IconLogout size={18} />
+                  </ActionIcon>
+                )}
+                secondaryActions={(
+                  <Group gap="sm" justify="flex-end" wrap="wrap">
+                    <Text c="dimmed" size="sm">
+                      {admin.email} ({admin.role})
+                    </Text>
+                  </Group>
+                )}
+                title="Activity Dashboard"
+              />
+              <Group gap="sm" wrap="wrap">
+                {adminNavItems.map((item) => (
+                  <Button
+                    key={item.href}
+                    component={Link}
+                    href={item.href}
+                    variant={item.href === '/admin/activity' ? 'filled' : 'default'}
+                  >
+                    {item.label}
+                  </Button>
+                ))}
+              </Group>
+            </Stack>
+          </Paper>
+
+          <Card>
+          <Stack gap="md">
+            <Group align="flex-start" justify="space-between">
+              <Stack gap={4}>
+                <Text fw={700} size="lg">
+                  Activity Filters
+                </Text>
+                <Text c="dimmed" size="sm">
+                  Filter audit activity by time range and event family.
+                </Text>
+              </Stack>
+              <Badge variant="light">{pagination.total}</Badge>
+            </Group>
+            <DataToolbar />
+            <Grid>
             <Grid.Col span={{ base: 12, md: 6 }}>
               <NativeSelect
                 data={[
@@ -170,118 +235,121 @@ export default function ActivityDashboard({ admin }) {
                 value={eventType}
               />
             </Grid.Col>
-        </AdminDataToolbar>
-
-        {error ? (
-          <Alert color="red" icon={<IconAlertCircle size={18} />}>
-            {error}
-          </Alert>
-        ) : null}
-
-        {loading ? (
-          <Card>
-            <StateBlock
-              description="Fetching cross-app access attempts and login events."
-              kind="loading"
-              title="Loading activity"
-            />
-          </Card>
-        ) : logs.length === 0 ? (
-          <Card>
-            <StateBlock
-              description="No activity logs match the selected filters yet."
-              kind="empty"
-              title="No activity logs found"
-            />
-          </Card>
-        ) : (
-          <Stack gap="md">
-            {logs.map((log) => (
-              <Card
-                key={log._id}
-                onClick={() => setExpandedLog(expandedLog === log._id ? null : log._id)}
-                style={{ cursor: 'pointer' }}
-              >
-                <Stack gap="sm">
-                  <Group justify="space-between" align="flex-start">
-                    <Stack gap={6}>
-                      <Group gap="xs">
-                        <Badge color={eventColor(log.eventType, log.accessGranted)}>
-                          {eventLabels[log.eventType] || log.eventType}
-                        </Badge>
-                        {log.accessGranted === false ? (
-                          <Badge color="red" variant="light">
-                            Denied
-                          </Badge>
-                        ) : null}
-                      </Group>
-                      <Text size="sm">
-                        <strong>{log.userName || log.userEmail}</strong> {'->'} <strong>{log.appName}</strong>
-                      </Text>
-                      {log.eventType === 'role_changed' ? (
-                        <Text c="dimmed" size="sm">
-                          Role: {log.previousRole} {'->'} {log.newRole}
-                        </Text>
-                      ) : null}
-                      {log.message ? (
-                        <Text c="dimmed" size="sm">
-                          {log.message}
-                        </Text>
-                      ) : null}
-                    </Stack>
-                    <Text c="dimmed" size="xs">
-                      {formatTimestamp(log.timestamp)}
-                    </Text>
-                  </Group>
-
-                  {expandedLog === log._id ? (
-                    <Grid>
-                      <Grid.Col span={{ base: 12, sm: 4 }}>
-                        <Text fw={600} size="sm">User ID</Text>
-                        <Text ff="monospace" size="sm">{log.userId}</Text>
-                      </Grid.Col>
-                      <Grid.Col span={{ base: 12, sm: 4 }}>
-                        <Text fw={600} size="sm">User Email</Text>
-                        <Text size="sm">{log.userEmail}</Text>
-                      </Grid.Col>
-                      <Grid.Col span={{ base: 12, sm: 4 }}>
-                        <Text fw={600} size="sm">Client ID</Text>
-                        <Text ff="monospace" size="sm">{log.clientId}</Text>
-                      </Grid.Col>
-                      {log.currentRole ? (
-                        <Grid.Col span={{ base: 12, sm: 4 }}>
-                          <Text fw={600} size="sm">Role</Text>
-                          <Text size="sm">{log.currentRole}</Text>
-                        </Grid.Col>
-                      ) : null}
-                      {log.changedBy ? (
-                        <Grid.Col span={{ base: 12, sm: 4 }}>
-                          <Text fw={600} size="sm">Changed By</Text>
-                          <Text size="sm">{log.changedBy}</Text>
-                        </Grid.Col>
-                      ) : null}
-                      {log.ip ? (
-                        <Grid.Col span={{ base: 12, sm: 4 }}>
-                          <Text fw={600} size="sm">IP Address</Text>
-                          <Text ff="monospace" size="sm">{log.ip}</Text>
-                        </Grid.Col>
-                      ) : null}
-                    </Grid>
-                  ) : null}
-                </Stack>
-              </Card>
-            ))}
-
-            {pagination.hasMore ? (
-              <Group justify="center">
-                <Button onClick={() => setSkip(skip + 50)} variant="default">
-                  Load More
-                </Button>
-              </Group>
-            ) : null}
+            </Grid>
           </Stack>
-        )}
-      </AdminShell>
+          </Card>
+
+          {error ? (
+            <Alert color="red" icon={<IconAlertCircle size={18} />}>
+              {error}
+            </Alert>
+          ) : null}
+
+          {loading ? (
+            <Card>
+              <StateBlock
+                description="Fetching cross-app access attempts and login events."
+                variant="loading"
+                title="Loading activity"
+              />
+            </Card>
+          ) : logs.length === 0 ? (
+            <Card>
+              <StateBlock
+                description="No activity logs match the selected filters yet."
+                variant="empty"
+                title="No activity logs found"
+              />
+            </Card>
+          ) : (
+            <Stack gap="md">
+              {logs.map((log) => (
+                <Card
+                  key={log._id}
+                  onClick={() => setExpandedLog(expandedLog === log._id ? null : log._id)}
+                  style={{ cursor: 'pointer' }}
+                >
+                  <Stack gap="sm">
+                    <Group justify="space-between" align="flex-start">
+                      <Stack gap={6}>
+                        <Group gap="xs">
+                          <Badge color={eventColor(log.eventType, log.accessGranted)}>
+                            {eventLabels[log.eventType] || log.eventType}
+                          </Badge>
+                          {log.accessGranted === false ? (
+                            <Badge color="red" variant="light">
+                              Denied
+                            </Badge>
+                          ) : null}
+                        </Group>
+                        <Text size="sm">
+                          <strong>{log.userName || log.userEmail}</strong> {'->'} <strong>{log.appName}</strong>
+                        </Text>
+                        {log.eventType === 'role_changed' ? (
+                          <Text c="dimmed" size="sm">
+                            Role: {log.previousRole} {'->'} {log.newRole}
+                          </Text>
+                        ) : null}
+                        {log.message ? (
+                          <Text c="dimmed" size="sm">
+                            {log.message}
+                          </Text>
+                        ) : null}
+                      </Stack>
+                      <Text c="dimmed" size="xs">
+                        {formatTimestamp(log.timestamp)}
+                      </Text>
+                    </Group>
+
+                    {expandedLog === log._id ? (
+                      <Grid>
+                        <Grid.Col span={{ base: 12, sm: 4 }}>
+                          <Text fw={600} size="sm">User ID</Text>
+                          <Text ff="monospace" size="sm">{log.userId}</Text>
+                        </Grid.Col>
+                        <Grid.Col span={{ base: 12, sm: 4 }}>
+                          <Text fw={600} size="sm">User Email</Text>
+                          <Text size="sm">{log.userEmail}</Text>
+                        </Grid.Col>
+                        <Grid.Col span={{ base: 12, sm: 4 }}>
+                          <Text fw={600} size="sm">Client ID</Text>
+                          <Text ff="monospace" size="sm">{log.clientId}</Text>
+                        </Grid.Col>
+                        {log.currentRole ? (
+                          <Grid.Col span={{ base: 12, sm: 4 }}>
+                            <Text fw={600} size="sm">Role</Text>
+                            <Text size="sm">{log.currentRole}</Text>
+                          </Grid.Col>
+                        ) : null}
+                        {log.changedBy ? (
+                          <Grid.Col span={{ base: 12, sm: 4 }}>
+                            <Text fw={600} size="sm">Changed By</Text>
+                            <Text size="sm">{log.changedBy}</Text>
+                          </Grid.Col>
+                        ) : null}
+                        {log.ip ? (
+                          <Grid.Col span={{ base: 12, sm: 4 }}>
+                            <Text fw={600} size="sm">IP Address</Text>
+                            <Text ff="monospace" size="sm">{log.ip}</Text>
+                          </Grid.Col>
+                        ) : null}
+                      </Grid>
+                    ) : null}
+                  </Stack>
+                </Card>
+              ))}
+
+              {pagination.hasMore ? (
+                <Group justify="center">
+                  <Button onClick={() => setSkip(skip + 50)} variant="default">
+                    Load More
+                  </Button>
+                </Group>
+              ) : null}
+            </Stack>
+          )}
+        </Stack>
+      </Container>
     </>
   )
 }

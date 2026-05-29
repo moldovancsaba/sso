@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import Head from 'next/head'
-import { Alert, Button, Code, Stack, Text } from '@mantine/core'
+import Link from 'next/link'
+import { Alert, Anchor, Box, Button, Code, Group, Stack, Text } from '@mantine/core'
+import { ArticleShell, PublicBrandFooter, PublicShell } from '@doneisbetter/gds-core/server'
 import { IconAlertCircle, IconBug, IconCheck } from '@tabler/icons-react'
-import PublicPageLayout from '../components/PublicPageLayout'
 
 export default function TestFetch() {
   const [result, setResult] = useState('')
@@ -35,7 +36,36 @@ export default function TestFetch() {
       <Head>
         <title>Fetch Test</title>
       </Head>
-      <PublicPageLayout subtitle="Diagnostic endpoint check for the public login API." title="Fetch Test">
+      <PublicShell
+        brand={
+          <Anchor component={Link} href="/" fw={700} td="none">
+            DoneIsBetter SSO
+          </Anchor>
+        }
+        compact
+        footer={
+          <PublicBrandFooter
+            brandTitle="DoneIsBetter"
+            compact
+            description="Universal SSO service for shared identity, OAuth, and centralized account access."
+            legal={<Text c="dimmed" size="xs">© 2025 DoneIsBetter. All rights reserved.</Text>}
+            secondary={
+              <Group gap="md">
+                <Anchor component={Link} href="/" size="xs">Home</Anchor>
+                <Anchor component={Link} href="/docs" size="xs">Documentation</Anchor>
+                <Anchor component={Link} href="/privacy" size="xs">Privacy Policy</Anchor>
+              </Group>
+            }
+          />
+        }
+        maxContentWidth="md"
+      >
+        <Box py="xl">
+          <ArticleShell
+            eyebrow="Diagnostics"
+            lead="Diagnostic endpoint check for the public login API."
+            title="Fetch Test"
+          >
         <Stack gap="lg">
           <Button leftSection={<IconBug size={16} />} onClick={testLogin} w="fit-content">
             Test Login API
@@ -59,7 +89,9 @@ export default function TestFetch() {
             </Text>
           ) : null}
         </Stack>
-      </PublicPageLayout>
+          </ArticleShell>
+        </Box>
+      </PublicShell>
     </>
   )
 }

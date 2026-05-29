@@ -9,11 +9,14 @@
     "build": "next build",
     "start": "next start -p $PORT",
     "lint": "eslint . --ext .js,.jsx,.mjs,.cjs,.ts,.tsx",
+    "lint:gds": "eslint --config eslint.gds.config.mjs . --ext .js,.jsx,.mjs,.cjs,.ts,.tsx",
     "type-check": "tsc --noEmit",
     "test": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js --passWithNoTests",
     "test:contracts": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js --runInBand",
     "guard:repo": "node scripts/check-repo-guardrails.mjs",
     "check:docs": "node scripts/check-docs-maintenance.mjs",
+    "gds:validate-manifest": "gds-compliance validate-manifest --manifest ./gds-adoption.json",
+    "gds:check": "gds-compliance check --manifest ./gds-adoption.json",
     "validate-config": "node -e \"import('./lib/config.js').then(c => c.validateConfig())\"",
     "test-connection": "node scripts/test-connection.js",
     "setup": "cp .env.example .env && echo 'Please edit .env with your configuration'",
@@ -33,6 +36,10 @@
   "author": "Moldovan Csaba",
   "license": "MIT",
   "dependencies": {
+    "@doneisbetter/gds": "2.6.3",
+    "@doneisbetter/gds-admin": "2.6.3",
+    "@doneisbetter/gds-core": "2.6.3",
+    "@doneisbetter/gds-theme": "2.6.3",
     "@mantine/core": "9.2.1",
     "@mantine/form": "9.2.1",
     "@mantine/hooks": "9.2.1",
@@ -46,8 +53,8 @@
     "helmet": "^7.0.0",
     "jsonwebtoken": "^9.0.0",
     "mongodb": "^6.0.0",
-    "next": "15.5.15",
-    "nodemailer": "7.0.12",
+    "next": "15.5.18",
+    "nodemailer": "8.0.9",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
     "resend": "6.1.2",
@@ -55,18 +62,27 @@
     "zod": "4.2.1"
   },
   "devDependencies": {
+    "@doneisbetter/gds-compliance": "2.6.3",
+    "@doneisbetter/gds-eslint-config": "2.6.3",
     "@types/bcryptjs": "^2.4.6",
     "@types/jsonwebtoken": "^9.0.0",
     "@types/node": "^20.19.40",
     "@types/react": "^19.0.0",
     "eslint": "^9.0.0",
-    "eslint-config-next": "15.5.15",
+    "eslint-config-next": "15.5.18",
     "jest": "^29.0.0",
     "typescript": "^5.0.0"
   },
   "engines": {
     "node": "20.x",
     "npm": ">=8.0.0"
+  },
+  "overrides": {
+    "postcss": "8.5.15",
+    "qs": "6.15.2",
+    "@typescript-eslint/typescript-estree": {
+      "brace-expansion": "5.0.6"
+    }
   },
   "repository": {
     "type": "git",

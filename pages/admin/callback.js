@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
-import { Alert, Button, Loader, Stack, Text } from '@mantine/core'
+import { Alert, Box, Button, Loader, Stack, Text, ThemeIcon } from '@mantine/core'
+import { AuthShell } from '@doneisbetter/gds-core/server'
 import { IconAlertCircle, IconLock } from '@tabler/icons-react'
 import { decodeAdminLoginState, sanitizeAdminRedirectPath } from '../../lib/adminAuthFlow.js'
-import AuthSurface from '../../components/AuthSurface'
 
 /**
  * Admin OAuth Callback
@@ -79,11 +79,16 @@ export default function AdminCallbackPage() {
 
   if (error) {
     return (
-      <AuthSurface
-        description="The admin authorization flow could not be completed."
-        icon={<IconAlertCircle size={28} stroke={1.8} />}
-        title="Access Denied"
-      >
+      <Box maw={520} mx="auto">
+        <AuthShell
+          brand={
+            <ThemeIcon color="red" radius="xl" size={56} variant="light">
+              <IconAlertCircle size={28} stroke={1.8} />
+            </ThemeIcon>
+          }
+          description="The admin authorization flow could not be completed."
+          title="Access Denied"
+        >
         <Stack gap="md">
           <Alert color="red" icon={<IconAlertCircle size={18} />} title="Authorization failed" variant="light">
             {error}
@@ -92,22 +97,29 @@ export default function AdminCallbackPage() {
             Back to Home
           </Button>
         </Stack>
-      </AuthSurface>
+        </AuthShell>
+      </Box>
     )
   }
 
   return (
-    <AuthSurface
-      description="Finalizing admin authorization and restoring your dashboard session."
-      icon={<IconLock size={28} stroke={1.8} />}
-      title="SSO Admin"
-    >
+    <Box maw={520} mx="auto">
+      <AuthShell
+        brand={
+          <ThemeIcon color="brand" radius="xl" size={56} variant="light">
+            <IconLock size={28} stroke={1.8} />
+          </ThemeIcon>
+        }
+        description="Finalizing admin authorization and restoring your dashboard session."
+        title="SSO Admin"
+      >
       <Stack align="center" gap="sm">
         <Loader color="brand" type="dots" />
         <Text c="dimmed" size="sm">
           Completing authorization...
         </Text>
       </Stack>
-    </AuthSurface>
+      </AuthShell>
+    </Box>
   )
 }

@@ -3,44 +3,39 @@ import {
   Stack,
   Title,
   Text,
-  Paper,
   Code,
   List,
   Box,
   Anchor,
-  Container,
-  Divider,
-  Group,
 } from '@mantine/core';
+import { AccentPanel } from '@doneisbetter/gds-core/server'
 // WHAT: CORS configuration documentation for SSO OAuth 2.0 integration
 // WHY: Developers need to understand CORS setup for cross-origin SSO requests
 // HOW: Explains SSO CORS policy, registration process, and client-side configuration
 
 import DocsLayout from '../../../components/DocsLayout';
-import packageJson from '../../../package.json';
 
 export default function SecurityCORS() {
   return (
-    <DocsLayout>
+    <DocsLayout
+      eyebrow="Security"
+      lead="Allowed origin rules, browser behavior, and safe expectations for cross-origin SSO consumers."
+      title="CORS Configuration"
+      versionLabel="SSO Version"
+    >
       <Stack gap="xl">
         <Box>
-          <Title order={1} mb="xs">CORS Configuration</Title>
-          <Text size="sm" c="dimmed" fw={500} mb="xs">SSO Version: {packageJson.version}</Text>
-        </Box>
-        
-          <Box>
             <Title order={2} mb="sm">Overview</Title>
             <Text size="sm">
               Cross-Origin Resource Sharing (CORS) allows your application to make secure requests to the SSO service
               from a different origin (domain). This is essential for OAuth 2.0 flows and API interactions.
             </Text>
-            <Paper withBorder p="md" shadow="sm" radius="md" style={{ borderLeft: "4px solid var(--mantine-color-red-6)" }} bg="var(--mantine-color-red-light)">
+            <AccentPanel title="Important" tone="red" variant="soft-outline">
               <Text size="sm">
-                <strong>⚠️ Important:</strong> Your application's origin must be registered with the SSO admin
-              before CORS requests will be allowed.
+                Your application&apos;s origin must be registered with the SSO admin before CORS requests will be allowed.
               </Text>
-            </Paper>
-          </Box>
+            </AccentPanel>
+        </Box>
 
           <Box>
             <Title order={2} mb="sm">SSO CORS Policy</Title>
@@ -58,7 +53,7 @@ export default function SecurityCORS() {
             <Title order={2} mb="sm">Registering Your Origin</Title>
             <Text size="sm">To enable CORS for your application, contact the SSO administrator to register your origin(s):</Text>
             <List spacing="xs" type="ordered">
-              <List.Item>Determine your application's origin(s) (e.g., <code>https://myapp.com</code>)</List.Item>
+              <List.Item>Determine your application&apos;s origin(s) (e.g., <code>https://myapp.com</code>)</List.Item>
               <List.Item>Contact SSO admin via email: <code>sso@doneisbetter.com</code></List.Item>
               <List.Item>Provide the following information:
                 <List spacing="xs">
@@ -70,11 +65,11 @@ export default function SecurityCORS() {
               </List.Item>
               <List.Item>Wait for admin approval (typically within 24 hours)</List.Item>
             </List>
-            <Paper withBorder p="md" shadow="sm" radius="md" style={{ borderLeft: "4px solid var(--mantine-color-red-6)" }} bg="var(--mantine-color-red-light)">
+            <AccentPanel title="Local development note" tone="red" variant="soft-outline">
               <Text size="sm">
-                <strong>📝 Note:</strong> For local development, <code>http://localhost</code> origins (any port) are automatically allowed.
+                For local development, <code>http://localhost</code> origins (any port) are automatically allowed.
               </Text>
-            </Paper>
+            </AccentPanel>
           </Box>
 
           <Box>
@@ -171,17 +166,17 @@ export default function handler(req, res) {
 
           <Box>
             <Title order={2} mb="sm">Common CORS Errors</Title>
-            <Title order={3} mb="xs">Error: "Origin not allowed"</Title>
+            <Title order={3} mb="xs">Error: &quot;Origin not allowed&quot;</Title>
             <Text size="sm"><strong>Cause:</strong> Your origin is not registered with the SSO service.</Text>
             <Text size="sm"><strong>Solution:</strong> Contact SSO admin to register your origin.</Text>
 
-            <Title order={3} mb="xs">Error: "Credentials flag not set"</Title>
-            <Text size="sm"><strong>Cause:</strong> You're not sending <code>credentials: 'include'</code> in requests.</Text>
-            <Text size="sm"><strong>Solution:</strong> Add <code>credentials: 'include'</code> to fetch calls or <code>withCredentials: true</code> to Axios.</Text>
+            <Title order={3} mb="xs">Error: &quot;Credentials flag not set&quot;</Title>
+            <Text size="sm"><strong>Cause:</strong> You&apos;re not sending <code>credentials: &apos;include&apos;</code> in requests.</Text>
+            <Text size="sm"><strong>Solution:</strong> Add <code>credentials: &apos;include&apos;</code> to fetch calls or <code>withCredentials: true</code> to Axios.</Text>
 
-            <Title order={3} mb="xs">Error: "Preflight request failed"</Title>
+            <Title order={3} mb="xs">Error: &quot;Preflight request failed&quot;</Title>
             <Text size="sm"><strong>Cause:</strong> OPTIONS preflight request is being blocked.</Text>
-            <Text size="sm"><strong>Solution:</strong> Ensure your origin is registered and you're using HTTPS (not HTTP) in production.</Text>
+            <Text size="sm"><strong>Solution:</strong> Ensure your origin is registered and you&apos;re using HTTPS (not HTTP) in production.</Text>
           </Box>
 
           <Box>
@@ -206,20 +201,17 @@ fetch('https://sso.doneisbetter.com/api/health', {
             <Title order={2} mb="sm">Summary</Title>
             <List spacing="xs">
               <List.Item>☑️ Contact SSO admin to register your origin</List.Item>
-              <List.Item>☑️ Always use <code>credentials: 'include'</code> for API requests</List.Item>
+              <List.Item>☑️ Always use <code>credentials: &apos;include&apos;</code> for API requests</List.Item>
               <List.Item>☑️ Use HTTPS in production (HTTP only for localhost development)</List.Item>
               <List.Item>☑️ Test CORS configuration before going live</List.Item>
             </List>
-            <Paper withBorder p="md" shadow="sm" radius="md" style={{ borderLeft: "4px solid var(--mantine-color-red-6)" }} bg="var(--mantine-color-red-light)">
-              <Text size="sm">
-                <strong>🔗 Related Resources:</strong>
+            <AccentPanel title="Related Resources" tone="red" variant="soft-outline">
               <List spacing="xs">
                 <List.Item><Anchor component={Link} href="/docs/quickstart">Quick Start Guide</Anchor></List.Item>
                 <List.Item><Anchor component={Link} href="/docs/security/best-practices">Security Best Practices</Anchor></List.Item>
                 <List.Item><Anchor component={Link} href="/docs/api/endpoints">API Reference</Anchor></List.Item>
               </List>
-              </Text>
-            </Paper>
+            </AccentPanel>
           </Box>
         
       </Stack>

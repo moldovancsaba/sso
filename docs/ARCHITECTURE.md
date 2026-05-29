@@ -11,7 +11,7 @@ Last updated: 2026-05-21T00:00:00.000Z
 
 ## Design System Boundary
 
-- Design, UI, and UX governance is defined outside this repo in [`/Users/Shared/Projects/GENERAL_DESIGN_SYSTEM`](/Users/Shared/Projects/GENERAL_DESIGN_SYSTEM)
+- Design, UI, and UX governance is defined outside this repo in the [general-design-system repo](https://github.com/sovereignsquad/general-design-system)
 - The local pointer is [docs/DESIGN_SYSTEM.md](/Users/moldovancsaba/Projects/sso/docs/DESIGN_SYSTEM.md)
 - Current local CSS modules and `styles/globals.css` are implementation artifacts, not the long-term design SSOT
 - Future UI work should migrate this repo toward the Mantine-first contracts in that shared directory
@@ -80,6 +80,7 @@ Last updated: 2026-05-21T00:00:00.000Z
 ### Social callback state validation
 - Google and Facebook login flows use a shared encoded callback state contract
 - Callback processing validates state parsing and CSRF binding before continuing login
+- Login initiation endpoints are simple `GET` handlers that should return a provider `302` immediately; if they time out in production, treat that as a broader API runtime failure before assuming a provider credential problem
 
 ### Public session cookies
 - Development: `SameSite=Lax`
@@ -136,6 +137,7 @@ Last updated: 2026-05-21T00:00:00.000Z
 
 ## Known Boundaries
 
+- Next.js Pages Router requires consistent dynamic segment names within the same path family. For example, `/api/admin/orgs/[orgId]` and `/api/admin/orgs/[orgId]/users/[id]` are valid together, but mixing `/api/admin/orgs/[id]` with nested `/api/admin/orgs/[orgId]/...` can break the production runtime even if the build passes.
 - Passkeys are not implemented yet
 - Apple Sign In is not implemented yet
 - Enterprise federation features such as SAML and SCIM are not implemented yet

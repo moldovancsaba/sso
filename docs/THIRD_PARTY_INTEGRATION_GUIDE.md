@@ -18,7 +18,7 @@ The SSO service provides:
 
 If you are building or modifying hosted UI surfaces, admin screens, auth forms, or shared component patterns around this service, use the shared design-system source of truth:
 
-- [`/Users/Shared/Projects/GENERAL_DESIGN_SYSTEM/README.md`](/Users/Shared/Projects/GENERAL_DESIGN_SYSTEM/README.md)
+- [general-design-system README](https://github.com/sovereignsquad/general-design-system/blob/main/README.md)
 
 That directory is authoritative for Mantine-first component, form, modal, and interaction rules across projects.
 

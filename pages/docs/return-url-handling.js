@@ -3,38 +3,30 @@ import {
   Stack,
   Title,
   Text,
-  Paper,
   Code,
   List,
   Box,
   Anchor,
-  Container,
-  Divider,
-  Group,
 } from '@mantine/core';
+import { AccentPanel } from '@doneisbetter/gds-core/server'
 // WHAT: Documentation for handling return URLs in OAuth flow
 // WHY: Developers need guidance on preserving user's location through OAuth redirects
 // HOW: Encode return URL in state parameter or use sessionStorage
 
 import DocsLayout from '../../components/DocsLayout';
-import packageJson from '../../package.json';
 
 export default function ReturnUrlHandling() {
   return (
-    <DocsLayout>
+    <DocsLayout
+      eyebrow="Integration Guide"
+      lead="Preserve the user’s original destination safely through the OAuth redirect cycle."
+      title="Return URL Handling"
+    >
       <Stack gap="xl">
         <Box>
-          <Title order={1} mb="xs">Return URL Handling</Title>
-          <Text size="sm" c="dimmed" fw={500} mb="xs">API Version: {packageJson.version}</Text>
-          <Text size="lg" c="dimmed">Returning users to their original page after OAuth</Text>
-        </Box>
-
-        
-          {/* Problem Statement */}
-          <Box>
             <Title order={2} mb="sm">The Problem</Title>
             <Text size="sm">
-              When users click "Login" from a specific page in your app (e.g., <code>/settings/integrations</code>),
+              When users click &quot;Login&quot; from a specific page in your app (e.g., <code>/settings/integrations</code>),
               they go through the OAuth flow at the SSO service. After successfully authenticating, you want them
               to return to that exact page—not just your homepage or dashboard.
             </Text>
@@ -44,16 +36,15 @@ export default function ReturnUrlHandling() {
               </Text>
               <List spacing="xs" type="ordered">
                 <List.Item>User is on <code>https://yourapp.com/settings/integrations?tab=sso</code></List.Item>
-                <List.Item>Clicks "Login" → Redirected to SSO</List.Item>
+                <List.Item>Clicks &quot;Login&quot; → Redirected to SSO</List.Item>
                 <List.Item>Completes authentication (may register new account)</List.Item>
                 <List.Item>OAuth redirects to <code>https://yourapp.com/auth/callback?code=...</code></List.Item>
                 <List.Item><strong>Goal:</strong> Redirect user back to <code>/settings/integrations?tab=sso</code></List.Item>
               </List>
             </div>
-          </Box>
+        </Box>
 
-          {/* Solution Overview */}
-          <Box>
+        <Box>
             <Title order={2} mb="sm">The Solution</Title>
             <Text size="sm">
               The <code>state</code> parameter in OAuth 2.0 serves two purposes:
@@ -65,14 +56,13 @@ export default function ReturnUrlHandling() {
             <Text size="sm">
               You can encode <strong>both</strong> the CSRF token and return URL in the state parameter.
             </Text>
-          </Box>
+        </Box>
 
-          {/* Method 1: State Parameter */}
-          <Box>
+        <Box>
             <Title order={2} mb="sm">Method 1: State Parameter (Recommended)</Title>
-            <Text size="sm">
-              ✅ <strong>Recommended:</strong> Works across tabs, survives page refreshes, fully stateless
-            </Text>
+            <AccentPanel title="Recommended" tone="amber" variant="soft-outline">
+              <Text size="sm">Works across tabs, survives page refreshes, and stays fully stateless.</Text>
+            </AccentPanel>
 
             <Title order={3} mb="xs">Step 1: Encode State When Initiating OAuth</Title>
             <Code block>
@@ -201,7 +191,7 @@ function isValidReturnUrl(url) {
           <Box>
             <Title order={2} mb="sm">Method 2: SessionStorage (Alternative)</Title>
             <Text size="sm">
-              ⚠️ <strong>Limitations:</strong> Doesn't work across tabs, lost on page refresh
+              ⚠️ <strong>Limitations:</strong> Doesn&apos;t work across tabs, lost on page refresh
             </Text>
 
             <Title order={3} mb="xs">Frontend Implementation</Title>
@@ -250,7 +240,7 @@ window.addEventListener('DOMContentLoaded', () => {
             </Text>
             <List spacing="xs">
               <List.Item>✅ Only allow relative URLs (starting with <code>/</code>)</List.Item>
-              <List.Item>✅ Reject protocol-relative URLs (<code>//evil.com</code>)</List.Item>
+              <List.Item>✅ Reject protocol-relative URLs (<code>{'//evil.com'}</code>)</List.Item>
               <List.Item>✅ Reject URLs with suspicious characters</List.Item>
               <List.Item>✅ Use an allowlist of valid paths if possible</List.Item>
             </List>
@@ -263,8 +253,8 @@ window.addEventListener('DOMContentLoaded', () => {
               <List.Item><strong>Use base64url encoding</strong> - Safe for URLs (not standard base64)</List.Item>
             </List>
 
-            <Title order={3} mb="xs">3. Don't Store Sensitive Data in State</Title>
-            <Paper withBorder p="md" shadow="sm" radius="md" style={{ borderLeft: "4px solid var(--mantine-color-yellow-6)" }} bg="var(--mantine-color-yellow-light)">
+            <Title order={3} mb="xs">3. Don&apos;t Store Sensitive Data in State</Title>
+            <AccentPanel title="Security Warning" tone="amber" variant="soft-outline">
               <Stack gap="xs">
                 <Text size="sm">
                 The <code>state</code> parameter is visible in browser history, logs, and analytics.
@@ -277,14 +267,14 @@ window.addEventListener('DOMContentLoaded', () => {
                 <List.Item>✅ Only non-sensitive navigation state</List.Item>
               </List>
               </Stack>
-            </Paper>
+            </AccentPanel>
           </Box>
 
           {/* Complete Working Example */}
           <Box>
             <Title order={2} mb="sm">Complete Working Example</Title>
             <Text size="sm">
-              Here's a full implementation using Next.js (adaptable to any framework):
+              Here&apos;s a full implementation using Next.js (adaptable to any framework):
             </Text>
 
             <Title order={3} mb="xs">Frontend Component</Title>
@@ -411,11 +401,11 @@ export default async function handler(req, res) {
             
             <Title order={3} mb="xs">Issue: User Always Redirected to Homepage</Title>
             <Text size="sm"><strong>Cause:</strong> Return URL not preserved in state parameter</Text>
-            <Text size="sm"><strong>Solution:</strong> Check that you're encoding <code>return_to</code> in state before OAuth redirect</Text>
+            <Text size="sm"><strong>Solution:</strong> Check that you&apos;re encoding <code>return_to</code> in state before OAuth redirect</Text>
 
-            <Title order={3} mb="xs">Issue: "Invalid state parameter" Error</Title>
+            <Title order={3} mb="xs">Issue: &quot;Invalid state parameter&quot; Error</Title>
             <Text size="sm"><strong>Cause:</strong> State decoding failed or CSRF token missing</Text>
-            <Text size="sm"><strong>Solution:</strong> Ensure you're using base64url encoding (not standard base64) and including CSRF token</Text>
+            <Text size="sm"><strong>Solution:</strong> Ensure you&apos;re using base64url encoding (not standard base64) and including CSRF token</Text>
 
             <Title order={3} mb="xs">Issue: Return URL Lost After Registration</Title>
             <Text size="sm"><strong>Cause:</strong> SSO preserves OAuth parameters during registration flow</Text>

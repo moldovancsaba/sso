@@ -1,9 +1,9 @@
 import { useEffect } from 'react'
 import { useRouter } from 'next/router'
-import { Loader, Stack, Text } from '@mantine/core'
+import { Box, Loader, Stack, Text, ThemeIcon } from '@mantine/core'
+import { AuthShell } from '@doneisbetter/gds-core/server'
 import { IconLock } from '@tabler/icons-react'
 import { encodeAdminLoginState, sanitizeAdminRedirectPath } from '../../lib/adminAuthFlow.js'
-import AuthSurface from '../../components/AuthSurface'
 
 /**
  * Admin Login Page - OAuth Flow
@@ -42,21 +42,27 @@ export default function AdminLoginPage() {
 
   // WHAT: Show loading while redirecting to OAuth
   return (
-    <AuthSurface
-      description={
-        reauthRequired
-          ? 'Recent authentication is required before continuing to the admin dashboard.'
-          : 'Redirecting to the admin authorization flow.'
-      }
-      icon={<IconLock size={28} stroke={1.8} />}
-      title="SSO Admin"
-    >
+    <Box maw={520} mx="auto">
+      <AuthShell
+        brand={
+          <ThemeIcon color="brand" radius="xl" size={56} variant="light">
+            <IconLock size={28} stroke={1.8} />
+          </ThemeIcon>
+        }
+        description={
+          reauthRequired
+            ? 'Recent authentication is required before continuing to the admin dashboard.'
+            : 'Redirecting to the admin authorization flow.'
+        }
+        title="SSO Admin"
+      >
       <Stack align="center" gap="sm">
         <Loader color="brand" type="dots" />
         <Text c="dimmed" size="sm">
           {reauthRequired ? 'Re-authenticating...' : 'Preparing sign-in...'}
         </Text>
       </Stack>
-    </AuthSurface>
+      </AuthShell>
+    </Box>
   )
 }

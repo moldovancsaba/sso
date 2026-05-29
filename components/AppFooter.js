@@ -19,7 +19,7 @@ export default function AppFooter({ version }) {
         bottom: 0,
         zIndex: 100,
         backdropFilter: 'blur(10px)',
-        backgroundColor: 'rgba(255, 255, 255, 0.92)',
+        backgroundColor: 'var(--mantine-color-body)',
         borderTop: `1px solid ${theme.colors.gray[2]}`,
       })}
     >

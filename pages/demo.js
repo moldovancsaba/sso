@@ -7,16 +7,18 @@ import {
   Button,
   Card,
   Code,
+  Container,
   Group,
   List,
+  Paper,
   SimpleGrid,
   Stack,
   Text,
   ThemeIcon,
   Title,
 } from '@mantine/core'
+import { PageHeader } from '@doneisbetter/gds-admin/server'
 import { IconCheck, IconLogout } from '@tabler/icons-react'
-import AccountShell from '../components/AccountShell'
 import { getPublicUserFromRequest } from '../lib/publicSessions.mjs'
 
 export async function getServerSideProps({ req }) {
@@ -111,21 +113,33 @@ export default function DemoPage({ user }) {
         <meta name="description" content="Protected demo page" />
       </Head>
 
-      <AccountShell
-        actions={
-          <Button
-            color="red"
-            leftSection={<IconLogout size={16} />}
-            loading={loggingOut}
-            onClick={handleLogout}
-            variant="light"
-          >
-            Logout
-          </Button>
-        }
-        description="You are successfully authenticated through the public SSO flow."
-        title={`Welcome, ${user.name}!`}
-      >
+      <Container py="xl" size="md">
+        <Stack gap="lg">
+          <Paper p="lg">
+            <PageHeader
+              description="You are successfully authenticated through the public SSO flow."
+              secondaryActions={
+                <Group gap="sm">
+                  <Button
+                    color="red"
+                    leftSection={<IconLogout size={16} />}
+                    loading={loggingOut}
+                    onClick={handleLogout}
+                    variant="light"
+                  >
+                    Logout
+                  </Button>
+                </Group>
+              }
+              title={`Welcome, ${user.name}!`}
+              primaryAction={
+                <Button component={Link} href="/" size="compact-sm" variant="subtle">
+                  Back to home
+                </Button>
+              }
+            />
+          </Paper>
+
         <Stack gap="lg">
           <Card p="lg">
             <Stack gap="md">
@@ -191,7 +205,8 @@ export default function DemoPage({ user }) {
             </Stack>
           </Card>
         </Stack>
-      </AccountShell>
+        </Stack>
+      </Container>
     </>
   )
 }

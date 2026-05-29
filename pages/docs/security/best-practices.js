@@ -3,21 +3,17 @@ import {
   Stack,
   Title,
   Text,
-  Paper,
   Code,
   List,
   Box,
   Anchor,
-  Container,
-  Divider,
-  Group,
 } from '@mantine/core';
+import { AccentPanel } from '@doneisbetter/gds-core/server'
 // WHAT: Security best practices documentation for OAuth 2.0 SSO integration
 // WHY: Developers need comprehensive security guidance to avoid vulnerabilities
 // HOW: Covers OAuth 2.0 security, token handling, CSRF protection, and app permissions
 
 import DocsLayout from '../../../components/DocsLayout';
-import packageJson from '../../../package.json';
 
 // WHAT: Disable SSG for this page to prevent NextRouter errors
 // WHY: DocsLayout uses useRouter() which requires runtime router context
@@ -28,31 +24,30 @@ export async function getServerSideProps() {
 
 export default function SecurityBestPractices() {
   return (
-    <DocsLayout>
+    <DocsLayout
+      eyebrow="Security"
+      lead="Security rules and implementation guidance for OAuth consumers and permission-aware integrations."
+      title="Security Best Practices"
+      versionLabel="SSO Version"
+    >
       <Stack gap="xl">
         <Box>
-          <Title order={1} mb="xs">Security Best Practices</Title>
-          <Text size="sm" c="dimmed" fw={500} mb="xs">SSO Version: {packageJson.version}</Text>
-        </Box>
-        
-          <Box>
             <Title order={2} mb="sm">Overview</Title>
             <Text size="sm">
               This guide covers security best practices for integrating with the SSO service using OAuth 2.0.
               Following these guidelines will help protect your application and users from common security vulnerabilities.
             </Text>
-            <Paper withBorder p="md" shadow="sm" radius="md" style={{ borderLeft: "4px solid var(--mantine-color-red-6)" }} bg="var(--mantine-color-red-light)">
+            <AccentPanel title="Critical" tone="red" variant="soft-outline">
               <Text size="sm">
-                <strong>⚠️ Critical:</strong> OAuth 2.0 security depends on proper implementation.
-              Violations of these practices can lead to severe security breaches.
+                OAuth 2.0 security depends on proper implementation. Violations of these practices can lead to severe security breaches.
               </Text>
-            </Paper>
-            <Paper withBorder p="md" shadow="sm" radius="md" style={{ borderLeft: "4px solid var(--mantine-color-yellow-6)" }} bg="var(--mantine-color-yellow-light)">
+            </AccentPanel>
+            <AccentPanel title="Current contract note" tone="amber" variant="soft-outline">
               <Text size="sm">
-                <strong>Current contract note:</strong> use ID tokens for identity claims and use permission APIs for app authorization state. If your backend surfaces a <code>permissionStatus</code> field, that should be derived from the permission APIs rather than assumed to be present in the raw ID token.
+                Use ID tokens for identity claims and use permission APIs for app authorization state. If your backend surfaces a <code>permissionStatus</code> field, that should be derived from the permission APIs rather than assumed to be present in the raw ID token.
               </Text>
-            </Paper>
-          </Box>
+            </AccentPanel>
+        </Box>
 
           <Box>
             <Title order={2} mb="sm">1. Never Expose Client Secret</Title>
@@ -191,7 +186,7 @@ if (decoded.exp * 1000 < Date.now()) {
   throw new Error('Token expired');
 }`}
             </Code>
-            <Text size="sm"><strong>WHY:</strong> Verifying the ID token signature ensures it hasn't been tampered with and actually comes from the SSO server.</Text>
+            <Text size="sm"><strong>WHY:</strong> Verifying the ID token signature ensures it hasn&apos;t been tampered with and actually comes from the SSO server.</Text>
           </Box>
 
           <Box>
@@ -340,7 +335,7 @@ res.clearCookie('id_token');
 // Step 3: Optionally redirect to SSO logout (for single logout)
 window.location.href = 'https://sso.doneisbetter.com/api/public/logout';`}
             </Code>
-            <Text size="sm"><strong>WHY:</strong> Revoking tokens at the SSO server ensures they can't be reused even if intercepted.</Text>
+            <Text size="sm"><strong>WHY:</strong> Revoking tokens at the SSO server ensures they can&apos;t be reused even if intercepted.</Text>
           </Box>
 
           <Box>
@@ -357,17 +352,14 @@ window.location.href = 'https://sso.doneisbetter.com/api/public/logout';`}
               <List.Item>☑️ Handle rate limiting with exponential backoff</List.Item>
               <List.Item>☑️ Revoke tokens on logout</List.Item>
             </List>
-            <Paper withBorder p="md" shadow="sm" radius="md" style={{ borderLeft: "4px solid var(--mantine-color-red-6)" }} bg="var(--mantine-color-red-light)">
-              <Text size="sm">
-                <strong>🔗 Related Resources:</strong>
+            <AccentPanel title="Related Resources" tone="red" variant="soft-outline">
               <List spacing="xs">
                 <List.Item><Anchor component={Link} href="/docs/authentication">OAuth 2.0 Authentication Flow</Anchor></List.Item>
                 <List.Item><Anchor component={Link} href="/docs/security/cors">CORS Configuration</Anchor></List.Item>
                 <List.Item><Anchor component={Link} href="/docs/security/permissions">App Permissions System</Anchor></List.Item>
                 <List.Item><Anchor component={Link} href="/docs/api/errors">Error Handling</Anchor></List.Item>
               </List>
-              </Text>
-            </Paper>
+            </AccentPanel>
           </Box>
         
       </Stack>
