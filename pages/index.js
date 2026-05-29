@@ -42,30 +42,30 @@ const publicNavItems = [
   { id: 'terms', label: 'Terms', href: '/terms' },
 ]
 
-const integrationCards = [
+const capabilityCards = [
   {
-    badge: <Badge size="sm" variant="light">Connected app</Badge>,
-    description: 'Customer engagement workflows and sign-in orchestration on the shared identity backbone.',
-    meta: <Text c="dimmed" size="sm">Uses centralized auth, session validation, and app permissions.</Text>,
-    title: 'LaunchMass',
+    badge: <Badge size="sm" variant="light">Hosted authentication</Badge>,
+    description: 'Centralized sign-in, session continuity, account recovery, and public-user access from one governed identity surface.',
+    meta: <Text c="dimmed" size="sm">Password, magic link, social login, PIN verification, and shared session validation.</Text>,
+    title: 'User identity and sessions',
   },
   {
-    badge: <Badge size="sm" variant="light">Connected app</Badge>,
-    description: 'Partner-facing access flow with the same hosted session, OAuth, and account lifecycle controls.',
-    meta: <Text c="dimmed" size="sm">Uses public-user auth and centralized permission enforcement.</Text>,
-    title: 'Amanoba',
+    badge: <Badge size="sm" variant="light">Application access</Badge>,
+    description: 'OAuth and authorization flows for products that need centralized login, consent, token exchange, and permission-aware session handling.',
+    meta: <Text c="dimmed" size="sm">OAuth / OIDC flows, public session validation, and per-application access controls.</Text>,
+    title: 'OAuth and client integrations',
   },
   {
-    badge: <Badge size="sm" variant="light">Connected app</Badge>,
-    description: 'Domain-specific application that relies on the same shared identity and authorization surface.',
-    meta: <Text c="dimmed" size="sm">Uses centralized auth and reusable session validation.</Text>,
-    title: 'Camera',
+    badge: <Badge size="sm" variant="light">Operational governance</Badge>,
+    description: 'Administrative oversight for approvals, activity review, access recovery, and controlled privileged actions.',
+    meta: <Text c="dimmed" size="sm">Audited operator actions, approval workflows, and unified administrative controls.</Text>,
+    title: 'Admin and approval controls',
   },
   {
-    badge: <Badge leftSection={<IconApps size={12} />} size="sm" variant="light">Operations</Badge>,
-    description: 'Internal operator console for users, activity, OAuth clients, approvals, and enterprise groundwork.',
-    meta: <Text c="dimmed" size="sm">Uses unified admin controls and audited privileged actions.</Text>,
-    title: 'SSO Admin Dashboard',
+    badge: <Badge leftSection={<IconBuilding size={12} />} size="sm" variant="light">Enterprise readiness</Badge>,
+    description: 'The service is structured to support shared identity boundaries, organization-level controls, and future federation-oriented operational models.',
+    meta: <Text c="dimmed" size="sm">Organization data models, audited operations, and controlled extension points for enterprise use.</Text>,
+    title: 'Scalable identity foundation',
   },
 ]
 
@@ -256,11 +256,11 @@ const session = await sso.validateSession()`}</Code>
         </AccentPanel>
 
         <ConsumerSection
-          description="Current integrations in this service rely on the same identity, session, and authorization backbone."
-          title="Connected applications"
+          description="The platform provides one governed identity layer for sign-in, sessions, application access, and operational control."
+          title="Core service capabilities"
         >
           <ConsumerDashboardGrid columns={2}>
-            {integrationCards.map((item) => (
+            {capabilityCards.map((item) => (
               <EditorialCard
                 key={item.title}
                 badge={item.badge}
@@ -268,15 +268,10 @@ const session = await sso.validateSession()`}</Code>
                 media={<IconWorld size={28} />}
                 meta={item.meta}
                 title={item.title}
-                tone={item.title === 'SSO Admin Dashboard' ? 'cool' : 'default'}
+                tone={item.title === 'Scalable identity foundation' ? 'cool' : 'default'}
               />
             ))}
           </ConsumerDashboardGrid>
-          <Box mt="md">
-            <Text c="dimmed" size="sm">
-              Public customer logos or endorsements should only be added with explicit approval and verified public references.
-            </Text>
-          </Box>
         </ConsumerSection>
       </Stack>
     </PublicShell>
