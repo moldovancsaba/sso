@@ -8,21 +8,21 @@ import {
   Box,
   Anchor,
 } from '@mantine/core';
-import { AccentPanel } from '@doneisbetter/gds-core/server'
+import { AccentPanel, DocsPageShell, PublicShell } from '@doneisbetter/gds-core/server'
+import { createDocsVersionMeta, getDocsShellProps } from '../../lib/docs-shell-config'
 // WHAT: Integration guide for developers adding SSO to their applications
 // WHY: Developers need clear steps to integrate OAuth 2.0 SSO into their apps
 // HOW: Provides step-by-step setup, environment configuration, and verification
 
-import DocsLayout from '../../components/DocsLayout';
-
 export default function Installation() {
   return (
-    <DocsLayout
-      eyebrow="Integration Guide"
-      lead="Step-by-step setup for integrating OAuth-based SSO into an external application."
-      title="Integration Guide"
-      versionLabel="SSO Version"
-    >
+    <PublicShell {...getDocsShellProps('/docs/installation')}>
+      <DocsPageShell
+        eyebrow="Integration Guide"
+        lead="Step-by-step setup for integrating OAuth-based SSO into an external application."
+        meta={createDocsVersionMeta('SSO Version')}
+        title="Integration Guide"
+      >
       <Stack gap="xl">
         <Box>
             <Title order={2} mb="sm">Overview</Title>
@@ -211,6 +211,7 @@ console.log('Permission should come from your backend session endpoint, not dire
           </Box>
         
       </Stack>
-    </DocsLayout>
+      </DocsPageShell>
+    </PublicShell>
   );
 }

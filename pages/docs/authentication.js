@@ -6,15 +6,18 @@ import {
   List,
   Box,
 } from '@mantine/core';
-import DocsLayout from '../../components/DocsLayout';
+import { DocsPageShell, PublicShell } from '@doneisbetter/gds-core/server'
+import { createDocsVersionMeta, getDocsShellProps } from '../../lib/docs-shell-config'
 
 export default function Authentication() {
   return (
-    <DocsLayout
-      eyebrow="Integration Guide"
-      lead="Recommended authentication and hosted-login model for OAuth-based consumers."
-      title="Authentication Guide"
-    >
+    <PublicShell {...getDocsShellProps('/docs/authentication')}>
+      <DocsPageShell
+        eyebrow="Integration Guide"
+        lead="Recommended authentication and hosted-login model for OAuth-based consumers."
+        meta={createDocsVersionMeta('API Version')}
+        title="Authentication Guide"
+      >
       <Stack gap="xl">
         <Box>
           <Title order={2} mb="sm">Overview</Title>
@@ -75,6 +78,7 @@ export default function Authentication() {
             </Text>
         </Box>
       </Stack>
-    </DocsLayout>
+      </DocsPageShell>
+    </PublicShell>
   );
 }

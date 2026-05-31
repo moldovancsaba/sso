@@ -6,16 +6,18 @@ import {
   List,
   Box,
 } from '@mantine/core';
-import DocsLayout from '../../components/DocsLayout';
+import { DocsPageShell, PublicShell } from '@doneisbetter/gds-core/server'
+import { createDocsVersionMeta, getDocsShellProps } from '../../lib/docs-shell-config'
 
 export default function IntegrationGuidePage() {
   return (
-    <DocsLayout
-      eyebrow="Integration Guide"
-      lead="Choose the right integration surface for your application."
-      title="Third-Party Integration Guide"
-      versionLabel="SSO Version"
-    >
+    <PublicShell {...getDocsShellProps('/docs/integration')}>
+      <DocsPageShell
+        eyebrow="Integration Guide"
+        lead="Choose the right integration surface for your application."
+        meta={createDocsVersionMeta('SSO Version')}
+        title="Third-Party Integration Guide"
+      >
       <Stack gap="xl">
         <Box>
             <Title order={2} mb="sm">Integration Options</Title>
@@ -54,6 +56,7 @@ export default function IntegrationGuidePage() {
             </List>
         </Box>
       </Stack>
-    </DocsLayout>
+      </DocsPageShell>
+    </PublicShell>
   );
 }
