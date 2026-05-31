@@ -14,10 +14,12 @@ It currently acts as:
 
 ## Design SSOT
 
-All design, UI, and UX rules now defer to the shared cross-project source of truth:
+All design, UI, and UX rules now defer to one shared cross-project source of truth:
 
-- [docs/DESIGN_SYSTEM.md](/Users/moldovancsaba/Projects/sso/docs/DESIGN_SYSTEM.md)
 - [general-design-system README](https://github.com/sovereignsquad/general-design-system/blob/main/README.md)
+- [general-design-system repository](https://github.com/sovereignsquad/general-design-system)
+
+In this repo, [docs/DESIGN_SYSTEM.md](/Users/moldovancsaba/Projects/sso/docs/DESIGN_SYSTEM.md) is local implementation tracking and migration status only (non-authoritative).
 
 That shared directory is normative for:
 
@@ -118,7 +120,7 @@ The May 2026 hardening pass delivered these changes:
 ## Recommended Reading
 
 - [docs/ARCHITECTURE.md](/Users/moldovancsaba/Projects/sso/docs/ARCHITECTURE.md): runtime architecture and core contracts
-- [docs/DESIGN_SYSTEM.md](/Users/moldovancsaba/Projects/sso/docs/DESIGN_SYSTEM.md): local pointer to the shared design / UI / UX SSOT
+- [docs/DESIGN_SYSTEM.md](/Users/moldovancsaba/Projects/sso/docs/DESIGN_SYSTEM.md): local implementation/migration tracking for GDS adoption (non-authoritative)
 - [docs/THIRD_PARTY_INTEGRATION_GUIDE.md](/Users/moldovancsaba/Projects/sso/docs/THIRD_PARTY_INTEGRATION_GUIDE.md): integration guide for app teams
 - [docs/MULTI_APP_PERMISSIONS.md](/Users/moldovancsaba/Projects/sso/docs/MULTI_APP_PERMISSIONS.md): app-permission semantics and workflows
 - [docs/ROLE_SYSTEM_MIGRATION.md](/Users/moldovancsaba/Projects/sso/docs/ROLE_SYSTEM_MIGRATION.md): compatibility notes for legacy roles

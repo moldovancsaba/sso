@@ -11,8 +11,8 @@ Last updated: 2026-05-21T00:00:00.000Z
 
 ## Design System Boundary
 
-- Design, UI, and UX governance is defined outside this repo in the [general-design-system repo](https://github.com/sovereignsquad/general-design-system)
-- The local pointer is [docs/DESIGN_SYSTEM.md](/Users/moldovancsaba/Projects/sso/docs/DESIGN_SYSTEM.md)
+- Design, UI, and UX governance is defined in the [general-design-system repo](https://github.com/sovereignsquad/general-design-system), which is the only authoritative SSOT.
+- [docs/DESIGN_SYSTEM.md](/Users/moldovancsaba/Projects/sso/docs/DESIGN_SYSTEM.md) is local implementation tracking for this repo (non-authoritative).
 - Current local CSS modules and `styles/globals.css` are implementation artifacts, not the long-term design SSOT
 - Future UI work should migrate this repo toward the Mantine-first contracts in that shared directory
 
