@@ -8,28 +8,21 @@ import {
   Box,
   Anchor,
 } from '@mantine/core';
-import { AccentPanel } from '@doneisbetter/gds-core/server'
+import { AccentPanel, DocsPageShell, PublicShell } from '@doneisbetter/gds-core/server'
+import { createDocsVersionMeta, getDocsShellProps } from '../../../lib/docs-shell-config'
 // WHAT: Security best practices documentation for OAuth 2.0 SSO integration
 // WHY: Developers need comprehensive security guidance to avoid vulnerabilities
 // HOW: Covers OAuth 2.0 security, token handling, CSRF protection, and app permissions
 
-import DocsLayout from '../../../components/DocsLayout';
-
-// WHAT: Disable SSG for this page to prevent NextRouter errors
-// WHY: DocsLayout uses useRouter() which requires runtime router context
-// HOW: getServerSideProps forces server-side rendering instead of static generation
-export async function getServerSideProps() {
-  return { props: {} }
-}
-
 export default function SecurityBestPractices() {
   return (
-    <DocsLayout
-      eyebrow="Security"
-      lead="Security rules and implementation guidance for OAuth consumers and permission-aware integrations."
-      title="Security Best Practices"
-      versionLabel="SSO Version"
-    >
+    <PublicShell {...getDocsShellProps('/docs/security/best-practices')}>
+      <DocsPageShell
+        eyebrow="Security"
+        lead="Security rules and implementation guidance for OAuth consumers and permission-aware integrations."
+        meta={createDocsVersionMeta('SSO Version')}
+        title="Security Best Practices"
+      >
       <Stack gap="xl">
         <Box>
             <Title order={2} mb="sm">Overview</Title>
@@ -363,6 +356,7 @@ window.location.href = 'https://sso.doneisbetter.com/api/public/logout';`}
           </Box>
         
       </Stack>
-    </DocsLayout>
+      </DocsPageShell>
+    </PublicShell>
   );
 }

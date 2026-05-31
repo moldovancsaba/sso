@@ -8,21 +8,21 @@ import {
   Box,
   Anchor,
 } from '@mantine/core';
-import { AccentPanel } from '@doneisbetter/gds-core/server'
+import { AccentPanel, DocsPageShell, PublicShell } from '@doneisbetter/gds-core/server'
+import { createDocsVersionMeta, getDocsShellProps } from '../../../lib/docs-shell-config'
 // WHAT: CORS configuration documentation for SSO OAuth 2.0 integration
 // WHY: Developers need to understand CORS setup for cross-origin SSO requests
 // HOW: Explains SSO CORS policy, registration process, and client-side configuration
 
-import DocsLayout from '../../../components/DocsLayout';
-
 export default function SecurityCORS() {
   return (
-    <DocsLayout
-      eyebrow="Security"
-      lead="Allowed origin rules, browser behavior, and safe expectations for cross-origin SSO consumers."
-      title="CORS Configuration"
-      versionLabel="SSO Version"
-    >
+    <PublicShell {...getDocsShellProps('/docs/security/cors')}>
+      <DocsPageShell
+        eyebrow="Security"
+        lead="Allowed origin rules, browser behavior, and safe expectations for cross-origin SSO consumers."
+        meta={createDocsVersionMeta('SSO Version')}
+        title="CORS Configuration"
+      >
       <Stack gap="xl">
         <Box>
             <Title order={2} mb="sm">Overview</Title>
@@ -215,6 +215,7 @@ fetch('https://sso.doneisbetter.com/api/health', {
           </Box>
         
       </Stack>
-    </DocsLayout>
+      </DocsPageShell>
+    </PublicShell>
   );
 }
