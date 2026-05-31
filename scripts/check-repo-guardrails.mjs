@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { execFileSync } from 'node:child_process'
-import { readFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import path from 'node:path'
 
 const ROOT = process.cwd()
@@ -65,6 +65,9 @@ function findHardcodedMongoUris(files) {
     }
 
     const absolutePath = path.join(ROOT, file)
+    if (!existsSync(absolutePath)) {
+      continue
+    }
     const content = readFileSync(absolutePath, 'utf8')
 
     if (HARDCODED_MONGODB_URI_PATTERN.test(content)) {
@@ -102,6 +105,9 @@ function findDesignSsotViolations(files) {
     }
 
     const absolutePath = path.join(ROOT, file)
+    if (!existsSync(absolutePath)) {
+      continue
+    }
     const content = readFileSync(absolutePath, 'utf8')
     const missingCanonicalSsotReference = !DESIGN_SSOT_REPO_PATTERN.test(content)
     const bannedMatch = DESIGN_SSOT_BANNED_PATTERNS.find((pattern) => pattern.test(content))

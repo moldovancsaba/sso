@@ -2,13 +2,10 @@ import '@mantine/core/styles.css';
 import '@mantine/notifications/styles.css';
 import '../styles/globals.css';
 import { useState, useEffect, useCallback } from 'react';
-import { Box } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { GdsProvider } from '@doneisbetter/gds-theme/client';
 import { useRouter } from 'next/router';
-import AppFooter from '../components/AppFooter';
 import { mantineTheme } from '../lib/theme/mantineTheme';
-import packageJson from '../package.json';
 
 export default function App({ Component, pageProps }) {
   const router = useRouter();
@@ -118,11 +115,7 @@ export default function App({ Component, pageProps }) {
       messages={{}}
       theme={mantineTheme}
     >
-      <Box h="100%" pb={48}>
-        <Component {...pageProps} />
-        {/* Temporary local root footer authority, tracked in issue 51 for full GDS-only conversion. */}
-        <AppFooter version={packageJson.version} />
-      </Box>
+      <Component {...pageProps} />
     </GdsProvider>
   );
 }
