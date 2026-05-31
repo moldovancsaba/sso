@@ -28,11 +28,6 @@
       "contract": "DocsPageShell",
       "path": "components/DocsLayout.js",
       "status": "active"
-    },
-    {
-      "contract": "AppFooter",
-      "path": "components/AppFooter.js",
-      "status": "active"
     }
   ],
   "approvedExceptions": [
