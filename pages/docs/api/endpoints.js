@@ -6,16 +6,19 @@ import {
   List,
   Box,
 } from '@mantine/core'
-import DocsLayout from '../../../components/DocsLayout'
+import { DocsPageShell, PublicShell } from '@doneisbetter/gds-core/server'
+import { createDocsVersionMeta, getDocsShellProps } from '../../../lib/docs-shell-config'
 
 export default function ApiEndpoints() {
   return (
-    <DocsLayout
-      eyebrow="API Reference"
-      footerNext={{ href: '/docs/api/responses', label: 'Response formats' }}
-      lead="Canonical endpoint map for OAuth, public auth, social login, and permission-management APIs."
-      title="API Endpoints Reference"
-    >
+    <PublicShell {...getDocsShellProps('/docs/api/endpoints')}>
+      <DocsPageShell
+        eyebrow="API Reference"
+        footerNext={{ href: '/docs/api/responses', label: 'Response formats' }}
+        lead="Canonical endpoint map for OAuth, public auth, social login, and permission-management APIs."
+        meta={createDocsVersionMeta('API Version')}
+        title="API Endpoints Reference"
+      >
       <Stack gap="xl">
         <Box component="section" id="oauth">
           <Title mb="sm" order={2}>OAuth / OIDC</Title>
@@ -189,6 +192,7 @@ Content-Type: application/json
           <Text size="sm">Admin-managed revoke. Returns a canonical revoked/none permission shape.</Text>
         </Box>
       </Stack>
-    </DocsLayout>
+      </DocsPageShell>
+    </PublicShell>
   )
 }

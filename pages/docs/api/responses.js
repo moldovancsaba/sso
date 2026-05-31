@@ -5,16 +5,19 @@ import {
   Code,
   Box,
 } from '@mantine/core'
-import DocsLayout from '../../../components/DocsLayout'
+import { DocsPageShell, PublicShell } from '@doneisbetter/gds-core/server'
+import { createDocsVersionMeta, getDocsShellProps } from '../../../lib/docs-shell-config'
 
 export default function ApiResponses() {
   return (
-    <DocsLayout
-      eyebrow="API Reference"
-      footerNext={{ href: '/docs/api/errors', label: 'Error reference' }}
-      lead="Canonical response shapes for tokens, sessions, registration, permissions, and errors."
-      title="API Response Formats"
-    >
+    <PublicShell {...getDocsShellProps('/docs/api/responses')}>
+      <DocsPageShell
+        eyebrow="API Reference"
+        footerNext={{ href: '/docs/api/errors', label: 'Error reference' }}
+        lead="Canonical response shapes for tokens, sessions, registration, permissions, and errors."
+        meta={createDocsVersionMeta('API Version')}
+        title="API Response Formats"
+      >
       <Stack gap="xl">
         <Box>
           <Title mb="sm" order={2}>OAuth Token Response</Title>
@@ -148,6 +151,7 @@ export default function ApiResponses() {
           </Code>
         </Box>
       </Stack>
-    </DocsLayout>
+      </DocsPageShell>
+    </PublicShell>
   )
 }

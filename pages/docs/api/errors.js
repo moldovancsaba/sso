@@ -4,16 +4,19 @@ import {
   Text,
   Box,
 } from '@mantine/core'
-import DocsLayout from '../../../components/DocsLayout'
+import { DocsPageShell, PublicShell } from '@doneisbetter/gds-core/server'
+import { createDocsVersionMeta, getDocsShellProps } from '../../../lib/docs-shell-config'
 
 export default function ApiErrors() {
   return (
-    <DocsLayout
-      eyebrow="API Reference"
-      footerNext={{ href: '/docs/api/responses', label: 'Response formats' }}
-      lead="Error taxonomy for OAuth, public authentication, permissions, and social login flows."
-      title="API Error Reference"
-    >
+    <PublicShell {...getDocsShellProps('/docs/api/errors')}>
+      <DocsPageShell
+        eyebrow="API Reference"
+        footerNext={{ href: '/docs/api/responses', label: 'Response formats' }}
+        lead="Error taxonomy for OAuth, public authentication, permissions, and social login flows."
+        meta={createDocsVersionMeta('API Version')}
+        title="API Error Reference"
+      >
       <Stack gap="xl">
         <Box>
           <Title mb="sm" order={2}>OAuth Errors</Title>
@@ -88,6 +91,7 @@ export default function ApiErrors() {
           <Text size="sm">Some endpoints return HTTP <code>429</code> with retry guidance. Authentication clients should treat 429 responses as transient and retry later.</Text>
         </Box>
       </Stack>
-    </DocsLayout>
+      </DocsPageShell>
+    </PublicShell>
   )
 }
