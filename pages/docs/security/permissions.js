@@ -8,12 +8,11 @@ import {
   Box,
   Anchor,
 } from '@mantine/core';
-import { AccentPanel, SimpleDataTable } from '@doneisbetter/gds-core/server'
+import { AccentPanel, DocsPageShell, PublicShell, SimpleDataTable } from '@doneisbetter/gds-core/server'
+import { createDocsVersionMeta, getDocsShellProps } from '../../../lib/docs-shell-config'
 // WHAT: App permissions system documentation for OAuth 2.0 SSO integration
 // WHY: Developers need to understand app-level permissions and roles
 // HOW: Explains backend-derived permissionStatus, app roles, and two-level access control
-
-import DocsLayout from '../../../components/DocsLayout';
 
 const permissionStatusRows = [
   {
@@ -35,12 +34,13 @@ const permissionStatusRows = [
 
 export default function SecurityPermissions() {
   return (
-    <DocsLayout
-      eyebrow="Security"
-      lead="Operational model and UI expectations for permission-aware access control."
-      title="App Permissions System"
-      versionLabel="SSO Version"
-    >
+    <PublicShell {...getDocsShellProps('/docs/security/permissions')}>
+      <DocsPageShell
+        eyebrow="Security"
+        lead="Operational model and UI expectations for permission-aware access control."
+        meta={createDocsVersionMeta('SSO Version')}
+        title="App Permissions System"
+      >
       <Stack gap="xl">
         <Box>
             <Title order={2} mb="sm">Overview</Title>
@@ -370,6 +370,7 @@ if (role === 'admin') {
           </Box>
         
       </Stack>
-    </DocsLayout>
+      </DocsPageShell>
+    </PublicShell>
   );
 }
