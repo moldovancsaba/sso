@@ -1,16 +1,18 @@
 import Link from 'next/link'
 import { Anchor, Box, List, Stack, Text, Title } from '@mantine/core'
-import { AccentPanel } from '@doneisbetter/gds-core/server'
-import DocsLayout from '../../../components/DocsLayout'
+import { AccentPanel, DocsPageShell, PublicShell } from '@doneisbetter/gds-core/server'
+import { createDocsVersionMeta, getDocsShellProps } from '../../../lib/docs-shell-config'
 
 export default function ApiDocs() {
   return (
-    <DocsLayout
-      eyebrow="API Reference"
-      footerNext={{ href: '/docs/api/endpoints', label: 'Endpoint reference' }}
-      lead="Reference surface for OAuth, hosted auth, public sessions, and permission-management contracts."
-      title="SSO API Reference"
-    >
+    <PublicShell {...getDocsShellProps('/docs/api')}>
+      <DocsPageShell
+        eyebrow="API Reference"
+        footerNext={{ href: '/docs/api/endpoints', label: 'Endpoint reference' }}
+        lead="Reference surface for OAuth, hosted auth, public sessions, and permission-management contracts."
+        meta={createDocsVersionMeta('API Version')}
+        title="SSO API Reference"
+      >
       <Stack gap="xl">
         <Box>
           <Title mb="sm" order={2}>Overview</Title>
@@ -91,6 +93,7 @@ export default function ApiDocs() {
           </List>
         </Box>
       </Stack>
-    </DocsLayout>
+      </DocsPageShell>
+    </PublicShell>
   )
 }
