@@ -7,16 +7,18 @@ import {
   List,
   Box,
 } from '@mantine/core';
-import { AccentPanel } from '@doneisbetter/gds-core/server'
-import DocsLayout from '../../components/DocsLayout';
+import { AccentPanel, DocsPageShell, PublicShell } from '@doneisbetter/gds-core/server'
+import { createDocsVersionMeta, getDocsShellProps } from '../../lib/docs-shell-config'
 
 export default function Quickstart() {
   return (
-    <DocsLayout
-      eyebrow="Getting Started"
-      lead="The shortest safe path from client registration to a working OAuth integration."
-      title="Quick Start Guide"
-    >
+    <PublicShell {...getDocsShellProps('/docs/quickstart')}>
+      <DocsPageShell
+        eyebrow="Getting Started"
+        lead="The shortest safe path from client registration to a working OAuth integration."
+        meta={createDocsVersionMeta('API Version')}
+        title="Quick Start Guide"
+      >
       <Stack gap="xl">
         <AccentPanel title="Recommended path" tone="amber" variant="soft-outline">
           <Stack gap="sm">
@@ -89,6 +91,7 @@ Content-Type: application/json
             </Text>
         </Box>
       </Stack>
-    </DocsLayout>
+      </DocsPageShell>
+    </PublicShell>
   );
 }

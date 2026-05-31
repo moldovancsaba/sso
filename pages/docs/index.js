@@ -7,16 +7,18 @@ import {
   List,
   Box,
 } from '@mantine/core';
-import { AccentPanel } from '@doneisbetter/gds-core/server'
-import DocsLayout from '../../components/DocsLayout';
+import { AccentPanel, DocsPageShell, PublicShell } from '@doneisbetter/gds-core/server'
+import { createDocsVersionMeta, getDocsShellProps } from '../../lib/docs-shell-config'
 
 export default function DocsPage() {
   return (
-    <DocsLayout
-      eyebrow="Getting Started"
-      lead="Current runtime guide for OAuth, hosted auth, and shared-domain session validation."
-      title="DoneIsBetter SSO Documentation"
-    >
+    <PublicShell {...getDocsShellProps('/docs')}>
+      <DocsPageShell
+        eyebrow="Getting Started"
+        lead="Current runtime guide for OAuth, hosted auth, and shared-domain session validation."
+        meta={createDocsVersionMeta('API Version')}
+        title="DoneIsBetter SSO Documentation"
+      >
       <Stack gap="xl">
         <AccentPanel title="Recommended default" tone="amber" variant="soft-outline">
           <Stack gap="sm">
@@ -112,6 +114,7 @@ Authorization: Bearer ACCESS_TOKEN`}
           </List>
         </Box>
       </Stack>
-    </DocsLayout>
+      </DocsPageShell>
+    </PublicShell>
   );
 }
