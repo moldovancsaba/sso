@@ -8,21 +8,21 @@ import {
   Box,
   Anchor,
 } from '@mantine/core';
-import { AccentPanel } from '@doneisbetter/gds-core/server'
+import { AccentPanel, DocsPageShell, PublicShell } from '@doneisbetter/gds-core/server'
+import { createDocsVersionMeta, getDocsShellProps } from '../../../lib/docs-shell-config'
 // WHAT: React OAuth 2.0 integration example with complete implementation
 // WHY: Developers need copy-paste ready code for React apps using SSO
 // HOW: Provides AuthContext, callback handler, and protected route examples
 
-import DocsLayout from '../../../components/DocsLayout';
-
 export default function ReactExample() {
   return (
-    <DocsLayout
-      eyebrow="Examples"
-      lead="Reference React integration using OAuth Authorization Code flow with backend token exchange."
-      title="React Integration Example"
-      versionLabel="SSO Version"
-    >
+    <PublicShell {...getDocsShellProps('/docs/examples/react')}>
+      <DocsPageShell
+        eyebrow="Examples"
+        lead="Reference React integration using OAuth Authorization Code flow with backend token exchange."
+        meta={createDocsVersionMeta('SSO Version')}
+        title="React Integration Example"
+      >
       <Stack gap="xl">
         <Box>
             <Title order={2} mb="sm">Overview</Title>
@@ -443,6 +443,7 @@ export default async function handler(req, res) {
           </Box>
         
       </Stack>
-    </DocsLayout>
+      </DocsPageShell>
+    </PublicShell>
   );
 }

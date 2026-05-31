@@ -8,21 +8,21 @@ import {
   Box,
   Anchor,
 } from '@mantine/core';
-import { AccentPanel } from '@doneisbetter/gds-core/server'
+import { AccentPanel, DocsPageShell, PublicShell } from '@doneisbetter/gds-core/server'
+import { createDocsVersionMeta, getDocsShellProps } from '../../../lib/docs-shell-config'
 // WHAT: Vue.js OAuth 2.0 integration example with Pinia store
 // WHY: Developers need copy-paste ready code for Vue 3 apps using SSO
 // HOW: Provides Pinia store, composables, and protected route examples
 
-import DocsLayout from '../../../components/DocsLayout';
-
 export default function VueExample() {
   return (
-    <DocsLayout
-      eyebrow="Examples"
-      lead="Reference Vue 3 integration using OAuth Authorization Code flow with backend token exchange."
-      title="Vue.js Integration Example"
-      versionLabel="SSO Version"
-    >
+    <PublicShell {...getDocsShellProps('/docs/examples/vue')}>
+      <DocsPageShell
+        eyebrow="Examples"
+        lead="Reference Vue 3 integration using OAuth Authorization Code flow with backend token exchange."
+        meta={createDocsVersionMeta('SSO Version')}
+        title="Vue.js Integration Example"
+      >
       <Stack gap="xl">
         <Box>
             <Title order={2} mb="sm">Overview</Title>
@@ -520,6 +520,7 @@ app.mount('#app');`}
           </Box>
         
       </Stack>
-    </DocsLayout>
+      </DocsPageShell>
+    </PublicShell>
   );
 }
