@@ -8,21 +8,21 @@ import {
   Box,
   Anchor,
 } from '@mantine/core';
-import { AccentPanel } from '@doneisbetter/gds-core/server'
+import { AccentPanel, DocsPageShell, PublicShell } from '@doneisbetter/gds-core/server'
+import { createDocsVersionMeta, getDocsShellProps } from '../../../lib/docs-shell-config'
 // WHAT: Vanilla JavaScript OAuth 2.0 integration example without frameworks
 // WHY: Developers need pure JavaScript implementation for non-framework projects
 // HOW: Provides complete OAuth flow using standard web APIs and server-side backend
 
-import DocsLayout from '../../../components/DocsLayout';
-
 export default function VanillaExample() {
   return (
-    <DocsLayout
-      eyebrow="Examples"
-      lead="Reference framework-free integration using OAuth Authorization Code flow with backend token exchange."
-      title="Vanilla JavaScript Integration Example"
-      versionLabel="SSO Version"
-    >
+    <PublicShell {...getDocsShellProps('/docs/examples/vanilla')}>
+      <DocsPageShell
+        eyebrow="Examples"
+        lead="Reference framework-free integration using OAuth Authorization Code flow with backend token exchange."
+        meta={createDocsVersionMeta('SSO Version')}
+        title="Vanilla JavaScript Integration Example"
+      >
       <Stack gap="xl">
         <Box>
             <Title order={2} mb="sm">Overview</Title>
@@ -518,6 +518,7 @@ router.post('/api/auth/refresh', async (req, res) => {
           </Box>
         
       </Stack>
-    </DocsLayout>
+      </DocsPageShell>
+    </PublicShell>
   );
 }
