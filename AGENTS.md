@@ -48,4 +48,5 @@ Run these from [`/Users/moldovancsaba/Projects/sso/client`](/Users/moldovancsaba
 
 - Root app env defaults live in [`.env.example`](/Users/moldovancsaba/Projects/sso/.env.example).
 - The repo contains many one-off scripts under [`/Users/moldovancsaba/Projects/sso/scripts`](/Users/moldovancsaba/Projects/sso/scripts); add them here only after their invocation is verified in code or docs.
-- Design, UI, and UX SSOT lives in [`/Users/Shared/Projects/GENERAL_DESIGN_SYSTEM/README.md`](/Users/Shared/Projects/GENERAL_DESIGN_SYSTEM/README.md). Treat local CSS/theme docs as implementation notes or migration context, not the authoritative rule set.
+- Authoritative Design/UI/UX SSOT lives in [general-design-system](https://github.com/sovereignsquad/general-design-system).  
+- `docs/DESIGN_SYSTEM.md` tracks this repo’s local adapter state, migration progress, and local implementation notes, and is not the canonical rule source.

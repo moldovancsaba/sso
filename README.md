@@ -29,7 +29,7 @@ It provides:
 - Canonical service overview: [docs/README.md](/Users/moldovancsaba/Projects/sso/docs/README.md)
 - Integration guide: [docs/THIRD_PARTY_INTEGRATION_GUIDE.md](/Users/moldovancsaba/Projects/sso/docs/THIRD_PARTY_INTEGRATION_GUIDE.md)
 - Architecture: [docs/ARCHITECTURE.md](/Users/moldovancsaba/Projects/sso/docs/ARCHITECTURE.md)
-- Design / UI / UX SSOT: [docs/DESIGN_SYSTEM.md](/Users/moldovancsaba/Projects/sso/docs/DESIGN_SYSTEM.md)
+- Design / UI / UX implementation notes: [docs/DESIGN_SYSTEM.md](/Users/moldovancsaba/Projects/sso/docs/DESIGN_SYSTEM.md)
 - Rendered docs entry: [pages/docs/api/index.js](/Users/moldovancsaba/Projects/sso/pages/docs/api/index.js)
 
 ## Local Commands
@@ -55,5 +55,6 @@ npm run test-connection
 - `GET /api/admin/session` is the canonical admin-session check for the admin UI.
 - `GET /api/sso/validate` remains a compatibility endpoint for mixed admin/public shared-domain checks.
 - Legacy role/status inputs are normalized in runtime compatibility paths, but documentation uses only canonical values.
-- Design, UI, and UX rules are governed by the shared SSOT in the [general-design-system repo](https://github.com/sovereignsquad/general-design-system) and locally tracked in [docs/DESIGN_SYSTEM.md](/Users/Shared/Projects/sso/docs/DESIGN_SYSTEM.md).
+- Design, UI, and UX rules are governed by the shared SSOT in the [general-design-system repo](https://github.com/sovereignsquad/general-design-system).  
+- [docs/DESIGN_SYSTEM.md](/Users/Shared/Projects/sso/docs/DESIGN_SYSTEM.md) tracks local migration state and adapter decisions for this repository.
 - Current local CSS and theme infrastructure should be treated as legacy implementation to migrate toward that Mantine-first SSOT.

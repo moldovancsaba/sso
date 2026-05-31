@@ -3,14 +3,14 @@
 Status: Mostly direct package adoption  
 Last updated: 2026-05-29
 
-Design / UI / UX SSOT:
+Design / UI / UX SSOT (authoritative):
 - [GDS README](https://github.com/sovereignsquad/general-design-system/blob/main/README.md)
 - [Compatibility & Releases](https://github.com/sovereignsquad/general-design-system/blob/main/COMPATIBILITY_AND_RELEASES.md)
 - [Components & Patterns](https://github.com/sovereignsquad/general-design-system/blob/main/COMPONENTS_AND_PATTERNS.md)
 - [Governance & Adoption](https://github.com/sovereignsquad/general-design-system/blob/main/GOVERNANCE_AND_ADOPTION.md)
 - [Adoption & Migration Playbook](https://github.com/sovereignsquad/general-design-system/blob/main/ADOPTION_AND_MIGRATION_PLAYBOOK.md)
 - [Compliance Toolkit](https://github.com/sovereignsquad/general-design-system/blob/main/COMPLIANCE_TOOLKIT.md)
-- Local checkout: [general-design-system](/Users/Shared/Projects/general-design-system)
+- Optional local checkout mirror: [general-design-system](/Users/Shared/Projects/general-design-system) (non-authoritative convenience copy)
 
 Aligned SSOT version/date: `2.6.3 / 2026-05-27`
 
