@@ -34,7 +34,7 @@ This file records only local adapter state, migration blockers, validation comma
 
 ## Current Repo State
 
-- Current UI foundation: direct GDS runtime packages with a single remaining docs-site shell adapter
+- Current UI foundation: direct GDS runtime packages with two remaining local UI adapters (`DocsLayout` + `AppFooter`)
 - Current root provider wiring: [pages/_app.js](/Users/Shared/Projects/sso/pages/_app.js) via direct `@doneisbetter/gds-theme/client`
 - Current token/theme authority: [lib/theme/mantineTheme.js](/Users/Shared/Projects/sso/lib/theme/mantineTheme.js) via `@doneisbetter/gds-theme/server`
 - Current app root wiring: [pages/_app.js](/Users/Shared/Projects/sso/pages/_app.js)
@@ -83,6 +83,13 @@ This repo is no longer blocked from direct runtime package consumption. It is no
 
 - Docs/article shell:
   - [components/DocsLayout.js](/Users/Shared/Projects/sso/components/DocsLayout.js) thin adapter over `PublicShell` and `DocsPageShell`
+- Root legal/footer shell:
+  - [components/AppFooter.js](/Users/Shared/Projects/sso/components/AppFooter.js) currently provides legacy fixed footer rendering below routed pages.
+
+## Board-Aligned Implementation Notes
+
+- The local adapter inventory is now documented as two active local UI authorities: `DocsLayout` and `AppFooter`.
+- `AppFooter` is tracked as a temporary exception and must be removed in the same sequence as docs and public shell cleanup work.
 
 ## Approved Exceptions
 

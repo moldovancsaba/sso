@@ -120,6 +120,7 @@ export default function App({ Component, pageProps }) {
     >
       <Box h="100%" pb={48}>
         <Component {...pageProps} />
+        {/* Temporary local root footer authority, tracked in issue 51 for full GDS-only conversion. */}
         <AppFooter version={packageJson.version} />
       </Box>
     </GdsProvider>
