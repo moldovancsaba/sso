@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "gdsVersion": "2.6.3",
+  "gdsVersion": "3.0.0",
   "productArchetype": "hybrid",
   "supportedEntryPoints": [
     "@doneisbetter/gds-theme/client",
@@ -33,12 +33,51 @@
   "approvedExceptions": [
     {
       "surface": "OAuth provider buttons",
+      "category": "package-coverage-gap",
+      "scope": [
+        "pages/login.js",
+        "pages/register.js"
+      ],
+      "allowedImplementation": "Narrow custom provider-branded CTA treatment only where provider brand policy requires it.",
+      "mustStillUse": [
+        "@doneisbetter/gds-core/server",
+        "@doneisbetter/gds-theme/client",
+        "@doneisbetter/gds-theme/server"
+      ],
+      "mustNotDo": [
+        "Introduce a parallel local design system",
+        "Bypass GDS tokens, typography, spacing, or focus semantics",
+        "Create generic non-provider custom button variants outside the exception scope"
+      ],
+      "exitCondition": "Replace with canonical provider-branded identity controls from published GDS package contracts.",
+      "status": "temporary",
       "reason": "Google and Facebook provider branding rules still require narrow custom presentation during the current migration phase.",
       "owner": "sso-platform",
       "reviewDate": "2026-05-27"
     },
     {
       "surface": "Docs editorial surfaces",
+      "category": "migration-bridge",
+      "scope": [
+        "components/DocsLayout.js",
+        "pages/docs/*",
+        "pages/docs/api/*",
+        "pages/docs/examples/*",
+        "pages/docs/security/*"
+      ],
+      "allowedImplementation": "Use local docs-shell wrapper only for docs navigation/framing while pages consume GDS primitives directly where available.",
+      "mustStillUse": [
+        "@doneisbetter/gds-core/server",
+        "@doneisbetter/gds-theme/client",
+        "@doneisbetter/gds-theme/server"
+      ],
+      "mustNotDo": [
+        "Reintroduce local design-token authority",
+        "Add new non-GDS visual primitives for docs shells or layouts",
+        "Expand exception scope beyond docs routes"
+      ],
+      "exitCondition": "Delete DocsLayout and migrate all docs routes to direct canonical package-level shell composition.",
+      "status": "temporary",
       "reason": "The docs area still carries a local docs-site shell wrapper and two targeted lint waivers on long-form prose-heavy docs pages.",
       "owner": "sso-platform",
       "reviewDate": "2026-05-29"
@@ -76,5 +115,5 @@
   },
   "migrationStatus": "mostly-direct",
   "owner": "sso-platform",
-  "lastReviewedAt": "2026-05-29"
+  "lastReviewedAt": "2026-06-01"
 }

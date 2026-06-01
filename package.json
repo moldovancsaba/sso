@@ -36,10 +36,10 @@
   "author": "Moldovan Csaba",
   "license": "MIT",
   "dependencies": {
-    "@doneisbetter/gds": "2.6.3",
-    "@doneisbetter/gds-admin": "2.6.3",
-    "@doneisbetter/gds-core": "2.6.3",
-    "@doneisbetter/gds-theme": "2.6.3",
+    "@doneisbetter/gds": "3.0.0",
+    "@doneisbetter/gds-admin": "3.0.0",
+    "@doneisbetter/gds-core": "3.0.0",
+    "@doneisbetter/gds-theme": "3.0.0",
     "@mantine/core": "9.2.1",
     "@mantine/form": "9.2.1",
     "@mantine/hooks": "9.2.1",
@@ -62,8 +62,8 @@
     "zod": "4.2.1"
   },
   "devDependencies": {
-    "@doneisbetter/gds-compliance": "2.6.3",
-    "@doneisbetter/gds-eslint-config": "2.6.3",
+    "@doneisbetter/gds-compliance": "3.0.0",
+    "@doneisbetter/gds-eslint-config": "3.0.0",
     "@types/bcryptjs": "^2.4.6",
     "@types/jsonwebtoken": "^9.0.0",
     "@types/node": "^20.19.40",
