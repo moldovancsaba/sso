@@ -14,6 +14,22 @@ function devBypassEnabled() {
   return enabled && process.env.NODE_ENV !== 'production'
 }
 
+// WHAT: Warn loudly, at module load, if ADMIN_DEV_BYPASS is set in a production environment.
+// WHY: devBypassEnabled() already refuses the bypass whenever NODE_ENV === 'production', so
+//      this can't grant access — but a dangerous flag left set in a production environment is
+//      worth surfacing immediately rather than relying on that check silently doing the right
+//      thing forever.
+if (process.env.NODE_ENV === 'production') {
+  const flag = (process.env.ADMIN_DEV_BYPASS || '').toLowerCase()
+  if (flag === '1' || flag === 'true' || flag === 'yes') {
+    console.error(
+      'SECURITY WARNING: ADMIN_DEV_BYPASS is set in a production environment. It has no ' +
+      'effect here (the bypass is always refused when NODE_ENV=production), but this flag ' +
+      'should not be set in production — remove it.'
+    )
+  }
+}
+
 export default async function handler(req, res) {
   if (!devBypassEnabled()) {
     res.setHeader('Cache-Control', 'no-store')

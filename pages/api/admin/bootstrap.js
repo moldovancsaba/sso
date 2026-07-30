@@ -16,11 +16,13 @@ export default async function handler(req, res) {
     const db = await getDb()
     const col = db.collection('users')
 
-    // Allow bootstrap if there is no existing admin.
-    // This supports legacy collections with other schemas/documents.
-    const hasAdmin = await col.findOne({ role: 'admin' })
+    // WHAT: Allow bootstrap only if the users collection is genuinely empty
+    // WHY: Checking for {role: 'admin'} specifically would miss a legacy/manually-inserted
+    //      document with some other role value, incorrectly treating the collection as
+    //      uninitialized. This is a one-time setup gate — check for any document at all.
+    const hasAdmin = await col.findOne({})
 
-    const body = await parseBody(req)
+    const body = req.body || {}
     const email = (body?.email || '').toLowerCase().trim()
     const name = (body?.name || 'Owner').toString().trim()
     const password = (body?.password || '').trim()
@@ -58,16 +60,4 @@ export default async function handler(req, res) {
     console.error('Bootstrap error:', error)
     return res.status(500).json({ error: 'Internal server error' })
   }
-}
-
-// Helper to parse JSON body in Next.js Pages API (without relying on bodyParser)
-async function parseBody(req) {
-  return new Promise((resolve, reject) => {
-    let data = ''
-    req.on('data', chunk => { data += chunk })
-    req.on('end', () => {
-      try { resolve(JSON.parse(data || '{}')) } catch (e) { resolve({}) }
-    })
-    req.on('error', reject)
-  })
 }
