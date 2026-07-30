@@ -2,7 +2,14 @@
 
 **Date**: 2025-12-25T22:48:44Z  
 **Severity**: HIGH  
-**Status**: PARTIALLY FIXED
+**Status**: FIXED — see update below (item #2 confirmed fixed; verified against current code)
+
+> **Update**: item #2 (`pages/api/public/account/unlink/[provider].js`) was found still marked
+> "NOT FIXED" below during a later security remediation pass, but the code now queries the
+> database directly for the full user record (including `passwordHash`) before calling
+> `validateUnlinking()`/`getUserLoginMethods()` — exactly "Option 3" from the Solution section.
+> Leaving the rest of this document as a historical record; only this status line and item #2's
+> heading are corrected so it doesn't mislead future readers into re-investigating a closed issue.
 
 ## Root Cause
 
@@ -24,13 +31,13 @@ This is correct for security, BUT creates bugs when code later needs to check `p
    - **Fix**: Query database directly to get full user object for `getUserLoginMethods()`
    - **Commit**: cf64cb89
 
-### ❌ CRITICAL BUG - NOT FIXED
+### ✅ FIXED (was: ❌ CRITICAL BUG - NOT FIXED)
 2. **`pages/api/public/account/unlink/[provider].js`**
-   - **Line 25**: `user = await getPublicUserFromRequest(req)` → no `passwordHash`
-   - **Line 44**: `validateUnlinking(user, provider)` → can't see password method
-   - **Line 53**: `getUserLoginMethods(user)` → missing 'password' in array
-   - **Impact**: User could accidentally unlink last social provider when they only have password, causing account lockout
-   - **Severity**: HIGH - breaks safety validation
+   - Now queries the database directly for the full user record (`fullUser`, including
+     `passwordHash`) before calling `validateUnlinking()`/`getUserLoginMethods()` — see the
+     file's own `CRITICAL:` comment at that call site.
+   - **Impact if this regresses**: user could accidentally unlink their last social provider
+     when they only have password, causing account lockout.
 
 ### ✅ SAFE (No bug)
 3. **`pages/api/admin/public-users/[id]/link.js`**
