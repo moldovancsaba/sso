@@ -12,8 +12,18 @@ export default async function handler(req, res) {
 
   if (req.method === 'POST') {
     try {
+      // WHAT: Require admin auth to mint/rotate/learn a resource password
+      // WHY: This handler had no auth check at all — anyone could POST an arbitrary
+      //      resourceId/resourceType and get the (possibly newly-regenerated) plaintext
+      //      password back. Validating a password you already know (PUT, below) stays open
+      //      to any caller, since that's the whole point of a shareable resource password.
+      const admin = await getAdminUser(req)
+      if (!admin) {
+        return res.status(401).json({ success: false, error: 'Admin authentication required' })
+      }
+
       const { resourceId, resourceType, regenerate = false } = req.body || {}
-      if (!resourceId || !resourceType) {
+      if (typeof resourceId !== 'string' || !resourceId || typeof resourceType !== 'string' || !resourceType) {
         return res.status(400).json({ success: false, error: 'resourceId and resourceType are required' })
       }
 
@@ -51,7 +61,11 @@ export default async function handler(req, res) {
   if (req.method === 'PUT') {
     try {
       const { resourceId, resourceType, password } = req.body || {}
-      if (!resourceId || !resourceType || !password) {
+      if (
+        typeof resourceId !== 'string' || !resourceId ||
+        typeof resourceType !== 'string' || !resourceType ||
+        typeof password !== 'string' || !password
+      ) {
         return res.status(400).json({ success: false, error: 'resourceId, resourceType, and password are required' })
       }
 
