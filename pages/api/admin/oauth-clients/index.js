@@ -65,6 +65,7 @@ export default async function handler(req, res) {
         token_endpoint_auth_method,
         logo_uri,
         homepage_uri,
+        require_pkce,
       } = req.body
 
       // Validation
@@ -86,6 +87,7 @@ export default async function handler(req, res) {
         owner_user_id: adminUser.id,
         logo_uri,
         homepage_uri,
+        require_pkce: Boolean(require_pkce),
       })
 
       logger.info('OAuth client created', {
@@ -111,8 +113,15 @@ export default async function handler(req, res) {
       adminId: adminUser?.id,
     })
 
+    // WHAT: Surface the actual error message, not a generic "Internal server error"
+    // WHY: registerClient() throws specific, actionable messages (e.g. "Redirect URI must
+    //      use HTTPS in production") — but the frontend's error parser (fetchAdminJson ->
+    //      getErrorMessage) reads the `error` field first, which this previously hardcoded
+    //      to a generic string, discarding the real reason into a `message` field nothing
+    //      read. This is an already-authenticated admin endpoint, so there's no sensitivity
+    //      concern in showing the caller why their own request failed.
     return res.status(500).json({
-      error: 'Internal server error',
+      error: error.message || 'Internal server error',
       message: error.message,
     })
   }
