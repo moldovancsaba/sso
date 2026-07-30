@@ -7,11 +7,17 @@
 import { clearPublicSessionCookie, getPublicUserFromRequest } from '../../../lib/publicSessions.mjs'
 import { getDb } from '../../../lib/db.mjs'
 import logger from '../../../lib/logger.mjs'
+import { validateRequestOrigin } from '../../../lib/middleware/csrf.mjs'
 
 export default async function handler(req, res) {
   if (req.method !== 'DELETE') {
     res.setHeader('Allow', 'DELETE')
     return res.status(405).json({ error: 'Method not allowed' })
+  }
+
+  const originCheck = validateRequestOrigin(req)
+  if (!originCheck.valid) {
+    return res.status(403).json({ error: 'Request origin not allowed' })
   }
 
   try {

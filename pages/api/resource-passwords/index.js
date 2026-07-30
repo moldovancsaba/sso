@@ -5,6 +5,7 @@
  */
 import { runCors } from '../../../lib/cors.mjs'
 import { getAdminUser } from '../../../lib/auth.mjs'
+import { validateRequestOrigin } from '../../../lib/middleware/csrf.mjs'
 import { generateShareableLink, getOrCreateResourcePassword, validateAnyPassword } from '../../../lib/resourcePasswords.mjs'
 
 export default async function handler(req, res) {
@@ -12,11 +13,17 @@ export default async function handler(req, res) {
 
   if (req.method === 'POST') {
     try {
-      // WHAT: Require admin auth to mint/rotate/learn a resource password
+      // WHAT: Reject cross-origin requests, then require admin auth
       // WHY: This handler had no auth check at all — anyone could POST an arbitrary
       //      resourceId/resourceType and get the (possibly newly-regenerated) plaintext
-      //      password back. Validating a password you already know (PUT, below) stays open
-      //      to any caller, since that's the whole point of a shareable resource password.
+      //      password back. PUT (below) is intentionally left open to any caller who knows
+      //      the password — that's the whole point of a shareable resource password — so it
+      //      isn't driven by ambient cookie authority and doesn't need this check.
+      const originCheck = validateRequestOrigin(req)
+      if (!originCheck.valid) {
+        return res.status(403).json({ success: false, error: 'Request origin not allowed' })
+      }
+
       const admin = await getAdminUser(req)
       if (!admin) {
         return res.status(401).json({ success: false, error: 'Admin authentication required' })
