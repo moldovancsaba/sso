@@ -18,10 +18,8 @@
  */
 
 import { getPublicUserFromRequest } from '../../../lib/publicSessions.mjs'
-import { normalizePermissionRecord, permissionHasAccess } from '../../../lib/appPermissions.mjs'
 import { getAuthenticatedUser } from '../../../lib/unifiedAuth.mjs'
-import { getClient, validateRedirectUri, validateClientScopes } from '../../../lib/oauth/clients.mjs'
-import { validateScopes, ensureRequiredScopes } from '../../../lib/oauth/scopes.mjs'
+import { validateAuthorizationRequest, checkInternalClientAccess } from '../../../lib/oauth/authorizationValidation.mjs'
 import { createAuthorizationCode } from '../../../lib/oauth/codes.mjs'
 import { getDb } from '../../../lib/db.mjs'
 import logger from '../../../lib/logger.mjs'
@@ -86,73 +84,24 @@ export default async function handler(req, res) {
       return respondWithError(res, redirect_uri, state, 'invalid_request', 'state is required for CSRF protection')
     }
 
-    // Validate client first to check PKCE requirement
-    const client = await getClient(client_id)
-    if (!client) {
-      logger.warn('Authorization request: client not found', { client_id })
-      return respondWithError(res, redirect_uri, state, 'invalid_client', 'Client not found')
-    }
-
-    if (client.status !== 'active') {
-      logger.warn('Authorization request: client suspended', { client_id, status: client.status })
-      return respondWithError(res, redirect_uri, state, 'unauthorized_client', 'Client is suspended')
-    }
-
-    // WHAT: Check if PKCE is required for this client
-    // WHY: Confidential clients (server-side) may not need PKCE if they use client_secret
-    if (client.require_pkce) {
-      if (!code_challenge) {
-        return respondWithError(res, redirect_uri, state, 'invalid_request', 'code_challenge is required (PKCE) for this client')
-      }
-      if (!['S256', 'plain'].includes(code_challenge_method)) {
-        return respondWithError(res, redirect_uri, state, 'invalid_request', 'code_challenge_method must be S256 or plain')
-      }
-    } else {
-      // PKCE is optional, but if provided, validate the method
-      if (code_challenge && !['S256', 'plain'].includes(code_challenge_method)) {
-        return respondWithError(res, redirect_uri, state, 'invalid_request', 'code_challenge_method must be S256 or plain')
-      }
-      logger.info('PKCE not required for this client', {
-        client_id,
-        client_name: client.name,
-        has_code_challenge: !!code_challenge,
-      })
-    }
-
-    // Validate redirect_uri
-    const isValidRedirect = await validateRedirectUri(client_id, redirect_uri)
-    if (!isValidRedirect) {
-      logger.warn('Authorization request: invalid redirect_uri', {
+    // WHAT: Validate client exists/active, PKCE requirement, redirect_uri registration, and scopes
+    // WHY: Centralized in lib/oauth/authorizationValidation.mjs so /api/oauth/authorize/approve
+    //      (called later in this same flow, after consent) enforces identical checks instead of
+    //      trusting whatever client_id/redirect_uri/scope the browser sends it directly.
+    const validation = await validateAuthorizationRequest({ client_id, redirect_uri, scope, code_challenge, code_challenge_method })
+    if (!validation.valid) {
+      logger.warn('Authorization request rejected', {
         client_id,
         redirect_uri,
-        allowed: client.redirect_uris,
+        error: validation.error,
+        error_description: validation.error_description,
       })
-      // Don't redirect on invalid redirect_uri (security: prevent open redirect)
-      return res.status(400).json({
-        error: 'invalid_request',
-        error_description: 'Invalid redirect_uri',
+      return respondWithError(res, redirect_uri, state, validation.error, validation.error_description, {
+        redirectVerified: validation.redirectUriVerified,
       })
     }
 
-    // Validate scopes
-    const scopeValidation = validateScopes(scope)
-    if (!scopeValidation.valid) {
-      return respondWithError(res, redirect_uri, state, 'invalid_scope', `Invalid scopes: ${scopeValidation.invalid.join(', ')}`)
-    }
-
-    // Ensure required scopes (e.g., openid)
-    const finalScope = ensureRequiredScopes(scope)
-
-    // Check if client is allowed to request these scopes
-    const isValidForClient = await validateClientScopes(client_id, finalScope)
-    if (!isValidForClient) {
-      logger.warn('Authorization request: scopes not allowed for client', {
-        client_id,
-        requested: finalScope,
-        allowed: client.allowed_scopes,
-      })
-      return respondWithError(res, redirect_uri, state, 'invalid_scope', 'One or more scopes not allowed for this client')
-    }
+    const { client, finalScope } = validation
 
     // WHAT: Check if user is authenticated (admin OR public session)
     // WHY: Admin users need to access sso-admin-dashboard via OAuth too
@@ -273,61 +222,16 @@ export default async function handler(req, res) {
     // WHAT: Check appPermissions for internal/restricted clients (like admin dashboard)
     // WHY: Some clients require explicit permission grants, not just user consent
     // HOW: Query appPermissions - if client is internal, require approved permission
-    if (client.internal) {
-      logger.info('Authorization request: checking internal client permission', {
+    const internalAccess = await checkInternalClientAccess(client, user.id)
+    if (!internalAccess.allowed) {
+      logger.warn('Authorization request: internal client access denied', {
         client_id,
         client_name: client.name,
         user_id: user.id,
         email: user.email,
-        client_internal: client.internal,
       })
-      
-      const permission = normalizePermissionRecord(await db.collection('appPermissions').findOne({
-        userId: user.id,
-        clientId: client_id,
-      }))
-      
-      logger.info('Authorization request: permission query result', {
-        client_id,
-        user_id: user.id,
-        found_permission: !!permission,
-        permission_data: permission ? {
-          userId: permission.userId,
-          clientId: permission.clientId,
-          hasAccess: permission.hasAccess,
-          status: permission.status,
-          role: permission.role,
-        } : null,
-      })
-      
-      // WHAT: For internal clients, user MUST have explicit permission
-      // WHY: Admin dashboard should only be accessible to authorized users
-      if (!permission || !permissionHasAccess(permission.status, permission.role, permission.hasAccess)) {
-        logger.warn('Authorization request: internal client access denied', {
-          client_id,
-          client_name: client.name,
-          user_id: user.id,
-          email: user.email,
-          has_permission: !!permission,
-          has_access: permission?.hasAccess,
-          status: permission?.status,
-          rejection_reason: !permission ? 'no_permission_record' :
-            !permissionHasAccess(permission.status, permission.role, permission.hasAccess) ? `status_${permission.status}` : 'unknown',
-        })
-        return respondWithError(
-          res,
-          redirect_uri,
-          state,
-          'access_denied',
-          'Admin access not granted'
-        )
-      }
-      
-      logger.info('Authorization request: internal client permission verified', {
-        client_id,
-        client_name: client.name,
-        user_id: user.id,
-        role: permission.role,
+      return respondWithError(res, redirect_uri, state, internalAccess.error, internalAccess.error_description, {
+        redirectVerified: true,
       })
     }
     
@@ -421,19 +325,26 @@ export default async function handler(req, res) {
 
 /**
  * Send OAuth2 error response
- * 
- * Errors are returned to the client via redirect with error parameters.
- * This follows the OAuth2 spec for error handling.
- * 
+ *
+ * Errors are returned to the client via redirect with error parameters, but only once
+ * redirect_uri has been confirmed to belong to a real, active, registered client — per
+ * OAuth 2.0 RFC 6749 §4.1.2.1, a missing/invalid/mismatching redirect_uri must never itself
+ * be used as a redirect target (that's an open redirect to an attacker-chosen URL).
+ * Before that point, every error is returned as JSON instead.
+ *
  * @param {Object} res - Response object
  * @param {string} redirect_uri - Client redirect URI
  * @param {string} state - Client state parameter
  * @param {string} error - Error code
  * @param {string} error_description - Human-readable error description
+ * @param {Object} [options]
+ * @param {boolean} [options.redirectVerified=false] - True once redirect_uri has been confirmed
+ *   registered to the resolved client (set via validateAuthorizationRequest's return value)
  */
-function respondWithError(res, redirect_uri, state, error, error_description) {
-  // If we don't have a valid redirect_uri, return JSON error
-  if (!redirect_uri) {
+function respondWithError(res, redirect_uri, state, error, error_description, options = {}) {
+  const { redirectVerified = false } = options
+
+  if (!redirect_uri || !redirectVerified) {
     return res.status(400).json({
       error,
       error_description,
