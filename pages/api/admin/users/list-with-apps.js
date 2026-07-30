@@ -22,7 +22,7 @@ export default async function handler(req, res) {
     // WHAT: Validate admin session
     // WHY: Only authenticated admins can view user list
     const adminUser = await requireUnifiedAdmin(req, res)
-
+    if (!adminUser) return
 
     // WHAT: Parse query parameters for pagination and filtering
     // WHY: Large user bases need pagination and search

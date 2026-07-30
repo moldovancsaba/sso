@@ -71,7 +71,7 @@ export default async function handler(req, res) {
     const adminUser = await requireUnifiedAdmin(req, res, {
       requireFreshAuth: req.method !== 'GET',
     })
-
+    if (!adminUser) return
 
     // WHAT: Get full admin user details from database
     // WHY: Need to check isSsoSuperadmin flag
