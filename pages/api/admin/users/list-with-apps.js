@@ -38,12 +38,15 @@ export default async function handler(req, res) {
     // WHY: Support searching and filtering
     const query = {}
     
-    if (search) {
-      // WHAT: Search by email or name
-      // WHY: Admin needs to find specific users
+    if (search && typeof search === 'string') {
+      // WHAT: Search by email or name, with regex metacharacters escaped
+      // WHY: search flows straight into $regex — unescaped, a crafted query string could
+      //      build an expensive/pathological pattern (ReDoS) or match unintended substrings
+      //      via regex syntax instead of a literal search term.
+      const escapedSearch = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
       query.$or = [
-        { email: { $regex: search, $options: 'i' } },
-        { name: { $regex: search, $options: 'i' } },
+        { email: { $regex: escapedSearch, $options: 'i' } },
+        { name: { $regex: escapedSearch, $options: 'i' } },
       ]
     }
 
