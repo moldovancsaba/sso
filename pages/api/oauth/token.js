@@ -46,6 +46,8 @@ import {
 import { requiresRefreshToken, hasScope, filterScopes } from '../../../lib/oauth/scopes.mjs'
 import logger from '../../../lib/logger.mjs'
 import { runCors } from '../../../lib/cors.mjs'
+import { apiRateLimiter } from '../../../lib/middleware/rateLimit.mjs'
+import { applyRateLimiter } from '../../../lib/apiHelpers.mjs'
 
 export default async function handler(req, res) {
   // Apply CORS
@@ -54,6 +56,9 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' })
   }
+
+  await applyRateLimiter(apiRateLimiter, req, res)
+  if (res.writableEnded) return
 
   const { grant_type } = req.body
 

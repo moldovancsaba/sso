@@ -8,16 +8,21 @@ import { createPublicSession, setPublicSessionCookie } from '../../../lib/public
 import { runCors } from '../../../lib/cors.mjs'
 import logger from '../../../lib/logger.mjs'
 import { findUserByEmail, addPasswordToAccount, getUserLoginMethods } from '../../../lib/accountLinking.mjs'
+import { loginRateLimiter } from '../../../lib/middleware/rateLimit.mjs'
+import { applyRateLimiter } from '../../../lib/apiHelpers.mjs'
 
 export default async function handler(req, res) {
   // WHAT: Enable CORS for cross-domain requests
   if (runCors(req, res)) return
-  
+
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST, OPTIONS')
     return res.status(405).json({ error: 'Method not allowed' })
   }
-  
+
+  await applyRateLimiter(loginRateLimiter, req, res)
+  if (res.writableEnded) return
+
   try {
     const { email, password, name } = req.body
     

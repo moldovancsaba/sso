@@ -10,12 +10,17 @@ import { createSession } from '../../../lib/sessions.mjs'
 import { resolveSafeRedirect } from '../../../lib/redirects.mjs'
 import logger from '../../../lib/logger.mjs'
 import cookie from 'cookie'
+import { strictRateLimiter } from '../../../lib/middleware/rateLimit.mjs'
+import { applyRateLimiter } from '../../../lib/apiHelpers.mjs'
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
     res.setHeader('Allow', 'GET')
     return res.status(405).json({ error: 'Method not allowed' })
   }
+
+  await applyRateLimiter(strictRateLimiter, req, res)
+  if (res.writableEnded) return
 
   try {
     const { token, redirect_uri, return_to } = req.query

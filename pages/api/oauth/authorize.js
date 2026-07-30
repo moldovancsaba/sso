@@ -24,6 +24,8 @@ import { createAuthorizationCode } from '../../../lib/oauth/codes.mjs'
 import { getDb } from '../../../lib/db.mjs'
 import logger from '../../../lib/logger.mjs'
 import { runCors } from '../../../lib/cors.mjs'
+import { apiRateLimiter } from '../../../lib/middleware/rateLimit.mjs'
+import { applyRateLimiter } from '../../../lib/apiHelpers.mjs'
 
 function normalizeProvider(value) {
   const source = Array.isArray(value) ? value[0] : value
@@ -44,6 +46,9 @@ export default async function handler(req, res) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' })
   }
+
+  await applyRateLimiter(apiRateLimiter, req, res)
+  if (res.writableEnded) return
 
   const {
     response_type,

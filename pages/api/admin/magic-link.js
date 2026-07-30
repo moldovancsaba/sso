@@ -6,6 +6,8 @@
 import { consumeMagicToken } from '../../../lib/magic.mjs'
 import { findUserByEmail, ensureUserUuid } from '../../../lib/users.mjs'
 import { setAdminSessionCookie } from '../../../lib/auth.mjs'
+import { strictRateLimiter } from '../../../lib/middleware/rateLimit.mjs'
+import { applyRateLimiter } from '../../../lib/apiHelpers.mjs'
 import crypto from 'crypto'
 
 export default async function handler(req, res) {
@@ -13,6 +15,9 @@ export default async function handler(req, res) {
     res.setHeader('Allow', 'GET')
     return res.status(405).json({ error: 'Method Not Allowed' })
   }
+
+  await applyRateLimiter(strictRateLimiter, req, res)
+  if (res.writableEnded) return
 
   try {
     const token = (req.query?.t || '').toString()

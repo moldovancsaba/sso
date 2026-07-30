@@ -8,6 +8,7 @@ import { setAdminSessionCookie, clearAdminSessionCookie, getCookie, decodeSessio
 import { createSession, revokeSession } from '../../../lib/sessions.mjs'
 import { logLoginSuccess, logLoginFailure, logLogout } from '../../../lib/logger.mjs'
 import { adminLoginRateLimiter } from '../../../lib/middleware/rateLimit.mjs'
+import { applyRateLimiter } from '../../../lib/apiHelpers.mjs'
 import { ensureCsrfToken, validateCsrf } from '../../../lib/middleware/csrf.mjs'
 import { shouldTriggerPin, issuePin, ensurePinIndexes } from '../../../lib/loginPin.mjs'
 import { sendEmail } from '../../../lib/email.mjs'
@@ -30,13 +31,9 @@ function getClientMetadata(req) {
 
 export default async function handler(req, res) {
   // Apply stricter rate limiting to admin login endpoint (3 attempts vs 5 for public)
-  await new Promise((resolve, reject) => {
-    adminLoginRateLimiter(req, res, (err) => {
-      if (err) reject(err)
-      else resolve()
-    })
-  })
-  
+  await applyRateLimiter(adminLoginRateLimiter, req, res)
+  if (res.writableEnded) return // limit exceeded — 429 already sent
+
   if (req.method === 'POST') {
     // Ensure CSRF token is set for subsequent requests
     await new Promise((resolve) => ensureCsrfToken(req, res, resolve))
