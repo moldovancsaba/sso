@@ -7,9 +7,9 @@
 import { consumeMagicToken } from '../../../lib/magic.mjs'
 import { findUserByEmail } from '../../../lib/users.mjs'
 import { createSession } from '../../../lib/sessions.mjs'
+import { setAdminSessionCookie } from '../../../lib/auth.mjs'
 import { resolveSafeRedirect } from '../../../lib/redirects.mjs'
 import logger from '../../../lib/logger.mjs'
-import cookie from 'cookie'
 import { strictRateLimiter } from '../../../lib/middleware/rateLimit.mjs'
 import { applyRateLimiter } from '../../../lib/apiHelpers.mjs'
 
@@ -50,24 +50,21 @@ export default async function handler(req, res) {
     }
 
     // Create admin session
-    const { token: sessionToken } = await createSession(user.id, user.email, user.role)
+    const { token: sessionToken, expiresAt } = await createSession(user.id, user.email, user.role)
 
-    // Set secure session cookie
-    const cookieName = process.env.ADMIN_SESSION_COOKIE || 'admin-session'
-    const isProduction = process.env.NODE_ENV === 'production'
-    const domain = process.env.SSO_COOKIE_DOMAIN
-
-    res.setHeader(
-      'Set-Cookie',
-      cookie.serialize(cookieName, sessionToken, {
-        httpOnly: true,
-        secure: isProduction,
-        sameSite: isProduction ? 'none' : 'lax',
-        path: '/',
-        maxAge: 7 * 24 * 60 * 60, // 7 days
-        ...(domain && { domain }),
-      })
-    )
+    // WHAT: Set the session cookie via the shared helper, using the base64-JSON envelope
+    //       format decodeSessionToken()/getAdminUser() expect.
+    // WHY: This previously set the raw session token via cookie.serialize() — decodeSessionToken
+    //      base64-decodes the cookie and JSON.parses it, which fails on a raw hex token, so
+    //      sessions created via this magic-link flow silently never authenticated afterward.
+    const tokenData = {
+      token: sessionToken,
+      expiresAt,
+      userId: user.id,
+      role: user.role,
+    }
+    const signedToken = Buffer.from(JSON.stringify(tokenData)).toString('base64')
+    setAdminSessionCookie(res, signedToken, 7 * 24 * 60 * 60)
 
     // WHAT: Determine final redirect destination
     // WHY: User should return to where they originally requested authentication
