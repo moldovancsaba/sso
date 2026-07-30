@@ -4,6 +4,7 @@
 // SECURITY: Will only perform insert if users collection is empty. Otherwise 403.
 
 import { getDb } from '../../../lib/db.mjs'
+import { hashAdminPassword } from '../../../lib/users.mjs'
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -47,7 +48,7 @@ export default async function handler(req, res) {
       email,
       name,
       role: 'admin',
-      password, // 32-hex admin token (by convention)
+      password: await hashAdminPassword(password), // stored bcrypt-hashed; input is still a 32-hex token by convention
       createdAt: now,
       updatedAt: now,
     })
