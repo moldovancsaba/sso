@@ -1,8 +1,8 @@
 # Universal SSO Service
 
-Version: 5.29.0  
+Version: 5.31.0  
 Status: Active  
-Last updated: 2026-05-21T00:00:00.000Z
+Last updated: 2026-07-31T00:00:00.000Z
 
 This repository contains the DoneIsBetter SSO service for `https://sso.doneisbetter.com`.
 
@@ -26,11 +26,11 @@ It provides:
 
 ## Start Here
 
-- Canonical service overview: [docs/README.md](/Users/moldovancsaba/Projects/sso/docs/README.md)
-- Integration guide: [docs/THIRD_PARTY_INTEGRATION_GUIDE.md](/Users/moldovancsaba/Projects/sso/docs/THIRD_PARTY_INTEGRATION_GUIDE.md)
-- Architecture: [docs/ARCHITECTURE.md](/Users/moldovancsaba/Projects/sso/docs/ARCHITECTURE.md)
-- Design / UI / UX implementation notes: [docs/DESIGN_SYSTEM.md](/Users/moldovancsaba/Projects/sso/docs/DESIGN_SYSTEM.md)
-- Rendered docs entry: [pages/docs/api/index.js](/Users/moldovancsaba/Projects/sso/pages/docs/api/index.js)
+- Canonical service overview: [docs/README.md](docs/README.md)
+- Integration guide: [docs/THIRD_PARTY_INTEGRATION_GUIDE.md](docs/THIRD_PARTY_INTEGRATION_GUIDE.md)
+- Architecture: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
+- Design / UI / UX implementation notes: [docs/DESIGN_SYSTEM.md](docs/DESIGN_SYSTEM.md)
+- Rendered docs entry: [pages/docs/api/index.js](pages/docs/api/index.js)
 
 ## Local Commands
 
@@ -56,5 +56,5 @@ npm run test-connection
 - `GET /api/sso/validate` remains a compatibility endpoint for mixed admin/public shared-domain checks.
 - Legacy role/status inputs are normalized in runtime compatibility paths, but documentation uses only canonical values.
 - Design, UI, and UX rules are governed by the shared SSOT in the [general-design-system repo](https://github.com/sovereignsquad/general-design-system).  
-- [docs/DESIGN_SYSTEM.md](/Users/Shared/Projects/sso/docs/DESIGN_SYSTEM.md) tracks local migration state and adapter decisions for this repository.
+- [docs/DESIGN_SYSTEM.md](docs/DESIGN_SYSTEM.md) tracks local migration state and adapter decisions for this repository.
 - Current local CSS and theme infrastructure should be treated as legacy implementation to migrate toward that Mantine-first SSOT.

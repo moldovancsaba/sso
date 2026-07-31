@@ -1,4 +1,104 @@
-# Release Notes [![Version Badge](https://img.shields.io/badge/version-5.29.0-blue)](RELEASE_NOTES.md)
+# Release Notes [![Version Badge](https://img.shields.io/badge/version-5.31.0-blue)](RELEASE_NOTES.md)
+
+## [v5.31.0] — 2026-07-31T00:00:00.000Z
+
+### 🔒 Security Hardening: Full Remediation Pass (COMPLETE)
+
+**MAJOR UPDATE**: End-to-end security review covering authentication, OAuth authorization, CSRF, rate limiting, password storage, and error handling, plus documentation reconciliation to bring the version, README, architecture doc, and live `/docs` pages back in line with the actual runtime.
+
+**What**: A full pass through the codebase's auth-adjacent surface area, fixing every issue found in the same effort rather than filing them for later.
+
+**Why**: Several of these gaps were exploitable end-to-end (admin identity spoofing via cookie field, an OAuth consent-approval path with no server-side request validation, CSRF unenforced anywhere in the codebase, admin passwords stored in plaintext). The rest were real but lower-severity: rate limiters that were configured but never applied to a route, a protocol-relative open redirect, broken login flows, and error responses that discarded the one piece of information (`error.message`) that would have made them debuggable.
+
+---
+
+#### Critical: Admin session identity resolution
+
+**Issue**: `getAdminUser()` (`lib/auth.mjs`) resolved the acting admin's identity from `userId` on the session *cookie payload* — a field that was never re-verified against the database record it claimed to belong to.
+
+**Fix**: Identity is now read from `sessionValidation.session.userId`, the value attached to the server-side session record itself. The cookie can no longer assert an identity the database session doesn't back.
+
+---
+
+#### Critical: OAuth consent approval had no request validation
+
+**Issue**: `/api/oauth/authorize.js` validated `client_id`, `redirect_uri`, `scope`, and PKCE parameters before showing the consent screen. `/api/oauth/authorize/approve.js` — the endpoint that actually issues the authorization code once a user clicks "Approve" — performed none of those checks itself.
+
+**Fix**: Extracted the shared validation into `lib/oauth/authorizationValidation.mjs` (`validateAuthorizationRequest()`, `checkInternalClientAccess()`) and call it from both endpoints. `authorize.js` was also refactored to use the shared helper, removing ~60 lines of duplicated inline logic.
+
+---
+
+#### Critical: CSRF protection was not enforced anywhere
+
+**Issue**: No CSRF mechanism existed for any state-changing endpoint.
+
+**Fix**: Added `validateRequestOrigin()` (`lib/middleware/csrf.mjs`) — an Origin/Referer allowlist check that runs before session/auth logic on every state-changing request. Wired into all admin and public-session mutation endpoints (password/account/profile changes, logout, OAuth consent, resource-password creation, account unlinking). Chose an Origin-check design over a double-submit cookie token specifically because it requires no frontend changes — the existing frontend needed zero modification to become protected.
+
+---
+
+#### Critical: Admin passwords stored in plaintext
+
+**Issue**: Admin password verification compared plaintext values directly; no hashing was applied at creation or update time.
+
+**Fix**: `lib/users.mjs` now hashes admin passwords with bcrypt (`hashAdminPassword()`) and verifies via `verifyAdminPassword()`. Legacy plaintext values already in the database are compared using a constant-time comparison (`lib/timingSafeCompare.mjs`, built on Node's `crypto.timingSafeEqual`) and transparently rehashed to bcrypt on the next successful login — no bulk migration script or downtime required.
+
+---
+
+#### High: Rate limiters were configured but not applied
+
+**Issue**: Seven rate limiters existed in `lib/middleware/rateLimit.mjs`. Six of the seven were never called from any route.
+
+**Fix**: Wired limiters into public login/register/forgot-password, magic-link and PIN endpoints (both admin and public), and the OAuth token/authorize endpoints, via a shared `applyRateLimiter()` helper (`lib/apiHelpers.mjs`). That helper also fixes a genuine pre-existing bug: `express-rate-limit` calls its configured `handler` (which sends the `429` response directly) instead of `next()` once a caller is rate-limited, so the original promisified wrapper — used by the one limiter that *was* already live — never resolved on a limited request. It now resolves correctly by listening for the response's `finish`/`close` events as well as `next()`.
+
+---
+
+#### High: Three admin login flows issued unreadable session cookies
+
+**Issue**: `magic-login`, `verify-pin`, and `magic-link` admin endpoints each set a session cookie using raw hex via `cookie.serialize()`, or a token that was never persisted via `createSession()` — neither of which the session reader could parse back into a valid session.
+
+**Fix**: All three now use `setAdminSessionCookie()` with real `createSession()`-issued tokens, matching the pattern already used by the primary admin login endpoint.
+
+---
+
+#### High: Protocol-relative open redirect
+
+**Issue**: `isSafeRedirectTarget()` (`lib/redirects.mjs`) treated any target starting with `/` as a safe relative path, including `//evil.example` — which browsers resolve as a protocol-relative absolute URL to a different host.
+
+**Fix**: Targets starting with `//` are now explicitly excluded from the relative-path allowance.
+
+---
+
+#### Error handling: generic errors replaced with actionable detail
+
+**Issue**: Most catch blocks across admin and API routes returned a static `{error: 'Internal server error'}` regardless of what actually failed, and the admin dashboard's client-side error parser (`lib/adminAuthFlow.js`) was hard-coded to prefer that generic string over any detail the server did provide. This was caught directly: creating an OAuth client with the "Require PKCE" checkbox checked returned a bare "Internal server error" with no indication why. Root cause was two-layered — `require_pkce` was silently dropped by `registerClient()` instead of being forwarded from the request body, and the specific, useful validation error that produced was discarded behind a generic string before it ever reached the response.
+
+**Fix**: 
+- `getErrorMessage()` in `lib/adminAuthFlow.js` now prefers real server-provided detail (`error.message`, `error_description`, nested `error.message`) and only falls back to a generic message when the server genuinely didn't provide one
+- Backend routes that require authentication (audit logs, user management, app-permission management) now return `error.message` instead of a static label
+- Pre-auth and public-facing routes (login, magic-link request, bootstrap, JWKS) deliberately keep generic messages, to avoid account/email enumeration
+- Fixed the specific OAuth-client-creation bug: `require_pkce` is now forwarded to `registerClient()`, and its catch block surfaces the real validation error
+
+---
+
+#### Cleanup
+
+- Removed unauthenticated debug endpoints: `/api/debug/cookies`, `/api/debug/session-check`, `/api/debug/test-token-exchange`, `/api/admin/check-google-admin`
+- Removed dead code: unused `lib/middleware/session.js`, an unreferenced duplicate `pages/api/public/magic-login-new.js`, a dead `redirectUrlSchema` export, and a dead JWT fallback path in `lib/oauth/middleware.mjs`
+- Restored the `repo-guardrails` GitHub Actions workflow, which had been dropped from `.github/workflows/`
+
+#### Documentation
+
+- Reconciled the version number to `5.31.0` across `package.json`, `README.md`, `docs/ARCHITECTURE.md`, `docs/CHANGELOG.md`, and this file — the codebase had drifted ahead of its own changelog (role-system simplification and OIDC nonce support were already live but only ever reached a `5.30.0` changelog entry, never propagated to the README or architecture doc)
+- Added CSRF, rate-limiting, admin password-hashing, and session-identity-resolution sections to `docs/ARCHITECTURE.md`'s "Security-Relevant Behavior", none of which had any documentation there before
+- Corrected `pages/docs/security/best-practices.js`'s rate-limit table, which listed limits (100/min public, 50/min OAuth, 200/min admin) that matched none of the actual configured limiters
+- Corrected `pages/docs/security/cors.js`, which described a manual email-based origin-registration workflow and a `403 {error:'Origin not allowed'}` response that `lib/cors.mjs` does not implement, and conflated that with the new, unrelated Origin-check CSRF mechanism
+- Fixed broken absolute local-filesystem links (`/Users/moldovancsaba/...`) in `README.md` and `docs/ARCHITECTURE.md` that pointed to paths outside the repository
+
+**Files Changed**: too broad to enumerate per-file here — see `docs/CHANGELOG.md` [5.31.0] for the grouped summary, or the PR diff for the full set.
+
+**Testing**: 14 Jest suites / 79 tests added or extended to cover the identity-resolution fix, OAuth authorization validation, CSRF origin validation, admin password migration, the rate-limiter helper, redirect validation, timing-safe comparison, and the admin error parser. Database-dependent flows could not be exercised from the development sandbox (no network route to the production MongoDB Atlas cluster); those were verified against the live Vercel preview deployment instead.
+
+---
 
 ## [v5.29.0] — 2025-12-21T14:00:00.000Z
 

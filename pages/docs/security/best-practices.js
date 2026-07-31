@@ -295,11 +295,15 @@ if (response.status === 429) {
   // Retry request
 }`}
             </Code>
-            <Text size="sm"><strong>Current Rate Limits:</strong></Text>
+            <Text size="sm"><strong>Current Rate Limits</strong> (all keyed per client IP, not per session or client_id):</Text>
             <List spacing="xs">
-              <List.Item>Public endpoints: 100 requests/minute per IP</List.Item>
-              <List.Item>OAuth endpoints: 50 requests/minute per client_id</List.Item>
-              <List.Item>Admin endpoints: 200 requests/minute per admin session</List.Item>
+              <List.Item>Login (public): 5 attempts / 15 minutes</List.Item>
+              <List.Item>Login (admin): 3 attempts / 15 minutes</List.Item>
+              <List.Item>Sensitive operations (password reset, magic links, PIN verification): 3 attempts / 15 minutes</List.Item>
+              <List.Item>General API, including OAuth <code>/authorize</code> and <code>/token</code>: 100 requests / 15 minutes</List.Item>
+              <List.Item>Session validation: 60 requests / minute</List.Item>
+              <List.Item>Admin mutations (create/update/delete): 20 requests / minute</List.Item>
+              <List.Item>Admin queries (list/get): 100 requests / minute</List.Item>
             </List>
           </Box>
 

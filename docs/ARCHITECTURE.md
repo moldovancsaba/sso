@@ -1,7 +1,7 @@
 # Architecture — SSO
 
-Version: 5.29.0  
-Last updated: 2026-05-21T00:00:00.000Z
+Version: 5.31.0  
+Last updated: 2026-07-31T00:00:00.000Z
 
 ## Stack
 
@@ -12,7 +12,7 @@ Last updated: 2026-05-21T00:00:00.000Z
 ## Design System Boundary
 
 - Design, UI, and UX governance is defined in the [general-design-system repo](https://github.com/sovereignsquad/general-design-system), which is the only authoritative SSOT.
-- [docs/DESIGN_SYSTEM.md](/Users/moldovancsaba/Projects/sso/docs/DESIGN_SYSTEM.md) is local implementation tracking for this repo (non-authoritative).
+- [docs/DESIGN_SYSTEM.md](DESIGN_SYSTEM.md) is local implementation tracking for this repo (non-authoritative).
 - Current local CSS modules and `styles/globals.css` are implementation artifacts, not the long-term design SSOT
 - Future UI work should migrate this repo toward the Mantine-first contracts in that shared directory
 
@@ -90,6 +90,27 @@ Last updated: 2026-05-21T00:00:00.000Z
 - `/api/users/[userId]/apps/[clientId]/request-access` requires a real validated bearer token
 - The token subject must match `userId`
 - The token client must match `clientId`
+
+### Admin session identity resolution
+- `getAdminUser()` (`lib/auth.mjs`) resolves the acting admin's identity from the database-verified session record (`sessionValidation.session.userId`), never from the unsigned `userId` field carried in the session cookie payload
+- This prevents a request from acting as a different admin by presenting a cookie with a modified identity field
+
+### CSRF protection (state-changing requests)
+- `validateRequestOrigin(req)` (`lib/middleware/csrf.mjs`) runs first on state-changing admin and public-session routes
+- Safe methods (`GET`, `HEAD`, `OPTIONS`) always pass; other methods must present an `Origin` (or, failing that, `Referer`) header that matches a trusted-origin allowlist, or the request is rejected before session/auth logic runs
+- Requests with no `Origin`/`Referer` header at all are allowed through this check, since browsers always attach one of these headers on cross-origin state-changing requests; a request missing both has no ambient browser authority to forge
+- Trusted origins come from `getTrustedOrigins()`, seeded from the service's own canonical origin plus any explicitly configured additional origins
+- Rejections return `403` with a `FORBIDDEN` error code and are recorded via `logSecurityEvent('csrf_origin_rejected', ...)`
+- This is a distinct mechanism from CORS (`lib/cors.mjs`): CORS controls whether a browser lets client-side JavaScript read a cross-origin response; this Origin check controls whether the server accepts a state-changing request at all, independent of CORS headers
+
+### Rate limiting
+- `express-rate-limit`-based limiters are applied via the shared `applyRateLimiter()` helper (`lib/apiHelpers.mjs`), which resolves once the underlying limiter has finished handling the request — including the case where the limiter itself sends a `429` response instead of calling `next()`
+- Distinct limiters exist for public login/register/forgot-password flows, magic-link and PIN endpoints (admin and public), OAuth token/authorize endpoints, and admin login/mutation/query traffic, each with its own window and request cap defined in `lib/middleware/rateLimit.mjs`
+- Callers must check `res.writableEnded` after awaiting the limiter, since a limited request has already sent its own response
+
+### Admin password storage
+- Admin passwords are stored as bcrypt hashes (`lib/users.mjs`: `hashAdminPassword()`, `verifyAdminPassword()`)
+- Legacy non-bcrypt stored values are compared using a constant-time comparison (`lib/timingSafeCompare.mjs`) and transparently rehashed to bcrypt on the next successful login (lazy migration); no bulk migration or downtime is required
 
 ### Permission reads and writes
 - Self-service reads are constrained to the token subject and token client

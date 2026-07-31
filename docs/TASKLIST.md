@@ -1,11 +1,11 @@
 # Tasklist
 
-Version: 5.29.0  
-Last updated: 2026-05-11T12:00:00.000Z
+Version: 5.31.0  
+Last updated: 2026-07-31T00:00:00.000Z
 
 ## Active
 
-- No active remediation tasks. The May 2026 security and documentation cleanup is complete.
+- No active remediation tasks. The July 2026 security remediation and documentation reconciliation pass is complete (see `docs/CHANGELOG.md` [5.31.0]).
 
 ## Next Implementation Priorities
 
