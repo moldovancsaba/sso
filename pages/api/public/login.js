@@ -14,12 +14,17 @@ import { getDb } from '../../../lib/db.mjs'
 import logger from '../../../lib/logger.mjs'
 import bcrypt from 'bcryptjs'
 import { getUserLoginMethods, canLoginWithPassword } from '../../../lib/accountLinking.mjs'
+import { loginRateLimiter } from '../../../lib/middleware/rateLimit.mjs'
+import { applyRateLimiter } from '../../../lib/apiHelpers.mjs'
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST')
     return res.status(405).json({ error: 'Method not allowed' })
   }
+
+  await applyRateLimiter(loginRateLimiter, req, res)
+  if (res.writableEnded) return
 
   try {
     const { email, password } = req.body

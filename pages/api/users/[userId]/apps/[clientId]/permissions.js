@@ -173,7 +173,7 @@ async function handleGet(req, res) {
 
     return res.status(500).json({
       error: 'Internal server error',
-      message: 'Failed to retrieve permission',
+      message: error.message || 'Failed to retrieve permission',
     })
   }
 }
@@ -297,7 +297,7 @@ async function handlePut(req, res) {
 
     return res.status(500).json({
       error: 'Internal server error',
-      message: 'Failed to update permission',
+      message: error.message || 'Failed to update permission',
     })
   }
 }
@@ -387,7 +387,7 @@ async function handleDelete(req, res) {
 
     return res.status(500).json({
       error: 'Internal server error',
-      message: 'Failed to revoke permission',
+      message: error.message || 'Failed to revoke permission',
     })
   }
 }

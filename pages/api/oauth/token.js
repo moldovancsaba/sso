@@ -46,6 +46,8 @@ import {
 import { requiresRefreshToken, hasScope, filterScopes } from '../../../lib/oauth/scopes.mjs'
 import logger from '../../../lib/logger.mjs'
 import { runCors } from '../../../lib/cors.mjs'
+import { apiRateLimiter } from '../../../lib/middleware/rateLimit.mjs'
+import { applyRateLimiter } from '../../../lib/apiHelpers.mjs'
 
 export default async function handler(req, res) {
   // Apply CORS
@@ -54,6 +56,9 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' })
   }
+
+  await applyRateLimiter(apiRateLimiter, req, res)
+  if (res.writableEnded) return
 
   const { grant_type } = req.body
 
@@ -75,11 +80,21 @@ export default async function handler(req, res) {
       error_description: 'grant_type must be authorization_code, refresh_token, or client_credentials',
     })
   } catch (error) {
+    // WHAT: Log the request body with secret-shaped fields redacted to presence flags
+    // WHY: req.body can carry client_secret and refresh_token — logging it verbatim would
+    //      write live credentials to the console/log aggregator on every unhandled error.
+    const { client_secret, refresh_token, code, code_verifier, ...safeBody } = req.body || {}
     logger.error('Token endpoint error', {
       error: error.message,
       stack: error.stack,
       grant_type,
-      body: req.body,
+      body: {
+        ...safeBody,
+        has_client_secret: !!client_secret,
+        has_refresh_token: !!refresh_token,
+        has_code: !!code,
+        has_code_verifier: !!code_verifier,
+      },
     })
 
     return res.status(500).json({

@@ -79,11 +79,11 @@ export default async function handler(req, res) {
       // WHY: Prevent open redirect attacks
       if (client_id) {
         const db = await getDb()
-        const client = await db.collection('oauthClients').findOne({ id: client_id })
-        
+        const client = await db.collection('oauthClients').findOne({ client_id })
+
         if (client) {
           // Check if redirect URI matches any registered redirect URI
-          const isValidRedirect = client.redirectUris.some(uri => {
+          const isValidRedirect = client.redirect_uris.some(uri => {
             // Allow exact match or same origin
             if (uri === post_logout_redirect_uri) return true
             
@@ -100,7 +100,7 @@ export default async function handler(req, res) {
             logger.warn('Invalid post_logout_redirect_uri', {
               client_id,
               provided: post_logout_redirect_uri,
-              registered: client.redirectUris,
+              registered: client.redirect_uris,
             })
             
             // WHAT: Redirect to safe fallback instead

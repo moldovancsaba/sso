@@ -6,13 +6,18 @@
 import { consumeMagicToken } from '../../../lib/magic.mjs'
 import { findUserByEmail, ensureUserUuid } from '../../../lib/users.mjs'
 import { setAdminSessionCookie } from '../../../lib/auth.mjs'
-import crypto from 'crypto'
+import { createSession } from '../../../lib/sessions.mjs'
+import { strictRateLimiter } from '../../../lib/middleware/rateLimit.mjs'
+import { applyRateLimiter } from '../../../lib/apiHelpers.mjs'
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
     res.setHeader('Allow', 'GET')
     return res.status(405).json({ error: 'Method Not Allowed' })
   }
+
+  await applyRateLimiter(strictRateLimiter, req, res)
+  if (res.writableEnded) return
 
   try {
     const token = (req.query?.t || '').toString()
@@ -45,12 +50,16 @@ export default async function handler(req, res) {
     if (!user) return res.status(404).json({ error: 'User not found' })
     user = await ensureUserUuid(user)
 
-    // Build a fresh session token (7 days)
-    const tokenStr = crypto.randomBytes(32).toString('hex')
-    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+    // WHAT: Build a fresh session token (7 days) via createSession, which persists it to the
+    //       adminSessions collection.
+    // WHY: This previously hand-generated a random token and never called createSession() —
+    //      the cookie envelope looked correct, but validateSession(token) hashes the token and
+    //      looks it up in the database, so a session that was never inserted always failed with
+    //      session_not_found, silently breaking every login through this magic-link flow.
+    const { token: sessionToken, expiresAt } = await createSession(user.id, user.email, user.role || 'admin', 7 * 24 * 60 * 60)
     const tokenData = {
-      token: tokenStr,
-      expiresAt: expiresAt.toISOString(),
+      token: sessionToken,
+      expiresAt,
       userId: user.id,
       role: user.role || 'admin',
     }
