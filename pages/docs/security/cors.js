@@ -32,7 +32,7 @@ export default function SecurityCORS() {
             </Text>
             <AccentPanel title="Important" tone="red" variant="soft-outline">
               <Text size="sm">
-                Your application&apos;s origin must be registered with the SSO admin before CORS requests will be allowed.
+                Only origins configured on the SSO deployment itself (via the <code>SSO_ALLOWED_ORIGINS</code> environment variable) receive a matching <code>Access-Control-Allow-Origin</code> header. If your origin isn&apos;t in that list, the browser will block your JavaScript from reading SSO API responses even though the request itself reaches the server.
               </Text>
             </AccentPanel>
         </Box>
@@ -41,54 +41,44 @@ export default function SecurityCORS() {
             <Title order={2} mb="sm">SSO CORS Policy</Title>
             <Text size="sm">The SSO service implements the following CORS policy:</Text>
             <List spacing="xs">
-              <List.Item>✅ <strong>Allowed Origins:</strong> Only pre-registered origins (no wildcards)</List.Item>
+              <List.Item>✅ <strong>Allowed Origins:</strong> Only origins listed in the server&apos;s <code>SSO_ALLOWED_ORIGINS</code> configuration (wildcard support exists in the underlying config but is not enabled by default)</List.Item>
               <List.Item>✅ <strong>Credentials:</strong> Cookies are allowed (<code>Access-Control-Allow-Credentials: true</code>)</List.Item>
-              <List.Item>✅ <strong>Methods:</strong> GET, POST, PUT, PATCH, DELETE, OPTIONS</List.Item>
-              <List.Item>✅ <strong>Headers:</strong> Content-Type, Authorization, X-Requested-With</List.Item>
-              <List.Item>⚠️ <strong>Preflight Caching:</strong> 24 hours (<code>Access-Control-Max-Age: 86400</code>)</List.Item>
+              <List.Item>✅ <strong>Methods:</strong> GET, POST, PUT, DELETE, OPTIONS</List.Item>
+              <List.Item>✅ <strong>Headers:</strong> Content-Type, Authorization</List.Item>
             </List>
           </Box>
 
           <Box>
             <Title order={2} mb="sm">Registering Your Origin</Title>
-            <Text size="sm">To enable CORS for your application, contact the SSO administrator to register your origin(s):</Text>
+            <Text size="sm">
+              CORS origins are not self-service — they&apos;re set directly in the SSO deployment&apos;s <code>SSO_ALLOWED_ORIGINS</code> environment variable (a comma-separated list) by whoever operates that deployment. To get your origin added:
+            </Text>
             <List spacing="xs" type="ordered">
-              <List.Item>Determine your application&apos;s origin(s) (e.g., <code>https://myapp.com</code>)</List.Item>
-              <List.Item>Contact SSO admin via email: <code>sso@doneisbetter.com</code></List.Item>
-              <List.Item>Provide the following information:
-                <List spacing="xs">
-                  <List.Item>Your application name</List.Item>
-                  <List.Item>Origin URL(s) (must be HTTPS in production)</List.Item>
-                  <List.Item>OAuth <code>client_id</code> (if already issued)</List.Item>
-                  <List.Item>Redirect URI(s) for OAuth callback</List.Item>
-                </List>
-              </List.Item>
-              <List.Item>Wait for admin approval (typically within 24 hours)</List.Item>
+              <List.Item>Determine your application&apos;s origin(s) (e.g., <code>https://myapp.com</code>) — must be HTTPS in production</List.Item>
+              <List.Item>Ask the operator of your SSO deployment to add it to <code>SSO_ALLOWED_ORIGINS</code> and restart/redeploy the service</List.Item>
             </List>
             <AccentPanel title="Local development note" tone="red" variant="soft-outline">
               <Text size="sm">
-                For local development, <code>http://localhost</code> origins (any port) are automatically allowed.
+                CORS has no automatic <code>localhost</code> allowance. The default <code>SSO_ALLOWED_ORIGINS</code> only includes the service&apos;s production domains, so a locally-run frontend needs its own origin (e.g. <code>http://localhost:3000</code>) added to that variable in the SSO instance it&apos;s calling — typically via <code>.env.local</code> on a local SSO instance.
               </Text>
             </AccentPanel>
           </Box>
 
           <Box>
             <Title order={2} mb="sm">CORS Headers in SSO Responses</Title>
-            <Text size="sm">When your origin is registered, the SSO service will include these headers in responses:</Text>
+            <Text size="sm">When your origin is in <code>SSO_ALLOWED_ORIGINS</code>, the SSO service includes these headers in responses:</Text>
             <Code block>
               {`// Example SSO Response Headers
 HTTP/1.1 200 OK
 Access-Control-Allow-Origin: https://myapp.com
 Access-Control-Allow-Credentials: true
-Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS
-Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With
-Access-Control-Max-Age: 86400
-Vary: Origin
-
-// If origin is NOT registered:
-HTTP/1.1 403 Forbidden
-{ "error": "Origin not allowed" }`}
+Access-Control-Allow-Methods: GET,POST,PUT,DELETE,OPTIONS
+Access-Control-Allow-Headers: Content-Type, Authorization
+Vary: Origin`}
             </Code>
+            <Text size="sm">
+              <strong>If your origin is NOT in the allowlist</strong>, there is no distinct error response — the request is still processed by the server, and the response still comes back with a <code>200</code> (or whatever status the endpoint would normally return). The only difference is <code>Access-Control-Allow-Origin</code> won&apos;t match your origin, so the <strong>browser</strong> refuses to let your JavaScript read the response body. This shows up as a CORS error in the browser console, not as an HTTP error status.
+            </Text>
           </Box>
 
           <Box>
@@ -166,9 +156,9 @@ export default function handler(req, res) {
 
           <Box>
             <Title order={2} mb="sm">Common CORS Errors</Title>
-            <Title order={3} mb="xs">Error: &quot;Origin not allowed&quot;</Title>
-            <Text size="sm"><strong>Cause:</strong> Your origin is not registered with the SSO service.</Text>
-            <Text size="sm"><strong>Solution:</strong> Contact SSO admin to register your origin.</Text>
+            <Title order={3} mb="xs">Error: Browser console shows a CORS / cross-origin error</Title>
+            <Text size="sm"><strong>Cause:</strong> Your origin is not in the SSO deployment&apos;s <code>SSO_ALLOWED_ORIGINS</code> configuration, so the response comes back without a matching <code>Access-Control-Allow-Origin</code> header and the browser withholds it from your JavaScript.</Text>
+            <Text size="sm"><strong>Solution:</strong> Ask the operator of your SSO deployment to add your origin to <code>SSO_ALLOWED_ORIGINS</code>.</Text>
 
             <Title order={3} mb="xs">Error: &quot;Credentials flag not set&quot;</Title>
             <Text size="sm"><strong>Cause:</strong> You&apos;re not sending <code>credentials: &apos;include&apos;</code> in requests.</Text>
@@ -200,7 +190,7 @@ fetch('https://sso.doneisbetter.com/api/health', {
           <Box>
             <Title order={2} mb="sm">Summary</Title>
             <List spacing="xs">
-              <List.Item>☑️ Contact SSO admin to register your origin</List.Item>
+              <List.Item>☑️ Ask your SSO deployment&apos;s operator to add your origin to <code>SSO_ALLOWED_ORIGINS</code></List.Item>
               <List.Item>☑️ Always use <code>credentials: &apos;include&apos;</code> for API requests</List.Item>
               <List.Item>☑️ Use HTTPS in production (HTTP only for localhost development)</List.Item>
               <List.Item>☑️ Test CORS configuration before going live</List.Item>

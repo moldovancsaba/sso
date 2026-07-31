@@ -35,10 +35,10 @@ This file records only local adapter state, migration blockers, validation comma
 ## Current Repo State
 
 - Current UI foundation: direct GDS runtime packages with one remaining local UI adapter (`DocsLayout`)
-- Current root provider wiring: [pages/_app.js](/Users/Shared/Projects/sso/pages/_app.js) via direct `@doneisbetter/gds-theme/client`
-- Current token/theme authority: [lib/theme/mantineTheme.js](/Users/Shared/Projects/sso/lib/theme/mantineTheme.js) via `@doneisbetter/gds-theme/server`
-- Current app root wiring: [pages/_app.js](/Users/Shared/Projects/sso/pages/_app.js)
-- Current manifest: [gds-adoption.json](/Users/Shared/Projects/sso/gds-adoption.json)
+- Current root provider wiring: [pages/_app.js](../pages/_app.js) via direct `@doneisbetter/gds-theme/client`
+- Current token/theme authority: [lib/theme/mantineTheme.js](../lib/theme/mantineTheme.js) via `@doneisbetter/gds-theme/server`
+- Current app root wiring: [pages/_app.js](../pages/_app.js)
+- Current manifest: [gds-adoption.json](../gds-adoption.json)
 - Installed runtime packages:
   - `@doneisbetter/gds-theme@2.6.3`
   - `@doneisbetter/gds-core@2.6.3`
@@ -47,22 +47,22 @@ This file records only local adapter state, migration blockers, validation comma
 ## Current Direct Consumption
 
 - `@doneisbetter/gds-theme/client`
-  - [pages/_app.js](/Users/Shared/Projects/sso/pages/_app.js)
+  - [pages/_app.js](../pages/_app.js)
 - `@doneisbetter/gds-theme/server`
-  - [lib/theme/mantineTheme.js](/Users/Shared/Projects/sso/lib/theme/mantineTheme.js)
+  - [lib/theme/mantineTheme.js](../lib/theme/mantineTheme.js)
 - `@doneisbetter/gds-core/server`
-  - [pages/login.js](/Users/Shared/Projects/sso/pages/login.js), [pages/register.js](/Users/Shared/Projects/sso/pages/register.js), [pages/forgot-password.js](/Users/Shared/Projects/sso/pages/forgot-password.js), [pages/logout.js](/Users/Shared/Projects/sso/pages/logout.js), [pages/admin/index.js](/Users/Shared/Projects/sso/pages/admin/index.js), [pages/admin/callback.js](/Users/Shared/Projects/sso/pages/admin/callback.js), and [pages/admin/forgot-password.js](/Users/Shared/Projects/sso/pages/admin/forgot-password.js) via direct `AuthShell`
-  - [pages/admin/users.js](/Users/Shared/Projects/sso/pages/admin/users.js) and [pages/admin/activity.js](/Users/Shared/Projects/sso/pages/admin/activity.js) via direct `DataToolbar`
-  - [components/DocsLayout.js](/Users/Shared/Projects/sso/components/DocsLayout.js)
-  - [pages/index.js](/Users/Shared/Projects/sso/pages/index.js) via `PublicShell`, `EditorialHero`, `FeatureBand`, `ConsumerSection`, `ConsumerDashboardGrid`, `EditorialCard`, `AccentPanel`, and `CtaButtonGroup`
-  - [pages/privacy.js](/Users/Shared/Projects/sso/pages/privacy.js), [pages/terms.js](/Users/Shared/Projects/sso/pages/terms.js), [pages/data-deletion.js](/Users/Shared/Projects/sso/pages/data-deletion.js), and [pages/test-fetch.js](/Users/Shared/Projects/sso/pages/test-fetch.js) via direct `PublicShell`, `PublicBrandFooter`, and `ArticleShell`
+  - [pages/login.js](../pages/login.js), [pages/register.js](../pages/register.js), [pages/forgot-password.js](../pages/forgot-password.js), [pages/logout.js](../pages/logout.js), [pages/admin/index.js](../pages/admin/index.js), [pages/admin/callback.js](../pages/admin/callback.js), and [pages/admin/forgot-password.js](../pages/admin/forgot-password.js) via direct `AuthShell`
+  - [pages/admin/users.js](../pages/admin/users.js) and [pages/admin/activity.js](../pages/admin/activity.js) via direct `DataToolbar`
+  - [components/DocsLayout.js](../components/DocsLayout.js)
+  - [pages/index.js](../pages/index.js) via `PublicShell`, `EditorialHero`, `FeatureBand`, `ConsumerSection`, `ConsumerDashboardGrid`, `EditorialCard`, `AccentPanel`, and `CtaButtonGroup`
+  - [pages/privacy.js](../pages/privacy.js), [pages/terms.js](../pages/terms.js), [pages/data-deletion.js](../pages/data-deletion.js), and [pages/test-fetch.js](../pages/test-fetch.js) via direct `PublicShell`, `PublicBrandFooter`, and `ArticleShell`
   - editorial callouts on core docs pages via `AccentPanel`
 - `@doneisbetter/gds-admin/client`
-  - [pages/admin/users.js](/Users/Shared/Projects/sso/pages/admin/users.js)
-  - [pages/admin/oauth-clients.js](/Users/Shared/Projects/sso/pages/admin/oauth-clients.js)
+  - [pages/admin/users.js](../pages/admin/users.js)
+  - [pages/admin/oauth-clients.js](../pages/admin/oauth-clients.js)
 - `@doneisbetter/gds-admin/server`
-  - [pages/admin/dashboard.js](/Users/Shared/Projects/sso/pages/admin/dashboard.js), [pages/admin/users.js](/Users/Shared/Projects/sso/pages/admin/users.js), [pages/admin/activity.js](/Users/Shared/Projects/sso/pages/admin/activity.js), and [pages/admin/oauth-clients.js](/Users/Shared/Projects/sso/pages/admin/oauth-clients.js) via direct `PageHeader`
-  - [pages/account.js](/Users/Shared/Projects/sso/pages/account.js) and [pages/demo.js](/Users/Shared/Projects/sso/pages/demo.js) via direct `PageHeader`
+  - [pages/admin/dashboard.js](../pages/admin/dashboard.js), [pages/admin/users.js](../pages/admin/users.js), [pages/admin/activity.js](../pages/admin/activity.js), and [pages/admin/oauth-clients.js](../pages/admin/oauth-clients.js) via direct `PageHeader`
+  - [pages/account.js](../pages/account.js) and [pages/demo.js](../pages/demo.js) via direct `PageHeader`
 
 ## Remaining Gaps
 
@@ -76,13 +76,13 @@ This repo is no longer blocked from direct runtime package consumption. It is no
 
 3. Lint debt gap:
    most docs/editorial waiver debt is removed, but two long-form narrative docs pages still carry explicit localized waivers for prose-heavy quote/apostrophe content:
-   [pages/docs/app-permissions.js](/Users/Shared/Projects/sso/pages/docs/app-permissions.js)
-   and [pages/docs/admin-approval.js](/Users/Shared/Projects/sso/pages/docs/admin-approval.js).
+   [pages/docs/app-permissions.js](../pages/docs/app-permissions.js)
+   and [pages/docs/admin-approval.js](../pages/docs/admin-approval.js).
 
 ## Local Adapter Inventory
 
 - Docs/article shell:
-  - [components/DocsLayout.js](/Users/Shared/Projects/sso/components/DocsLayout.js) thin adapter over `PublicShell` and `DocsPageShell`
+  - [components/DocsLayout.js](../components/DocsLayout.js) thin adapter over `PublicShell` and `DocsPageShell`
 
 ## Board-Aligned Implementation Notes
 
@@ -148,5 +148,5 @@ Current repo usage proves the public/editorial family is viable on this runtime 
 
 ## Next Honest Migration Step
 
-1. Remove the last two localized editorial lint waivers in [pages/docs/app-permissions.js](/Users/Shared/Projects/sso/pages/docs/app-permissions.js) and [pages/docs/admin-approval.js](/Users/Shared/Projects/sso/pages/docs/admin-approval.js) by normalizing the remaining long-form prose copy.
-2. Collapse [components/DocsLayout.js](/Users/Shared/Projects/sso/components/DocsLayout.js) only after the remaining docs pages no longer require local navigation/framing glue, or after GDS ships a canonical docs-site shell.
+1. Remove the last two localized editorial lint waivers in [pages/docs/app-permissions.js](../pages/docs/app-permissions.js) and [pages/docs/admin-approval.js](../pages/docs/admin-approval.js) by normalizing the remaining long-form prose copy.
+2. Collapse [components/DocsLayout.js](../components/DocsLayout.js) only after the remaining docs pages no longer require local navigation/framing glue, or after GDS ships a canonical docs-site shell.

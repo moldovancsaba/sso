@@ -1,9 +1,20 @@
 # Roadmap
 
-Version: 5.29.0  
-Last updated: 2026-05-10T00:00:00.000Z
+Version: 5.31.0  
+Last updated: 2026-07-31T00:00:00.000Z
 
 ## Recently Delivered
+
+### Security remediation slice completed in July 2026
+- Fixed admin session identity resolution to use the database-verified session record instead of an unsigned cookie field
+- Closed an OAuth consent-approval gap that allowed authorization codes to be issued without server-side request validation
+- Enforced CSRF protection (Origin/Referer allowlist) on all state-changing admin and public-session endpoints
+- Migrated admin password storage to bcrypt with transparent legacy-format migration
+- Wired up rate limiting across public auth, magic-link/PIN, and OAuth endpoints, and fixed a hang bug in the rate-limit helper
+- Closed a protocol-relative open-redirect gap
+- Fixed three admin login flows that issued unparseable session cookies
+- Replaced generic "Internal server error" responses with actionable detail across authenticated admin/API routes
+- Delivered Phase 1 (documentation and operator alignment): reconciled core markdown docs and `pages/docs` surfaces with the shipped runtime contract, see `docs/CHANGELOG.md` [5.31.0]
 
 ### Multi-app authorization foundation
 - Central `appPermissions` model
@@ -25,11 +36,6 @@ Last updated: 2026-05-10T00:00:00.000Z
 - Added enterprise connection inventory groundwork for future OIDC, SAML, and SCIM rollout
 
 ## Next Roadmap Phases
-
-### Phase 1: Documentation and operator alignment
-- Reconcile core markdown docs
-- Reconcile `pages/docs` surfaces with the shipped runtime contract
-- Update issue and board states to reflect completed remediation work
 
 ### Phase 2: Apple Sign In
 - Add Apple login provider

@@ -1,7 +1,7 @@
 # SSO Service
 
-Version: 5.29.0  
-Last updated: 2026-05-21T00:00:00.000Z
+Version: 5.31.0  
+Last updated: 2026-07-31T00:00:00.000Z
 
 This repository provides the SSO service for `https://sso.doneisbetter.com`.
 
@@ -19,7 +19,7 @@ All design, UI, and UX rules now defer to one shared cross-project source of tru
 - [general-design-system README](https://github.com/sovereignsquad/general-design-system/blob/main/README.md)
 - [general-design-system repository](https://github.com/sovereignsquad/general-design-system)
 
-In this repo, [docs/DESIGN_SYSTEM.md](/Users/moldovancsaba/Projects/sso/docs/DESIGN_SYSTEM.md) is local implementation tracking and migration status only (non-authoritative).
+In this repo, [docs/DESIGN_SYSTEM.md](DESIGN_SYSTEM.md) is local implementation tracking and migration status only (non-authoritative).
 
 That shared directory is normative for:
 
@@ -119,12 +119,12 @@ The May 2026 hardening pass delivered these changes:
 
 ## Recommended Reading
 
-- [docs/ARCHITECTURE.md](/Users/moldovancsaba/Projects/sso/docs/ARCHITECTURE.md): runtime architecture and core contracts
-- [docs/DESIGN_SYSTEM.md](/Users/moldovancsaba/Projects/sso/docs/DESIGN_SYSTEM.md): local implementation/migration tracking for GDS adoption (non-authoritative)
-- [docs/THIRD_PARTY_INTEGRATION_GUIDE.md](/Users/moldovancsaba/Projects/sso/docs/THIRD_PARTY_INTEGRATION_GUIDE.md): integration guide for app teams
-- [docs/MULTI_APP_PERMISSIONS.md](/Users/moldovancsaba/Projects/sso/docs/MULTI_APP_PERMISSIONS.md): app-permission semantics and workflows
-- [docs/ROLE_SYSTEM_MIGRATION.md](/Users/moldovancsaba/Projects/sso/docs/ROLE_SYSTEM_MIGRATION.md): compatibility notes for legacy roles
-- [docs/TASKLIST.md](/Users/moldovancsaba/Projects/sso/docs/TASKLIST.md): current backlog
+- [docs/ARCHITECTURE.md](ARCHITECTURE.md): runtime architecture and core contracts
+- [docs/DESIGN_SYSTEM.md](DESIGN_SYSTEM.md): local implementation/migration tracking for GDS adoption (non-authoritative)
+- [docs/THIRD_PARTY_INTEGRATION_GUIDE.md](THIRD_PARTY_INTEGRATION_GUIDE.md): integration guide for app teams
+- [docs/MULTI_APP_PERMISSIONS.md](MULTI_APP_PERMISSIONS.md): app-permission semantics and workflows
+- [docs/ROLE_SYSTEM_MIGRATION.md](ROLE_SYSTEM_MIGRATION.md): compatibility notes for legacy roles
+- [docs/TASKLIST.md](TASKLIST.md): current backlog
 
 ## Important Environment Variables
 
