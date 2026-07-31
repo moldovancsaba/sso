@@ -20,7 +20,7 @@
 
 ### Client package
 
-Run these from [`/Users/moldovancsaba/Projects/sso/client`](/Users/moldovancsaba/Projects/sso/client):
+Run these from the `client/` directory:
 
 - Build the package: `npm run build`
 - Watch and rebuild during development: `npm run dev`
@@ -46,7 +46,7 @@ Run these from [`/Users/moldovancsaba/Projects/sso/client`](/Users/moldovancsaba
 
 ## Notes
 
-- Root app env defaults live in [`.env.example`](/Users/moldovancsaba/Projects/sso/.env.example).
-- The repo contains many one-off scripts under [`/Users/moldovancsaba/Projects/sso/scripts`](/Users/moldovancsaba/Projects/sso/scripts); add them here only after their invocation is verified in code or docs.
+- Root app env defaults live in [`.env.example`](.env.example).
+- The repo contains many one-off scripts under [`scripts/`](scripts); add them here only after their invocation is verified in code or docs.
 - Authoritative Design/UI/UX SSOT lives in [general-design-system](https://github.com/sovereignsquad/general-design-system).  
 - `docs/DESIGN_SYSTEM.md` tracks this repo’s local adapter state, migration progress, and local implementation notes, and is not the canonical rule source.

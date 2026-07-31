@@ -13,8 +13,8 @@ The package exports a single primary class:
 
 It also re-exports:
 
-- public TypeScript types from [`/Users/moldovancsaba/Projects/sso/src/types.ts`](/Users/moldovancsaba/Projects/sso/src/types.ts)
-- constants from [`/Users/moldovancsaba/Projects/sso/src/constants.ts`](/Users/moldovancsaba/Projects/sso/src/constants.ts)
+- public TypeScript types from [`src/types.ts`](../src/types.ts)
+- constants from [`src/constants.ts`](../src/constants.ts)
 
 ## Installation
 
@@ -101,9 +101,9 @@ stopMonitoring();
 
 ## Documentation
 
-- Runtime integration guide: [docs/THIRD_PARTY_INTEGRATION_GUIDE.md](/Users/moldovancsaba/Projects/sso/docs/THIRD_PARTY_INTEGRATION_GUIDE.md)
-- Authentication guide: [docs/README.md](/Users/moldovancsaba/Projects/sso/docs/README.md)
-- Source exports: [`/Users/moldovancsaba/Projects/sso/src/index.ts`](/Users/moldovancsaba/Projects/sso/src/index.ts)
+- Runtime integration guide: [docs/THIRD_PARTY_INTEGRATION_GUIDE.md](../docs/THIRD_PARTY_INTEGRATION_GUIDE.md)
+- Authentication guide: [docs/README.md](../docs/README.md)
+- Source exports: [`src/index.ts`](../src/index.ts)
 
 ## License
 

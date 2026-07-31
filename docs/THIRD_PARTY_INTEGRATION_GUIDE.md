@@ -1,7 +1,7 @@
 # Third-Party Integration Guide — SSO Service
 
-**Version**: 5.29.0  
-**Last Updated**: 2026-05-21T00:00:00.000Z  
+**Version**: 5.31.0  
+**Last Updated**: 2026-07-31T00:00:00.000Z  
 **Service URL**: https://sso.doneisbetter.com  
 **Status**: Current Runtime Guide
 
@@ -360,6 +360,6 @@ The hosted social-login flow:
 
 ## Related Docs
 
-- [docs/README.md](/Users/moldovancsaba/Projects/sso/docs/README.md)
-- [docs/ARCHITECTURE.md](/Users/moldovancsaba/Projects/sso/docs/ARCHITECTURE.md)
-- [docs/MULTI_APP_PERMISSIONS.md](/Users/moldovancsaba/Projects/sso/docs/MULTI_APP_PERMISSIONS.md)
+- [docs/README.md](README.md)
+- [docs/ARCHITECTURE.md](ARCHITECTURE.md)
+- [docs/MULTI_APP_PERMISSIONS.md](MULTI_APP_PERMISSIONS.md)

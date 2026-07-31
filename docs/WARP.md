@@ -4,8 +4,8 @@ Historical internal reference retained for compatibility with older tooling.
 
 **Document**: WARP.md — SSO Service  
 **Repository**: sso  
-**Version**: 5.29.0  
-**LastUpdated (UTC)**: 2026-05-20T00:00:00.000Z  
+**Version**: 5.31.0  
+**LastUpdated (UTC)**: 2026-07-31T00:00:00.000Z  
 **Status**: Current condensed reference
 
 ## Essential Commands
@@ -83,5 +83,5 @@ DRY_RUN=true node scripts/merge-duplicate-accounts.mjs
 - Enterprise federation features such as SAML and SCIM are not implemented
 - Public-auth endpoints set cookie-backed sessions; they do not replace the OAuth token flow
 - App-level authorization is not encoded by default as the canonical app-permission contract; use permission APIs when app access or app role matters
-- Canonical docs live in [`/Users/moldovancsaba/Projects/sso/docs/README.md`](/Users/moldovancsaba/Projects/sso/docs/README.md), [`/Users/moldovancsaba/Projects/sso/docs/ARCHITECTURE.md`](/Users/moldovancsaba/Projects/sso/docs/ARCHITECTURE.md), and [`/Users/moldovancsaba/Projects/sso/docs/THIRD_PARTY_INTEGRATION_GUIDE.md`](/Users/moldovancsaba/Projects/sso/docs/THIRD_PARTY_INTEGRATION_GUIDE.md)
+- Canonical docs live in [`docs/README.md`](README.md), [`docs/ARCHITECTURE.md`](ARCHITECTURE.md), and [`docs/THIRD_PARTY_INTEGRATION_GUIDE.md`](THIRD_PARTY_INTEGRATION_GUIDE.md)
 - Design, UI, and UX SSOT lives in the [general-design-system README](https://github.com/sovereignsquad/general-design-system/blob/main/README.md); local design notes are subordinate to that shared authority
