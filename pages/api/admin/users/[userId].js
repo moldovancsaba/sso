@@ -100,7 +100,7 @@ export default async function handler(req, res) {
       return res.status(200).json(out)
     } catch (error) {
       console.error('Update user error:', error)
-      return res.status(500).json({ error: 'Internal server error' })
+      return res.status(500).json({ error: 'Internal server error', message: error.message })
     }
   }
 
@@ -131,7 +131,7 @@ export default async function handler(req, res) {
       return res.status(200).json({ success: true, deleted: true })
     } catch (error) {
       console.error('Delete user error:', error)
-      return res.status(500).json({ error: 'Internal server error' })
+      return res.status(500).json({ error: 'Internal server error', message: error.message })
     }
   }
 

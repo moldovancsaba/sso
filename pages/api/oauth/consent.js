@@ -10,6 +10,7 @@ import { getAuthenticatedUser } from '../../../lib/unifiedAuth.mjs'
 import { getDb } from '../../../lib/db.mjs'
 import logger from '../../../lib/logger.mjs'
 import { runCors } from '../../../lib/cors.mjs'
+import { validateRequestOrigin } from '../../../lib/middleware/csrf.mjs'
 
 export default async function handler(req, res) {
   // Apply CORS
@@ -17,6 +18,11 @@ export default async function handler(req, res) {
 
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' })
+  }
+
+  const originCheck = validateRequestOrigin(req)
+  if (!originCheck.valid) {
+    return res.status(403).json({ error: 'Request origin not allowed' })
   }
 
   // WHAT: Authenticate user (admin or public)
