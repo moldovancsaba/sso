@@ -10,6 +10,9 @@ import { resolveSafeRedirect } from '../../../lib/redirects.mjs'
 import logger from '../../../lib/logger.mjs'
 import crypto from 'crypto'
 import { getDb } from '../../../lib/db.mjs'
+import { strictRateLimiter } from '../../../lib/middleware/rateLimit.mjs'
+import { applyRateLimiter } from '../../../lib/apiHelpers.mjs'
+import { timingSafeStringEqual } from '../../../lib/timingSafeCompare.mjs'
 
 /**
  * Consume a public magic link token
@@ -37,7 +40,7 @@ async function consumePublicMagicToken(token) {
     .replace(/\//g, '_')
     .replace(/=/g, '')
 
-  if (signatureB64 !== expectedSig) {
+  if (!timingSafeStringEqual(signatureB64, expectedSig)) {
     throw new Error('Invalid token signature')
   }
 
@@ -91,6 +94,9 @@ export default async function handler(req, res) {
     res.setHeader('Allow', 'GET')
     return res.status(405).json({ error: 'Method not allowed' })
   }
+
+  await applyRateLimiter(strictRateLimiter, req, res)
+  if (res.writableEnded) return
 
   try {
     const { token, redirect_uri, return_to } = req.query

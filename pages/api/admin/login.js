@@ -3,11 +3,12 @@
  * WHAT: Authenticates against MongoDB with rate limiting, CSRF protection, and audit logging.
  * WHY: Production-ready authentication with brute force protection and session revocation.
  */
-import { findUserByEmail, ensureUserUuid } from '../../../lib/users.mjs'
+import { findUserByEmail, ensureUserUuid, verifyAdminPassword, updateUserPassword } from '../../../lib/users.mjs'
 import { setAdminSessionCookie, clearAdminSessionCookie, getCookie, decodeSessionToken } from '../../../lib/auth.mjs'
 import { createSession, revokeSession } from '../../../lib/sessions.mjs'
 import { logLoginSuccess, logLoginFailure, logLogout } from '../../../lib/logger.mjs'
 import { adminLoginRateLimiter } from '../../../lib/middleware/rateLimit.mjs'
+import { applyRateLimiter } from '../../../lib/apiHelpers.mjs'
 import { ensureCsrfToken, validateCsrf } from '../../../lib/middleware/csrf.mjs'
 import { shouldTriggerPin, issuePin, ensurePinIndexes } from '../../../lib/loginPin.mjs'
 import { sendEmail } from '../../../lib/email.mjs'
@@ -30,13 +31,9 @@ function getClientMetadata(req) {
 
 export default async function handler(req, res) {
   // Apply stricter rate limiting to admin login endpoint (3 attempts vs 5 for public)
-  await new Promise((resolve, reject) => {
-    adminLoginRateLimiter(req, res, (err) => {
-      if (err) reject(err)
-      else resolve()
-    })
-  })
-  
+  await applyRateLimiter(adminLoginRateLimiter, req, res)
+  if (res.writableEnded) return // limit exceeded — 429 already sent
+
   if (req.method === 'POST') {
     // Ensure CSRF token is set for subsequent requests
     await new Promise((resolve) => ensureCsrfToken(req, res, resolve))
@@ -60,13 +57,17 @@ export default async function handler(req, res) {
         if (alias) user = alias
       }
 
-      // Validate credentials using stored plaintext-like MD5-style token
-      const isValid = !!(user && user.password === password)
+      // Validate credentials — supports bcrypt-hashed (current) and legacy plaintext-token
+      // (pre-migration) stored passwords; a successful legacy-format match is transparently
+      // rehashed to bcrypt below.
+      const verification = user
+        ? await verifyAdminPassword(user.password, password)
+        : { valid: false, needsRehash: false }
 
-      if (!isValid) {
+      if (!verification.valid) {
         // Log failed login attempt
         logLoginFailure(email, 'invalid_credentials', metadata)
-        
+
         // Brute force protection delay (still useful as last resort)
         await new Promise((r) => setTimeout(r, 800))
         return res.status(401).json({ error: 'Invalid credentials' })
@@ -74,6 +75,16 @@ export default async function handler(req, res) {
 
       // Ensure the user has a stable UUID identifier used across the system
       user = await ensureUserUuid(user)
+
+      if (verification.needsRehash) {
+        try {
+          await updateUserPassword(user.id, password)
+        } catch (rehashError) {
+          // Non-fatal — this login already succeeded on the legacy password; the upgrade
+          // to bcrypt will simply be retried on the next successful login.
+          console.error('Failed to rehash legacy admin password:', rehashError.message)
+        }
+      }
 
       // WHAT: Increment login count and check if PIN should be triggered
       // WHY: Random PIN verification (5th-10th login) for additional security

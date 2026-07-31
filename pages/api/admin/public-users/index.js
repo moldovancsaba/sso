@@ -23,7 +23,7 @@ export default async function handler(req, res) {
     const { filter = 'all', sortBy = 'createdAt', sortOrder = 'desc' } = req.query
 
     const db = await getDb()
-    
+
     // Build query
     const query = {}
     if (filter === 'active') {
@@ -32,9 +32,14 @@ export default async function handler(req, res) {
       query.status = 'disabled'
     }
 
-    // Build sort
+    // WHAT: Build sort, restricting the field to a known-sortable allowlist
+    // WHY: sortBy came straight from req.query into a dynamic Mongo sort key — an arbitrary
+    //      field name isn't itself a classic injection, but there's no reason to accept one
+    //      the UI never sends.
+    const SORTABLE_FIELDS = ['createdAt', 'updatedAt', 'lastLoginAt', 'email', 'name', 'loginCount', 'status']
+    const sortField = SORTABLE_FIELDS.includes(sortBy) ? sortBy : 'createdAt'
     const sort = {}
-    sort[sortBy] = sortOrder === 'asc' ? 1 : -1
+    sort[sortField] = sortOrder === 'asc' ? 1 : -1
 
     // Fetch users (excluding password hashes)
     const users = await db.collection('publicUsers')
