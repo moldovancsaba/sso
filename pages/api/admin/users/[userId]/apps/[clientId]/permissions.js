@@ -276,7 +276,7 @@ export default async function handler(req, res) {
 
     return res.status(500).json({
       error: 'Internal server error',
-      message: 'Failed to manage permission',
+      message: error.message || 'Failed to manage permission',
     })
   }
 }

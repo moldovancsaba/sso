@@ -185,7 +185,7 @@ export default async function handler(req, res) {
 
     return res.status(500).json({
       error: 'Internal server error',
-      message: 'Failed to retrieve users',
+      message: error.message || 'Failed to retrieve users',
     })
   }
 }

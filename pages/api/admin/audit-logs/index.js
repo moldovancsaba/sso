@@ -65,7 +65,7 @@ export default async function handler(req, res) {
       })
     } catch (error) {
       console.error('Get audit logs error:', error)
-      return res.status(500).json({ error: 'Internal server error' })
+      return res.status(500).json({ error: 'Internal server error', message: error.message })
     }
   }
 
