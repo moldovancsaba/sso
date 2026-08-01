@@ -1,7 +1,7 @@
 # Tasklist
 
-Version: 5.31.0  
-Last updated: 2026-07-31T00:00:00.000Z
+Version: 5.31.1  
+Last updated: 2026-08-01T00:00:00.000Z
 
 ## Active
 

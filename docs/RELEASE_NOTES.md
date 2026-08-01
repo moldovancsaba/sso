@@ -1,4 +1,22 @@
-# Release Notes [![Version Badge](https://img.shields.io/badge/version-5.31.0-blue)](RELEASE_NOTES.md)
+# Release Notes [![Version Badge](https://img.shields.io/badge/version-5.31.1-blue)](RELEASE_NOTES.md)
+
+## [v5.31.1] — 2026-08-01T00:00:00.000Z
+
+### 🐛 Bug Fix: OAuth `prompt=login` Infinite Redirect Loop
+
+**What**: `/api/oauth/authorize` treats `prompt=login` as "always show the login form," checked before it even looks at whether the user is now authenticated. Four places that rebuild the authorize retry URL after a client finishes re-authentication — `pages/login.js`'s password-login and PIN-completion branches, and the Facebook/Google OAuth callbacks — forwarded the client's original `prompt` value unconditionally, including `login`. A consuming app that sends `prompt=login` to force fresh credentials right after logout (a reasonable, deliberate choice — it stops a stale session from being silently reused) would see every subsequent login attempt loop straight back to the login form instead of ever completing.
+
+**Why it looked like a login failure**: the user's credentials were valid and the session really was being created each time. It just never became visible, because the immediate retry sent `prompt=login` right back to SSO, and SSO obeyed it before noticing the fresh session existed.
+
+**Symptom reported against a real consuming app (messmass)**: log in, log out, immediately try to log in again in the same browser session — redirects to SSO but never completes, no matter what's entered. Reloading the consuming app's own page before retrying "fixed" it, because that reset messmass's in-memory "we just logged out" flag, which is what triggered it to send `prompt=login` in the first place — with that flag cleared, the next attempt didn't send `prompt=login` and never hit the bug.
+
+**Fix**: the four retry-URL call sites now drop `prompt=login` specifically once re-authentication has just happened. Other `prompt` values (`consent`, `select_account`) are preserved, since those remain meaningful after login.
+
+**Files Changed**: `pages/api/oauth/authorize.js` (root cause, unconditional `prompt === 'login'` check), `pages/login.js`, `pages/api/auth/facebook/callback.js`, `pages/api/auth/google/callback.js`.
+
+**Testing**: `npm run verify` (lint, type-check, test, build, guard:repo, check:docs) clean against the fix. Confirmed live against the real messmass integration: login → logout → immediate re-login now succeeds.
+
+---
 
 ## [v5.31.0] — 2026-07-31T00:00:00.000Z
 
