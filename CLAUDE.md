@@ -188,6 +188,21 @@ the runtime model from scratch or from generic Next.js/Mongo assumptions.
   the live deployed app's own HTTPS API, which *does* work through the proxy) — don't
   claim something was tested end-to-end if it only ran against mocks or didn't run at
   all.
+- **Headless Chromium (Playwright) cannot complete HTTPS requests through this
+  session's proxy, to any host** — confirmed via an isolating test: a plain-HTTP
+  request through the same proxy gets a real response (405, the proxy's documented
+  behavior for non-CONNECT requests), but every HTTPS navigation resets mid-handshake
+  (`net::ERR_CONNECTION_RESET`), reproduced identically against both a known-good site
+  (`sso.doneisbetter.com`, which `curl` reaches fine through the same proxy) and an
+  external one — so it's this sandbox's browser-automation path, not a destination
+  block. Root cause is presumed to be Chromium not trusting the proxy's TLS-terminating
+  CA (`/root/.ccr/ca-bundle.crt`) even though the system OpenSSL/curl trust store has
+  it, but this wasn't fully isolated. Do **not** work around this with
+  `--ignore-certificate-errors` or any other TLS-verification bypass — that's exactly
+  what Section 1 of this document and this environment's own proxy README both
+  prohibit. If a task genuinely needs live browser reproduction against an HTTPS site,
+  say plainly that it isn't possible from this sandbox rather than faking it or
+  quietly downgrading to a non-TLS check.
 
 ## 8. Keeping these rules in sync
 
