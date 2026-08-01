@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [5.31.1] - 2026-08-01
+
+### 🐛 Fixed
+
+**OAuth `prompt=login` infinite redirect loop**: `authorize.js` checks `prompt === 'login'` (force re-authentication) before it checks whether the user is now authenticated. The four places that reconstruct the authorize retry URL after a client completes re-authentication — the password-login and PIN-completion branches in `pages/login.js`, and the Facebook/Google OAuth callbacks — were forwarding `prompt` from the decoded `oauth_request` unconditionally, including `login`. A consuming app sending `prompt=login` (e.g. to force fresh credentials right after a user logs out) meant every successful login attempt looped straight back to the login form instead of ever completing authorization: the user's credentials were valid and their session really was being established each time, they just never saw it, because the retry immediately bounced them back to the login form again.
+
+Fixed by dropping `prompt=login` specifically when rebuilding the retry URL at all four call sites, once re-authentication has just happened — that's the one job that value has, and it's done. Other `prompt` values (`consent`, `select_account`) still have meaning post-login and are preserved. Reported against a real consuming app (messmass): login → logout → immediate re-login failed silently every time; a full page reload before retrying "fixed" it only because it reset the client app's own in-memory "just logged out" flag that was the trigger for sending `prompt=login` in the first place.
+
+### 🔧 Changed
+- Bumped service version to `5.31.1` (patch: bug fix only, no new features or breaking changes)
+
+---
+
 ## [5.31.0] - 2026-07-31
 
 ### 🔒 Security
@@ -293,5 +306,5 @@ See Git history for changes before v5.26.0.
 ---
 
 **Maintained By:** SSO Development Team  
-**Last Updated:** 2026-07-31  
-**Current Version:** 5.31.0
+**Last Updated:** 2026-08-01  
+**Current Version:** 5.31.1
