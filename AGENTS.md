@@ -1,5 +1,10 @@
 # AGENTS.md
 
+Operating rules for AI coding assistants working in this repo live in
+[`CLAUDE.md`](CLAUDE.md) (branding policy, quality gate, pre-authorized operations,
+environment quirks). This file is the command reference; keep it in sync with
+`CLAUDE.md` Section 8 and with the real `package.json` scripts.
+
 ## Repo Workflows
 
 ### Root app
@@ -14,6 +19,7 @@
 - Run tests: `npm test`
 - Run repository guardrails: `npm run guard:repo`
 - Run documentation maintenance checks: `npm run check:docs`
+- Run the full pre-push/pre-merge gate (lint + type-check + test + build + guardrails + docs): `npm run verify`
 - Validate runtime config: `npm run validate-config`
 - Test MongoDB connection: `npm run test-connection`
 - Sync versioned docs after a version bump: `npm run sync:version`
