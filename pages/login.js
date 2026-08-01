@@ -288,7 +288,15 @@ export default function LoginPage({
               params.set('code_challenge_method', decoded.code_challenge_method || 'S256')
             }
 
-            if (decoded.prompt) {
+            // WHAT: Never forward prompt=login back into this retry call.
+            // WHY: authorize.js treats prompt=login as "always show the login
+            //     form," unconditionally, before it even checks whether the
+            //     user is now authenticated -- forwarding it here after PIN
+            //     completion sends the user straight back to the login form
+            //     again, forever. Re-authentication just happened; that job
+            //     is done. Other prompt values (consent, select_account)
+            //     still have meaning post-login and are preserved.
+            if (decoded.prompt && decoded.prompt !== 'login') {
               params.set('prompt', decoded.prompt)
             }
             if (decoded.provider) {
@@ -297,7 +305,7 @@ export default function LoginPage({
             if (decoded.login_hint) {
               params.set('login_hint', decoded.login_hint)
             }
-            
+
             const authorizeUrl = `/api/oauth/authorize?${params.toString()}`
             console.log('[Login] After PIN, redirecting to:', authorizeUrl)
             
@@ -424,7 +432,16 @@ export default function LoginPage({
               params.set('code_challenge_method', decoded.code_challenge_method || 'S256')
             }
 
-            if (decoded.prompt) {
+            // WHAT: Never forward prompt=login back into this retry call.
+            // WHY: authorize.js treats prompt=login as "always show the login
+            //     form," unconditionally, before it even checks whether the
+            //     user is now authenticated -- forwarding it here after a
+            //     successful login/PIN completion sends the user straight
+            //     back to the login form again, forever. Re-authentication
+            //     just happened; that job is done. Other prompt values
+            //     (consent, select_account) still have meaning post-login
+            //     and are preserved.
+            if (decoded.prompt && decoded.prompt !== 'login') {
               params.set('prompt', decoded.prompt)
             }
             if (decoded.provider) {
@@ -433,10 +450,10 @@ export default function LoginPage({
             if (decoded.login_hint) {
               params.set('login_hint', decoded.login_hint)
             }
-            
+
             const authorizeUrl = `/api/oauth/authorize?${params.toString()}`
             console.log('[Login] Redirecting to:', authorizeUrl)
-            
+
             // WHAT: Verify session is set before redirect
             // WHY: Need to debug why OAuth authorize sees no session
             // HOW: Quick check to /api/sso/validate then redirect
