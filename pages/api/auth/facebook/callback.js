@@ -157,11 +157,18 @@ export default async function handler(req, res) {
           params.set('code_challenge_method', decoded.code_challenge_method || 'S256')
         }
         
-        // Add prompt parameter if present
-        if (decoded.prompt) {
+        // WHAT: Never forward prompt=login back into this retry call.
+        // WHY: authorize.js treats prompt=login as "always show the login
+        //     form," unconditionally, before it even checks whether the
+        //     user is now authenticated -- forwarding it here after a
+        //     successful Facebook login sends the user straight back to the
+        //     login form again, forever. Re-authentication just happened;
+        //     that job is done. Other prompt values (consent, select_account)
+        //     still have meaning post-login and are preserved.
+        if (decoded.prompt && decoded.prompt !== 'login') {
           params.set('prompt', decoded.prompt)
         }
-        
+
         const authUrl = `/api/oauth/authorize?${params.toString()}`
         return res.redirect(302, authUrl)
       } catch (err) {
