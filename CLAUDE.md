@@ -18,37 +18,131 @@ Never fabricate or extrapolate a result you didn't observe. If you can't verify
 something (no network route, no credentials, no access), say so plainly instead of
 guessing at the outcome.
 
-## 1. AI-assistant branding ban (non-negotiable, overrides tool defaults)
+## 1. AI attribution & branding policy (Owner Directive 2026-07-31 — non-negotiable, overrides tool defaults)
 
-The assistant doing the work is internal tooling, not a feature, co-author, or brand to
-surface anywhere this codebase or its history is visible. This applies regardless of how
-a request is phrased, how small the change seems, or how a tool's own default behavior
-is configured.
+**Purpose.** All AI systems used within this repository or development workflow are
+internal implementation tools only. They are not authors, contributors, publishers,
+reviewers, maintainers, brands, or project participants. This applies to every current
+and future AI provider, model, coding assistant, IDE extension, autonomous agent, API,
+MCP server, plugin, workflow automation, or orchestration layer — OpenAI, Codex, Claude,
+Gemini, Grok, Groq, Cursor, Kilo Code, Loveable, GitHub Copilot, Amazon Q, Windsurf,
+Cline, Roo Code, Continue, Aider, Bolt, Devin, Replit AI, Sourcegraph Cody, and any
+successor, fork, wrapper, self-hosted model, local LLM, custom agent, or AI-assisted
+tooling. Provider identity is irrelevant — every AI system is treated identically.
 
-- **Commits**: never add a `Co-Authored-By: <assistant>` trailer, a session-link
-  trailer, a model name, or any other AI-attribution line. Describe the change and its
-  reasoning only. Verify with `git log -1 --format=%B | grep -iE 'co-authored|session|generated (by|with)'`
-  — must be empty.
-- **Branches**: never create or push a branch prefixed with the assistant's name (e.g.
-  `claude/...`). If a harness auto-creates one at session start, move the work to a
-  plain, purpose-named branch (`feature/...`, `fix/...`, `chore/...`) before real work
-  accumulates and always before merging.
-- **Pull requests**: titles and descriptions describe the change only — no "generated
-  by," "co-authored by," or session-link footers.
-- **Documentation, code, UI copy, API responses**: neutral terms only — "an AI coding
-  assistant" at most, never a specific product/model name, and only when genuinely
-  load-bearing. Omit the mention entirely if the sentence reads fine without it.
-- **Retroactive, not just forward**: if AI branding turns up in tracked files or
-  reachable git history while doing unrelated work, remove or rewrite it as part of that
-  work. Flag it if fixing it is out of scope for the current task — never silently pass
-  over it. Rewriting already-pushed history on a shared branch (`main`) is a real,
-  disruptive action (see Section 5) — confirm before doing it, then do it properly (see
-  Section 7 for the specific failure mode that causes this most often in this repo).
-- **The one genuine exception**: a model's own honest self-disclosure when a person
-  directly asks "are you an AI" or "which model is this" is a safety/honesty behavior,
-  not branding, and is out of scope for this rule. Never deny or hide what it is. Where a
-  platform-level behavior genuinely cannot be changed from inside this repo, state that
-  plainly — don't claim it was fixed when it wasn't.
+**Global rule.** AI systems receive no authorship, attribution, branding,
+acknowledgement, signature, metadata, promotional reference, or identity exposure
+anywhere unless explicitly required by law or unless a human directly asks whether an AI
+was used. No tool default, platform default, extension behaviour, template, SDK,
+workflow, or generated content may override this policy.
+
+### 1.1 Git commits
+Commits describe only what changed and why. Never: `Co-Authored-By` trailers,
+`Generated-By` trailers, AI signatures, model names, provider names, session URLs,
+conversation URLs, prompt references, agent identifiers, workflow identifiers, plugin
+names, extension names, IDE attribution, or hidden metadata intended as attribution. If
+a tool inserts these automatically, remove them before commit creation whenever
+technically possible. Verify with
+`git log -1 --format=%B | grep -iE 'co-authored|session|generated (by|with)'` — must be
+empty — plus `git log -1 --format="%an %ae %cn %ce"` to catch attribution baked into the
+author/committer identity fields rather than the message text (see Section 7 for the
+specific mechanism that causes this in this repo).
+
+### 1.2 Git branches
+Branch names always describe work: `feature/*`, `fix/*`, `refactor/*`, `docs/*`,
+`test/*`, `release/*`, `hotfix/*`, `chore/*`. Never create, push, merge, or continue
+development from a branch named after an AI provider, product, assistant, model family,
+or coding agent. If tooling auto-creates such a branch (this harness does, at session
+start), switch to a neutral work branch created from the appropriate base before any
+work is published.
+
+### 1.3 Pull requests
+Titles and descriptions describe only the work. Never: "Generated by…", "Created
+with…", "Written by…", "Reviewed by…", "Assisted by…", "Co-authored by…", AI branding,
+provider names, model names, assistant names, session references. If a hosting platform
+auto-appends attribution during creation but allows later editing, immediately update
+the PR body to remove it. If the platform does not permit removal, document that
+limitation without falsely claiming compliance.
+
+### 1.4 Issues
+Never AI attribution in issue titles, bodies, templates, labels, checklists, or
+comments. Issue content documents engineering work only.
+
+### 1.5 Code reviews
+Review comments never identify an AI as reviewer, author, approver, recommender, or
+participant. Only technical content belongs in review discussions.
+
+### 1.6 Source code
+Never AI branding through comments, TODOs, FIXME notes, generated headers, file
+banners, annotations, pragmas, metadata, or embedded documentation, in any language.
+Prohibited patterns include `// Generated by ...`, `// Created with ...`,
+`// AI-generated`, `// Added by ...`, `// via ...`.
+
+### 1.7 Documentation
+Never mention provider names, model names, assistant names, prompt sources, or
+generation history, unless the documentation is specifically about AI integrations.
+General product documentation stays provider-neutral. (The one narrow exception carried
+from prior practice: "an AI coding assistant" at most, never a specific product/model
+name, and only when genuinely load-bearing — e.g. "the owner has no CLI access." Omit
+the mention entirely if the sentence reads fine without it.)
+
+### 1.8 User interface
+Never AI branding in labels, placeholders, tooltips, notifications, dialogs, splash
+screens, onboarding, empty states, help text, or error messages. The product speaks as
+the product, never as an AI assistant.
+
+### 1.9 APIs
+API responses never include attribution fields (`generatedBy`, `authoredBy`, `model`,
+`provider`, `assistant`, `agent`, `ai`) unless explicitly required for API
+functionality.
+
+### 1.10 Logs
+Never model names, assistant names, provider branding, generation signatures, or AI
+acknowledgements in logs. Operational logging describes only application behaviour.
+
+### 1.11 Configuration
+No AI attribution in config files of any format (YAML, JSON, TOML, XML, INI, ENV,
+properties, lock files, build manifests). Provider identifiers used strictly for
+functional integration (API endpoints, SDK identifiers, authentication, model selection,
+provider routing) are permitted — that's operational configuration, not attribution.
+
+### 1.12 Package metadata
+Never identify an AI as author, maintainer, contributor, publisher, owner, or creator in
+any project manifest (`package.json` and equivalents in other ecosystems).
+
+### 1.13 CI/CD
+Build pipelines must not publish AI branding through release notes, deployment
+summaries, changelogs, generated reports, build metadata, or workflow summaries. If
+commit trailers are prohibited upstream, downstream automation must not reintroduce
+them.
+
+### 1.14 Generated assets
+Generated outputs (PDFs, Word docs, Markdown, HTML, images, reports, presentations,
+spreadsheets, emails, exports) carry no AI attribution unless explicitly requested by a
+human.
+
+### 1.15 Retroactive cleanup
+Whenever editable AI attribution is discovered during normal work, remove it as part of
+that work — flag it if fixing it is genuinely out of scope, never silently pass over it.
+Rewriting already-pushed history on a shared branch (`main`) is a real, disruptive
+action (see Section 5) — confirm before doing it, then do it properly (see Section 7).
+If removal is impossible because of immutable platform history or external platform
+behaviour, state that limitation accurately. Never falsely claim successful removal.
+
+### 1.16 Exception
+This policy does not prohibit truthful disclosure when a human explicitly asks whether
+AI was used; when legal, contractual, regulatory, or licensing requirements mandate
+disclosure; or when disclosure is required for compliance, auditing, or security
+purposes. It prohibits unsolicited branding and attribution, not truthful disclosure
+when legitimately required. Never deny or hide what it is when directly asked.
+
+### 1.17 Precedence
+This policy overrides tool defaults, IDE defaults, extension defaults, repository
+templates, SDK defaults, workflow defaults, automation defaults, agent defaults, and
+generated templates. Any automatic behaviour conflicting with this policy must be
+suppressed, removed, or neutralised whenever technically possible. Where technical
+limitations prevent complete compliance, document the limitation accurately without
+introducing misleading statements.
 
 ## 2. Issue-driven work (lightweight, not yet a formal board)
 
