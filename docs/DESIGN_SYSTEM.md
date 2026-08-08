@@ -1,7 +1,7 @@
 # Design System Adapter
 
 Status: Mostly direct package adoption  
-Last updated: 2026-05-29
+Last updated: 2026-08-08
 
 Design / UI / UX SSOT (authoritative):
 - [GDS README](https://github.com/sovereignsquad/general-design-system/blob/main/README.md)
@@ -10,57 +10,56 @@ Design / UI / UX SSOT (authoritative):
 - [Governance & Adoption](https://github.com/sovereignsquad/general-design-system/blob/main/GOVERNANCE_AND_ADOPTION.md)
 - [Adoption & Migration Playbook](https://github.com/sovereignsquad/general-design-system/blob/main/ADOPTION_AND_MIGRATION_PLAYBOOK.md)
 - [Compliance Toolkit](https://github.com/sovereignsquad/general-design-system/blob/main/COMPLIANCE_TOOLKIT.md)
-- Optional local checkout mirror: [general-design-system](/Users/Shared/Projects/general-design-system) (non-authoritative convenience copy)
 
-Aligned SSOT version/date: `2.6.3 / 2026-05-27`
+Aligned SSOT version/date: `4.1.3 / 2026-08-08`
 
 This file records only local adapter state, migration blockers, validation commands, and approved exceptions. The shared GDS repo is authoritative for design rules, runtime contracts, and package usage.
 
 ## Current Truth
 
 - Canonical package names are now:
-  - `@doneisbetter/gds-theme`
-  - `@doneisbetter/gds-core`
-  - `@doneisbetter/gds-admin`
-  - `@doneisbetter/gds-eslint-config`
-  - `@doneisbetter/gds-compliance`
+  - `@sovereignsquad/gds-theme`
+  - `@sovereignsquad/gds-core`
+  - `@sovereignsquad/gds-admin`
+  - `@sovereignsquad/gds-eslint-config`
+  - `@sovereignsquad/gds-compliance`
 - Canonical import split is now:
-  - `@doneisbetter/gds-theme/client`
-  - `@doneisbetter/gds-theme/server`
-  - `@doneisbetter/gds-core/client`
-  - `@doneisbetter/gds-core/server`
-  - `@doneisbetter/gds-admin/client`
-  - `@doneisbetter/gds-admin/server`
+  - `@sovereignsquad/gds-theme/client`
+  - `@sovereignsquad/gds-theme/server`
+  - `@sovereignsquad/gds-core/client`
+  - `@sovereignsquad/gds-core/server`
+  - `@sovereignsquad/gds-admin/client`
+  - `@sovereignsquad/gds-admin/server`
 
 ## Current Repo State
 
 - Current UI foundation: direct GDS runtime packages with one remaining local UI adapter (`DocsLayout`)
-- Current root provider wiring: [pages/_app.js](../pages/_app.js) via direct `@doneisbetter/gds-theme/client`
-- Current token/theme authority: [lib/theme/mantineTheme.js](../lib/theme/mantineTheme.js) via `@doneisbetter/gds-theme/server`
+- Current root provider wiring: [pages/_app.js](../pages/_app.js) via direct `@sovereignsquad/gds-theme/client`
+- Current token/theme authority: [lib/theme/mantineTheme.js](../lib/theme/mantineTheme.js) via `@sovereignsquad/gds-theme/server`
 - Current app root wiring: [pages/_app.js](../pages/_app.js)
 - Current manifest: [gds-adoption.json](../gds-adoption.json)
 - Installed runtime packages:
-  - `@doneisbetter/gds-theme@2.6.3`
-  - `@doneisbetter/gds-core@2.6.3`
-  - `@doneisbetter/gds-admin@2.6.3`
+  - `@sovereignsquad/gds-theme@4.1.3`
+  - `@sovereignsquad/gds-core@4.1.3`
+  - `@sovereignsquad/gds-admin@4.1.3`
 
 ## Current Direct Consumption
 
-- `@doneisbetter/gds-theme/client`
+- `@sovereignsquad/gds-theme/client`
   - [pages/_app.js](../pages/_app.js)
-- `@doneisbetter/gds-theme/server`
+- `@sovereignsquad/gds-theme/server`
   - [lib/theme/mantineTheme.js](../lib/theme/mantineTheme.js)
-- `@doneisbetter/gds-core/server`
+- `@sovereignsquad/gds-core/server`
   - [pages/login.js](../pages/login.js), [pages/register.js](../pages/register.js), [pages/forgot-password.js](../pages/forgot-password.js), [pages/logout.js](../pages/logout.js), [pages/admin/index.js](../pages/admin/index.js), [pages/admin/callback.js](../pages/admin/callback.js), and [pages/admin/forgot-password.js](../pages/admin/forgot-password.js) via direct `AuthShell`
   - [pages/admin/users.js](../pages/admin/users.js) and [pages/admin/activity.js](../pages/admin/activity.js) via direct `DataToolbar`
   - [components/DocsLayout.js](../components/DocsLayout.js)
   - [pages/index.js](../pages/index.js) via `PublicShell`, `EditorialHero`, `FeatureBand`, `ConsumerSection`, `ConsumerDashboardGrid`, `EditorialCard`, `AccentPanel`, and `CtaButtonGroup`
   - [pages/privacy.js](../pages/privacy.js), [pages/terms.js](../pages/terms.js), [pages/data-deletion.js](../pages/data-deletion.js), and [pages/test-fetch.js](../pages/test-fetch.js) via direct `PublicShell`, `PublicBrandFooter`, and `ArticleShell`
   - editorial callouts on core docs pages via `AccentPanel`
-- `@doneisbetter/gds-admin/client`
+- `@sovereignsquad/gds-admin/client`
   - [pages/admin/users.js](../pages/admin/users.js)
   - [pages/admin/oauth-clients.js](../pages/admin/oauth-clients.js)
-- `@doneisbetter/gds-admin/server`
+- `@sovereignsquad/gds-admin/server`
   - [pages/admin/dashboard.js](../pages/admin/dashboard.js), [pages/admin/users.js](../pages/admin/users.js), [pages/admin/activity.js](../pages/admin/activity.js), and [pages/admin/oauth-clients.js](../pages/admin/oauth-clients.js) via direct `PageHeader`
   - [pages/account.js](../pages/account.js) and [pages/demo.js](../pages/demo.js) via direct `PageHeader`
 
@@ -130,7 +129,7 @@ Current repo usage proves the public/editorial family is viable on this runtime 
 ## Rules For This Repo
 
 - Do not add new old-placeholder package references.
-- Prefer direct `@doneisbetter/*` imports when a stable package contract already exists.
+- Prefer direct `@sovereignsquad/*` imports when a stable package contract already exists.
 - Do not create a second local token or provider authority.
 - Keep local wrappers thin and temporary.
 - Prefer deleting mirrored local contracts family-by-family once direct package imports are actually viable.
@@ -144,7 +143,7 @@ Current repo usage proves the public/editorial family is viable on this runtime 
 - `npm run build`
 - `npm run check:docs`
 
-`npm run lint` remains the repo's existing baseline lint contract. `npm run lint:gds` wires the shared `@doneisbetter/gds-eslint-config` package and now runs cleanly with only two explicit localized waivers left on long-form docs copy plus the existing server-generated HTML response template exceptions.
+`npm run lint` remains the repo's existing baseline lint contract. `npm run lint:gds` wires the shared `@sovereignsquad/gds-eslint-config` package and now runs cleanly with only two explicit localized waivers left on long-form docs copy plus the existing server-generated HTML response template exceptions.
 
 ## Next Honest Migration Step
 

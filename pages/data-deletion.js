@@ -12,7 +12,7 @@ import {
   Text,
   Title,
 } from '@mantine/core'
-import { ArticleShell, PublicBrandFooter, PublicShell } from '@doneisbetter/gds-core/server'
+import { ArticleShell, PublicBrandFooter, PublicShell } from '@sovereignsquad/gds-core/server'
 import { IconAlertTriangle, IconCheck, IconInfoCircle, IconTrash } from '@tabler/icons-react'
 
 export default function DataDeletionPage() {

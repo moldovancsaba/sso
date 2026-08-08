@@ -1,13 +1,13 @@
 {
   "schemaVersion": 1,
-  "gdsVersion": "3.0.0",
+  "gdsVersion": "4.1.3",
   "productArchetype": "hybrid",
   "supportedEntryPoints": [
-    "@doneisbetter/gds-theme/client",
-    "@doneisbetter/gds-theme/server",
-    "@doneisbetter/gds-core/server",
-    "@doneisbetter/gds-admin/client",
-    "@doneisbetter/gds-admin/server"
+    "@sovereignsquad/gds-theme/client",
+    "@sovereignsquad/gds-theme/server",
+    "@sovereignsquad/gds-core/server",
+    "@sovereignsquad/gds-admin/client",
+    "@sovereignsquad/gds-admin/server"
   ],
   "requiredContracts": [
     "AppShell",
@@ -40,9 +40,9 @@
       ],
       "allowedImplementation": "Narrow custom provider-branded CTA treatment only where provider brand policy requires it.",
       "mustStillUse": [
-        "@doneisbetter/gds-core/server",
-        "@doneisbetter/gds-theme/client",
-        "@doneisbetter/gds-theme/server"
+        "@sovereignsquad/gds-core/server",
+        "@sovereignsquad/gds-theme/client",
+        "@sovereignsquad/gds-theme/server"
       ],
       "mustNotDo": [
         "Introduce a parallel local design system",
@@ -67,9 +67,9 @@
       ],
       "allowedImplementation": "Use local docs-shell wrapper only for docs navigation/framing while pages consume GDS primitives directly where available.",
       "mustStillUse": [
-        "@doneisbetter/gds-core/server",
-        "@doneisbetter/gds-theme/client",
-        "@doneisbetter/gds-theme/server"
+        "@sovereignsquad/gds-core/server",
+        "@sovereignsquad/gds-theme/client",
+        "@sovereignsquad/gds-theme/server"
       ],
       "mustNotDo": [
         "Reintroduce local design-token authority",

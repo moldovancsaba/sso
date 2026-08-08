@@ -17,7 +17,7 @@ import {
   ThemeIcon,
   Title,
 } from '@mantine/core'
-import { PageHeader } from '@doneisbetter/gds-admin/server'
+import { PageHeader } from '@sovereignsquad/gds-admin/server'
 import { IconCheck, IconLogout } from '@tabler/icons-react'
 import { getPublicUserFromRequest } from '../lib/publicSessions.mjs'
 

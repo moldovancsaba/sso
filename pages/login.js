@@ -32,7 +32,7 @@ import {
   IconLink,
   IconLock,
 } from '@tabler/icons-react'
-import { AuthShell } from '@doneisbetter/gds-core/server'
+import { AuthShell } from '@sovereignsquad/gds-core/server'
 
 // WHAT: Make page server-rendered to ensure query params are available immediately
 // WHY: useRouter().query can be empty on first render, causing OAuth params to be lost

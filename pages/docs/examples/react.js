@@ -8,7 +8,7 @@ import {
   Box,
   Anchor,
 } from '@mantine/core';
-import { AccentPanel, DocsPageShell, PublicShell } from '@doneisbetter/gds-core/server'
+import { AccentPanel, DocsPageShell, PublicShell } from '@sovereignsquad/gds-core/server'
 import { createDocsVersionMeta, getDocsShellProps } from '../../../lib/docs-shell-config'
 // WHAT: React OAuth 2.0 integration example with complete implementation
 // WHY: Developers need copy-paste ready code for React apps using SSO

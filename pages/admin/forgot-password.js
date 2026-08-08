@@ -11,7 +11,7 @@ import {
   Text,
   TextInput,
 } from '@mantine/core'
-import { AuthShell } from '@doneisbetter/gds-core/server'
+import { AuthShell } from '@sovereignsquad/gds-core/server'
 import { IconAlertCircle, IconCircleCheck } from '@tabler/icons-react'
 
 export async function getServerSideProps() {

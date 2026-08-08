@@ -16,7 +16,7 @@ import {
   Text,
   TextInput,
 } from '@mantine/core'
-import { PageHeader } from '@doneisbetter/gds-admin/server'
+import { PageHeader } from '@sovereignsquad/gds-admin/server'
 import { IconAlertCircle, IconCircleCheck } from '@tabler/icons-react'
 
 export async function getServerSideProps(context) {
