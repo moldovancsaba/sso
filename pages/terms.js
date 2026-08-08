@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { Anchor, Box, Group, List, Stack, Text, Title } from '@mantine/core'
-import { ArticleShell, PublicBrandFooter, PublicShell } from '@doneisbetter/gds-core/server'
+import { ArticleShell, PublicBrandFooter, PublicShell } from '@sovereignsquad/gds-core/server'
 
 export default function TermsPage() {
   return (

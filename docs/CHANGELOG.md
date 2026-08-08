@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [5.31.2] - 2026-08-08
+
+### 🔧 Changed
+
+**GDS dependency migration**: `@doneisbetter/gds-*@3.0.0` (a legacy npm-registry mirror) replaced with `@sovereignsquad/gds-*@4.1.3`, the actual current release line from the upstream `sovereignsquad/general-design-system` repo, published on GitHub Packages. Scope rename only — no component usage or contract changes.
+
+- `package.json`: `@sovereignsquad/gds`, `-admin`, `-core`, `-theme`, `gds-compliance`, and `gds-eslint-config` all moved to the new scope at `4.1.3`
+- `.npmrc`: added `@sovereignsquad` registry routing to `npm.pkg.github.com` (token via environment variable)
+- Rewrote the import specifier in all 52 source files that consumed a `@doneisbetter/gds-*` package
+- Added `@mantine/dates@9.2.1` as an explicit direct dependency to resolve an `ERESOLVE` peer conflict the upgrade introduced (GDS peer-requires `@mantine/dates`, which npm was otherwise resolving to a newer Mantine line than the rest of the app pins)
+- `gds-adoption.json` and `docs/DESIGN_SYSTEM.md` updated to the new scope, version, and alignment date; both approved exceptions are unchanged
+
+**Testing**: `npm run verify` clean. `npm run gds:validate-manifest`, `npm run gds:check`, and `npm run lint:gds` all clean.
+
+- Bumped service version to `5.31.2` (patch: dependency migration only, no behavior change)
+
+---
+
 ## [5.31.1] - 2026-08-01
 
 ### 🐛 Fixed

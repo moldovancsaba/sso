@@ -8,7 +8,7 @@ import {
   Box,
   Anchor,
 } from '@mantine/core';
-import { AccentPanel, DocsPageShell, PublicShell } from '@doneisbetter/gds-core/server'
+import { AccentPanel, DocsPageShell, PublicShell } from '@sovereignsquad/gds-core/server'
 import { createDocsVersionMeta, getDocsShellProps } from '../../../lib/docs-shell-config'
 // WHAT: CORS configuration documentation for SSO OAuth 2.0 integration
 // WHY: Developers need to understand CORS setup for cross-origin SSO requests

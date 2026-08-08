@@ -2,7 +2,7 @@ import { useState } from 'react'
 import Head from 'next/head'
 import Link from 'next/link'
 import { Alert, Anchor, Box, Button, Code, Group, Stack, Text } from '@mantine/core'
-import { ArticleShell, PublicBrandFooter, PublicShell } from '@doneisbetter/gds-core/server'
+import { ArticleShell, PublicBrandFooter, PublicShell } from '@sovereignsquad/gds-core/server'
 import { IconAlertCircle, IconBug, IconCheck } from '@tabler/icons-react'
 
 export default function TestFetch() {

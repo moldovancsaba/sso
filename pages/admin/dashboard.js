@@ -25,7 +25,7 @@ import {
   IconUsers,
 } from '@tabler/icons-react'
 import { fetchAdminJson, isAuthRedirectError } from '../../lib/adminAuthFlow.js'
-import { PageHeader as GdsPageHeader } from '@doneisbetter/gds-admin/server'
+import { PageHeader as GdsPageHeader } from '@sovereignsquad/gds-admin/server'
 
 const adminNavItems = [
   { href: '/admin/dashboard', label: 'Dashboard' },

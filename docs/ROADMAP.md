@@ -1,7 +1,7 @@
 # Roadmap
 
-Version: 5.31.1  
-Last updated: 2026-08-01T00:00:00.000Z
+Version: 5.31.2  
+Last updated: 2026-08-08T00:00:00.000Z
 
 ## Recently Delivered
 
@@ -15,6 +15,12 @@ Last updated: 2026-08-01T00:00:00.000Z
 - Fixed three admin login flows that issued unparseable session cookies
 - Replaced generic "Internal server error" responses with actionable detail across authenticated admin/API routes
 - Delivered Phase 1 (documentation and operator alignment): reconciled core markdown docs and `pages/docs` surfaces with the shipped runtime contract, see `docs/CHANGELOG.md` [5.31.0]
+
+### GDS 4.1.3 migration completed in August 2026
+- Migrated the design-system dependency from the retired `@doneisbetter/gds-*` GitHub Packages mirror to the canonical `@sovereignsquad/gds-*@4.1.3` packages published by the upstream `sovereignsquad/general-design-system` repo
+- Rewrote all 52 source files' GDS import specifiers to the new scope; no component usage or contract changes were required
+- Added `@mantine/dates@9.2.1` as an explicit direct dependency to resolve a peer-dependency conflict introduced by the upgrade
+- Updated `gds-adoption.json` and `docs/DESIGN_SYSTEM.md` to the new package scope and version; approved exceptions and migration gaps are unchanged
 
 ### Multi-app authorization foundation
 - Central `appPermissions` model

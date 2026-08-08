@@ -1,4 +1,27 @@
-# Release Notes [![Version Badge](https://img.shields.io/badge/version-5.31.1-blue)](RELEASE_NOTES.md)
+# Release Notes [![Version Badge](https://img.shields.io/badge/version-5.31.2-blue)](RELEASE_NOTES.md)
+
+## [v5.31.2] — 2026-08-08T00:00:00.000Z
+
+### 🔧 Dependency Migration: GDS `@doneisbetter` → `@sovereignsquad` (v4.1.3)
+
+**What**: The design-system dependency was still pinned to `@doneisbetter/gds-*@3.0.0`, a legacy npm-registry mirror of the General Design System. The actual upstream project (`sovereignsquad/general-design-system`) has moved on to `@sovereignsquad/gds-*@4.1.3`, published on GitHub Packages — the `@doneisbetter` mirror is no longer the current release line.
+
+**Why**: Staying on the old scope/version meant SSO was tracking a dead mirror instead of the real upstream package, missing three major versions' worth of upstream fixes and contract updates with no path back onto the maintained line.
+
+**Changes**:
+- `package.json`: `@doneisbetter/gds`, `-admin`, `-core`, `-theme`, and the `gds-compliance`/`gds-eslint-config` dev tooling all moved from the `@doneisbetter` scope to `@sovereignsquad`, pinned at `4.1.3`
+- `.npmrc`: added GitHub Packages registry routing for the `@sovereignsquad` scope (`_authToken` sourced from an environment variable, never a literal secret)
+- Rewrote the import specifier in all 52 source files that consumed a `@doneisbetter/gds-*` package — subpaths and named imports unchanged, this was a scope rename only, not a contract change
+- Added `@mantine/dates@9.2.1` as an explicit direct dependency: the upgrade pulled in a `@mantine/dates` peer requirement that npm was resolving to a newer Mantine line than the rest of the app pins, producing an `ERESOLVE` conflict; pinning it explicitly at the same version as the rest of the Mantine family resolved it at the source instead of forcing past it
+- `gds-adoption.json` and `docs/DESIGN_SYSTEM.md` updated to the new scope, version, and alignment date; both approved exceptions (OAuth provider buttons, docs editorial shell) are unchanged by this migration
+
+**Not changed**: no component usage, contract, or visual behavior changed — this is a dependency-identity migration only. `lib/theme/mantineTheme.js` continues to use `extendGdsTheme` from `@sovereignsquad/gds-theme/server`, confirmed still functional upstream (soft-deprecated, not removed); migrating it to `createPublicBrandTheme` is left for a follow-up.
+
+**Testing**: `npm run verify` (lint, type-check, test, build, guard:repo, check:docs) clean. `npm run gds:validate-manifest`, `npm run gds:check`, and `npm run lint:gds` all clean against the new manifest and package versions.
+
+**Files Changed**: `package.json`, `package-lock.json`, `.npmrc`, `gds-adoption.json`, `docs/DESIGN_SYSTEM.md`, and 52 source files under `pages/`, `lib/`, and `components/` (import specifier only).
+
+---
 
 ## [v5.31.1] — 2026-08-01T00:00:00.000Z
 

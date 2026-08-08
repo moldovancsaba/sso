@@ -3,7 +3,7 @@ import '@mantine/notifications/styles.css';
 import '../styles/globals.css';
 import { useState, useEffect, useCallback } from 'react';
 import { notifications } from '@mantine/notifications';
-import { GdsProvider } from '@doneisbetter/gds-theme/client';
+import { GdsProvider } from '@sovereignsquad/gds-theme/client';
 import { useRouter } from 'next/router';
 import { mantineTheme } from '../lib/theme/mantineTheme';
 
