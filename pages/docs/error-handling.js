@@ -8,7 +8,7 @@ import {
   Box,
   Anchor,
 } from '@mantine/core';
-import { AccentPanel } from '@doneisbetter/gds-core/server'
+import { AccentPanel } from '@sovereignsquad/gds-core/server'
 // WHAT: Error handling guide for OAuth 2.0 and app permission errors
 // WHY: Developers need practical error handling patterns for production apps
 // HOW: Covers OAuth errors, app permission errors, and best practices

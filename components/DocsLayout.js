@@ -10,7 +10,7 @@ import {
   Stack,
   Text,
 } from '@mantine/core'
-import { DocsPageShell, PublicBrandFooter, PublicShell } from '@doneisbetter/gds-core/server'
+import { DocsPageShell, PublicBrandFooter, PublicShell } from '@sovereignsquad/gds-core/server'
 import packageJson from '../package.json'
 
 const docsNavigation = [

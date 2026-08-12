@@ -1,4 +1,34 @@
-# Release Notes [![Version Badge](https://img.shields.io/badge/version-5.31.1-blue)](RELEASE_NOTES.md)
+# Release Notes [![Version Badge](https://img.shields.io/badge/version-5.32.0-blue)](RELEASE_NOTES.md)
+
+## [v5.32.0] — 2026-08-12T00:00:00.000Z
+
+### 🔧 GDS Migration: `@doneisbetter@3.0.0` → `@sovereignsquad@6.0.0`, Plus Two Governance-Required Changes
+
+**What**: SSO's design-system dependency was pinned to `@doneisbetter/gds-*@3.0.0` — a legacy npm-registry mirror, three major versions behind. The real, actively-maintained project (`sovereignsquad/general-design-system`) now publishes exclusively to GitHub Packages, currently at `6.0.0`. This release moves SSO directly onto the real, current line.
+
+**Why not stop at `4.1.3`**: an earlier attempt at this migration (PR #63, targeting `4.1.3`) was retired unmerged after the real release moved to `6.0.0` while that PR sat blocked on a missing CI credential — landing `4.1.3` at that point would have meant shipping an already-stale version. This release re-planned the migration against the real current target instead.
+
+**Confirmed safe**: a full read of upstream's changelog across the entire `4.1.4`–`6.0.0` range, cross-checked against every component SSO actually imports, found that neither breaking change in that span (`ReferenceThemeExplorer` relocated to a dedicated subpath at `5.0.0`; the `class-usa` brand-lane palette re-based at `6.0.0`) touches SSO's usage at all.
+
+**What actually needed real changes, not just a version bump**:
+- `lib/theme/mantineTheme.js` used `extendGdsTheme(...)`, which upstream governance now documents as "no longer a canonical adopter path" and prohibited in consumer theme files. Migrated to `createPublicBrandTheme({ overrides: mantineThemeOverrides })` — the override object itself (colors, fonts, radius/shadow scale, component defaults) is unchanged, only the composing function.
+- `pages/login.js`'s hand-rolled Facebook/Google buttons are now against upstream's documented pattern (a local provider-button wrapper duplicating `ProviderIdentityButtonGroup`). Replaced with the canonical component — both providers are natively supported by the shipped registry, with real brand colors and labels. This closes SSO's oldest tracked `gds-adoption.json` exception. (`pages/register.js` was listed in that exception's scope too, but turned out never to have implemented provider buttons of its own.)
+
+**Changes**:
+- `package.json` / `.npmrc`: dependency rescope and registry routing, same shape as the retired `4.1.3` attempt, targeting `6.0.0` instead
+- Rewrote the import specifier in all 43 source files consuming a `@doneisbetter/gds-*` package
+- Added `@mantine/dates@9.2.1` as an explicit direct dependency (same `ERESOLVE` peer-conflict fix pattern as before)
+- `gds-adoption.json`: version bump, scope rename, removed the closed OAuth exception, added a `compliance.identityProviderBranding` policy block
+- Removed the orphaned `public/google-mark.svg` asset
+- `.github/workflows/repo-guardrails.yml`: wired `npm ci` to a `GDS_PACKAGES_TOKEN` secret (still needs to be provisioned by a repo admin — see Known Limitations)
+
+**Testing**: `npm run verify` clean. `npm run gds:validate-manifest`, `npm run gds:check`, `npm run lint:gds` all clean. Visually verified against a real local build — login (new provider buttons), register, and a docs page (the two previously-known cosmetic diffs, `DocsPageShell` width and `PageHeader` eyebrow styling, confirmed still present and unchanged) — not just a clean compile.
+
+**Known limitation**: CI and Vercel builds both need a `read:packages`-scoped GitHub token to install from GitHub Packages; that secret doesn't exist yet and can't be provisioned from an agent session. Documented, not silently left for someone to discover via a red build.
+
+**Files Changed**: `package.json`, `package-lock.json`, `.npmrc`, `gds-adoption.json`, `docs/DESIGN_SYSTEM.md`, `lib/theme/mantineTheme.js`, `pages/login.js`, `.github/workflows/repo-guardrails.yml`, `public/google-mark.svg` (removed), and 41 other source files under `pages/`, `lib/`, and `components/` (import specifier only).
+
+---
 
 ## [v5.31.1] — 2026-08-01T00:00:00.000Z
 

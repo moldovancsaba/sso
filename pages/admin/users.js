@@ -22,9 +22,9 @@ import {
   Title,
 } from '@mantine/core'
 import { IconAlertCircle, IconCircleCheck, IconLogout } from '@tabler/icons-react'
-import { DataToolbar, StateBlock } from '@doneisbetter/gds-core/server'
-import { ResponsiveDataView } from '@doneisbetter/gds-admin/client'
-import { PageHeader } from '@doneisbetter/gds-admin/server'
+import { DataToolbar, StateBlock } from '@sovereignsquad/gds-core/server'
+import { ResponsiveDataView } from '@sovereignsquad/gds-admin/client'
+import { PageHeader } from '@sovereignsquad/gds-admin/server'
 import { fetchAdminJson, isAuthRedirectError } from '../../lib/adminAuthFlow.js'
 
 const adminNavItems = [

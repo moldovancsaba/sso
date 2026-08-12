@@ -8,7 +8,7 @@ import {
   Box,
   Anchor,
 } from '@mantine/core';
-import { AccentPanel } from '@doneisbetter/gds-core/server'
+import { AccentPanel } from '@sovereignsquad/gds-core/server'
 // WHAT: OAuth 2.0 token lifecycle and session management documentation
 // WHY: Developers need to understand token types, expiry, and refresh mechanisms
 // HOW: Explains access tokens, refresh tokens, ID tokens, and session validation

@@ -27,12 +27,11 @@ import {
 } from '@mantine/core'
 import {
   IconAlertCircle,
-  IconBrandFacebook,
   IconCircleCheck,
   IconLink,
   IconLock,
 } from '@tabler/icons-react'
-import { AuthShell } from '@doneisbetter/gds-core/server'
+import { AuthShell, ProviderIdentityButtonGroup } from '@sovereignsquad/gds-core/server'
 
 // WHAT: Make page server-rendered to ensure query params are available immediately
 // WHY: useRouter().query can be empty on first render, causing OAuth params to be lost
@@ -616,35 +615,20 @@ export default function LoginPage({
                 Login with Magic Link
               </Button>
 
-              {facebookEnabled ? (
-                <Button
-                  fullWidth
-                  size="md"
-                  color="dark"
-                  leftSection={<IconBrandFacebook size={18} />}
-                  onClick={() => handleSocialLogin('facebook')}
-                  disabled={loading}
-                >
-                  Continue with Facebook
-                </Button>
-              ) : null}
-
-              {googleEnabled ? (
-                <Button
-                  fullWidth
-                  size="md"
-                  variant="default"
-                  leftSection={(
-                    <Box component="span" aria-hidden="true" style={{ display: 'inline-flex' }}>
-                      <Box component="img" src="/google-mark.svg" alt="" w={18} h={18} />
-                    </Box>
-                  )}
-                  onClick={() => handleSocialLogin('google')}
-                  disabled={loading}
-                >
-                  Continue with Google
-                </Button>
-              ) : null}
+              <ProviderIdentityButtonGroup
+                providers={[
+                  facebookEnabled ? {
+                    provider: 'facebook',
+                    onClick: () => handleSocialLogin('facebook'),
+                    disabled: loading,
+                  } : null,
+                  googleEnabled ? {
+                    provider: 'google',
+                    onClick: () => handleSocialLogin('google'),
+                    disabled: loading,
+                  } : null,
+                ].filter(Boolean)}
+              />
 
               <Anchor component={Link} href="/forgot-password" ta="center" size="sm">
                 Forgot password?

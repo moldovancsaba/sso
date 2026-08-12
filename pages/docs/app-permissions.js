@@ -9,8 +9,8 @@ import {
   Box,
   Anchor,
 } from '@mantine/core';
-import { AccentPanel } from '@doneisbetter/gds-core/server'
-import { DocsCodeBlock } from '@doneisbetter/gds-core/client'
+import { AccentPanel } from '@sovereignsquad/gds-core/server'
+import { DocsCodeBlock } from '@sovereignsquad/gds-core/client'
 // WHAT: App Permissions documentation explaining permission lifecycle
 // WHY: Developers need to understand how app-level permissions work in SSO
 // HOW: Explains pending → approved → revoked states and role management

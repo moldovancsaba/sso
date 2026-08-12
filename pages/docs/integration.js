@@ -6,7 +6,7 @@ import {
   List,
   Box,
 } from '@mantine/core';
-import { DocsPageShell, PublicShell } from '@doneisbetter/gds-core/server'
+import { DocsPageShell, PublicShell } from '@sovereignsquad/gds-core/server'
 import { createDocsVersionMeta, getDocsShellProps } from '../../lib/docs-shell-config'
 
 export default function IntegrationGuidePage() {
