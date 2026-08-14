@@ -51,6 +51,39 @@ committed, and not persisted anywhere durable — a fresh session cannot reuse
 it and does not need to; it was only needed to prove the install/build/test
 chain works before pushing).
 
+## Secret-leak question — investigated and closed (2026-08-13)
+
+A concern was raised that a secret (specifically, the temporary personal
+GitHub token supplied in chat to verify the `6.0.0` install/build/test chain
+before pushing, referenced above) might have leaked into this repository.
+Investigated thoroughly before proceeding with the `GDS_PACKAGES_TOKEN`
+secret; recording the result here so it doesn't need re-investigating.
+
+**Checked, all clean:**
+
+- Full git history — unshallowed from a 69-commit shallow clone to the
+  complete 240-commit history across all 10 branches — searched every diff
+  ever made for the classic-PAT prefix (`ghp_`), fine-grained-PAT prefix
+  (`github_pat_`), AWS key pattern, and private-key headers, plus the exact
+  token value. Zero matches, anywhere, ever.
+- Every branch's current file tree (not just history diffs) — direct
+  content search, all 10 branches — clean.
+- GitHub's own code search and issue/PR search across this repo for the
+  token pattern — zero results.
+- `.npmrc`, `package-lock.json`, `.env.example` — placeholders and env-var
+  references only, no real values, on every branch checked.
+
+**Not independently verifiable from this sandbox**: GitHub's own Secret
+Scanning **alerts dashboard** (Settings → Security → Secret scanning
+alerts) — no tool access to query it directly. The searches above cover the
+same underlying content that dashboard is built from, so this is a
+high-confidence "clean," not a certainty from that specific source. If that
+dashboard ever shows something, it will name the exact file/commit — treat
+that as authoritative over this note.
+
+**Conclusion**: no leaked secret found by any available method. Nothing was
+purged because nothing was found to purge. Closed.
+
 ## How we got here (context for "why isn't this just on main already")
 
 1. The original ask was "implement the latest GDS." That turned out to have
