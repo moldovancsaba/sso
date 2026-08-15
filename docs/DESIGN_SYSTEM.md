@@ -43,6 +43,30 @@ This file records only local adapter state, migration blockers, validation comma
   - `@sovereignsquad/gds-core@6.0.0`
   - `@sovereignsquad/gds-admin@6.0.0`
 
+## Install Source (Stopgap)
+
+GDS publishes exclusively to GitHub Packages (`npm.pkg.github.com`), which requires an
+authenticated, `read:packages`-scoped token for every install — including of public
+packages — and this repo's CI/Vercel environments do not have one configured. Rather than
+leave the migration blocked indefinitely, all five consumed `@sovereignsquad/gds-*`
+packages are vendored as prebuilt tarballs directly in [vendor/gds/](../vendor/gds/) and
+referenced via `file:` dependencies in `package.json`, exactly matching the pattern
+already used successfully by sibling apps (`camera`, `messmass`, `launchmass`) — each
+tarball built from the upstream `gds-v6.0.0` tag using GDS's own official
+`npm run pack:release` tooling, byte-identical (verified by checksum) to what those apps
+already run in production. `npm install`/`npm ci` resolves these from the local repo
+copy with zero network calls to the GitHub Packages registry and zero credential
+dependency, in CI, Vercel, and local dev alike.
+
+This is explicitly a stopgap, not the long-term install path — GDS's own docs describe
+release tarballs as "an operational fallback... only when npm publication is temporarily
+unavailable," not a permanent strategy, and it has a real cost: no automatic update path.
+Bumping GDS requires manually rebuilding and re-vendoring new tarballs rather than a
+plain version-number bump. Once a `read:packages`-scoped `GDS_PACKAGES_TOKEN` repository
+secret is provisioned, the dependencies should move back to registry-resolved versions
+(`.npmrc`'s `@sovereignsquad:registry=...` block, still documented in git history on this
+branch's prior commit) and `vendor/gds/` should be deleted.
+
 ## Current Direct Consumption
 
 - `@sovereignsquad/gds-theme/client`

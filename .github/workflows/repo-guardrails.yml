@@ -23,14 +23,6 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
-        env:
-          # The default GITHUB_TOKEN is scoped to this repository only and cannot
-          # read @sovereignsquad/gds-* packages published under a different owner
-          # on npm.pkg.github.com (see .npmrc). Add a classic PAT with the
-          # read:packages scope and access to the sovereignsquad org's packages
-          # as a repository secret named GDS_PACKAGES_TOKEN to make this work;
-          # until then this step fails auth against the GDS registry.
-          GITHUB_TOKEN: ${{ secrets.GDS_PACKAGES_TOKEN }}
 
       - name: Enforce repository guardrails
         run: node scripts/check-repo-guardrails.mjs
