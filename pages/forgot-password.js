@@ -11,7 +11,7 @@ import {
   TextInput,
   ThemeIcon,
 } from '@mantine/core'
-import { AuthShell } from '@doneisbetter/gds-core/server'
+import { AuthShell } from '@sovereignsquad/gds-core/server'
 import { IconAlertCircle, IconCheck, IconKey, IconMail } from '@tabler/icons-react'
 
 export default function ForgotPassword() {

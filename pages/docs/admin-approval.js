@@ -9,7 +9,7 @@ import {
   Box,
   Anchor,
 } from '@mantine/core';
-import { AccentPanel } from '@doneisbetter/gds-core/server'
+import { AccentPanel } from '@sovereignsquad/gds-core/server'
 // WHAT: Admin Approval Process documentation for SSO administrators
 // WHY: SSO admins need guidance on managing user access to apps
 // HOW: Step-by-step workflows for granting/revoking app permissions

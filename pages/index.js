@@ -20,7 +20,7 @@ import {
   FeatureBand,
   PublicBrandFooter,
   PublicShell,
-} from '@doneisbetter/gds-core/server'
+} from '@sovereignsquad/gds-core/server'
 import {
   IconApps,
   IconArrowRight,

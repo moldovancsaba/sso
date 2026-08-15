@@ -1,9 +1,15 @@
 # Roadmap
 
-Version: 5.31.1  
-Last updated: 2026-08-01T00:00:00.000Z
+Version: 5.32.0  
+Last updated: 2026-08-12T00:00:00.000Z
 
 ## Recently Delivered
+
+### GDS 6.0.0 migration completed in August 2026
+- Migrated the design-system dependency from the abandoned `@doneisbetter/gds-*@3.0.0` npm mirror directly to `@sovereignsquad/gds-*@6.0.0`, the current release line published by the upstream `sovereignsquad/general-design-system` repo on GitHub Packages
+- Migrated `lib/theme/mantineTheme.js` from `extendGdsTheme` to `createPublicBrandTheme`, following upstream's governance change making `extendGdsTheme` a consumer-prohibited pattern as of this release line
+- Replaced the hand-rolled Google/Facebook login buttons on `pages/login.js` with the canonical `ProviderIdentityButtonGroup`, closing SSO's oldest tracked GDS exception
+- Confirmed via a full upstream changelog review that neither breaking change shipped between `4.1.3` and `6.0.0` (a component relocation, a brand-palette re-base) affects any component SSO actually uses
 
 ### Security remediation slice completed in July 2026
 - Fixed admin session identity resolution to use the database-verified session record instead of an unsigned cookie field

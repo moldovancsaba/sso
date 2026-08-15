@@ -8,7 +8,7 @@ import {
   Box,
   Anchor,
 } from '@mantine/core';
-import { AccentPanel } from '@doneisbetter/gds-core/server'
+import { AccentPanel } from '@sovereignsquad/gds-core/server'
 // WHAT: Documentation for handling return URLs in OAuth flow
 // WHY: Developers need guidance on preserving user's location through OAuth redirects
 // HOW: Encode return URL in state parameter or use sessionStorage

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
 import { Box, Loader, Stack, Text, ThemeIcon } from '@mantine/core'
-import { AuthShell } from '@doneisbetter/gds-core/server'
+import { AuthShell } from '@sovereignsquad/gds-core/server'
 import { IconLogout } from '@tabler/icons-react'
 
 export default function LogoutPage() {

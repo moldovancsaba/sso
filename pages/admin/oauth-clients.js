@@ -27,8 +27,8 @@ import {
   IconLogout,
   IconPlus,
 } from '@tabler/icons-react'
-import { ResponsiveDataView } from '@doneisbetter/gds-admin/client'
-import { PageHeader } from '@doneisbetter/gds-admin/server'
+import { ResponsiveDataView } from '@sovereignsquad/gds-admin/client'
+import { PageHeader } from '@sovereignsquad/gds-admin/server'
 import { fetchAdminJson, isAuthRedirectError } from '../../lib/adminAuthFlow.js'
 
 const adminNavItems = [

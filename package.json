@@ -1,6 +1,6 @@
 {
   "name": "@moldovancsaba/universal-sso",
-  "version": "5.31.1",
+  "version": "5.32.0",
   "description": "A universal Single Sign-On (SSO) service that can be integrated into any project",
   "main": "src/index.ts",
   "type": "module",
@@ -37,11 +37,11 @@
   "author": "Moldovan Csaba",
   "license": "MIT",
   "dependencies": {
-    "@doneisbetter/gds": "3.0.0",
-    "@doneisbetter/gds-admin": "3.0.0",
-    "@doneisbetter/gds-core": "3.0.0",
-    "@doneisbetter/gds-theme": "3.0.0",
+    "@sovereignsquad/gds-admin": "file:vendor/gds/sovereignsquad-gds-admin-6.0.0.tgz",
+    "@sovereignsquad/gds-core": "file:vendor/gds/sovereignsquad-gds-core-6.0.0.tgz",
+    "@sovereignsquad/gds-theme": "file:vendor/gds/sovereignsquad-gds-theme-6.0.0.tgz",
     "@mantine/core": "9.2.1",
+    "@mantine/dates": "9.2.1",
     "@mantine/form": "9.2.1",
     "@mantine/hooks": "9.2.1",
     "@mantine/modals": "9.2.1",
@@ -63,8 +63,8 @@
     "zod": "4.2.1"
   },
   "devDependencies": {
-    "@doneisbetter/gds-compliance": "3.0.0",
-    "@doneisbetter/gds-eslint-config": "3.0.0",
+    "@sovereignsquad/gds-compliance": "file:vendor/gds/sovereignsquad-gds-compliance-6.0.0.tgz",
+    "@sovereignsquad/gds-eslint-config": "file:vendor/gds/sovereignsquad-gds-eslint-config-6.0.0.tgz",
     "@types/bcryptjs": "^2.4.6",
     "@types/jsonwebtoken": "^9.0.0",
     "@types/node": "^20.19.40",

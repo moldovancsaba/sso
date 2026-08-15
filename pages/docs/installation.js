@@ -8,7 +8,7 @@ import {
   Box,
   Anchor,
 } from '@mantine/core';
-import { AccentPanel, DocsPageShell, PublicShell } from '@doneisbetter/gds-core/server'
+import { AccentPanel, DocsPageShell, PublicShell } from '@sovereignsquad/gds-core/server'
 import { createDocsVersionMeta, getDocsShellProps } from '../../lib/docs-shell-config'
 // WHAT: Integration guide for developers adding SSO to their applications
 // WHY: Developers need clear steps to integrate OAuth 2.0 SSO into their apps

@@ -8,7 +8,7 @@ import {
   Box,
   Anchor,
 } from '@mantine/core';
-import { AccentPanel, DocsPageShell, PublicShell } from '@doneisbetter/gds-core/server'
+import { AccentPanel, DocsPageShell, PublicShell } from '@sovereignsquad/gds-core/server'
 import { createDocsVersionMeta, getDocsShellProps } from '../../../lib/docs-shell-config'
 // WHAT: Security best practices documentation for OAuth 2.0 SSO integration
 // WHY: Developers need comprehensive security guidance to avoid vulnerabilities

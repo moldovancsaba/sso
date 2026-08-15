@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 import { Alert, Box, Button, Loader, Stack, Text, ThemeIcon } from '@mantine/core'
-import { AuthShell } from '@doneisbetter/gds-core/server'
+import { AuthShell } from '@sovereignsquad/gds-core/server'
 import { IconAlertCircle, IconLock } from '@tabler/icons-react'
 import { decodeAdminLoginState, sanitizeAdminRedirectPath } from '../../lib/adminAuthFlow.js'
 

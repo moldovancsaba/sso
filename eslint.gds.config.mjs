@@ -1,7 +1,7 @@
 import { dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { FlatCompat } from '@eslint/eslintrc'
-import gdsConfig from '@doneisbetter/gds-eslint-config'
+import gdsConfig from '@sovereignsquad/gds-eslint-config'
 
 const compat = new FlatCompat({
   baseDirectory: dirname(fileURLToPath(import.meta.url)),

@@ -1,8 +1,8 @@
 # Universal SSO Service
 
-Version: 5.31.1  
+Version: 5.32.0  
 Status: Active  
-Last updated: 2026-08-01T00:00:00.000Z
+Last updated: 2026-08-12T00:00:00.000Z
 
 This repository contains the DoneIsBetter SSO service for `https://sso.doneisbetter.com`.
 

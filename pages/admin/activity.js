@@ -17,8 +17,8 @@ import {
   Text,
 } from '@mantine/core'
 import { IconAlertCircle, IconLogout } from '@tabler/icons-react'
-import { DataToolbar, StateBlock } from '@doneisbetter/gds-core/server'
-import { PageHeader } from '@doneisbetter/gds-admin/server'
+import { DataToolbar, StateBlock } from '@sovereignsquad/gds-core/server'
+import { PageHeader } from '@sovereignsquad/gds-admin/server'
 
 export async function getServerSideProps(context) {
   const { getAdminUser } = await import('../../lib/auth.mjs')

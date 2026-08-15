@@ -8,7 +8,7 @@ import {
   Box,
   Anchor,
 } from '@mantine/core';
-import { AccentPanel, DocsPageShell, PublicShell } from '@doneisbetter/gds-core/server'
+import { AccentPanel, DocsPageShell, PublicShell } from '@sovereignsquad/gds-core/server'
 import { createDocsVersionMeta, getDocsShellProps } from '../../../lib/docs-shell-config'
 // WHAT: Vue.js OAuth 2.0 integration example with Pinia store
 // WHY: Developers need copy-paste ready code for Vue 3 apps using SSO

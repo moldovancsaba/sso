@@ -1,4 +1,32 @@
-# Release Notes [![Version Badge](https://img.shields.io/badge/version-5.31.1-blue)](RELEASE_NOTES.md)
+# Release Notes [![Version Badge](https://img.shields.io/badge/version-5.32.0-blue)](RELEASE_NOTES.md)
+
+## [v5.32.0] — 2026-08-12T00:00:00.000Z
+
+### 🔧 GDS Migration: `@doneisbetter@3.0.0` → `@sovereignsquad@6.0.0`, Plus Two Governance-Required Changes
+
+**What**: SSO's design-system dependency was pinned to `@doneisbetter/gds-*@3.0.0` — a legacy npm-registry mirror, three major versions behind. The real, actively-maintained project (`sovereignsquad/general-design-system`) now publishes exclusively to GitHub Packages, currently at `6.0.0`. This release moves SSO directly onto the real, current line.
+
+**Why not stop at `4.1.3`**: an earlier attempt at this migration (PR #63, targeting `4.1.3`) was retired unmerged after the real release moved to `6.0.0` while that PR sat blocked on a missing CI credential — landing `4.1.3` at that point would have meant shipping an already-stale version. This release re-planned the migration against the real current target instead.
+
+**Confirmed safe**: a full read of upstream's changelog across the entire `4.1.4`–`6.0.0` range, cross-checked against every component SSO actually imports, found that neither breaking change in that span (`ReferenceThemeExplorer` relocated to a dedicated subpath at `5.0.0`; the `class-usa` brand-lane palette re-based at `6.0.0`) touches SSO's usage at all.
+
+**What actually needed real changes, not just a version bump**:
+- `lib/theme/mantineTheme.js` used `extendGdsTheme(...)`, which upstream governance now documents as "no longer a canonical adopter path" and prohibited in consumer theme files. Migrated to `createPublicBrandTheme({ overrides: mantineThemeOverrides })` — the override object itself (colors, fonts, radius/shadow scale, component defaults) is unchanged, only the composing function.
+- `pages/login.js`'s hand-rolled Facebook/Google buttons are now against upstream's documented pattern (a local provider-button wrapper duplicating `ProviderIdentityButtonGroup`). Replaced with the canonical component — both providers are natively supported by the shipped registry, with real brand colors and labels. This closes SSO's oldest tracked `gds-adoption.json` exception. (`pages/register.js` was listed in that exception's scope too, but turned out never to have implemented provider buttons of its own.)
+
+**Changes**:
+- `package.json`: `@sovereignsquad/gds-admin`/`-core`/`-theme`/`gds-compliance`/`gds-eslint-config` rescoped to `6.0.0`; the unused umbrella `@sovereignsquad/gds` package dropped entirely (confirmed zero bare imports anywhere in source)
+- Rewrote the import specifier in all 43 source files consuming a `@doneisbetter/gds-*` package
+- Added `@mantine/dates@9.2.1` as an explicit direct dependency (same `ERESOLVE` peer-conflict fix pattern as before)
+- `gds-adoption.json`: version bump, scope rename, removed the closed OAuth exception, added a `compliance.identityProviderBranding` policy block
+- Removed the orphaned `public/google-mark.svg` asset
+- **Install source changed to vendored tarballs (stopgap)**: GDS installs exclusively from GitHub Packages, which needs a `read:packages`-scoped credential this repo's CI/Vercel don't have. Rather than stay blocked indefinitely, all five consumed GDS packages are now vendored as prebuilt tarballs in `vendor/gds/` and referenced via `file:` dependencies in `package.json` — the same pattern already proven in production by sibling apps `camera`, `messmass`, and `launchmass`. Each tarball was built from the upstream `gds-v6.0.0` tag via GDS's own official release-bundling tooling and verified byte-identical (SHA-256) to what those apps ship. `.npmrc`'s GitHub Packages registry block and `.github/workflows/repo-guardrails.yml`'s `GDS_PACKAGES_TOKEN` wiring were both removed — neither is needed anymore. See `docs/DESIGN_SYSTEM.md`'s "Install Source (Stopgap)" section for the tradeoff (no automatic update path — a future GDS bump needs a manual re-vendor) and the plan to move back to a registry install once that secret eventually exists.
+
+**Testing**: `npm run verify` clean, including a real `npm ci`/build against the vendored tarballs. `npm run gds:validate-manifest`, `npm run gds:check`, `npm run lint:gds` all clean. Visually verified against a real local build — login (new provider buttons), register, and a docs page (the two previously-known cosmetic diffs, `DocsPageShell` width and `PageHeader` eyebrow styling, confirmed still present and unchanged) — not just a clean compile.
+
+**Files Changed**: `package.json`, `package-lock.json`, `.npmrc`, `gds-adoption.json`, `docs/DESIGN_SYSTEM.md`, `lib/theme/mantineTheme.js`, `pages/login.js`, `.github/workflows/repo-guardrails.yml`, `public/google-mark.svg` (removed), `vendor/gds/*.tgz` (added, 5 files), and 41 other source files under `pages/`, `lib/`, and `components/` (import specifier only).
+
+---
 
 ## [v5.31.1] — 2026-08-01T00:00:00.000Z
 
