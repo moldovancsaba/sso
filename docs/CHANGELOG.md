@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [5.32.1] - 2026-08-16
+
+### 🐛 Fixed
+
+**`docs/ARCHITECTURE.md` accuracy pass**: a documentation-vs-code audit found several places where the architecture doc no longer matched runtime behavior.
+
+- **Node.js version**: doc said "18+"; `package.json` actually requires `20.x` with `engine-strict=true` — 18 would fail to install.
+- **Wrong collection name**: doc said legacy admin sessions are stored in a collection called `sessions`. The real collection, per `lib/sessions.mjs`, is `adminSessions`. The name `sessions` only ever existed as an unused config default (`lib/config.js`) that nothing reads — almost certainly the source of the wrong doc value.
+- **12 undocumented collections added** to "Important Collections": `accessTokens`, `refreshTokens`, `authorizationCodes`, `userConsents`, `adminSessions`, `publicMagicTokens`, `adminMagicTokens`, `loginPins`, `systemSettings`, `resourcePasswords`, `passwordResetTokens`, `orgEmailConfigs`. Most notably, the core OAuth token/code storage (`refreshTokens`, `authorizationCodes`) and the storage backing two auth methods `docs/README.md` already documents as supported (PIN verification, magic links) were entirely absent from the collection catalog.
+- **Second CSRF mechanism documented**: `lib/middleware/csrf.mjs` implements two independent CSRF mechanisms — the Origin/Referer allowlist (`validateRequestOrigin`, already documented) and a separate callback-state cookie (`validateStateCsrfToken` + helpers) that protects the Google/Facebook OAuth callback `state` parameter. The second mechanism is real, actively wired up, and covered by tests, but the doc's dedicated CSRF section previously made no mention of it. Also noted: pre-session endpoints (e.g. admin login) don't run the Origin check, since there's no session cookie yet to protect — a reasonable gap that just wasn't documented as intentional.
+- Removed a stale, unused `validateCsrf` import from `pages/api/admin/login.js` — the function it named was already dead code (never called anywhere; the file's own comment confirms it "was never wired up"), and the import was misleading about what CSRF protection that route actually runs.
+
+No runtime behavior changed except the one dead import removal, which has no functional effect.
+
+---
+
 ## [5.32.0] - 2026-08-12
 
 ### 🔧 Changed
