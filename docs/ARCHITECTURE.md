@@ -1,12 +1,12 @@
 # Architecture — SSO
 
-Version: 5.32.0  
-Last updated: 2026-08-12T00:00:00.000Z
+Version: 5.32.1  
+Last updated: 2026-08-16T00:00:00.000Z
 
 ## Stack
 
 - Next.js Pages Router
-- Node.js 18+
+- Node.js 20.x
 - MongoDB Atlas
 
 ## Design System Boundary
@@ -23,7 +23,7 @@ Last updated: 2026-08-12T00:00:00.000Z
 - Canonical role: `admin`
 - Legacy `super-admin` values are normalized to `admin`
 - Legacy session cookie: `admin-session`
-- Legacy session storage: `sessions`
+- Legacy session storage: `adminSessions`
 - Current admin UI authorization also supports a public session plus `sso-admin-dashboard` app permission
 - Session timeout: 4 hours with server-side validation and sliding extension on activity
 - High-risk unified-admin mutations require recent authentication; default freshness window is 15 minutes unless `ADMIN_FRESH_AUTH_WINDOW_MS` overrides it
@@ -96,12 +96,23 @@ Last updated: 2026-08-12T00:00:00.000Z
 - This prevents a request from acting as a different admin by presenting a cookie with a modified identity field
 
 ### CSRF protection (state-changing requests)
-- `validateRequestOrigin(req)` (`lib/middleware/csrf.mjs`) runs first on state-changing admin and public-session routes
+
+`lib/middleware/csrf.mjs` implements two independent CSRF mechanisms for two different contexts.
+
+**Origin/Referer allowlist** — the primary mechanism for cookie-authenticated admin and public-session routes:
+- `validateRequestOrigin(req)` runs inside `requireAdmin()` and `requireUnifiedAdmin()` (`lib/auth.mjs`), which gate the admin API routes, and is also called directly by cookie-authenticated public-session routes (e.g. `pages/api/public/account.js`, `pages/api/public/change-password.js`, `pages/api/public/logout.js`, `pages/api/public/profile.js`, `pages/api/oauth/consent.js`, `pages/api/resource-passwords/index.js`)
 - Safe methods (`GET`, `HEAD`, `OPTIONS`) always pass; other methods must present an `Origin` (or, failing that, `Referer`) header that matches a trusted-origin allowlist, or the request is rejected before session/auth logic runs
 - Requests with no `Origin`/`Referer` header at all are allowed through this check, since browsers always attach one of these headers on cross-origin state-changing requests; a request missing both has no ambient browser authority to forge
 - Trusted origins come from `getTrustedOrigins()`, seeded from the service's own canonical origin plus any explicitly configured additional origins
 - Rejections return `403` with a `FORBIDDEN` error code and are recorded via `logSecurityEvent('csrf_origin_rejected', ...)`
 - This is a distinct mechanism from CORS (`lib/cors.mjs`): CORS controls whether a browser lets client-side JavaScript read a cross-origin response; this Origin check controls whether the server accepts a state-changing request at all, independent of CORS headers
+- Pre-session endpoints (`pages/api/admin/login.js` and equivalents) don't call this check: there is no session cookie yet for a forged cross-site request to ride on, so ambient-cookie CSRF doesn't apply to the login submission itself
+
+**Callback-state CSRF cookie** — used only for the Google/Facebook social-login callback contract:
+- `ensureCsrfToken()` sets a signed CSRF cookie when the login flow starts (`pages/api/auth/{google,facebook}/login.js`)
+- The encoded OAuth `state` parameter carries a copy of that token; `validateStateCsrfToken()` confirms the callback's `state.csrf` matches the signed cookie before the callback continues (`pages/api/auth/{google,facebook}/callback.js`)
+- `clearCsrfCookie()` consumes the cookie after successful validation, so a replayed callback state cannot be validated twice
+- This mechanism is unrelated to the Origin/Referer allowlist above; it protects the OAuth callback state parameter specifically, not general state-changing admin/public routes
 
 ### Rate limiting
 - `express-rate-limit`-based limiters are applied via the shared `applyRateLimiter()` helper (`lib/apiHelpers.mjs`), which resolves once the underlying limiter has finished handling the request — including the case where the limiter itself sends a `429` response instead of calling `next()`
@@ -155,6 +166,42 @@ Last updated: 2026-08-12T00:00:00.000Z
 
 ### `appAccessLogs`
 - Access attempts and permission-change events around app authorization
+
+### `accessTokens`
+- OAuth bearer access token records issued at `/api/oauth/token` (`lib/oauth/tokens.mjs`)
+
+### `refreshTokens`
+- OAuth refresh token records, rotated and revoked alongside access tokens (`lib/oauth/tokens.mjs`)
+
+### `authorizationCodes`
+- Short-lived OAuth authorization codes pending exchange at `/api/oauth/token` (`lib/oauth/codes.mjs`)
+
+### `userConsents`
+- Per-user, per-client OAuth consent grants recorded during the authorize flow (`pages/api/oauth/authorize.js`)
+
+### `adminSessions`
+- Legacy admin session records (see Canonical Runtime Model, "Legacy session storage") (`lib/sessions.mjs`)
+
+### `publicMagicTokens`
+- Magic-link login tokens for public users (`pages/api/public/magic-login.js`)
+
+### `adminMagicTokens`
+- Signed, single-use magic-link tokens for admin access (`lib/magic.mjs`)
+
+### `loginPins`
+- Random PIN-verification codes issued on selected login attempts, admin and public (`lib/loginPin.mjs`)
+
+### `systemSettings`
+- Runtime-configurable settings, including the PIN-verification trigger frequency (`lib/loginPin.mjs`)
+
+### `resourcePasswords`
+- Shared resource-level passwords and usage tracking, generic across resources (`lib/resourcePasswords.mjs`)
+
+### `passwordResetTokens`
+- Time-limited, single-use password reset tokens for all user types (`lib/passwordReset.mjs`)
+
+### `orgEmailConfigs`
+- Per-organization email provider configuration (SMTP, Resend) for multi-tenant sending (`lib/orgEmailConfig.mjs`)
 
 ## Known Boundaries
 

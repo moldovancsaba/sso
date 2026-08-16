@@ -1,4 +1,25 @@
-# Release Notes [![Version Badge](https://img.shields.io/badge/version-5.32.0-blue)](RELEASE_NOTES.md)
+# Release Notes [![Version Badge](https://img.shields.io/badge/version-5.32.1-blue)](RELEASE_NOTES.md)
+
+## [v5.32.1] — 2026-08-16T00:00:00.000Z
+
+### 🐛 Documentation Accuracy: `docs/ARCHITECTURE.md` vs. Actual Code
+
+**What**: A documentation-vs-code audit of `docs/ARCHITECTURE.md`, prompted by a concern that architecture docs and code comments had drifted apart. Every claim below was verified directly against source, not assumed.
+
+**Found and fixed**:
+- The doc claimed "Node.js 18+"; `package.json`'s actual `engines` field requires `20.x` with `engine-strict=true`.
+- The doc claimed legacy admin sessions are stored in a collection named `sessions`. The real collection (`lib/sessions.mjs`) is `adminSessions`. The `sessions` name traced back to an unused config default in `lib/config.js` that no code path actually reads — the likely origin of the wrong doc value.
+- 12 collections that exist and are actively used in code were entirely missing from the "Important Collections" catalog: `accessTokens`, `refreshTokens`, `authorizationCodes`, `userConsents`, `adminSessions`, `publicMagicTokens`, `adminMagicTokens`, `loginPins`, `systemSettings`, `resourcePasswords`, `passwordResetTokens`, `orgEmailConfigs`. The most notable gaps: the core OAuth token/code storage, and the storage backing PIN verification and magic links — both already listed as supported auth methods in `docs/README.md`.
+- The CSRF section documented only one of two real CSRF mechanisms in `lib/middleware/csrf.mjs`. Added documentation for `validateStateCsrfToken()`, the mechanism that binds the Google/Facebook OAuth callback `state` parameter to a signed cookie — real, wired-up, test-covered code with previously zero mention in the architecture doc. Also documented that pre-session endpoints (admin login) don't run the Origin/Referer check, since no session cookie exists yet for a forged request to ride on.
+- Removed a stale `validateCsrf` import from `pages/api/admin/login.js`: the function was already confirmed dead code (zero call sites, per the module's own comment), and the unused import misrepresented what CSRF protection that route runs.
+
+**Not changed**: every previously-documented collection (`users`, `publicUsers`, `publicSessions`, `oauthClients`, `organizations`, `orgUsers`, `enterpriseConnections`, `appPermissions`, `auditLogs`, `appAccessLogs`) was confirmed to still exist and match its description — no stale entries to remove there.
+
+**Testing**: `npm run verify` clean. No runtime behavior changed except the dead-import removal, which has no functional effect.
+
+**Files Changed**: `docs/ARCHITECTURE.md`, `pages/api/admin/login.js`, `package.json`, `docs/README.md`, `docs/ROADMAP.md`, `docs/TASKLIST.md`, `docs/THIRD_PARTY_INTEGRATION_GUIDE.md`, `docs/CHANGELOG.md`.
+
+---
 
 ## [v5.32.0] — 2026-08-12T00:00:00.000Z
 
