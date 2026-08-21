@@ -1,4 +1,16 @@
-# Release Notes [![Version Badge](https://img.shields.io/badge/version-5.33.1-blue)](RELEASE_NOTES.md)
+# Release Notes [![Version Badge](https://img.shields.io/badge/version-5.33.2-blue)](RELEASE_NOTES.md)
+
+## [v5.33.2] — 2026-08-21T00:00:00.000Z
+
+### 🐛 Machine Client Registration Actually Works
+
+Two defects kept the 5.33.1 registration script from ever completing. `registerClient()` required a redirect URI from every client, including `client_credentials`-only ones that have no browser leg to redirect (RFC 6749 §4.4); the requirement is now scoped to redirect-based grants. And `scripts/register-try-on-client.mjs` never passed `owner_user_id`, which `registerClient()` rejects — it now resolves an admin owner like the sibling scripts do.
+
+### ✅ First Live Machine Token
+
+The `try-on` client was registered and used to obtain a real access token from production — HTTP 200, `Bearer`, 3600s, `manage_permissions`. The token carries no `sub` claim and its `client_id` and `aud` both match the client, confirming in production what the unit suite has asserted since 5.33.0.
+
+---
 
 ## [v5.33.1] — 2026-08-21T00:00:00.000Z
 

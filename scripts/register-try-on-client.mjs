@@ -56,12 +56,25 @@ async function main() {
     process.exit(0)
   }
 
+  // WHAT: Every client record needs an owning admin user.
+  // WHY: registerClient rejects a client with no owner_user_id, and the field is what
+  //      ties a machine credential back to a human accountable for it. Matches the
+  //      lookup used by the other registration scripts in this directory.
+  const owner = await db.collection('users').findOne({
+    role: { $in: ['admin', 'super-admin', 'superadmin'] },
+  })
+  if (!owner) {
+    console.error('No admin user found in SSO to own this client. Create one first.')
+    process.exit(1)
+  }
+
   const { client, client_secret } = await registerClient({
     name: CLIENT_NAME,
     description: 'Machine client for try-on to call SSO-protected services. No user login.',
     redirect_uris: [],
     allowed_scopes: ['manage_permissions'],
     grant_types: ['client_credentials'],
+    owner_user_id: owner.id,
   })
 
   // WHAT: Write the secret to an owner-only file instead of stdout.

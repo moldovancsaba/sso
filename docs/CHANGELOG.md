@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [5.33.2] - 2026-08-21
+
+### 🐛 Fixed
+
+**`registerClient()` no longer demands a redirect URI from machine-only clients.** The check now applies only to grants that actually redirect a browser (`authorization_code`, `implicit`). A `client_credentials`-only client has no user agent and no redirect leg (RFC 6749 §4.4), so it has nowhere to redirect to; requiring a URI anyway made such a client impossible to register, and the only workaround would have been storing a fabricated URI that would then be a live redirect target on a client that must never take part in a browser flow. Redirect-based clients are still rejected without one.
+
+**`scripts/register-try-on-client.mjs` now resolves an owning admin user.** It called `registerClient()` without `owner_user_id`, which that function rejects, so the script failed before writing anything. It now looks up an admin user the same way the other registration scripts in that directory do.
+
+Together these two defects meant the script shipped in 5.33.1 could not complete a registration.
+
+### ✅ Verified Against Production
+
+A `client_credentials` token was issued by `https://sso.doneisbetter.com/api/oauth/token` for the newly registered `try-on` client — the first live token issued on this grant. HTTP 200 with `token_type: Bearer`, `expires_in: 3600`, `scope: manage_permissions`. The decoded JWT carries no `sub` claim, and `client_id` and `aud` both equal the try-on client_id, confirming the 5.33.0 machine-token fix behaves in production as the unit tests describe.
+
+---
+
 ## [5.33.1] - 2026-08-21
 
 ### 🔧 Changed
