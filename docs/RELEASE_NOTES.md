@@ -1,4 +1,22 @@
-# Release Notes [![Version Badge](https://img.shields.io/badge/version-5.32.1-blue)](RELEASE_NOTES.md)
+# Release Notes [![Version Badge](https://img.shields.io/badge/version-5.33.0-blue)](RELEASE_NOTES.md)
+
+## [v5.33.0] — 2026-08-21T00:00:00.000Z
+
+### 🐛 Machine-to-Machine Authentication Repaired
+
+**What**: The `client_credentials` grant — the only path in this service that issues a token without a user — never worked. `pages/api/oauth/token.js` passes `userId: null` by design, and `generateAccessToken()` rejected that as a missing argument, so every request returned HTTP 500 `server_error`. Verified by direct execution before and after the fix.
+
+**Why it matters**: This is the grant an automated client (a background service, a scheduled job, an agent) must use. Interactive `authorization_code` requires a human at a browser and cannot be completed headlessly. Of 15 registered OAuth clients, one (`launchmass`) had `client_credentials` in its `grant_types` and could never have used it.
+
+**Also fixed alongside it**:
+- `manage_permissions` is now a registered scope, so it appears in OIDC discovery and passes validation on the token endpoint. It is marked machine-only, so the interactive `/authorize` flow still refuses it — a user-bound token carrying that scope could rewrite the permission records of every other user of the same app.
+- OIDC discovery no longer advertises `client_secret_basic`, which the token endpoint never implemented. Client libraries that prefer Basic when offered were failing with a misleading `client_id is required` 400.
+
+### 🔧 Node.js 24.x
+
+Node 20 is past upstream end-of-life (2026-04-30) and Vercel disables it in Project Settings on 2026-10-01, after which new deployments pinned to 20 fail. `engines.node` — which overrides the Vercel dashboard setting — now reads `24.x`, CI runs Node 24, and `.nvmrc` pins it for local work. Full verify chain green on 24.16.0.
+
+---
 
 ## [v5.32.1] — 2026-08-16T00:00:00.000Z
 

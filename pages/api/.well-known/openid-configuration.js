@@ -51,6 +51,7 @@ export default async function handler(req, res) {
     grant_types_supported: [
       'authorization_code',
       'refresh_token',
+      'client_credentials', // Machine-to-machine; see pages/api/oauth/token.js
     ],
 
     // Supported subject types
@@ -69,6 +70,7 @@ export default async function handler(req, res) {
       'profile',
       'email',
       'offline_access',
+      'manage_permissions', // client_credentials only - not grantable via /authorize
       'read:cards',
       'write:cards',
       'read:rankings',
@@ -92,9 +94,13 @@ export default async function handler(req, res) {
     ],
 
     // Supported authentication methods at token endpoint
+    // WHAT: Only client_secret_post is advertised.
+    // WHY: pages/api/oauth/token.js reads client_id/client_secret from the request body
+    //      and never parses an HTTP Basic Authorization header. Advertising
+    //      client_secret_basic made conformant client libraries - which commonly prefer
+    //      Basic when it is offered - fail with a confusing "client_id is required" 400.
     token_endpoint_auth_methods_supported: [
       'client_secret_post', // Client credentials in POST body
-      'client_secret_basic', // Client credentials in Authorization header
     ],
 
     // PKCE support

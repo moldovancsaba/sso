@@ -1,7 +1,7 @@
 # Third-Party Integration Guide — SSO Service
 
-**Version**: 5.32.1  
-**Last Updated**: 2026-08-16T00:00:00.000Z  
+**Version**: 5.33.0  
+**Last Updated**: 2026-08-21T00:00:00.000Z  
 **Service URL**: https://sso.doneisbetter.com  
 **Status**: Current Runtime Guide
 
@@ -44,6 +44,7 @@ Planned but not currently implemented:
 | OAuth2 / OIDC | External domains, mobile apps, SPAs, server apps | Any domain | Recommended default |
 | Cookie-Based SSO | Shared subdomain apps | Shared cookie domain | Simple session-validation flow |
 | Social Login via hosted SSO | Lower-friction end-user auth | Any domain | End users authenticate on the hosted SSO login page |
+| Client Credentials (M2M) | Agents, daemons, scheduled jobs, service-to-service | Any domain | No user context; no browser; see Method 4 |
 
 ## Method 1: OAuth2 / OIDC
 
@@ -318,6 +319,76 @@ Content-Type: application/json
   "pin": "123456"
 }
 ```
+
+## Method 4: Machine-to-Machine (agents and background services)
+
+Use this when the caller is **not a person** — an agent, a daemon, a scheduled job, or
+one service calling another. The interactive `authorization_code` flow cannot be used
+headlessly: it requires a browser and a human to authenticate and consent.
+
+### Registering a machine client
+
+Register a dedicated confidential client per automated caller — not one shared client
+reused by several. Revocation and audit are per-client, so a shared client cannot be
+withdrawn from one caller without breaking the rest.
+
+- `grant_types` must include `client_credentials`
+- omit redirect URIs — this grant never redirects
+- keep `allowed_scopes` as narrow as the job requires
+
+### Token request
+
+```http
+POST https://sso.doneisbetter.com/api/oauth/token
+Content-Type: application/json
+
+{
+  "grant_type": "client_credentials",
+  "client_id": "YOUR_CLIENT_ID",
+  "client_secret": "YOUR_CLIENT_SECRET",
+  "scope": "manage_permissions"
+}
+```
+
+Success response:
+
+```json
+{
+  "access_token": "JWT_ACCESS_TOKEN",
+  "token_type": "Bearer",
+  "expires_in": 3600,
+  "scope": "manage_permissions"
+}
+```
+
+Send credentials in the **request body**. The token endpoint does not read an HTTP Basic
+`Authorization` header; if your OAuth library defaults to `client_secret_basic`,
+configure it for `client_secret_post`. OIDC discovery advertises only the method that is
+actually implemented, so a library that reads the discovery document will pick correctly.
+
+### What a machine token is and is not
+
+- It carries **no `sub` claim** and no user identity. `client_id` identifies the caller.
+- No refresh token is issued. Request a new token when the current one expires; they
+  last one hour by default (`OAUTH2_ACCESS_TOKEN_LIFETIME`).
+- No `id_token` is issued — there is no user to describe.
+- It cannot pass a user-identity check. Endpoints that compare the token's subject
+  against a `userId` will correctly refuse it.
+
+### Scopes
+
+`manage_permissions` is **machine-only**: it is obtainable through this grant and is
+rejected on `/api/oauth/authorize`. That is deliberate — its bearer can write permission
+records for every user of the client, which is appropriate for a service acting on its
+own behalf and never appropriate for a token obtained by one end user.
+
+Requesting a scope outside the client's `allowed_scopes` returns `invalid_scope`.
+
+### Revoking an agent
+
+Set the client's `status` to `suspended`. The token endpoint refuses to issue new tokens
+for a non-`active` client. Already-issued access tokens remain valid until they expire,
+so treat one hour as the worst-case revocation lag.
 
 ## Social Login
 

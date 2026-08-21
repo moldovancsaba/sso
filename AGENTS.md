@@ -9,6 +9,11 @@ environment quirks). This file is the command reference; keep it in sync with
 
 ### Root app
 
+**Requires Node 24.x.** `engines.node` is `24.x` with `engine-strict=true`, so on any
+other major version every command below fails at install time with `EBADENGINE`.
+`.nvmrc` pins the version; see `CLAUDE.md` Section 7.1 for why 24.x and for the Vercel
+deprecation dates behind it.
+
 - Install dependencies: `npm install`
 - Bootstrap local env from the example file: `npm run setup`
 - Start development server: `npm run dev` (Next.js on port `5500`)
@@ -46,6 +51,11 @@ Run these from the `client/` directory:
 - Grant app access for a user: `node scripts/grant-app-access.mjs <userEmail> [clientId] [role]`
 - Verify an OAuth client configuration: `node scripts/verify-oauth-client.mjs <client_id>`
 - Verify a stored OAuth client secret against a plaintext secret: `node scripts/verify-client-secret.mjs <client_id> <plaintext_secret>`
+- Preview machine-to-machine enablement across OAuth clients: `node scripts/enable-m2m-clients.mjs`
+- Apply it: `DRY_RUN=false node scripts/enable-m2m-clients.mjs` (add `M2M_CLIENTS=name1,name2` to narrow it).
+  Previews by default, unlike the older scripts here, because it writes production auth
+  config. Never grants `client_credentials` to a public client, and refuses to run on a
+  checkout where `manage_permissions` is not a registered scope.
 - Preview duplicate public-account merges by email: `DRY_RUN=true node scripts/merge-duplicate-accounts.mjs`
 - Apply duplicate public-account merges by email: `node scripts/merge-duplicate-accounts.mjs`
 - Test email delivery configuration: `node scripts/test-email-config.mjs <email>`

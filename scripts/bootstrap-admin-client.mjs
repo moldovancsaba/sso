@@ -61,14 +61,18 @@ async function bootstrapAdminClient() {
         'https://sso.doneisbetter.com/admin/callback',
         'http://localhost:3000/admin/callback', // For local development
       ],
+      // WHAT: Only scopes that are actually defined in lib/oauth/scopes.mjs.
+      // WHY: admin:users / admin:clients / admin:settings / admin:activity were
+      //      registered here but never defined as scopes and never read by any
+      //      authorization decision. validateScopes() rejects unknown scopes, so
+      //      requesting one would have failed with invalid_scope. The admin UI
+      //      requests exactly 'openid profile email' (pages/admin/index.js) and its
+      //      real authorization comes from an approved sso-admin-dashboard record in
+      //      appPermissions, not from a scope.
       allowed_scopes: [
         'openid',
-        'profile', 
+        'profile',
         'email',
-        'admin:users',
-        'admin:clients',
-        'admin:settings',
-        'admin:activity',
       ],
       grant_types: ['authorization_code', 'refresh_token'],
       require_pkce: false,

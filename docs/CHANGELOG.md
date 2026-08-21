@@ -7,6 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [5.33.0] - 2026-08-21
+
+### 🐛 Fixed
+
+**`client_credentials` grant was completely non-functional.** `pages/api/oauth/token.js` calls `generateAccessToken({ userId: null, ... })` for machine-to-machine tokens, but `lib/oauth/tokens.mjs` guarded on `if (!userId || !clientId || !scope)`. Since `null` is falsy, every `client_credentials` request threw and the token endpoint's catch returned HTTP 500 `server_error`. The guard now requires only `clientId` and `scope`.
+
+Machine tokens deliberately carry **no `sub` claim**, which is what `validateAccessToken()` already expected (`userId: decoded.sub || null, // null for client_credentials tokens`). Setting `sub` to the client id instead would have let a machine token satisfy the `canReadOwnPermission` user-identity comparison in the permission routes.
+
+**`manage_permissions` was never a registered scope.** It is the scope the permission-write APIs gate on and the default scope the `client_credentials` grant issues, yet it was absent from `SCOPE_DEFINITIONS`. Consequences: `validateScopes()` rejected it as unknown, and it was missing from OIDC discovery. It is now registered and marked `machineOnly`, so `validateScopes()` — which gates only the interactive `/authorize` flow — still refuses to issue it on a user-bound token. That preserves the previous security property: a single end user of an app must never be able to consent to a scope that would let them rewrite every other user's permission records.
+
+**OIDC discovery advertised an unimplemented auth method.** `token_endpoint_auth_methods_supported` listed `client_secret_basic`, but `pages/api/oauth/token.js` only ever reads credentials from the request body. Conformant client libraries commonly prefer Basic when it is offered, and would fail with a confusing `client_id is required` 400. Only `client_secret_post` is advertised now. Discovery also now lists `client_credentials` under `grant_types_supported` and `manage_permissions` under `scopes_supported`.
+
+New contract tests in `__tests__/oauth-client-credentials.test.js` cover machine-token issuance, the absent `sub` claim, the unchanged user-bound path, and the machine-only scope guard.
+
+**Undefined scopes removed from client registration scripts.** `scripts/bootstrap-admin-client.mjs` registered `admin:users`, `admin:clients`, `admin:settings` and `admin:activity`, and `scripts/register-amanoba-client.mjs` registered `admin`. None of these are defined in `lib/oauth/scopes.mjs` and no authorization decision anywhere reads them, so `validateScopes()` would reject any request for one. The admin UI requests exactly `openid profile email` (`pages/admin/index.js`) and its real authorization comes from an approved `sso-admin-dashboard` record in `appPermissions`, not from a scope. Existing client records in the database still carry these dead scopes; clearing them is a separate data change.
+
+### 🔧 Changed
+
+**`@types/node` 20.19.40 → 24.13.3**, matching the runtime. Pinned exact per `.npmrc`'s `save-exact=true`.
+
+**Node.js 20.x → 24.x.** Node 20 reached upstream end-of-life on 2026-04-30, and Vercel disables Node 20 in Project Settings on 2026-10-01, after which new deployments pinned to 20 fail to build. `engines.node` is now `24.x`, `.github/workflows/repo-guardrails.yml` runs `node-version: 24`, and a new `.nvmrc` pins `24` for local work. Note that `engines.node` overrides the Vercel dashboard's Node.js Version setting — the dashboard already read 24.x for this project while `package.json` was still pinning deployments to 20.
+
+The full `npm run verify` chain (lint, type-check, 87 tests across 15 suites, build, guardrails, docs) passes on Node 24.16.0.
+
+**`CLAUDE.md` Section 7 restructured.** It recorded limitations observed in a hosted cloud sandbox as unqualified facts about "this environment," and later sessions skipped genuinely possible work as a result. The section now separates constraints that apply everywhere from sandbox-only observations, and each sandbox-only bullet carries the one-line command to re-check it. The MongoDB Atlas bullet is corrected: raw TCP to the cluster is reachable from a local macOS workstation, so the DB-dependent tooling under `scripts/` does work there.
+
+---
+
 ## [5.32.1] - 2026-08-16
 
 ### 🐛 Fixed
