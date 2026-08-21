@@ -19,6 +19,8 @@
  *
  *   node scripts/enable-m2m-clients.mjs                # preview (default)
  *   DRY_RUN=false node scripts/enable-m2m-clients.mjs  # apply
+ *   REVOKE_M2M="name-a,name-b" DRY_RUN=false node scripts/enable-m2m-clients.mjs
+ *                                                      # strip machine access instead
  *
  * A public client is never given client_credentials. Public clients declare
  * `token_endpoint_auth_method: 'none'` and ship in a browser or mobile bundle, so any
@@ -41,6 +43,16 @@ const DRY_RUN = process.env.DRY_RUN !== 'false'
 // WHY: An empty list means "every eligible confidential client". Set M2M_CLIENTS to a
 //      comma-separated list of names or client_ids to narrow the change.
 const ONLY = (process.env.M2M_CLIENTS || '')
+  .split(',')
+  .map((s) => s.trim())
+  .filter(Boolean)
+
+// WHAT: Clients to strip machine access from, by name or client_id.
+// WHY: A machine credential on a client with no machine workflow is standing attack
+//      surface for no benefit - its bearer can write permission records for every user
+//      of that client. Revoking removes the client_credentials grant and the
+//      manage_permissions scope; nothing else about the client is touched.
+const REVOKE = (process.env.REVOKE_M2M || '')
   .split(',')
   .map((s) => s.trim())
   .filter(Boolean)
@@ -103,23 +115,36 @@ async function main() {
       //       invalid_scope, and nothing reads them. Strip them regardless of eligibility.
       const deadScopes = scopes.filter((s) => !ALL_SCOPE_IDS.includes(s))
 
-      const { eligible, reason } = classify(client)
-      const addGrant = targeted && eligible && !grants.includes('client_credentials')
-      const addScope = targeted && eligible && !scopes.includes(M2M_SCOPE)
+      // WHAT: Revocation wins over every other rule for a named client.
+      // WHY: An operator naming a client in REVOKE_M2M is stating it must not hold
+      //      machine access; that must not be re-granted by the eligibility pass in the
+      //      same run.
+      const revoking = REVOKE.includes(client.name) || REVOKE.includes(client.client_id)
 
-      if (!deadScopes.length && !addGrant && !addScope) {
-        const why = !targeted ? 'not targeted' : eligible ? 'already correct' : reason
+      const { eligible, reason } = classify(client)
+      const addGrant = !revoking && targeted && eligible && !grants.includes('client_credentials')
+      const addScope = !revoking && targeted && eligible && !scopes.includes(M2M_SCOPE)
+      const dropGrant = revoking && grants.includes('client_credentials')
+      const dropScope = revoking && scopes.includes(M2M_SCOPE)
+
+      if (!deadScopes.length && !addGrant && !addScope && !dropGrant && !dropScope) {
+        const why = revoking ? 'already has no machine access' : !targeted ? 'not targeted' : eligible ? 'already correct' : reason
         console.log(`  ${label.padEnd(22)} no change (${why})`)
         continue
       }
 
-      const nextGrants = addGrant ? [...grants, 'client_credentials'] : grants
-      const nextScopes = scopes.filter((s) => !deadScopes.includes(s))
+      let nextGrants = addGrant ? [...grants, 'client_credentials'] : grants
+      if (dropGrant) nextGrants = nextGrants.filter((g) => g !== 'client_credentials')
+
+      let nextScopes = scopes.filter((s) => !deadScopes.includes(s))
       if (addScope) nextScopes.push(M2M_SCOPE)
+      if (dropScope) nextScopes = nextScopes.filter((s) => s !== M2M_SCOPE)
 
       const actions = []
       if (addGrant) actions.push('+client_credentials')
       if (addScope) actions.push(`+${M2M_SCOPE}`)
+      if (dropGrant) actions.push('-client_credentials')
+      if (dropScope) actions.push(`-${M2M_SCOPE}`)
       if (deadScopes.length) actions.push(`-[${deadScopes.join(', ')}]`)
       if (targeted && !eligible) actions.push(`(M2M skipped: ${reason})`)
 

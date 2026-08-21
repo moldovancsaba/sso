@@ -1,4 +1,20 @@
-# Release Notes [![Version Badge](https://img.shields.io/badge/version-5.33.0-blue)](RELEASE_NOTES.md)
+# Release Notes [![Version Badge](https://img.shields.io/badge/version-5.33.1-blue)](RELEASE_NOTES.md)
+
+## [v5.33.1] — 2026-08-21T00:00:00.000Z
+
+### 🔧 Machine Access Can Now Be Withdrawn
+
+`scripts/enable-m2m-clients.mjs` gained `REVOKE_M2M`, which strips the `client_credentials` grant and `manage_permissions` scope from named clients. Revocation beats the eligibility pass, so a revoked client is not re-granted in the same run. Granting machine credentials without a matching withdrawal path is an incomplete tool; both directions now share the same dry-run-by-default safety.
+
+Intended use: withdrawing the grant from `SSO Admin Dashboard`, a browser admin UI with no machine workflow whose credential could otherwise rewrite any user's permissions.
+
+### 📝 `try-on` Client Registration
+
+`try-on` needs to reach other SSO-protected services but had no OAuth client at all. `scripts/register-try-on-client.mjs` registers it as a confidential machine client — `client_credentials` only, no redirect URIs.
+
+**`fanmass` keeps its grant.** Its users do not sign in through SSO; it needs machine access to call other SSO-protected services, which is precisely this grant's purpose.
+
+---
 
 ## [v5.33.0] — 2026-08-21T00:00:00.000Z
 

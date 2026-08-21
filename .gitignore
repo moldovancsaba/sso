@@ -74,3 +74,7 @@ tests/
 # RSA keys for JWT signing (DO NOT COMMIT)
 keys/
 .env*
+
+# Client secrets written by registration scripts (see scripts/register-*-client.mjs)
+*-client-secret.local
+*.secret.local
