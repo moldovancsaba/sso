@@ -31,6 +31,12 @@
 import { config } from 'dotenv'
 import { MongoClient } from 'mongodb'
 import { ALL_SCOPE_IDS } from '../lib/oauth/scopes.mjs'
+import { classify } from '../lib/oauth/clients.mjs'
+
+// WHAT: Re-exported for backward compatibility - classify() itself now lives in
+// lib/oauth/clients.mjs (see the comment there) so lib/'s own client update/registration
+// path can enforce the same eligibility rule without importing a script module.
+export { classify }
 
 config({ path: '.env.production.local' })
 config({ path: '.env.local' })
@@ -58,27 +64,6 @@ const REVOKE = (process.env.REVOKE_M2M || '')
   .filter(Boolean)
 
 const M2M_SCOPE = 'manage_permissions'
-
-export function classify(client) {
-  // WHAT: A previous revocation permanently excludes a client from the eligibility pass.
-  // WHY: Revocation was a one-shot edit with nothing recorded, so the next ordinary
-  //      `DRY_RUN=false` run silently re-granted a credential an operator had
-  //      deliberately removed. This flag makes the decision durable. Lift it by naming
-  //      the client explicitly in M2M_CLIENTS, which is a deliberate statement of intent.
-  if (client.m2m_excluded) {
-    return { eligible: false, reason: 'excluded from machine access by a previous revocation' }
-  }
-  if (client.status !== 'active') {
-    return { eligible: false, reason: `status is ${client.status}, not active` }
-  }
-  if (client.token_endpoint_auth_method === 'none') {
-    return { eligible: false, reason: 'public client (token_endpoint_auth_method: none) - cannot hold a secret' }
-  }
-  if (!client.client_secret) {
-    return { eligible: false, reason: 'no client_secret on record - nothing to authenticate with' }
-  }
-  return { eligible: true, reason: null }
-}
 
 async function main() {
   if (!process.env.MONGODB_URI) {

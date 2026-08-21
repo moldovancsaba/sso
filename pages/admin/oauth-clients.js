@@ -47,7 +47,21 @@ function initialClientForm() {
     homepage_uri: '',
     logo_uri: '',
     require_pkce: false,
+    grant_types: ['authorization_code', 'refresh_token'],
   }
+}
+
+const GRANT_TYPE_OPTIONS = [
+  { value: 'authorization_code', label: 'Authorization Code', description: 'User login via SSO (browser redirect).' },
+  { value: 'refresh_token', label: 'Refresh Token', description: 'Allow renewing an authorization_code session without re-login.' },
+  { value: 'client_credentials', label: 'Client Credentials', description: 'Service-to-service calls with no user — the caller authenticates as itself using its own client_secret. Not available to public (PKCE-only) clients, which hold no secret.' },
+]
+
+function toggleGrantType(current, value, checked) {
+  if (checked) {
+    return current.includes(value) ? current : [...current, value]
+  }
+  return current.filter((grantType) => grantType !== value)
 }
 
 function isErrorMessage(message) {
@@ -111,6 +125,21 @@ function ClientForm({ formData, loading, onChange, onSubmit, submitLabel, onCanc
         label="Require PKCE"
         onChange={(event) => onChange('require_pkce', event.currentTarget.checked)}
       />
+
+      <Stack gap="xs">
+        <Text fw={600} size="sm">Grant Types</Text>
+        {GRANT_TYPE_OPTIONS.map((option) => (
+          <Checkbox
+            key={option.value}
+            checked={formData.grant_types.includes(option.value)}
+            description={option.description}
+            label={option.label}
+            onChange={(event) =>
+              onChange('grant_types', toggleGrantType(formData.grant_types, option.value, event.currentTarget.checked))
+            }
+          />
+        ))}
+      </Stack>
 
       <Group justify="flex-end">
         {onCancel ? (
@@ -201,6 +230,7 @@ export default function OAuthClientsPage() {
       homepage_uri: formData.homepage_uri.trim() || null,
       logo_uri: formData.logo_uri.trim() || null,
       require_pkce: formData.require_pkce,
+      grant_types: formData.grant_types,
     }
   }
 
@@ -327,6 +357,9 @@ export default function OAuthClientsPage() {
       homepage_uri: client.homepage_uri || '',
       logo_uri: client.logo_uri || '',
       require_pkce: client.require_pkce || false,
+      grant_types: client.grant_types && client.grant_types.length > 0
+        ? client.grant_types
+        : ['authorization_code', 'refresh_token'],
     })
     setShowCreateForm(false)
   }
@@ -526,6 +559,11 @@ export default function OAuthClientsPage() {
                     <Badge color={client.require_pkce ? 'blue' : 'gray'} variant="light">
                       {client.require_pkce ? 'PKCE Required' : 'PKCE Optional'}
                     </Badge>
+                    {(client.grant_types || []).includes('client_credentials') ? (
+                      <Badge color="violet" variant="light">
+                        Client Credentials
+                      </Badge>
+                    ) : null}
                   </Group>
                 ),
               },
@@ -600,6 +638,11 @@ function ClientCardContent({
             <Badge color={client.require_pkce ? 'blue' : 'gray'} variant="light">
               {client.require_pkce ? 'PKCE Required' : 'PKCE Optional'}
             </Badge>
+            {(client.grant_types || []).includes('client_credentials') ? (
+              <Badge color="violet" variant="light">
+                Client Credentials
+              </Badge>
+            ) : null}
           </Group>
         </Stack>
 
