@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [5.33.1] - 2026-08-21
+
+### 🔧 Changed
+
+**`scripts/enable-m2m-clients.mjs` can now revoke machine access, not only grant it.** `REVOKE_M2M="name-a,name-b"` removes the `client_credentials` grant and the `manage_permissions` scope from the named clients. Revocation takes precedence over the eligibility pass, so a client named for revocation is never re-granted by the same run.
+
+Needed because granting machine access is only half an operational tool: a credential that can be handed out must be withdrawable with the same tooling and the same dry-run safety, rather than by hand-written database edits.
+
+Intended use is withdrawing the grant from **`SSO Admin Dashboard`** — an internal browser admin UI authenticating through `authorization_code`. A standing machine credential there can rewrite any user's app-permission records, which is meaningful attack surface for a capability it does not use.
+
+### 📝 Registration
+
+**Added `scripts/register-try-on-client.mjs`.** `try-on` needs to call other SSO-protected services but had no OAuth client registered at all. Registers it as a confidential machine client: `client_credentials` only, no redirect URIs, `manage_permissions` scope.
+
+### Note on `fanmass`
+
+`fanmass` **keeps** its `client_credentials` grant. Its own users do not authenticate through SSO — it needs machine access to call other services that are SSO-protected, which is exactly what this grant is for. Its registration script still declares it a public client while its live record is confidential; the live record is the correct one and the script is stale.
+
 ## [5.33.0] - 2026-08-21
 
 ### 🐛 Fixed

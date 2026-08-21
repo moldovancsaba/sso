@@ -53,6 +53,9 @@ Run these from the `client/` directory:
 - Verify a stored OAuth client secret against a plaintext secret: `node scripts/verify-client-secret.mjs <client_id> <plaintext_secret>`
 - Preview machine-to-machine enablement across OAuth clients: `node scripts/enable-m2m-clients.mjs`
 - Apply it: `DRY_RUN=false node scripts/enable-m2m-clients.mjs` (add `M2M_CLIENTS=name1,name2` to narrow it).
+- Strip machine access from a client: `REVOKE_M2M="name-a,name-b" DRY_RUN=false node scripts/enable-m2m-clients.mjs`.
+- Register the try-on machine client: `node scripts/register-try-on-client.mjs`. Refuses if the client already exists, and writes the secret to a mode-600 file rather than stdout so it never reaches terminal history or CI logs.
+  Revocation wins over the eligibility pass, so a named client is never re-granted in the same run.
   Previews by default, unlike the older scripts here, because it writes production auth
   config. Never grants `client_credentials` to a public client, and refuses to run on a
   checkout where `manage_permissions` is not a registered scope.
