@@ -19,11 +19,16 @@ const AMANOBA_CLIENT = {
     'https://www.amanoba.com/api/auth/callback',
     'http://localhost:3000/api/auth/callback'
   ],
+  // WHAT: 'admin' was registered here but is not a defined scope in
+  //       lib/oauth/scopes.mjs and is read by no authorization decision, so
+  //       validateScopes() would reject any request for it. Removed.
+  // WHY:  manage_permissions stays because this client does declare the
+  //       client_credentials grant below, which is the only way to obtain it -
+  //       it is machine-only and rejected on the interactive /authorize path.
   allowed_scopes: [
     'openid',
-    'profile', 
+    'profile',
     'email',
-    'admin',
     'manage_permissions'
   ],
   grant_types: [
