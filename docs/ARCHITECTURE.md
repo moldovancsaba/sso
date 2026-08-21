@@ -1,12 +1,12 @@
 # Architecture — SSO
 
-Version: 5.32.1  
-Last updated: 2026-08-16T00:00:00.000Z
+Version: 5.33.0  
+Last updated: 2026-08-21T00:00:00.000Z
 
 ## Stack
 
 - Next.js Pages Router
-- Node.js 20.x
+- Node.js 24.x
 - MongoDB Atlas
 
 ## Design System Boundary
@@ -40,7 +40,9 @@ Last updated: 2026-08-16T00:00:00.000Z
 ### OAuth clients
 - Collection: `oauthClients`
 - Statuses: `active`, `suspended`
-- Supported grants in the current codebase include authorization code, refresh token, and client credentials where configured
+- Supported grants in the current codebase are authorization code, refresh token, and client credentials
+- `client_credentials` issues a token with no user context: no `sub` claim, no refresh token, no ID token. `validateAccessToken()` resolves such a token to `userId: null`, so it can never satisfy a user-identity comparison
+- Machine clients should be registered one per automated caller, with no redirect URIs, since revocation and audit are per-client
 
 ### App permissions
 - Collection: `appPermissions`
@@ -122,6 +124,11 @@ Last updated: 2026-08-16T00:00:00.000Z
 ### Admin password storage
 - Admin passwords are stored as bcrypt hashes (`lib/users.mjs`: `hashAdminPassword()`, `verifyAdminPassword()`)
 - Legacy non-bcrypt stored values are compared using a constant-time comparison (`lib/timingSafeCompare.mjs`) and transparently rehashed to bcrypt on the next successful login (lazy migration); no bulk migration or downtime is required
+
+### Machine-only scopes
+- `manage_permissions` is defined with `machineOnly: true` (`lib/oauth/scopes.mjs`)
+- `validateScopes()` gates only the interactive `/authorize` flow and rejects machine-only scopes there; the `client_credentials` path validates against `client.allowed_scopes` instead
+- The distinction is load-bearing: a bearer of `manage_permissions` can write permission records for every user of that client, so it must never be reachable by a token one end user consented to
 
 ### Permission reads and writes
 - Self-service reads are constrained to the token subject and token client

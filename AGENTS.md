@@ -9,6 +9,11 @@ environment quirks). This file is the command reference; keep it in sync with
 
 ### Root app
 
+**Requires Node 24.x.** `engines.node` is `24.x` with `engine-strict=true`, so on any
+other major version every command below fails at install time with `EBADENGINE`.
+`.nvmrc` pins the version; see `CLAUDE.md` Section 7.1 for why 24.x and for the Vercel
+deprecation dates behind it.
+
 - Install dependencies: `npm install`
 - Bootstrap local env from the example file: `npm run setup`
 - Start development server: `npm run dev` (Next.js on port `5500`)

@@ -182,6 +182,10 @@ npm run verify
 `package.json` for the exact current chain; keep this script and this doc in sync if the
 chain changes.) As of this writing the whole chain passes clean with zero warnings.
 
+This chain requires Node 24.x — on any other major version `npm ci` refuses to install
+at all and the gate cannot be run. See Section 7.1 before concluding that anything here
+is broken.
+
 Work is DONE only when, explicitly checked (not assumed): the behavior is implemented
 and demonstrably works; tests cover it and the full suite passes; `npm run verify`
 passes; relevant docs are updated in the same change set (Section 4); edge cases and
@@ -255,48 +259,82 @@ the runtime model from scratch or from generic Next.js/Mongo assumptions.
 
 ## 7. Environment quirks discovered in practice
 
-- **Branch/tag deletion 403s through this session's git relay.** `git push` can create
-  and force-update refs, but `git push origin --delete <branch>` consistently returns
-  HTTP 403 — confirmed repeatedly, not a transient failure. This is a token-scope
-  restriction (push/update is allowed, delete is not), not a proxy/egress block. Don't
-  retry it or hunt for a workaround; report it and let a human with full delete
-  permission remove the ref via the GitHub web UI.
+**Read this first: the constraints below are not universal.** This repo gets worked on
+from at least two very different places — a hosted cloud sandbox and a local macOS
+workstation — and several limits that are real in one are simply false in the other.
+Earlier revisions of this section stated sandbox-only limits as flat facts about "this
+environment," which caused later sessions to skip work that was actually possible.
+Before relying on any bullet below, confirm which environment you are in and, where a
+bullet says so, re-run the stated check rather than trusting the recorded answer.
+
+### 7.1 Node.js version — applies everywhere
+
+`package.json` `engines.node` is `24.x` with `engine-strict=true` in `.npmrc`. On any
+other major version `npm ci` and `npm install` abort with `EBADENGINE` before installing
+anything, so nothing — not the build, not the tests, not `npm run verify` — can run.
+
+If your shell's Node is not 24.x, switch to it (`.nvmrc` pins `24`) rather than reaching
+for `--engine-strict=false`. That flag will produce a working `node_modules` and is
+acceptable for a one-off read-only inspection, but it installs a tree the project does
+not declare support for, so never validate a change that way and never treat a gate that
+passed under it as green.
+
+Why 24.x specifically: Node 20 reached upstream end-of-life on 2026-04-30, and Vercel
+disables Node 20 in Project Settings on 2026-10-01, after which new deployments pinned
+to 20 fail. Vercel's available majors are 24.x (its default), 22.x and 20.x. Note that
+`engines.node` **overrides** the Vercel dashboard's Node.js Version setting — so
+`package.json` is the real deployment control here, and the dashboard value alone proves
+nothing.
+
+### 7.2 Applies everywhere (not environment-specific)
+
 - **GitHub's squash-merge auto-injects a `Co-authored-by` trailer from the source
   commit's git *author* identity** — even when the commit message itself has zero
-  AI-attribution text. If a commit was authored under this environment's default local
-  git identity, that identity leaks into the squash commit on `main` regardless of what
-  the message says. To prevent this (Section 1 is otherwise silently violated on every
-  merge): override author *and* committer per-commit with environment variables on the
+  AI-attribution text. If a commit was authored under an AI-branded local git identity,
+  that identity leaks into the squash commit on `main` regardless of what the message
+  says. To prevent this (Section 1 is otherwise silently violated on every merge):
+  override author *and* committer per-commit with environment variables on the
   `git commit` invocation itself —
   `GIT_AUTHOR_NAME=... GIT_AUTHOR_EMAIL=... GIT_COMMITTER_NAME=... GIT_COMMITTER_EMAIL=... git commit ...`
   — never touch global git config to do this. Verify after every squash-merge with the
-  same `git log -1 --format=%B` grep from Section 1, plus `git log -1 --format="%an %ae %cn %ce"`
-  — both must be clean.
-- **This sandbox's network only reaches the real MongoDB Atlas cluster if something
-  changes** — as of this writing it does not. The environment's outbound proxy tunnels
-  HTTPS/CONNECT traffic; MongoDB's `mongodb+srv://` protocol is raw TCP, which is not
-  supported through it (confirmed via a direct connection attempt that hung to a clean
-  timeout, not an auth or DNS error). Real credentials can be present in `.env.local`
-  and still be useless from here for this reason. DB-dependent scripts and end-to-end
-  flows need to be run by whoever has real network access (local dev machine, CI, or via
-  the live deployed app's own HTTPS API, which *does* work through the proxy) — don't
-  claim something was tested end-to-end if it only ran against mocks or didn't run at
-  all.
-- **Headless Chromium (Playwright) cannot complete HTTPS requests through this
-  session's proxy, to any host** — confirmed via an isolating test: a plain-HTTP
-  request through the same proxy gets a real response (405, the proxy's documented
-  behavior for non-CONNECT requests), but every HTTPS navigation resets mid-handshake
-  (`net::ERR_CONNECTION_RESET`), reproduced identically against both a known-good site
-  (`sso.doneisbetter.com`, which `curl` reaches fine through the same proxy) and an
-  external one — so it's this sandbox's browser-automation path, not a destination
-  block. Root cause is presumed to be Chromium not trusting the proxy's TLS-terminating
-  CA (`/root/.ccr/ca-bundle.crt`) even though the system OpenSSL/curl trust store has
-  it, but this wasn't fully isolated. Do **not** work around this with
-  `--ignore-certificate-errors` or any other TLS-verification bypass — that's exactly
-  what Section 1 of this document and this environment's own proxy README both
-  prohibit. If a task genuinely needs live browser reproduction against an HTTPS site,
-  say plainly that it isn't possible from this sandbox rather than faking it or
-  quietly downgrading to a non-TLS check.
+  same `git log -1 --format=%B` grep from Section 1, plus
+  `git log -1 --format="%an %ae %cn %ce"` — both must be clean.
+
+### 7.3 Cloud sandbox only — verify before believing
+
+Each of these was observed in a hosted sandbox session. **All of them have been measured
+false or unreproducible on a local macOS workstation.** Do not repeat them as facts
+without re-running the check in your own environment; the one-line check is given for
+each.
+
+- **MongoDB Atlas unreachable.** The sandbox's outbound proxy tunnels HTTPS/CONNECT
+  only, and `mongodb+srv://` is raw TCP, so DB-dependent scripts and end-to-end flows
+  could not run there. **This is false on a local machine**: measured on 2026-08-21 from
+  macOS, `_mongodb._tcp` SRV records resolve and TCP 27017 to the cluster's shards is
+  open, and a real read against the production `oauthClients` collection succeeded. So
+  on a workstation the `scripts/*.mjs` DB tooling genuinely works — do not decline that
+  work citing this bullet. Check with:
+  `dig +short SRV _mongodb._tcp.<cluster-host>` then `nc -z -G 3 <shard-host> 27017`.
+- **Headless Chromium (Playwright) could not complete HTTPS through the sandbox proxy**,
+  resetting mid-handshake against every host, presumed to be Chromium not trusting the
+  proxy's TLS-terminating CA. Not re-verified on a local workstation, where there is no
+  such proxy in front of the browser. Either way the standing rule holds: never work
+  around it with `--ignore-certificate-errors` or any other TLS-verification bypass. If
+  live browser reproduction genuinely is not possible where you are, say so plainly
+  rather than faking it or quietly downgrading to a non-TLS check.
+- **Branch/tag deletion 403s through the sandbox git relay.** `git push` could create
+  and force-update refs there, but `git push origin --delete <branch>` consistently
+  returned HTTP 403 — a token-scope restriction, not a transient failure. Not re-tested
+  locally, and deliberately so: branch deletion is on Section 5's always-confirm list,
+  so it needs explicit per-instance sign-off before anyone tries it anywhere. If it does
+  403 for you, report it and let a human remove the ref via the GitHub web UI.
+
+### 7.4 Recording a new environment finding
+
+State the environment you observed it in, the command you ran, and the date. Write
+"observed in X" rather than "this environment does Y," and if a finding contradicts one
+above, correct the bullet in place instead of adding a second conflicting claim.
+
 
 ## 8. Keeping these rules in sync
 
