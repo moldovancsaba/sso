@@ -1,4 +1,16 @@
-# Release Notes [![Version Badge](https://img.shields.io/badge/version-5.33.2-blue)](RELEASE_NOTES.md)
+# Release Notes [![Version Badge](https://img.shields.io/badge/version-5.33.3-blue)](RELEASE_NOTES.md)
+
+## [v5.33.3] — 2026-08-21T00:00:00.000Z
+
+### 🐛 Revocation Of Machine Access Is Now Durable
+
+Revoking a client's `client_credentials` grant recorded nothing, so the next ordinary run of the enablement script re-granted it. Verified against production: after `SSO Admin Dashboard` was revoked, a plain dry run immediately queued it for `+client_credentials +manage_permissions` again.
+
+Revocation now persists `m2m_excluded: true`, which outranks every other eligibility rule. Lifting it requires naming the client explicitly in `M2M_CLIENTS`, so a withdrawn credential is never restored as a side effect of a routine run.
+
+Covered by `__tests__/m2m-client-eligibility.test.js`. The script's entry point is guarded so importing it for tests cannot touch the database.
+
+---
 
 ## [v5.33.2] — 2026-08-21T00:00:00.000Z
 

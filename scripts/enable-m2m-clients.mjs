@@ -59,7 +59,15 @@ const REVOKE = (process.env.REVOKE_M2M || '')
 
 const M2M_SCOPE = 'manage_permissions'
 
-function classify(client) {
+export function classify(client) {
+  // WHAT: A previous revocation permanently excludes a client from the eligibility pass.
+  // WHY: Revocation was a one-shot edit with nothing recorded, so the next ordinary
+  //      `DRY_RUN=false` run silently re-granted a credential an operator had
+  //      deliberately removed. This flag makes the decision durable. Lift it by naming
+  //      the client explicitly in M2M_CLIENTS, which is a deliberate statement of intent.
+  if (client.m2m_excluded) {
+    return { eligible: false, reason: 'excluded from machine access by a previous revocation' }
+  }
   if (client.status !== 'active') {
     return { eligible: false, reason: `status is ${client.status}, not active` }
   }
@@ -121,14 +129,21 @@ async function main() {
       //      same run.
       const revoking = REVOKE.includes(client.name) || REVOKE.includes(client.client_id)
 
-      const { eligible, reason } = classify(client)
+      // WHAT: Naming a client explicitly in M2M_CLIENTS lifts a previous exclusion.
+      // WHY: Spelling out a single client is a deliberate statement, the same way
+      //      REVOKE_M2M is. A bare run across every client must never lift it silently.
+      const explicit = ONLY.length > 0 && (ONLY.includes(client.name) || ONLY.includes(client.client_id))
+      const clearingExclusion = Boolean(explicit && !revoking && client.m2m_excluded)
+
+      const { eligible, reason } = classify(clearingExclusion ? { ...client, m2m_excluded: false } : client)
       const addGrant = !revoking && targeted && eligible && !grants.includes('client_credentials')
       const addScope = !revoking && targeted && eligible && !scopes.includes(M2M_SCOPE)
       const dropGrant = revoking && grants.includes('client_credentials')
       const dropScope = revoking && scopes.includes(M2M_SCOPE)
+      const settingExclusion = Boolean(revoking && !client.m2m_excluded)
 
-      if (!deadScopes.length && !addGrant && !addScope && !dropGrant && !dropScope) {
-        const why = revoking ? 'already has no machine access' : !targeted ? 'not targeted' : eligible ? 'already correct' : reason
+      if (!deadScopes.length && !addGrant && !addScope && !dropGrant && !dropScope && !settingExclusion && !clearingExclusion) {
+        const why = revoking ? 'already revoked and excluded' : !targeted ? 'not targeted' : eligible ? 'already correct' : reason
         console.log(`  ${label.padEnd(22)} no change (${why})`)
         continue
       }
@@ -141,6 +156,8 @@ async function main() {
       if (dropScope) nextScopes = nextScopes.filter((s) => s !== M2M_SCOPE)
 
       const actions = []
+      if (settingExclusion) actions.push('(excluding from future runs)')
+      if (clearingExclusion) actions.push('(lifting previous exclusion)')
       if (addGrant) actions.push('+client_credentials')
       if (addScope) actions.push(`+${M2M_SCOPE}`)
       if (dropGrant) actions.push('-client_credentials')
@@ -150,7 +167,13 @@ async function main() {
 
       console.log(`  ${label.padEnd(22)} ${actions.join('  ')}`)
 
-      plan.push({ client_id: client.client_id, label, nextGrants, nextScopes })
+      plan.push({
+        client_id: client.client_id,
+        label,
+        nextGrants,
+        nextScopes,
+        m2mExcluded: revoking ? true : clearingExclusion ? false : undefined,
+      })
     }
 
     if (!plan.length) {
@@ -165,10 +188,17 @@ async function main() {
     }
 
     for (const item of plan) {
-      await clients.updateOne(
-        { client_id: item.client_id },
-        { $set: { grant_types: item.nextGrants, allowed_scopes: item.nextScopes, updated_at: new Date() } }
-      )
+      const set = {
+        grant_types: item.nextGrants,
+        allowed_scopes: item.nextScopes,
+        updated_at: new Date(),
+      }
+      // WHAT: Persist the exclusion decision alongside the grant change.
+      // WHY: Without it the revocation is invisible to the next run, which would
+      //      re-grant the credential. Only set when revoking or explicitly lifting.
+      if (item.m2mExcluded !== undefined) set.m2m_excluded = item.m2mExcluded
+
+      await clients.updateOne({ client_id: item.client_id }, { $set: set })
       console.log(`  updated ${item.label}`)
     }
 
@@ -180,7 +210,15 @@ async function main() {
   }
 }
 
-main().catch((error) => {
-  console.error('Failed:', error.message)
-  process.exit(1)
-})
+// WHAT: Only run when invoked directly, not when imported.
+// WHY: classify() is exported so its eligibility rules can be tested. Without this
+//      guard, importing the module would connect to the database and start mutating
+//      client records as a side effect of running the test suite.
+const invokedDirectly = process.argv[1] && import.meta.url === `file://${process.argv[1]}`
+
+if (invokedDirectly) {
+  main().catch((error) => {
+    console.error('Failed:', error.message)
+    process.exit(1)
+  })
+}

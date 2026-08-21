@@ -1,6 +1,6 @@
 # Roadmap
 
-Version: 5.33.2  
+Version: 5.33.3  
 Last updated: 2026-08-21T00:00:00.000Z
 
 ## Recently Delivered
