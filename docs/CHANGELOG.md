@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [5.33.3] - 2026-08-21
+
+### 🐛 Fixed
+
+**Revoking machine access was not durable, and the next ordinary run silently undid it.** `scripts/enable-m2m-clients.mjs` applied `REVOKE_M2M` as a one-shot edit and recorded nothing. Because `classify()` had no notion of a deliberate exclusion, the very next `DRY_RUN=false` run — the routine enablement pass — saw a healthy confidential client and re-granted the `client_credentials` grant and `manage_permissions` scope that an operator had just removed. Confirmed against production: after `SSO Admin Dashboard` was revoked, a plain dry run queued it for `+client_credentials +manage_permissions`.
+
+Revocation now writes `m2m_excluded: true` on the client record, and `classify()` treats that flag as outranking every other eligibility rule. A revoked client stays revoked across later runs.
+
+Lifting an exclusion requires naming the client explicitly in `M2M_CLIENTS`. A bare run across every client never lifts one, so restoring a withdrawn credential is always a deliberate act rather than a side effect.
+
+`classify()` is now exported and covered by `__tests__/m2m-client-eligibility.test.js` (6 tests): public clients are never eligible, secretless and suspended clients are rejected, and exclusion outranks an otherwise perfectly eligible record. The script's `main()` is guarded so importing the module for tests cannot connect to the database or mutate client records as a side effect.
+
+### 📝 Documentation
+
+`README.md` version corrected from `5.33.1` to match `package.json`; it drifted because it is not in the list `npm run check:docs` enforces.
+
+---
+
 ## [5.33.2] - 2026-08-21
 
 ### 🐛 Fixed
