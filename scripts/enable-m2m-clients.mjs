@@ -45,9 +45,13 @@ config()
 // WHAT: Preview unless explicitly told otherwise. See the SAFETY note above.
 const DRY_RUN = process.env.DRY_RUN !== 'false'
 
-// WHAT: Clients that should be able to act on their own behalf.
-// WHY: An empty list means "every eligible confidential client". Set M2M_CLIENTS to a
-//      comma-separated list of names or client_ids to narrow the change.
+// WHAT: Clients that should be able to act on their own behalf. Naming them is MANDATORY.
+// WHY: an empty list used to mean "every eligible confidential client", so a bare run granted
+//      the strongest machine scope there is to every confidential client on record. That is how
+//      `SSO Admin Dashboard` - a browser admin UI with no machine workflow - acquired a standing
+//      credential able to rewrite any user's permissions, which then had to be revoked by hand.
+//      Granting is now always a named, deliberate act; a bare run still surveys and still strips
+//      dead scopes, but it cannot hand anything out.
 const ONLY = (process.env.M2M_CLIENTS || '')
   .split(',')
   .map((s) => s.trim())
@@ -63,7 +67,13 @@ const REVOKE = (process.env.REVOKE_M2M || '')
   .map((s) => s.trim())
   .filter(Boolean)
 
-const M2M_SCOPE = 'manage_permissions'
+// WHAT: The scope granted alongside the client_credentials grant, overridable per run.
+// WHY: this was hard-wired to `manage_permissions` - "rewrite any user's app-permission
+//      records at SSO" - which is the right scope for almost nothing. A content pipeline that
+//      writes provider records to classscout wants `classscout:ingest.write` and must never
+//      hold the other. Set M2M_SCOPE to grant least privilege; the old value stays the default
+//      only so an existing documented invocation keeps behaving as its operator expects.
+const M2M_SCOPE = (process.env.M2M_SCOPE || 'manage_permissions').trim()
 
 async function main() {
   if (!process.env.MONGODB_URI) {
@@ -99,7 +109,9 @@ async function main() {
 
     for (const client of records) {
       const label = client.name || client.client_id
-      const targeted = ONLY.length === 0 || ONLY.includes(client.name) || ONLY.includes(client.client_id)
+      // WHAT: only an explicitly named client is ever a grant target.
+      // WHY: see the M2M_CLIENTS note above - a bare run must not hand out machine access.
+      const targeted = ONLY.includes(client.name) || ONLY.includes(client.client_id)
 
       const grants = Array.isArray(client.grant_types) ? [...client.grant_types] : []
       const scopes = Array.isArray(client.allowed_scopes) ? [...client.allowed_scopes] : []

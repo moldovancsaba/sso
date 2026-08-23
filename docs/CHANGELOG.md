@@ -7,6 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [5.34.0] - 2026-08-23
+
+### ✨ Added
+
+**Per-resource machine scopes.** `manage_permissions` was the only `machineOnly` scope, and it means *rewrite any user's app-permission records at SSO*. Every machine caller therefore had to hold it regardless of what it actually did — a content pipeline that writes provider records to ClassScout was obliged to carry SSO's most dangerous machine capability to obtain any token at all. Four least-privilege scopes now exist: `classscout:ingest.write`, `classscout:catalog.read`, `management:ingest.write`, `management:catalog.read`, named `<resource>:<capability>` so a scope in an audit log identifies the system it acts on without a lookup.
+
+**`aud` now names the resource the token is for, not the caller that asked for it.** `generateAccessToken` hard-wired `aud` to the requesting `client_id`, so every token a machine client obtained read `aud: <its own id>` whether it was destined for ClassScout or for another service. A resource server had no standards-conformant way to reject a token minted for somebody else (RFC 9068 §4) and would have had to allow-list caller ids instead. The audience is derived from the resource prefix of the already-validated requested scopes, so there is no second list to keep in sync — a client can only reach a resource it already holds a scope for. Tokens whose scopes name no resource (`manage_permissions`, `read:cards`) are byte-identical to before.
+
+**One token per resource.** A `client_credentials` request whose scopes span two resources is refused with `invalid_scope`. A single bearer string valid at both ClassScout and management would mean leaking one leaks both; per-resource tokens keep the blast radius to one system.
+
+**RFC 8707 `resource` parameter**, accepted as an assertion only: it must match the resource the requested scopes already name, or the request is refused with `invalid_target`. Honouring a `resource` the scopes do not support would let a caller aim a token at a service it holds no scope for.
+
+### 🔒 Security
+
+**The `client_credentials` grant no longer defaults to `manage_permissions` when `scope` is omitted.** `handleClientCredentialsGrant` read `requestedScope || 'manage_permissions'`, so a caller that simply forgot the parameter was silently handed the strongest machine scope it was allowed to hold. `scope` is now mandatory on this grant and its absence is an `invalid_scope` 400. This is a **breaking change** for any caller relying on the default; no registered client does.
+
+**`scripts/enable-m2m-clients.mjs` can no longer grant machine access to an unnamed client.** An empty `M2M_CLIENTS` meant "every eligible confidential client", so a bare `DRY_RUN=false` run handed `client_credentials` + `manage_permissions` to every confidential client on record. That is how `SSO Admin Dashboard` — a browser admin UI with no machine workflow — acquired a standing credential able to rewrite any user's permissions, which 5.33.2 then had to add tooling to revoke. Granting is now always a named, deliberate act. A bare run still surveys and still strips dead scopes; it cannot hand anything out. The granted scope is also overridable per run via `M2M_SCOPE`, so a client can be given `classscout:ingest.write` alone.
+
+### 🔧 Tooling
+
+**`scripts/register-openclaw-worker-client.mjs`.** Registers the OpenClaw content pipeline as a confidential `client_credentials`-only client holding `classscout:ingest.write` and `classscout:catalog.read` — and explicitly not `manage_permissions`. It refuses to run on a checkout where those scopes are unregistered, because `allowed_scopes` is not validated at registration time and would otherwise produce a client that looks correct but cannot obtain a token. The secret is written to a mode-600 file already in OpenClaw's `.env.sso` format rather than printed to stdout.
+
+### ✅ Tests
+
+`__tests__/oauth-machine-audience.test.js` (13 tests) covers audience derivation, the multi-resource refusal, the no-resource fallback, and that `RESOURCE_SCOPE_PREFIXES` is derived from the scope table rather than hand-listed — including a guard that every resource scope is `machineOnly`, since a user-consentable resource scope would let one end user mint a token aimed at a whole backend service. Full suite: 108 passing.
+
+---
+
 ## [5.33.3] - 2026-08-21
 
 ### 🐛 Fixed

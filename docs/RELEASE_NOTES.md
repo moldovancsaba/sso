@@ -1,4 +1,24 @@
-# Release Notes [![Version Badge](https://img.shields.io/badge/version-5.33.3-blue)](RELEASE_NOTES.md)
+# Release Notes [![Version Badge](https://img.shields.io/badge/version-5.34.0-blue)](RELEASE_NOTES.md)
+
+## [v5.34.0] — 2026-08-23T00:00:00.000Z
+
+### ✨ Machine Tokens Now Name The Resource They Are For
+
+`aud` was hard-wired to the calling client's own id, so every machine token read `aud: <caller>` regardless of which service it was destined for. A resource server could not tell a token minted for it from one minted for a different service, and would have had to allow-list caller ids in place of the standard audience check (RFC 9068 §4).
+
+The audience is now derived from the resource prefix of the requested scopes. Because that derivation runs over the client's already-validated `allowed_scopes`, no second list exists to fall out of sync — a client can only reach a resource it already holds a scope for. A request whose scopes span two resources is refused: one bearer string valid at two services means leaking one leaks both.
+
+Tokens whose scopes name no resource are unchanged.
+
+### ✨ Least-Privilege Scopes For Machine Callers
+
+`manage_permissions` was the only machine scope in existence, and it grants the power to rewrite any user's app-permission records. Four resource scopes now exist — `classscout:ingest.write`, `classscout:catalog.read`, `management:ingest.write`, `management:catalog.read` — so a pipeline that writes provider records can hold exactly that and nothing more.
+
+### 🔒 Two Ways To Get More Privilege Than You Asked For, Both Closed
+
+Omitting `scope` on a `client_credentials` request used to yield `manage_permissions` by default. `scope` is now required. **Breaking** for any caller relying on the default; no registered client does.
+
+Running the enablement script without naming clients used to target every eligible confidential client, which is how a browser admin UI acquired a standing machine credential. Granting now requires naming the client.
 
 ## [v5.33.3] — 2026-08-21T00:00:00.000Z
 

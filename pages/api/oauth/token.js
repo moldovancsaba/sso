@@ -35,6 +35,7 @@
  */
 
 import { verifyClient } from '../../../lib/oauth/clients.mjs'
+import { resolveMachineAudience } from '../../../lib/oauth/scopes.mjs'
 import { validateAndConsumeCode } from '../../../lib/oauth/codes.mjs'
 import {
   generateAccessToken,
@@ -430,6 +431,7 @@ async function handleClientCredentialsGrant(req, res) {
     client_id,
     client_secret,
     scope: requestedScope,
+    resource: requestedResource,
   } = req.body
 
   // Validate required parameters
@@ -480,9 +482,21 @@ async function handleClientCredentialsGrant(req, res) {
     })
   }
 
+  // WHAT: `scope` is mandatory on this grant.
+  // WHY: this used to fall back to `manage_permissions` - the strongest machine scope there
+  //      is, letting its bearer rewrite any user's app-permission records. A caller that
+  //      simply forgot the parameter was silently handed it. Failing closed costs one
+  //      explicit parameter and removes a privilege-escalation-by-omission path.
+  if (!requestedScope || !requestedScope.trim()) {
+    return res.status(400).json({
+      error: 'invalid_scope',
+      error_description: 'scope is required for the client_credentials grant',
+    })
+  }
+
   // WHAT: Validate and filter requested scopes
   // WHY: Client can only request scopes it's authorized for
-  let finalScope = requestedScope || 'manage_permissions'
+  let finalScope = requestedScope
   const requestedScopes = finalScope.split(' ').filter(Boolean)
   const allowedScopes = client.allowed_scopes || []
   
@@ -503,6 +517,40 @@ async function handleClientCredentialsGrant(req, res) {
 
   finalScope = requestedScopes.join(' ')
 
+  // WHAT: Derive the token's audience from the resource prefix its scopes carry, and refuse
+  //       to mint one token that spans two resources.
+  // WHY: `aud` must name the resource server so it can reject a token minted for somebody
+  //       else (RFC 9068 s4). Deriving it from the already-validated `allowed_scopes` means
+  //       there is no second list to keep in sync - a client can only reach a resource it
+  //       already holds a scope for. Scopes with no `<resource>:` prefix (manage_permissions,
+  //       read:cards) name no resource, so those tokens keep their previous `aud` unchanged.
+  const resolved = resolveMachineAudience(requestedScopes)
+
+  if (!resolved.ok) {
+    logger.warn('Client credentials request: scopes span multiple resources', {
+      client_id,
+      resources: resolved.resources,
+    })
+    return res.status(400).json({
+      error: 'invalid_scope',
+      error_description: `A single token cannot span multiple resources (${resolved.resources.join(', ')}); request one token per resource`,
+    })
+  }
+
+  const audience = resolved.audience || undefined
+
+  // WHAT: RFC 8707 `resource` is accepted only as an assertion of what the scopes already say.
+  // WHY: honouring a `resource` the scopes do not support would let a caller aim a token at a
+  //       service it holds no scope for.
+  if (requestedResource && requestedResource !== audience) {
+    return res.status(400).json({
+      error: 'invalid_target',
+      error_description: audience
+        ? `resource '${requestedResource}' does not match the resource named by the requested scopes ('${audience}')`
+        : `resource '${requestedResource}' is not supported by the requested scopes`,
+    })
+  }
+
   // WHAT: Generate access token without user context
   // WHY: This is machine-to-machine auth, no user involved
   // HOW: Use null userId to indicate client-only token
@@ -510,6 +558,7 @@ async function handleClientCredentialsGrant(req, res) {
     userId: null, // No user context
     clientId: client_id,
     scope: finalScope,
+    audience,
   })
 
   const response = {
@@ -522,6 +571,7 @@ async function handleClientCredentialsGrant(req, res) {
   logger.info('Client credentials token issued', {
     client_id,
     scope: finalScope,
+    audience: audience || client_id,
   })
 
   return res.status(200).json(response)

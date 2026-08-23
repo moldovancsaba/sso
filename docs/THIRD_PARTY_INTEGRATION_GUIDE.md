@@ -1,6 +1,6 @@
 # Third-Party Integration Guide — SSO Service
 
-**Version**: 5.33.3  
+**Version**: 5.34.0  
 **Last Updated**: 2026-08-21T00:00:00.000Z  
 **Service URL**: https://sso.doneisbetter.com  
 **Status**: Current Runtime Guide
@@ -377,12 +377,55 @@ actually implemented, so a library that reads the discovery document will pick c
 
 ### Scopes
 
-`manage_permissions` is **machine-only**: it is obtainable through this grant and is
-rejected on `/api/oauth/authorize`. That is deliberate — its bearer can write permission
-records for every user of the client, which is appropriate for a service acting on its
-own behalf and never appropriate for a token obtained by one end user.
+`scope` is **required** on this grant. Omitting it returns `invalid_scope`. It previously
+defaulted to `manage_permissions`, so a caller that forgot the parameter was handed the
+strongest machine scope it was allowed to hold; that default is gone.
+
+Two kinds of machine scope exist.
+
+**Resource scopes**, named `<resource>:<capability>`, authorize calls against one backend
+service and nothing else. Request the narrowest one that does the job:
+
+| Scope | Grants |
+| --- | --- |
+| `classscout:ingest.write` | Create and patch provider records via the ClassScout ingest API |
+| `classscout:catalog.read` | Read the ClassScout provider catalog |
+| `management:ingest.write` | Create and patch listing records via the management ingest API |
+| `management:catalog.read` | Read the management listing catalog |
+
+**`manage_permissions`** writes per-user app-permission records *at SSO itself*. It is not a
+general-purpose machine scope — do not request it unless your caller administers SSO
+permissions. Most integrations want a resource scope instead.
+
+All of the above are **machine-only**: obtainable through this grant and rejected on
+`/api/oauth/authorize`. A token obtained by one end user must never carry a scope that acts
+on every user's data, or on a whole backend service.
 
 Requesting a scope outside the client's `allowed_scopes` returns `invalid_scope`.
+
+### Audience — which service a token is for
+
+A token's `aud` claim names the **resource the token is for**, derived from the resource
+prefix of the scopes you requested. `client_id` still identifies you, the caller.
+
+```json
+{ "aud": "classscout", "client_id": "openclaw-worker", "scope": "classscout:ingest.write" }
+```
+
+This is what lets a resource server reject a token minted for a different service
+(RFC 9068 §4). Validate it: a service that accepts any well-signed SSO token regardless of
+`aud` accepts tokens issued for every other service too.
+
+Scopes that name no resource — `manage_permissions`, and user scopes such as `read:cards` —
+leave `aud` set to the requesting `client_id`, exactly as before.
+
+**One token per resource.** A request whose scopes span two resources is refused with
+`invalid_scope`. A single bearer string valid at two services means leaking one leaks both;
+ask for a ClassScout token and a management token separately.
+
+You may also send RFC 8707 `resource` alongside `scope`. It is accepted only as an
+assertion — it must equal the resource your scopes already name, or the request is refused
+with `invalid_target`. It cannot aim a token at a service you hold no scope for.
 
 ### Revoking an agent
 
