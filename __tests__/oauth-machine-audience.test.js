@@ -10,6 +10,7 @@
  */
 
 import { generateKeyPairSync } from 'crypto'
+import { readFileSync } from 'fs'
 import {
   RESOURCE_SCOPE_PREFIXES,
   resolveMachineAudience,
@@ -40,6 +41,27 @@ describe('RESOURCE_SCOPE_PREFIXES', () => {
       if (def.id.includes(':') && RESOURCE_SCOPE_PREFIXES.has(def.id.split(':')[0])) {
         expect(def.machineOnly).toBe(true)
       }
+    }
+  })
+})
+
+describe('OIDC discovery advertises every registered scope', () => {
+  test('scopes_supported is derived, so a new scope cannot be invisible to clients', async () => {
+    // This drifted twice: 5.33.0 fixed `manage_permissions` being issuable but unadvertised,
+    // and 5.34.0 reintroduced it for the four resource scopes. A hand-maintained second copy
+    // of the scope list will always drift, because whoever adds a scope edits the table.
+    const source = readFileSync(
+      new URL('../pages/api/.well-known/openid-configuration.js', import.meta.url),
+      'utf8',
+    )
+    expect(source).toContain('scopes_supported: Object.keys(SCOPE_DEFINITIONS)')
+  })
+
+  test('every resource scope is therefore advertised', () => {
+    const advertised = Object.keys(SCOPE_DEFINITIONS)
+    for (const scope of ['classscout:ingest.write', 'classscout:catalog.read',
+                         'management:ingest.write', 'management:catalog.read']) {
+      expect(advertised).toContain(scope)
     }
   })
 })

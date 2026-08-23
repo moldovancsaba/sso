@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [5.34.1] - 2026-08-23
+
+### 🐛 Fixed
+
+**The four resource scopes added in 5.34.0 were missing from OIDC discovery.** `scopes_supported` in `pages/api/.well-known/openid-configuration.js` was a hand-maintained array — a second copy of the scope list — and 5.34.0 added the scopes to `SCOPE_DEFINITIONS` without touching it. The scopes were fully functional (the token endpoint validates against the client's `allowed_scopes`, not against discovery), but a client library that reads the discovery document had no way to learn they exist.
+
+This is the second time the same array drifted the same way: 5.33.0 had to fix `manage_permissions` being a real, issuable scope that discovery never advertised. It will drift every time, because whoever adds a scope edits the table and does not think to edit this file. `scopes_supported` is now `Object.keys(SCOPE_DEFINITIONS)`, which removes the second place to forget, and a test asserts the derivation rather than the resulting list.
+
+---
+
 ## [5.34.0] - 2026-08-23
 
 ### ✨ Added

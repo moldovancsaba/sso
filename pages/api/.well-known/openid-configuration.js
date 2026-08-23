@@ -13,6 +13,7 @@
  */
 
 import { runCors } from '../../../lib/cors.mjs'
+import { SCOPE_DEFINITIONS } from '../../../lib/oauth/scopes.mjs'
 
 export default async function handler(req, res) {
   // Apply CORS
@@ -64,21 +65,14 @@ export default async function handler(req, res) {
       'RS256', // RSA signature with SHA-256
     ],
 
-    // Supported scopes
-    scopes_supported: [
-      'openid',
-      'profile',
-      'email',
-      'offline_access',
-      'manage_permissions', // client_credentials only - not grantable via /authorize
-      'read:cards',
-      'write:cards',
-      'read:rankings',
-      'read:decks',
-      'write:decks',
-      'read:games',
-      'write:games',
-    ],
+    // WHAT: Supported scopes, derived from the scope table rather than hand-listed.
+    // WHY: this array was a second, hand-maintained copy of SCOPE_DEFINITIONS and it had
+    //      already drifted once - 5.33.0 had to fix `manage_permissions` being a real,
+    //      issuable scope that discovery never advertised. Adding the four resource scopes
+    //      in 5.34.0 drifted it again in the same way, and the same way it always will:
+    //      whoever adds a scope edits the table and does not think to edit this file.
+    //      Deriving it removes the second place to forget.
+    scopes_supported: Object.keys(SCOPE_DEFINITIONS),
 
     // Supported claims in ID tokens
     claims_supported: [

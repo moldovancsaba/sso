@@ -1,4 +1,10 @@
-# Release Notes [![Version Badge](https://img.shields.io/badge/version-5.34.0-blue)](RELEASE_NOTES.md)
+# Release Notes [![Version Badge](https://img.shields.io/badge/version-5.34.1-blue)](RELEASE_NOTES.md)
+
+## [v5.34.1] — 2026-08-23T00:00:00.000Z
+
+### 🐛 New Scopes Were Missing From Discovery
+
+`scopes_supported` was a hand-maintained copy of the scope list, so 5.34.0's four resource scopes worked but were never advertised. Same drift 5.33.0 fixed for `manage_permissions`. It is now derived from `SCOPE_DEFINITIONS`, so there is no second list to forget.
 
 ## [v5.34.0] — 2026-08-23T00:00:00.000Z
 
