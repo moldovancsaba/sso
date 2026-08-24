@@ -1,4 +1,16 @@
-# Release Notes [![Version Badge](https://img.shields.io/badge/version-5.34.1-blue)](RELEASE_NOTES.md)
+# Release Notes [![Version Badge](https://img.shields.io/badge/version-5.35.0-blue)](RELEASE_NOTES.md)
+
+## [v5.35.0] — 2026-08-23T00:00:00.000Z
+
+### 🔒 CORS No Longer Has A Wildcard, Because It Never Safely Could
+
+`lib/cors.mjs` pairs `Access-Control-Allow-Origin` with `Access-Control-Allow-Credentials: true`, so that header decides whether an arbitrary website may read authenticated responses from the identity provider. A literal `*` in `SSO_ALLOWED_ORIGINS` short-circuited the allow-list and reflected whatever `Origin` the caller sent — any site could then read any logged-in user's session data. No deployment was configured that way, so nothing was exposed; the branch is now gone rather than left as a one-character misconfiguration away from a full cross-origin breach.
+
+A request whose `Origin` is not on the list now receives no `Access-Control-Allow-Origin` header at all, instead of one naming a different origin. Browsers block both identically, so integrators see no change.
+
+### ✅ CI Now Runs Lint And Type Checks
+
+The workflow ran guardrails, docs checks, and tests, but not `lint` or `type-check` — and `next.config.js` sets `ignoreBuildErrors` and `ignoreDuringBuilds`, so a type error could reach a deployment with every automated check still green. Both now run in CI on Node 24.
 
 ## [v5.34.1] — 2026-08-23T00:00:00.000Z
 
