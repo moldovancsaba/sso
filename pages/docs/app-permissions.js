@@ -15,15 +15,18 @@ import { DocsCodeBlock } from '@sovereignsquad/gds-core/client'
 // WHY: Developers need to understand how app-level permissions work in SSO
 // HOW: Explains pending → approved → revoked states and role management
 
-import DocsLayout from '../../components/DocsLayout';
+import { DocsPageShell, PublicShell } from '@sovereignsquad/gds-core/server'
+import { createDocsVersionMeta, getDocsShellProps } from '../../lib/docs-shell-config'
 
 export default function AppPermissions() {
   return (
-    <DocsLayout
-      eyebrow="Authorization"
-      lead="Canonical permission states, role semantics, and lifecycle behavior for application access."
-      title="App Permissions"
-    >
+    <PublicShell {...getDocsShellProps('/docs/app-permissions')}>
+      <DocsPageShell
+        eyebrow="Authorization"
+        lead="Canonical permission states, role semantics, and lifecycle behavior for application access."
+        meta={createDocsVersionMeta('API Version')}
+        title="App Permissions"
+      >
       <Stack gap="xl">
         <Box>
             <Title order={2} mb="sm">Overview</Title>
@@ -461,6 +464,7 @@ Content-Type: application/json
           </Box>
         
       </Stack>
-    </DocsLayout>
+      </DocsPageShell>
+    </PublicShell>
   );
 }

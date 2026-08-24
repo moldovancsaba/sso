@@ -13,16 +13,18 @@ import { AccentPanel } from '@sovereignsquad/gds-core/server'
 // WHY: Developers need practical error handling patterns for production apps
 // HOW: Covers OAuth errors, app permission errors, and best practices
 
-import DocsLayout from '../../components/DocsLayout';
+import { DocsPageShell, PublicShell } from '@sovereignsquad/gds-core/server'
+import { createDocsVersionMeta, getDocsShellProps } from '../../lib/docs-shell-config'
 
 export default function ErrorHandlingDocs() {
   return (
-    <DocsLayout
-      eyebrow="Integration Guide"
-      lead="Production-safe handling of OAuth, session, and permission failures."
-      title="Error Handling"
-      versionLabel="SSO Version"
-    >
+    <PublicShell {...getDocsShellProps('/docs/error-handling')}>
+      <DocsPageShell
+        eyebrow="Integration Guide"
+        lead="Production-safe handling of OAuth, session, and permission failures."
+        meta={createDocsVersionMeta('SSO Version')}
+        title="Error Handling"
+      >
       <Stack gap="xl">
         <Box>
             <Title order={2} mb="sm">Overview</Title>
@@ -309,6 +311,7 @@ function logError(error, context) {
           </Box>
         
       </Stack>
-    </DocsLayout>
+      </DocsPageShell>
+    </PublicShell>
   );
 }

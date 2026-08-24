@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import {
+  Anchor,
   Stack,
   Title,
   Text,
@@ -26,7 +27,7 @@ export default function Quickstart() {
               Use OAuth 2.0 Authorization Code flow. Do not treat the public password-login endpoint as a replacement for OAuth token issuance.
             </Text>
             <Text size="sm">
-              If you are implementing login screens, auth forms, or app UI around this flow, follow the shared <Link href="https://github.com/sovereignsquad/general-design-system">General Design System</Link> as the authoritative cross-project design system.
+              If you are implementing login screens, auth forms, or app UI around this flow, follow the shared <Anchor component={Link} href="https://github.com/sovereignsquad/general-design-system">General Design System</Anchor> as the authoritative cross-project design system.
             </Text>
           </Stack>
         </AccentPanel>

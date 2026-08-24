@@ -7,6 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [5.36.0] - 2026-08-24
+
+### 🧹 Removed
+
+**`components/DocsLayout.js` is deleted, closing the last local UI adapter.** It and `lib/docs-shell-config.js` were duplicates of each other: `getDocsShellProps()` reproduced DocsLayout's `PublicShell` props verbatim, `createDocsVersionMeta()` its `buildVersionMeta()`, and the two docs-navigation arrays were byte-identical (diffed, not assumed). Fifteen docs pages already consumed the config module while five still imported the component, so the docs sidebar had two definitions and adding a route meant remembering both. The five stragglers — `session-management`, `error-handling`, `admin-approval`, `return-url-handling`, `app-permissions` — now compose `PublicShell` + `DocsPageShell` directly. `components/` was left empty and is gone.
+
+`session-management` and `error-handling` passed `versionLabel="SSO Version"` rather than the default; that label is carried onto `createDocsVersionMeta('SSO Version')` rather than silently reset to `API Version`.
+
+**`styles/globals.css` (742 lines) is deleted.** Every one of its 63 class selectors was unreferenced across `pages/` and `components/`, and nothing consumed its `--color-*` / `--space-*` token layer. `styles/docs.module.css.bak` went with it. `gds-adoption.json` now records no local adapters, no shell exception, and `migrationStatus: "direct"`.
+
+This closes the epic's remaining consumer-side work: the repo has one UI authority.
+
+### 🎨 Changed
+
+**Webfonts now load from `_document.js` instead of a CSS `@import`.** The `@import url(fonts.googleapis.com/...)` at the top of `globals.css` was the only thing fetching Inter and JetBrains Mono, the two families `lib/theme/mantineTheme.js` names as `fontFamily` and `fontFamilyMonospace`. Deleting the file without moving it would have dropped the whole product to system fonts with nothing failing. It is now a `<link>` pair (`preconnect` + stylesheet), which is also strictly faster — an `@import` cannot start downloading until the stylesheet containing it has itself been fetched and parsed, so the fonts were serialized behind it. Both hosts were already allowed by the CSP in `lib/securityHeaders.mjs`; no header change was needed.
+
+**Ten bare `next/link` elements became Mantine `Anchor`s.** `globals.css` carried a bare `a { color: var(--text-link); text-decoration: none }` rule, and unlike its class selectors that rule *was* live: Mantine styles its own components but never touches a raw `<a>`, and `next/link` renders one. Measured against `main` before the change, those links computed to `rgb(37, 99, 235)` with no underline; with the stylesheet gone they fell back to user-agent `rgb(0, 0, 238)`, underlined. Wrapping them in `<Anchor component={Link}>` restores `rgb(37, 99, 235)` / no underline from the theme's `brand` token — same rendering, no local stylesheet. The one remaining raw `<Link>` wraps a logo image and needs no text styling.
+
+**The page background changes from `#fafafa` to `#ffffff`**, Mantine's default, now that `body { background: var(--bg-page) }` is gone. This is the one deliberate visual change in this release: restoring the old value would mean re-asserting local authority over a token the design system owns.
+
+### ✅ Verification
+
+`lint`, `type-check`, 118 tests, `build`, `guard:repo`, `check:docs` all clean. All 20 docs routes plus `/`, `/login`, `/register`, `/privacy`, `/terms` return 200 from a production build and were checked in a browser; computed styles were diffed against a `main` build rather than eyeballed. A pre-existing sidebar/content overlap at narrow viewports reproduces identically on `main` and is untouched here.
+
+---
+
 ## [5.35.0] - 2026-08-23
 
 ### 🔒 Security

@@ -1,4 +1,24 @@
-# Release Notes [![Version Badge](https://img.shields.io/badge/version-5.35.0-blue)](RELEASE_NOTES.md)
+# Release Notes [![Version Badge](https://img.shields.io/badge/version-5.36.0-blue)](RELEASE_NOTES.md)
+
+## [v5.36.0] — 2026-08-24T00:00:00.000Z
+
+### 🧹 The Last Local UI Authority Is Gone
+
+`components/DocsLayout.js` and `lib/docs-shell-config.js` were the same code twice — the same `PublicShell` props, the same version badge, and a byte-identical copy of the docs navigation array. Fifteen docs pages already ran on the config; five still imported the component. Adding a docs page meant editing both arrays or letting the sidebar differ depending on which page you were standing on.
+
+Those five pages now compose `PublicShell` + `DocsPageShell` like the other fifteen, and `DocsLayout.js` is deleted. The `components/` directory is empty and gone with it.
+
+`styles/globals.css` (742 lines) is deleted too. All 63 of its class selectors were unreferenced and its design tokens were used by nothing. `gds-adoption.json` now lists no local adapters and no shell exception.
+
+### 🎨 What Actually Changed On Screen
+
+Two things in `globals.css` were live, despite the dead selectors:
+
+Its `@import` was the only thing loading Inter and JetBrains Mono — the two families `lib/theme/mantineTheme.js` asks for by name. That moves to a `<link>` in `_document.js`, which is also faster: a CSS `@import` cannot begin downloading until the stylesheet holding it has been fetched and parsed.
+
+Its bare `a` rule was styling ten `next/link` elements that Mantine never touches. Removing it dropped them to user-agent blue-and-underlined. They are now Mantine `Anchor` components, which measure `rgb(37, 99, 235)` with no underline — the same values the old CSS produced, sourced from the theme's `brand` token instead of a local stylesheet.
+
+The page background moves from `#fafafa` to Mantine's white. That is the design system's default asserting itself, and it is the one intentional visual change here.
 
 ## [v5.35.0] — 2026-08-23T00:00:00.000Z
 

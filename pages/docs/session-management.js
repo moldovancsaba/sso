@@ -13,16 +13,18 @@ import { AccentPanel } from '@sovereignsquad/gds-core/server'
 // WHY: Developers need to understand token types, expiry, and refresh mechanisms
 // HOW: Explains access tokens, refresh tokens, ID tokens, and session validation
 
-import DocsLayout from '../../components/DocsLayout';
+import { DocsPageShell, PublicShell } from '@sovereignsquad/gds-core/server'
+import { createDocsVersionMeta, getDocsShellProps } from '../../lib/docs-shell-config'
 
 export default function SessionManagementDocs() {
   return (
-    <DocsLayout
-      eyebrow="Integration Guide"
-      lead="Token lifecycle, refresh behavior, and public-session expectations for SSO consumers."
-      title="Session Management"
-      versionLabel="SSO Version"
-    >
+    <PublicShell {...getDocsShellProps('/docs/session-management')}>
+      <DocsPageShell
+        eyebrow="Integration Guide"
+        lead="Token lifecycle, refresh behavior, and public-session expectations for SSO consumers."
+        meta={createDocsVersionMeta('SSO Version')}
+        title="Session Management"
+      >
       <Stack gap="xl">
         <Box>
             <Title order={2} mb="sm">Overview</Title>
@@ -392,6 +394,7 @@ export async function logout(req, res) {
           </Box>
         
       </Stack>
-    </DocsLayout>
+      </DocsPageShell>
+    </PublicShell>
   );
 }

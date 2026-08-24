@@ -13,15 +13,18 @@ import { AccentPanel } from '@sovereignsquad/gds-core/server'
 // WHY: Developers need guidance on preserving user's location through OAuth redirects
 // HOW: Encode return URL in state parameter or use sessionStorage
 
-import DocsLayout from '../../components/DocsLayout';
+import { DocsPageShell, PublicShell } from '@sovereignsquad/gds-core/server'
+import { createDocsVersionMeta, getDocsShellProps } from '../../lib/docs-shell-config'
 
 export default function ReturnUrlHandling() {
   return (
-    <DocsLayout
-      eyebrow="Integration Guide"
-      lead="Preserve the user’s original destination safely through the OAuth redirect cycle."
-      title="Return URL Handling"
-    >
+    <PublicShell {...getDocsShellProps('/docs/return-url-handling')}>
+      <DocsPageShell
+        eyebrow="Integration Guide"
+        lead="Preserve the user’s original destination safely through the OAuth redirect cycle."
+        meta={createDocsVersionMeta('API Version')}
+        title="Return URL Handling"
+      >
       <Stack gap="xl">
         <Box>
             <Title order={2} mb="sm">The Problem</Title>
@@ -428,6 +431,7 @@ export default async function handler(req, res) {
           </Box>
         
       </Stack>
-    </DocsLayout>
+      </DocsPageShell>
+    </PublicShell>
   );
 }

@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import {
+  Anchor,
   Stack,
   Title,
   Text,
@@ -26,7 +27,7 @@ export default function DocsPage() {
               Use OAuth 2.0 Authorization Code flow with OIDC claims. Public login endpoints create cookie-backed sessions, but they do not replace the OAuth token flow.
             </Text>
             <Text size="sm">
-              Design / UI / UX SSOT lives in the shared <Link href="https://github.com/sovereignsquad/general-design-system">General Design System</Link>. Local styling in this repo should be treated as migration-state implementation, not the long-term design source of truth.
+              Design / UI / UX SSOT lives in the shared <Anchor component={Link} href="https://github.com/sovereignsquad/general-design-system">General Design System</Anchor>. Local styling in this repo should be treated as migration-state implementation, not the long-term design source of truth.
             </Text>
           </Stack>
         </AccentPanel>
@@ -107,10 +108,10 @@ Authorization: Bearer ACCESS_TOKEN`}
         <Box>
           <Title order={2} mb="sm">Read Next</Title>
           <List spacing="xs">
-            <List.Item><Link href="/docs/quickstart">Quick Start</Link></List.Item>
-            <List.Item><Link href="/docs/authentication">Authentication Guide</Link></List.Item>
-            <List.Item><Link href="/docs/integration">Integration Options</Link></List.Item>
-            <List.Item><Link href="/docs/api">API Reference</Link></List.Item>
+            <List.Item><Anchor component={Link} href="/docs/quickstart">Quick Start</Anchor></List.Item>
+            <List.Item><Anchor component={Link} href="/docs/authentication">Authentication Guide</Anchor></List.Item>
+            <List.Item><Anchor component={Link} href="/docs/integration">Integration Options</Anchor></List.Item>
+            <List.Item><Anchor component={Link} href="/docs/api">API Reference</Anchor></List.Item>
           </List>
         </Box>
       </Stack>

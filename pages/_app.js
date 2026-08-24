@@ -1,6 +1,5 @@
 import '@mantine/core/styles.css';
 import '@mantine/notifications/styles.css';
-import '../styles/globals.css';
 import { useState, useEffect, useCallback } from 'react';
 import { notifications } from '@mantine/notifications';
 import { GdsProvider } from '@sovereignsquad/gds-theme/client';

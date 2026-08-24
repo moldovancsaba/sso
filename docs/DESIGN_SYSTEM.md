@@ -1,7 +1,7 @@
 # Design System Adapter
 
-Status: Mostly direct package adoption  
-Last updated: 2026-08-12
+Status: Direct package adoption — no local UI authority remains  
+Last updated: 2026-08-24
 
 Design / UI / UX SSOT (authoritative):
 - [GDS README](https://github.com/sovereignsquad/general-design-system/blob/main/README.md)
@@ -33,7 +33,7 @@ This file records only local adapter state, migration blockers, validation comma
 
 ## Current Repo State
 
-- Current UI foundation: direct GDS runtime packages with one remaining local UI adapter (`DocsLayout`)
+- Current UI foundation: direct GDS runtime packages only. No local UI adapter, no local stylesheet, no local token authority.
 - Current root provider wiring: [pages/_app.js](../pages/_app.js) via direct `@sovereignsquad/gds-theme/client`
 - Current token/theme authority: [lib/theme/mantineTheme.js](../lib/theme/mantineTheme.js) via `createPublicBrandTheme` from `@sovereignsquad/gds-theme/server` (migrated off the now consumer-prohibited `extendGdsTheme` as part of the 6.0.0 upgrade)
 - Current app root wiring: [pages/_app.js](../pages/_app.js)
@@ -77,7 +77,7 @@ branch's prior commit) and `vendor/gds/` should be deleted.
   - [pages/login.js](../pages/login.js), [pages/register.js](../pages/register.js), [pages/forgot-password.js](../pages/forgot-password.js), [pages/logout.js](../pages/logout.js), [pages/admin/index.js](../pages/admin/index.js), [pages/admin/callback.js](../pages/admin/callback.js), and [pages/admin/forgot-password.js](../pages/admin/forgot-password.js) via direct `AuthShell`
   - [pages/login.js](../pages/login.js) via `ProviderIdentityButtonGroup` (Google + Facebook; replaced the hand-rolled provider buttons as of the 6.0.0 upgrade — `pages/register.js` never actually implemented its own provider buttons, despite previously being listed in the OAuth exception's scope)
   - [pages/admin/users.js](../pages/admin/users.js) and [pages/admin/activity.js](../pages/admin/activity.js) via direct `DataToolbar`
-  - [components/DocsLayout.js](../components/DocsLayout.js)
+  - every page under [pages/docs](../pages/docs) via direct `PublicShell` + `DocsPageShell`, composed from [lib/docs-shell-config.js](../lib/docs-shell-config.js)
   - [pages/index.js](../pages/index.js) via `PublicShell`, `EditorialHero`, `FeatureBand`, `ConsumerSection`, `ConsumerDashboardGrid`, `EditorialCard`, `AccentPanel`, and `CtaButtonGroup`
   - [pages/privacy.js](../pages/privacy.js), [pages/terms.js](../pages/terms.js), [pages/data-deletion.js](../pages/data-deletion.js), and [pages/test-fetch.js](../pages/test-fetch.js) via direct `PublicShell`, `PublicBrandFooter`, and `ArticleShell`
   - editorial callouts on core docs pages via `AccentPanel`
@@ -102,20 +102,24 @@ This repo is no longer blocked from direct runtime package consumption. It is no
 
 ## Local Adapter Inventory
 
-- Docs/article shell:
-  - [components/DocsLayout.js](../components/DocsLayout.js) thin adapter over `PublicShell` and `DocsPageShell`
+None. `components/DocsLayout.js` was the last entry and is deleted; the `components/`
+directory no longer exists. Docs routes compose `PublicShell` and `DocsPageShell`
+directly, sharing shell props through [lib/docs-shell-config.js](../lib/docs-shell-config.js) —
+which is configuration data (navigation sections, brand, footer slots), not a UI adapter.
 
 ## Board-Aligned Implementation Notes
 
-- The local adapter inventory is now documented as one active local UI authority: `DocsLayout`.
+- The local adapter inventory is empty. `styles/globals.css` is deleted as well, so there is no local token or stylesheet authority left to drift back toward.
 
 ## Approved Exceptions
 
 | Scope | Reason | User impact | Removal condition |
 |-------|--------|-------------|-------------------|
-| Docs/editorial surfaces | docs still use a local docs-site shell wrapper and two targeted lint waivers on long narrative docs pages | docs remain partly locally wrapped and two prose-heavy pages remain locally waived | replace the wrapper with a canonical package-level docs-site shell and normalize the remaining long-form page copy |
+| Long-form docs prose | two `react/no-unescaped-entities` waivers on narrative docs copy | none — the waivers affect lint only, never rendering | normalize the remaining long-form page copy |
 
-Closed this pass: OAuth provider buttons — replaced with canonical `ProviderIdentityButtonGroup` (Google + Facebook, both natively supported by the shipped provider registry). No custom provider CTA styling remains.
+Closed this pass: the docs/editorial shell exception — the last five pages moved to `PublicShell` + `DocsPageShell`, `components/DocsLayout.js` is deleted, and `styles/globals.css` went with it.
+
+Closed previously: OAuth provider buttons — replaced with canonical `ProviderIdentityButtonGroup` (Google + Facebook, both natively supported by the shipped provider registry). No custom provider CTA styling remains.
 
 ## Advanced Package Items Usable Now
 
@@ -170,5 +174,4 @@ Current repo usage proves the public/editorial family is viable on this runtime 
 
 ## Next Honest Migration Step
 
-1. Remove the last two localized editorial lint waivers in [pages/docs/app-permissions.js](../pages/docs/app-permissions.js) and [pages/docs/admin-approval.js](../pages/docs/admin-approval.js) by normalizing the remaining long-form prose copy.
-2. Collapse [components/DocsLayout.js](../components/DocsLayout.js) only after the remaining docs pages no longer require local navigation/framing glue, or after GDS ships a canonical docs-site shell.
+1. Remove the last two localized editorial lint waivers in [pages/docs/app-permissions.js](../pages/docs/app-permissions.js) and [pages/docs/admin-approval.js](../pages/docs/admin-approval.js) by normalizing the remaining long-form prose copy. These are the only local exceptions left, and they are lint-only — nothing about them reaches a rendered page.

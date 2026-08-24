@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import {
+  Anchor,
   Stack,
   Title,
   Text,
@@ -50,9 +51,9 @@ export default function IntegrationGuidePage() {
         <Box>
             <Title order={2} mb="sm">Read Next</Title>
             <List spacing="xs">
-              <List.Item><Link href="/docs/quickstart">Quick Start Guide</Link></List.Item>
-              <List.Item><Link href="/docs/authentication">Authentication Guide</Link></List.Item>
-              <List.Item><Link href="/docs/api">API Reference</Link></List.Item>
+              <List.Item><Anchor component={Link} href="/docs/quickstart">Quick Start Guide</Anchor></List.Item>
+              <List.Item><Anchor component={Link} href="/docs/authentication">Authentication Guide</Anchor></List.Item>
+              <List.Item><Anchor component={Link} href="/docs/api">API Reference</Anchor></List.Item>
             </List>
         </Box>
       </Stack>
