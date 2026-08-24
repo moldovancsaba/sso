@@ -17,6 +17,12 @@ The detail the issues carried that the roadmap did not is folded into the releva
 
 Phase 4 was also restored to its correct position between phases 3 and 5.
 
+### 🐛 Also fixed here
+
+**`next build` raced its own workers and failed at random.** This commit carried a `next.config.js` change made alongside it. After `Compiled successfully` the build would die during page-data collection with `Cannot find module '.next/server/pages/<page>.js'` — Next unable to find a file it had just emitted. Measured on an unchanged tree: three consecutive clean builds went fail / pass / fail, naming `docs/api/errors` + `docs/api/responses`, then nothing, then `admin/users` + `docs/admin-approval` + `docs/api`. A per-page defect cannot move between pages on an identical tree; a race can — `next build` forks parallel workers for page-data collection and static generation, and they race the webpack output they read.
+
+Not a local annoyance: the same race runs on Vercel, where a failed production build of the SSO service takes down login for every dependent app, and because a retry usually passes it reads as a transient blip. `experimental.workerThreads: false` and `experimental.cpus: 1` run those phases in-process on one worker. Four consecutive clean builds green afterwards.
+
 ---
 
 ## [5.36.0] - 2026-08-24
@@ -42,16 +48,6 @@ This closes the epic's remaining consumer-side work: the repo has one UI authori
 ### ✅ Verification
 
 `lint`, `type-check`, 118 tests, `build`, `guard:repo`, `check:docs` all clean. All 20 docs routes plus `/`, `/login`, `/register`, `/privacy`, `/terms` return 200 from a production build and were checked in a browser; computed styles were diffed against a `main` build rather than eyeballed. A pre-existing sidebar/content overlap at narrow viewports reproduces identically on `main` and is untouched here.
-
----
-
-## [5.35.1] - 2026-08-24
-
-### 🐛 Fixed
-
-**`next build` failed at random, naming a different set of pages each time.** After `Compiled successfully`, the build would die during page-data collection with `Cannot find module '.next/server/pages/<page>.js'` — Next unable to find a file it had just emitted. Measured on an unchanged tree: three consecutive clean builds went fail / pass / fail, naming `docs/api/errors` + `docs/api/responses`, then nothing, then `admin/users` + `docs/admin-approval` + `docs/api`. A per-page defect cannot move between pages on an identical tree; a race can. `next build` forks parallel workers for page-data collection and static generation, and they race the webpack output they read.
-
-This was not a local annoyance. The same race runs on Vercel, where a failed production build of the SSO service takes down login for every dependent app — and because a retry usually passes, it reads as a transient blip rather than a real defect. `experimental.workerThreads: false` and `experimental.cpus: 1` run those phases in-process on one worker. Four consecutive clean builds green afterwards. The cost is build time across 34 pages, which is the right trade against a deploy that fails at random.
 
 ---
 
