@@ -14,15 +14,18 @@ import { AccentPanel } from '@sovereignsquad/gds-core/server'
 // WHY: SSO admins need guidance on managing user access to apps
 // HOW: Step-by-step workflows for granting/revoking app permissions
 
-import DocsLayout from '../../components/DocsLayout';
+import { DocsPageShell, PublicShell } from '@sovereignsquad/gds-core/server'
+import { createDocsVersionMeta, getDocsShellProps } from '../../lib/docs-shell-config'
 
 export default function AdminApproval() {
   return (
-    <DocsLayout
-      eyebrow="Operations"
-      lead="Administrative workflow for approving, revoking, and auditing application access."
-      title="Admin Approval Process"
-    >
+    <PublicShell {...getDocsShellProps('/docs/admin-approval')}>
+      <DocsPageShell
+        eyebrow="Operations"
+        lead="Administrative workflow for approving, revoking, and auditing application access."
+        meta={createDocsVersionMeta('API Version')}
+        title="Admin Approval Process"
+      >
       <Stack gap="xl">
         <Box>
             <Title order={2} mb="sm">Overview</Title>
@@ -473,6 +476,7 @@ for (const userId of users) {
           </Box>
         
       </Stack>
-    </DocsLayout>
+      </DocsPageShell>
+    </PublicShell>
   );
 }

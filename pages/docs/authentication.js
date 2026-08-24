@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import {
+  Anchor,
   Stack,
   Title,
   Text,
@@ -28,7 +29,7 @@ export default function Authentication() {
           </Text>
           <Text size="sm">
             Design, UI, and UX rules for those hosted auth surfaces now defer to
-            {' '}the shared <Link href="https://github.com/sovereignsquad/general-design-system">General Design System</Link>.
+            {' '}the shared <Anchor component={Link} href="https://github.com/sovereignsquad/general-design-system">General Design System</Anchor>.
           </Text>
         </Box>
 
