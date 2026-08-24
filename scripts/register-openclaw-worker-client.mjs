@@ -14,7 +14,7 @@
  *  - grant_types is client_credentials alone. There is no human login and no browser
  *    redirect in this flow.
  *  - redirect_uris is empty, for the same reason.
- *  - allowed_scopes are the two ClassScout RESOURCE scopes and nothing else.
+ *  - allowed_scopes are the ClassScout and management RESOURCE scopes and nothing else.
  *
  * NOT manage_permissions. That scope rewrites per-user app-permission records at SSO
  * itself and has nothing to do with writing provider records; before 5.34.0 it was the
@@ -46,7 +46,15 @@ config({ path: '.env.local' })
 config()
 
 const CLIENT_NAME = 'openclaw-worker'
-const SCOPES = ['classscout:ingest.write', 'classscout:catalog.read']
+// Both applications OpenClaw writes to. A client may HOLD scopes for several resources;
+// what SSO refuses is a single TOKEN whose scopes span two of them, so ssoauth.py asks per
+// application and gets one token per resource, each stamped with that resource's audience.
+// management is here because padel-africa runs on it: one instance per client, and the
+// audience is the service, so every management instance is covered by the same two scopes.
+const SCOPES = [
+  'classscout:ingest.write', 'classscout:catalog.read',
+  'management:ingest.write', 'management:catalog.read',
+]
 const SECRET_OUT = process.env.SECRET_OUT || '.openclaw-worker-client-secret.local'
 
 async function main() {
