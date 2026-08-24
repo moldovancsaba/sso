@@ -26,6 +26,12 @@ Its bare `a` rule was styling ten `next/link` elements that Mantine never touche
 
 The page background moves from `#fafafa` to Mantine's white. That is the design system's default asserting itself, and it is the one intentional visual change here.
 
+## [v5.35.1] — 2026-08-24T00:00:00.000Z
+
+### 🐛 Builds No Longer Fail At Random
+
+`next build` raced its own parallel workers and died naming a different set of pages each run. Page-data collection now runs on a single in-process worker.
+
 ## [v5.35.0] — 2026-08-23T00:00:00.000Z
 
 ### 🔒 CORS No Longer Has A Wildcard, Because It Never Safely Could
