@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [5.35.0] - 2026-08-23
+
+### 🔒 Security
+
+**`SSO_ALLOWED_ORIGINS` no longer honours a `*` wildcard.** `runCors()` computed `allowed.includes('*') || allowed.includes(origin) ? origin : allowed[0] || '*'` and set `Access-Control-Allow-Credentials: true` unconditionally. A single `*` entry therefore reflected any caller's `Origin` back alongside credentials, which on an identity provider means any website could read any logged-in user's authenticated responses. No environment was configured with `*` — checked across `.env.example` and all three local Vercel env pulls — so nothing was exposed, but a wildcard is meaningless next to credentialed CORS (browsers reject the pair) and its only reachable effect was the unsafe one. The branch is deleted rather than documented as dangerous.
+
+The fallback is gone too. An `Origin` that is not on the allow-list, or a request carrying no `Origin` at all, now receives **no** `Access-Control-Allow-Origin` header, where it previously received one naming `allowed[0]` — some other origin the caller never asked for — or a bare `*`. Browsers block all three identically, so this is not a behaviour change for any integrator; it just states the denial instead of implying a grant that does not apply. `Access-Control-Allow-Credentials` is now sent only alongside a real grant.
+
+### ✅ Tests
+
+`__tests__/cors-origin-allowlist.test.js` (8 tests) covers the allow-listed echo, the silent denial, the preflight contract, `Vary: Origin` on denials, and — the case the suite exists for — that a `*` entry never reflects an arbitrary origin back with credentials. Full suite: 118 passing.
+
+### 🔧 Tooling
+
+**CI now runs `lint` and `type-check`.** `.github/workflows/repo-guardrails.yml` ran guardrails, the docs check, and the contract tests, but neither static-analysis step, while `next.config.js` sets `typescript.ignoreBuildErrors` and `eslint.ignoreDuringBuilds`. A lint or type error could therefore reach a Vercel deployment with every automated check reporting green — the `npm run verify` gate in `CLAUDE.md` §3 depended entirely on a human running it locally. Both steps now run on Node 24 in CI. `build` is deliberately not added: Vercel already builds every push, so a second build in CI buys nothing.
+
+### 📝 Documentation
+
+`pages/docs/security/cors.js` claimed wildcard support "exists in the underlying config but is not enabled by default", and described a rejected origin as receiving a non-matching `Access-Control-Allow-Origin`. Both now describe the shipped behaviour.
+
+---
+
 ## [5.34.1] - 2026-08-23
 
 ### 🐛 Fixed

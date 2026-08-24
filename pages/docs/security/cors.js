@@ -41,7 +41,7 @@ export default function SecurityCORS() {
             <Title order={2} mb="sm">SSO CORS Policy</Title>
             <Text size="sm">The SSO service implements the following CORS policy:</Text>
             <List spacing="xs">
-              <List.Item>✅ <strong>Allowed Origins:</strong> Only origins listed in the server&apos;s <code>SSO_ALLOWED_ORIGINS</code> configuration (wildcard support exists in the underlying config but is not enabled by default)</List.Item>
+              <List.Item>✅ <strong>Allowed Origins:</strong> Only origins listed verbatim in the server&apos;s <code>SSO_ALLOWED_ORIGINS</code> configuration. There is no wildcard: a <code>*</code> entry matches nothing, because a reflected origin alongside <code>Access-Control-Allow-Credentials</code> would let any site read authenticated responses</List.Item>
               <List.Item>✅ <strong>Credentials:</strong> Cookies are allowed (<code>Access-Control-Allow-Credentials: true</code>)</List.Item>
               <List.Item>✅ <strong>Methods:</strong> GET, POST, PUT, DELETE, OPTIONS</List.Item>
               <List.Item>✅ <strong>Headers:</strong> Content-Type, Authorization</List.Item>
@@ -77,7 +77,7 @@ Access-Control-Allow-Headers: Content-Type, Authorization
 Vary: Origin`}
             </Code>
             <Text size="sm">
-              <strong>If your origin is NOT in the allowlist</strong>, there is no distinct error response — the request is still processed by the server, and the response still comes back with a <code>200</code> (or whatever status the endpoint would normally return). The only difference is <code>Access-Control-Allow-Origin</code> won&apos;t match your origin, so the <strong>browser</strong> refuses to let your JavaScript read the response body. This shows up as a CORS error in the browser console, not as an HTTP error status.
+              <strong>If your origin is NOT in the allowlist</strong>, there is no distinct error response — the request is still processed by the server, and the response still comes back with a <code>200</code> (or whatever status the endpoint would normally return). The only difference is that the response carries no <code>Access-Control-Allow-Origin</code> header at all, so the <strong>browser</strong> refuses to let your JavaScript read the response body. This shows up as a CORS error in the browser console, not as an HTTP error status.
             </Text>
           </Box>
 
