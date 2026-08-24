@@ -7,6 +7,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [5.36.2] - 2026-08-24
+
+### 🔒 Security
+
+**`next` 15.5.18 → 15.5.23.** Clears four advisories: DoS in App Router Server Actions (GHSA-m99w-x7hq-7vfj), a middleware/proxy bypass under App Router + Turbopack (GHSA-6gpp-xcg3-4w24), and two SSRF issues (GHSA-p9j2-gv94-2wf4, GHSA-89xv-2m56-2m9x). Three are App-Router- or Server-Actions-specific and cannot apply to this Pages Router app. The fourth, SSRF in `rewrites` via an attacker-controlled destination hostname, is the only one that touches a feature this repo uses — but all five rewrites in `next.config.js` have static literal destinations with no hostname and no parameter interpolation, so it was not exploitable here either. Upgraded regardless: `next.via` in the audit tree is now `["sharp"]` alone, meaning the framework itself carries no outstanding advisory.
+
+**The `overrides` block was pinning vulnerable versions.** `postcss` was fixed at `8.5.15`, below the `<=8.5.22` vulnerable ceiling, so the override — added during the GDS runtime migration in `24203dfe`, presumably to satisfy an audit at the time — had since been overtaken by a new advisory and was actively holding the vulnerable version in place. Raised to `8.5.26`.
+
+That single change also fixed **`nanoid`** and **`minimatch`**. The dependency path was `next → postcss (overridden) → nanoid@3.3.12`, so the pin was the *cause* of the nanoid advisory, not a bystander; `postcss@8.5.26` requires `nanoid: ^3.3.17` and resolves to `3.3.18`. Dependabot PR #71 proposed bumping nanoid directly, which would have treated the symptom and left the pin in place; it was closed in favour of this. PR #72 proposed `next@15.5.21`, which this supersedes.
+
+The override cannot be removed outright: `next@15.5.23` pins `postcss: 8.4.31` exactly, older than what was there. `@typescript-eslint/typescript-estree > brace-expansion` was raised `5.0.6` → `5.0.9` for the same reason.
+
+Result: **10 vulnerabilities → 7, high 8 → 5.**
+
+### 📋 Known Remaining Advisories
+
+Recorded deliberately rather than silently carried:
+
+**`sharp` (high, 4 libvips CVEs) — not fixed, not reachable.** npm's only offered fix is `next@16.3.2`, a major framework upgrade. `sharp` is an `optionalDependencies` entry of Next used exclusively for image optimization. This app imports `next/image` in zero files, sets no `images` config, and renders its single logo through a plain `<Box component="img">`. The vulnerable code is installed but never executed. Taking a major Next upgrade on the identity provider that fronts every dependent app, to patch unreachable code, is the wrong trade. Revisit when Next 16 is adopted for its own reasons, or if `next/image` is ever introduced — the latter is the real exit condition.
+
+**`nodemailer` (high, ≤9.0.0) — needs its own change.** The raw message option bypasses `disableFileAccess`/`disableUrlAccess`, enabling arbitrary file read. This one *is* on a live path: magic links and PIN codes send through it. The fix (`9.0.5`) is semver-major, so it warrants a dedicated PR and a real delivery test via `scripts/test-email-config.mjs` rather than being folded in here.
+
+**`body-parser` (low) — production tree, never invoked.** Arrives via `express-rate-limit → express`. This app calls the rate limiters directly from Next API routes through `applyRateLimiter()`; no Express server is ever started, so no body parsing happens.
+
+**`js-yaml`, `@babel/core`, `brace-expansion` (dev-only).** Lint and build toolchain, absent from the production tree (`npm ls --omit=dev`). `brace-expansion@1.1.14` arrives through `eslint → minimatch@3.1.5` and resisted three override strategies — nested, deeply nested, and version-selector — apparently due to hoisting. The ineffective override config was removed rather than left in place looking like protection it did not provide.
+
+### ✅ Verification
+
+`npm run verify` exits **0 on Node 24.19.0** — the first authoritative run of the gate in this sequence; earlier ones ran under Node 22 and did not satisfy `engines`. Lint, type-check, 118 tests, build (34/34 static pages), `guard:repo`, `check:docs`, all clean with no real warnings. A production build was served and `/`, `/login`, `/register`, `/docs` and three docs subpages plus both `.well-known` endpoints all returned 200; discovery still advertises the correct issuer, three grant types and 17 scopes; `/login` renders unchanged.
+
+---
+
 ## [5.36.1] - 2026-08-24
 
 ### 📝 Documentation

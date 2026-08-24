@@ -1,4 +1,18 @@
-# Release Notes [![Version Badge](https://img.shields.io/badge/version-5.36.1-blue)](RELEASE_NOTES.md)
+# Release Notes [![Version Badge](https://img.shields.io/badge/version-5.36.2-blue)](RELEASE_NOTES.md)
+
+## [v5.36.2] — 2026-08-24T00:00:00.000Z
+
+### 🔒 Dependency Advisories: 10 → 7, High 8 → 5
+
+`next` 15.5.18 → 15.5.23, clearing four advisories: DoS in App Router Server Actions, a Turbopack middleware bypass, and two SSRF issues. Only the rewrites SSRF was reachable in principle here, and this repo's five rewrites all have static literal destinations with no attacker-influenced hostname.
+
+The real find was a stale `overrides` block. `postcss` was pinned to `8.5.15`, below the `<=8.5.22` vulnerable ceiling, so the override was actively holding a vulnerable version in place — and `postcss` is what pulled `nanoid@3.3.12`. Raising it to `8.5.26` fixed `postcss`, `nanoid` and `minimatch` in one move, which is why the separate nanoid PR was closed rather than merged.
+
+The override cannot simply be deleted: `next@15.5.23` pins `postcss: 8.4.31` exactly, which is older still.
+
+### 📋 What Is Left, And Why
+
+`sharp` carries four libvips CVEs and npm offers only `next@16` as the fix. `sharp` is an *optional* dependency of Next used solely for image optimization, and this app imports `next/image` nowhere, configures no `images` block, and renders its one logo as a plain `<img>`. A major framework upgrade on a production identity provider to patch unreachable code is the wrong trade. `nodemailer` needs a semver-major bump and is on the live magic-link path, so it gets its own change. The rest are dev-only toolchain issues.
 
 ## [v5.36.1] — 2026-08-24T00:00:00.000Z
 
