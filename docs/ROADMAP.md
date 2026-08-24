@@ -1,6 +1,6 @@
 # Roadmap
 
-Version: 5.36.0  
+Version: 5.36.1  
 Last updated: 2026-08-21T00:00:00.000Z
 
 ## Recently Delivered
@@ -47,6 +47,9 @@ Last updated: 2026-08-21T00:00:00.000Z
 - Add Apple login provider
 - Reuse the current callback-state and CSRF model
 - Document first-login-only profile data handling and private relay email behavior
+- Apple sends the user's name payload **only on first authorization**, so account linking must never depend on it being available again; the email claim is the durable identity signal
+- Requires Apple Developer configuration: Service ID, team ID, key ID, and private key
+- Apple is stricter than Google/Facebook about exact redirect-URI alignment and callback mode
 
 ### Phase 3: Passkeys and stronger session assurance
 - Design passkey enrollment and recovery flows
@@ -54,9 +57,9 @@ Last updated: 2026-08-21T00:00:00.000Z
 - Define re-auth requirements for sensitive admin actions
 
 ### Phase 4: Provider expansion
-- Microsoft login
-- GitHub login
+- Microsoft and GitHub before lower-value providers
 - LinkedIn or Discord only if product demand justifies them
+- Any new provider must reuse the hardened callback-state, CSRF, and public-session seams rather than introducing a parallel path
 
 ### Phase 5: Enterprise federation runtime
 - Turn enterprise connection inventory into live enterprise OIDC connections
@@ -68,6 +71,13 @@ Last updated: 2026-08-21T00:00:00.000Z
 - Decide whether additional step-up factors should be passkeys, PIN, or both
 - Shorten high-risk session lifetimes further where the operator cost is justified
 - Expand continuous verification beyond the current admin-mutation assurance gate if production signals justify it
+
+## Board Note
+
+This file is the single source of truth for roadmap phases and is version-enforced by
+`npm run check:docs`. Issues #37–#41 previously restated these same phases on the GitHub
+board without being enforced anywhere; their content is absorbed here and they are closed.
+Schedule a phase by opening a real implementation issue at that time.
 
 ## Explicitly Not Yet Delivered
 

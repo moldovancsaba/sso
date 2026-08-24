@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [5.36.1] - 2026-08-24
+
+### 📝 Documentation
+
+**`docs/ROADMAP.md` absorbs the content of backlog issues #37–#41.** Those five issues restated the roadmap's phases on the GitHub board. Each one's stated Delivery Artifact was its own existence ("a backlog issue on the SSO project board"), its acceptance criteria were satisfied the moment it was filed, and none had been edited since May 2026 (`createdAt == updatedAt` on all five). Meanwhile `check:docs` enforces the roadmap copy and enforces nothing about the board, so the two could drift with only one of them failing a build.
+
+The detail the issues carried that the roadmap did not is folded into the relevant phases: Apple sends the user's name payload only on first authorization so account linking must not depend on it, Apple Sign In needs a Service ID / team ID / key ID / private key, Apple is stricter than Google and Facebook about exact redirect-URI alignment, and any future provider must reuse the hardened callback-state and public-session seams rather than adding a parallel path. A "Board Note" section records that scheduling a phase means opening a real implementation issue at that time.
+
+Phase 4 was also restored to its correct position between phases 3 and 5.
+
+---
+
 ## [5.36.0] - 2026-08-24
 
 ### 🧹 Removed
