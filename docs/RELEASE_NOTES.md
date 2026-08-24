@@ -1,4 +1,10 @@
-# Release Notes [![Version Badge](https://img.shields.io/badge/version-5.36.0-blue)](RELEASE_NOTES.md)
+# Release Notes [![Version Badge](https://img.shields.io/badge/version-5.36.1-blue)](RELEASE_NOTES.md)
+
+## [v5.36.1] — 2026-08-24T00:00:00.000Z
+
+### 📝 Roadmap Absorbs Five Board-Only Backlog Issues
+
+Issues #37–#41 restated `docs/ROADMAP.md`'s phases on the GitHub board. Their acceptance criteria were self-satisfying ("this issue exists"), none had been touched since May 2026, and the roadmap copy is the one `check:docs` enforces. The detail they held that the roadmap did not — Apple's one-shot name payload, the Apple Developer credential set, its stricter redirect-URI handling, and the requirement that new providers reuse the hardened callback seams — is folded in, and the issues are closed.
 
 ## [v5.36.0] — 2026-08-24T00:00:00.000Z
 
