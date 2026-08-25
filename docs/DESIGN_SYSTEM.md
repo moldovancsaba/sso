@@ -58,12 +58,11 @@ dependencies resolve from the registry again: `.npmrc` carries the
 (`6.0.0`, matching what was vendored — a pure install-mechanism change, not a version
 bump), and `vendor/gds/` is deleted. CI (`repo-guardrails.yml`) exports
 `GITHUB_TOKEN: ${{ secrets.GDS_PACKAGES_TOKEN }}` for the install step (the secret can't be
-named `GITHUB_TOKEN` directly — that name is reserved by GitHub Actions). **Vercel still
-needs the same value added as a `GITHUB_TOKEN` project environment variable** (Production
-and Preview) before the next deploy — see GDS's `INSTALLATION_GUIDE.md` "Getting
-GITHUB_TOKEN into a deployment host's build" for the exact steps; this was not done as
-part of this change since it requires Vercel dashboard/CLI access this session didn't
-have.
+named `GITHUB_TOKEN` directly — that name is reserved by GitHub Actions). The same value is
+also set as a `GITHUB_TOKEN` project environment variable in Vercel (Production and Preview,
+2026-08-25) — see GDS's `INSTALLATION_GUIDE.md` "Getting GITHUB_TOKEN into a deployment
+host's build" for the recipe. Confirmed live: the latest Vercel deployment is `READY` and
+`sso.doneisbetter.com` serves correctly.
 
 ## Current Direct Consumption
 
