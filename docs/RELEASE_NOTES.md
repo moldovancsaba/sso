@@ -1,4 +1,20 @@
-# Release Notes [![Version Badge](https://img.shields.io/badge/version-5.36.2-blue)](RELEASE_NOTES.md)
+# Release Notes [![Version Badge](https://img.shields.io/badge/version-5.36.3-blue)](RELEASE_NOTES.md)
+
+## [v5.36.3] — 2026-08-25T00:00:00.000Z
+
+### 🔒 nodemailer 8.0.9 → 9.0.5
+
+Closes the last dependency advisory that sat on a live code path. The flaw let a message's raw option bypass `disableFileAccess` / `disableUrlAccess`, enabling arbitrary file read. This repo never used `raw`, so it was not exploitable here — but magic links and PIN codes send through this transport, so it was the one worth clearing on its merits rather than deferring.
+
+The single breaking change in 9.0.0 is TLS certificate validation for remote content fetches: attachment `href`/`path` URLs, OAuth2 token endpoints, and HTTP proxy CONNECT. This repo uses none of the three — plain SMTP user/password auth, no attachments, no proxy — so nothing needed adapting.
+
+The upgrade also brings header-injection and address-normalisation hardening from the 9.x line, which matters here because user-supplied email addresses go into the `to` field.
+
+### ✅ Tested Against The Real Transport
+
+Not just a build: `transporter.verify()` completed a live SMTP connect, STARTTLS upgrade and AUTH against Gmail on 9.0.5 — the STARTTLS path being the one 9.0.3 rewrote — and a real test message was delivered end to end, returning a valid message ID.
+
+**6 advisories remain, all previously assessed as unreachable or dev-only.** `sharp` (unused optional image dependency), `body-parser` (never invoked — no Express server runs), and four dev-toolchain issues.
 
 ## [v5.36.2] — 2026-08-24T00:00:00.000Z
 

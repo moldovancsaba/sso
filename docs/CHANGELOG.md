@@ -7,6 +7,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [5.36.3] - 2026-08-25
+
+### 🔒 Security
+
+**`nodemailer` 8.0.9 → 9.0.5.** This was the last outstanding advisory sitting on a live code path. The flaw (GHSA, `<=9.0.0`) let a message's `raw` option bypass `disableFileAccess` / `disableUrlAccess`, enabling arbitrary file read and full-path disclosure.
+
+It was **not exploitable in this repo**: `lib/email.mjs` composes messages only as `{ from, to, subject, text }` and never passes `raw`, attachments, `path`, or `href`. But magic links and PIN verification codes are delivered through this transport, so unlike `sharp` — which is installed and never executed — this code genuinely runs on every authentication that uses email. That is why it was worth a dedicated change rather than deferral.
+
+**The one breaking change in 9.0.0 does not apply.** 9.0.0 made HTTPS requests for remote content validate the server's TLS certificate by default, affecting attachment `href`/`path` URLs, OAuth2 token endpoints, and HTTP/HTTPS proxy CONNECT. This repo uses plain SMTP username/password auth, sends no attachments, and configures no proxy, so none of the three paths exist here. No code changes were required — the upgrade is `package.json` and the lockfile only.
+
+The 9.x line also brings hardening this app benefits from directly: control characters kept out of header values and Message-ID headers, DKIM tag and header-key injection closed, and addresses normalised so header and envelope agree. `lib/email.mjs` places user-supplied email addresses into the `to` field, so header-injection correctness is on a path that handles untrusted input.
+
+Audit: **7 vulnerabilities → 6**, high **5 → 4**.
+
+### ✅ Verification
+
+`npm run verify` exits 0 on Node 24.19.0 — lint, type-check, 118 tests, build, `guard:repo`, `check:docs`.
+
+Because a build cannot exercise SMTP, the transport was tested live on 9.0.5:
+
+- `transporter.verify()` completed a real connect, STARTTLS upgrade and AUTH against `smtp.gmail.com:587`. This is the specific path 9.0.3 rewrote ("harden STARTTLS upgrade and secure socket handling"), so it was the most likely thing to break.
+- A real message was sent end to end through `scripts/test-email-config.mjs` and accepted by the server, returning a valid `messageId`. That exercises MIME composition and header encoding, which the 9.x fixes above touch.
+
+No credential values were printed at any point; the check reported only host, port, and whether each credential was present.
+
+### 📋 Remaining Advisories Unchanged
+
+Six remain, all previously assessed and recorded in [5.36.2]: `sharp` (optional Next image dependency, `next/image` imported nowhere), `body-parser` (production tree via `express-rate-limit`, but no Express server is ever started), and `js-yaml`, `@babel/core`, `brace-expansion` (dev-only toolchain). None sits on an executed path.
+
+---
+
 ## [5.36.2] - 2026-08-24
 
 ### 🔒 Security
