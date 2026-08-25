@@ -7,6 +7,44 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [5.38.0] - 2026-08-25
+
+### 📦 Changed
+
+**GDS packages install from GitHub Packages again; `vendor/gds/` is deleted.** [5.32.0] vendored all five `@sovereignsquad/gds-*` packages as prebuilt tarballs referenced through `file:` dependencies, and said plainly why: GDS publishes only to `npm.pkg.github.com`, that registry requires a `read:packages`-scoped token on every install, and no such credential existed for this repo's CI or Vercel environments. The entry recorded the cost — no automatic update path, since every GDS bump then required manually rebuilding and re-committing tarballs — and named the exit condition: provision `GDS_PACKAGES_TOKEN` and move back.
+
+That condition is met. `package.json` pins plain `6.0.0` versions, `.npmrc` carries the `@sovereignsquad:registry` and `_authToken` block, and `vendor/gds/` is removed. The packages are byte-for-byte the same release line; this is an install-mechanism change, not a dependency upgrade.
+
+`.github/workflows/repo-guardrails.yml` exports the secret as `GITHUB_TOKEN: ${{ secrets.GDS_PACKAGES_TOKEN }}` for the install step — GitHub Actions reserves the name `GITHUB_TOKEN` for its own automatic secret, so the repository secret cannot be stored under it and has to be re-exported. The equivalent Vercel project variable is set for Production and Preview.
+
+Deployment health was verified rather than assumed: the Vercel checks for both the migration commit and current `main` report success, and `https://sso.doneisbetter.com` returns 200.
+
+One observation for whoever owns this next: a `npm ci` run in a clean directory with **no** `GITHUB_TOKEN` present completed successfully and installed all five packages at `6.0.0`. That suggests the packages are publicly readable and the token may not be strictly required for installs, contrary to the assumption behind the original stopgap. Not acted on here — the token is configured and working, and removing a credential on that evidence alone would be premature — but worth confirming before anyone treats it as a hard onboarding prerequisite.
+
+### 🔑 Added
+
+**`management:staff` scope.** Grants a headless caller staff-level access to the management app's console and admin actions, with no human login. Defined `machineOnly: true`, so `validateScopes()` rejects it on the interactive `/api/oauth/authorize` path and it is reachable only through `client_credentials` — the same protection `manage_permissions` carries, and for the same reason: a token an end user consented to must never be able to act as staff across an application.
+
+It is deliberately distinct from `management:ingest.write` and `management:catalog.read` rather than folded into them. A content pipeline that writes listings should not thereby gain the ability to act as staff, and a staff agent has no reason to hold ingest rights.
+
+The existing `every resource scope is machineOnly` guard in `__tests__/oauth-machine-audience.test.js` covers it automatically, because that test iterates `SCOPE_DEFINITIONS` rather than a hand-listed set.
+
+**`scripts/register-management-staff-agent-client.mjs`.** Registers a confidential `client_credentials`-only client holding `management:staff` and nothing else. Refuses if the client already exists, refuses to run on a checkout where `management:staff` is unregistered (`allowed_scopes` is not validated at registration time, so without that guard it would create a client that looks correct but can never obtain a token), and writes the secret to a mode-600 file rather than stdout.
+
+### 📝 Documentation
+
+**`management:staff` was live and advertised but undocumented.** OIDC discovery derives `scopes_supported` from `SCOPE_DEFINITIONS` (see [5.34.1]), so the scope was being published to every client from the moment it was defined, while `docs/THIRD_PARTY_INTEGRATION_GUIDE.md`'s resource-scope table still listed four. It is now in that table, with a note on why it is separated from the ingest and catalog scopes. The registration script is recorded in `AGENTS.md` alongside the other verified operational commands.
+
+### 🧭 Why This Release Exists
+
+Four commits had landed on `main` beyond the released `v5.37.2` with no version bump and no changelog entry, so the version string, the changelog, and the published release all described a state the code had moved past.
+
+`npm run check:docs` cannot detect this. It verifies that `package.json` and the five versioned docs carry the *same* version as each other — and they did, all reading `5.37.2`. Agreement between documents says nothing about whether those documents still describe the code. The changelog's most recent statement about install source was the [5.32.0] explanation of why the packages *were* vendored, which by then was the opposite of the truth.
+
+Worth noting as a limitation of the guardrail rather than a failure of it: closing that gap properly would mean tying a release to a commit range, not just to a string match.
+
+---
+
 ## [5.37.2] - 2026-08-25
 
 ### 🔒 Security

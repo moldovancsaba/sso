@@ -1,6 +1,6 @@
 # Third-Party Integration Guide — SSO Service
 
-**Version**: 5.37.2  
+**Version**: 5.38.0  
 **Last Updated**: 2026-08-21T00:00:00.000Z  
 **Service URL**: https://sso.doneisbetter.com  
 **Status**: Current Runtime Guide
@@ -392,6 +392,12 @@ service and nothing else. Request the narrowest one that does the job:
 | `classscout:catalog.read` | Read the ClassScout provider catalog |
 | `management:ingest.write` | Create and patch listing records via the management ingest API |
 | `management:catalog.read` | Read the management listing catalog |
+| `management:staff` | Act as staff in the management app — console and admin actions — with no human login |
+
+`management:staff` is the most privileged of these. It exists for headless staff-console
+work, and it is deliberately separate from the two `management:` ingest/catalog scopes: a
+caller that writes listings should not thereby be able to act as staff, and vice versa.
+Request it only for a caller that genuinely performs staff actions.
 
 **`manage_permissions`** writes per-user app-permission records *at SSO itself*. It is not a
 general-purpose machine scope — do not request it unless your caller administers SSO
