@@ -7,6 +7,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [5.37.2] - 2026-08-25
+
+### 🔒 Security
+
+**Remaining transitive advisories cleared with `npm update`.** `brace-expansion` 1.1.14 → 1.1.18, `body-parser` 2.2.2 → 2.3.0, `js-yaml` 3.14.2 → 3.15.1 and 4.1.1 → 4.3.1, `@babel/core` 7.29.0 → 7.29.7. Lockfile only; no manifest range changed.
+
+Audit **6 vulnerabilities → 2**, high **4 → 2**. The two remaining are `sharp` and `next`, and `next.via` is `["sharp"]` — the framework carries no advisory of its own and is listed purely as the parent of `sharp`. So **one root advisory remains**, in an optional Next dependency for image optimisation that this app never loads (`next/image` imported in zero files, no `images` config). There is no known vulnerability on any code path this service executes.
+
+This supersedes dependabot PRs #79 (`body-parser`) and #80 (`brace-expansion`), which proposed two of these individually.
+
+**The overrides were the wrong tool, and had been all along.** In [5.36.2] three override strategies — nested, deeply nested, and version-selector — all failed to move `brace-expansion` off 1.1.14, and the ineffective config was removed with the residual documented as unfixable-by-override. That diagnosis was wrong. The safe versions sat inside the existing semver ranges the entire time and only needed the lockfile refreshed; a plain `npm update` moved them in one command. Overrides force a resolution npm would not otherwise choose, which is not what this needed.
+
+### 🧹 Removed
+
+**Two of the three `overrides` entries were redundant.** Each was tested by deleting it and observing what npm actually resolved:
+
+| Override | Without it | Verdict |
+| --- | --- | --- |
+| `@typescript-eslint/typescript-estree > brace-expansion` | resolves to 5.0.9 and 1.1.18, both safe | removed |
+| `qs` | resolves to 6.15.2, identical to the pin | removed |
+| `postcss` | falls to `8.4.31` — the version `next@15.5.23` pins exactly — and the advisory returns | **kept** |
+
+`overrides` is now a single entry, the only one that was ever load-bearing. This matters beyond tidiness: a stale `postcss` pin silently holding a *vulnerable* version is exactly what started this sequence in [5.36.2]. Every pin that is not doing work is a future instance of that bug, so the ones doing nothing are gone and the one that remains is documented as required.
+
+### ✅ Verification
+
+`npm run verify` exits 0 on Node 24.19.0: lint, type-check, 118 tests, build on Next 15.5.23, `guard:repo`, `check:docs`.
+
+---
+
 ## [5.37.1] - 2026-08-25
 
 ### ⚡ Changed
