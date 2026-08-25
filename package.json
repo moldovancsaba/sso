@@ -43,9 +43,9 @@
     "@mantine/hooks": "9.2.1",
     "@mantine/modals": "9.2.1",
     "@mantine/notifications": "9.2.1",
-    "@sovereignsquad/gds-admin": "file:vendor/gds/sovereignsquad-gds-admin-6.0.0.tgz",
-    "@sovereignsquad/gds-core": "file:vendor/gds/sovereignsquad-gds-core-6.0.0.tgz",
-    "@sovereignsquad/gds-theme": "file:vendor/gds/sovereignsquad-gds-theme-6.0.0.tgz",
+    "@sovereignsquad/gds-admin": "6.0.0",
+    "@sovereignsquad/gds-core": "6.0.0",
+    "@sovereignsquad/gds-theme": "6.0.0",
     "@tabler/icons-react": "3.44.0",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
@@ -63,8 +63,8 @@
     "zod": "4.2.1"
   },
   "devDependencies": {
-    "@sovereignsquad/gds-compliance": "file:vendor/gds/sovereignsquad-gds-compliance-6.0.0.tgz",
-    "@sovereignsquad/gds-eslint-config": "file:vendor/gds/sovereignsquad-gds-eslint-config-6.0.0.tgz",
+    "@sovereignsquad/gds-compliance": "6.0.0",
+    "@sovereignsquad/gds-eslint-config": "6.0.0",
     "@types/bcryptjs": "^2.4.6",
     "@types/jsonwebtoken": "^9.0.0",
     "@types/node": "24.13.3",
