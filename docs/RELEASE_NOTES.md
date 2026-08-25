@@ -1,4 +1,22 @@
-# Release Notes [![Version Badge](https://img.shields.io/badge/version-5.37.1-blue)](RELEASE_NOTES.md)
+# Release Notes [![Version Badge](https://img.shields.io/badge/version-5.37.2-blue)](RELEASE_NOTES.md)
+
+## [v5.37.2] — 2026-08-25T00:00:00.000Z
+
+### 🔒 One Advisory Left, And It Is Unreachable
+
+`npm update` moved `brace-expansion` to 1.1.18, `body-parser` to 2.3.0, `js-yaml` to 3.15.1 and 4.3.1, and `@babel/core` to 7.29.7. Audit **6 → 2**, high **4 → 2** — and the two that remain are `sharp` plus `next`, which the audit tree flags only *through* `sharp`. So a single root advisory is left, in an optional Next dependency for image optimisation that this app never loads.
+
+### 🧹 Two Of Three Overrides Were Doing Nothing
+
+Earlier this cycle three override strategies failed to move `brace-expansion` off 1.1.14, and the ineffective config was removed. The right tool was never an override: the safe versions were inside the existing semver ranges the whole time and only needed the lockfile refreshed. Plain `npm update` did in one command what the overrides could not.
+
+Each remaining override was then tested by removing it and observing what npm resolved:
+
+- `@typescript-eslint/typescript-estree > brace-expansion` — resolves safely without it. Removed.
+- `qs` — resolves to the identical version with or without it. Removed.
+- `postcss` — **still required.** Without it the tree falls to `8.4.31`, the version `next@15.5.23` pins exactly, and the advisory returns.
+
+One override remains, and it is the only one that was ever load-bearing. That matters because a stale `postcss` pin holding a *vulnerable* version is precisely what started this whole sequence.
 
 ## [v5.37.1] — 2026-08-25T00:00:00.000Z
 
