@@ -1,4 +1,22 @@
-# Release Notes [![Version Badge](https://img.shields.io/badge/version-5.37.0-blue)](RELEASE_NOTES.md)
+# Release Notes [![Version Badge](https://img.shields.io/badge/version-5.37.1-blue)](RELEASE_NOTES.md)
+
+## [v5.37.1] — 2026-08-25T00:00:00.000Z
+
+### ⚡ One SMTP Connection Per Burst Instead Of One Per Email
+
+Every magic link and PIN code used to open its own TCP connection, complete a STARTTLS upgrade and re-authenticate before delivering a single plain-text message. Five messages cost five connections.
+
+The obvious fix — cache the transport instead of rebuilding it per send — turns out to do nothing at all. Measured against a local SMTP server: caching alone still cost five connections for five messages, because a non-pooled nodemailer transport opens a fresh connection on every `sendMail`. Only `pool: true` changes the number, and a pool is useless if the transport holding it is thrown away after each send. Both were needed; either alone would have been wasted work.
+
+Now five messages cost one connection, measured through the real send path.
+
+Transports are keyed by credential set rather than kept as a single global, because sends accept a per-organisation SMTP configuration and one shared instance would have quietly routed organisation mail through the default account. The key is a hash, so no password sits in a Map key.
+
+`verifyEmailConfig()` now tests the same transport that sends use. It previously built its own separate one, so a passing check proved nothing about the connection real mail would take.
+
+### 📎 Note For Script Authors
+
+A pooled connection is an open handle and keeps the event loop alive. Inside an API route that is irrelevant — the response ends the invocation. A plain Node script that imports `lib/email.mjs` will not exit on its own after sending. Both existing script callers already call `process.exit()`; new ones must too.
 
 ## [v5.37.0] — 2026-08-25T00:00:00.000Z
 
