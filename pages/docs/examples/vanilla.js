@@ -9,7 +9,7 @@ import {
   Anchor,
 } from '@mantine/core';
 import { AccentPanel, DocsPageShell, PublicShell } from '@sovereignsquad/gds-core/server'
-import { createDocsVersionMeta, getDocsShellProps } from '../../../lib/docs-shell-config'
+import { createDocsVersionMeta, getDocsShellProps, getDocsSideRail } from '../../../lib/docs-shell-config'
 // WHAT: Vanilla JavaScript OAuth 2.0 integration example without frameworks
 // WHY: Developers need pure JavaScript implementation for non-framework projects
 // HOW: Provides complete OAuth flow using standard web APIs and server-side backend
@@ -21,6 +21,7 @@ export default function VanillaExample() {
         eyebrow="Examples"
         lead="Reference framework-free integration using OAuth Authorization Code flow with backend token exchange."
         meta={createDocsVersionMeta('SSO Version')}
+        sideRail={getDocsSideRail('/docs/examples/vanilla')}
         title="Vanilla JavaScript Integration Example"
       >
       <Stack gap="xl">

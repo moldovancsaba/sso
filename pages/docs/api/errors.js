@@ -5,7 +5,7 @@ import {
   Box,
 } from '@mantine/core'
 import { DocsPageShell, PublicShell } from '@sovereignsquad/gds-core/server'
-import { createDocsVersionMeta, getDocsShellProps } from '../../../lib/docs-shell-config'
+import { createDocsVersionMeta, getDocsShellProps, getDocsSideRail } from '../../../lib/docs-shell-config'
 
 export default function ApiErrors() {
   return (
@@ -15,6 +15,7 @@ export default function ApiErrors() {
         footerNext={{ href: '/docs/api/responses', label: 'Response formats' }}
         lead="Error taxonomy for OAuth, public authentication, permissions, and social login flows."
         meta={createDocsVersionMeta('API Version')}
+        sideRail={getDocsSideRail('/docs/api/errors')}
         title="API Error Reference"
       >
       <Stack gap="xl">

@@ -14,7 +14,7 @@ import { AccentPanel } from '@sovereignsquad/gds-core/server'
 // HOW: Encode return URL in state parameter or use sessionStorage
 
 import { DocsPageShell, PublicShell } from '@sovereignsquad/gds-core/server'
-import { createDocsVersionMeta, getDocsShellProps } from '../../lib/docs-shell-config'
+import { createDocsVersionMeta, getDocsShellProps, getDocsSideRail } from '../../lib/docs-shell-config'
 
 export default function ReturnUrlHandling() {
   return (
@@ -23,6 +23,7 @@ export default function ReturnUrlHandling() {
         eyebrow="Integration Guide"
         lead="Preserve the user’s original destination safely through the OAuth redirect cycle."
         meta={createDocsVersionMeta('API Version')}
+        sideRail={getDocsSideRail('/docs/return-url-handling')}
         title="Return URL Handling"
       >
       <Stack gap="xl">

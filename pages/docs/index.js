@@ -9,7 +9,7 @@ import {
   Box,
 } from '@mantine/core';
 import { AccentPanel, DocsPageShell, PublicShell } from '@sovereignsquad/gds-core/server'
-import { createDocsVersionMeta, getDocsShellProps } from '../../lib/docs-shell-config'
+import { createDocsVersionMeta, getDocsShellProps, getDocsSideRail } from '../../lib/docs-shell-config'
 
 export default function DocsPage() {
   return (
@@ -18,6 +18,7 @@ export default function DocsPage() {
         eyebrow="Getting Started"
         lead="Current runtime guide for OAuth, hosted auth, and shared-domain session validation."
         meta={createDocsVersionMeta('API Version')}
+        sideRail={getDocsSideRail('/docs')}
         title="DoneIsBetter SSO Documentation"
       >
       <Stack gap="xl">

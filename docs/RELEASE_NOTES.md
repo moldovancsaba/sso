@@ -1,4 +1,20 @@
-# Release Notes [![Version Badge](https://img.shields.io/badge/version-5.36.3-blue)](RELEASE_NOTES.md)
+# Release Notes [![Version Badge](https://img.shields.io/badge/version-5.37.0-blue)](RELEASE_NOTES.md)
+
+## [v5.37.0] — 2026-08-25T00:00:00.000Z
+
+### 🐛 Docs Navigation No Longer Sits On Top Of The Text
+
+The docs sidebar was being passed to `PublicShell`'s `navigation` slot. That slot is not a sidebar — it renders inside a fixed 72px-tall header row, next to the brand and the GitHub/Support links. A vertical, sectioned, scrollable tree placed there overflowed roughly 900 pixels downward, straight across the article, at every viewport from `sm` up. It looked fine on a phone only because the same shell hides that slot below `sm` and shows a burger instead.
+
+Navigation now uses the three slots the shell actually provides, all still generated from the one `docsSections` array:
+
+- **header** — `navItems`, one short label per section, rendered horizontally by `PublicNav` with `aria-current` on the section owning the current page
+- **side rail** — `DocsPageShell`'s `sideRail`, a 240px column beside the article carrying the full page tree
+- **burger** — unchanged, the full tree below `sm`
+
+### 📐 Why It Needed Three
+
+The shell's breakpoints do not overlap: the burger is `hiddenFrom="sm"`, the header slot is `visibleFrom="sm"`, and the side rail is `visibleFrom="lg"`. Moving the tree to the side rail alone would have fixed the overlap and left every viewport between 768px and 1200px with no navigation at all.
 
 ## [v5.36.3] — 2026-08-25T00:00:00.000Z
 

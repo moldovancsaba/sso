@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { Anchor, Box, List, Stack, Text, Title } from '@mantine/core'
 import { AccentPanel, DocsPageShell, PublicShell } from '@sovereignsquad/gds-core/server'
-import { createDocsVersionMeta, getDocsShellProps } from '../../../lib/docs-shell-config'
+import { createDocsVersionMeta, getDocsShellProps, getDocsSideRail } from '../../../lib/docs-shell-config'
 
 export default function ApiDocs() {
   return (
@@ -11,6 +11,7 @@ export default function ApiDocs() {
         footerNext={{ href: '/docs/api/endpoints', label: 'Endpoint reference' }}
         lead="Reference surface for OAuth, hosted auth, public sessions, and permission-management contracts."
         meta={createDocsVersionMeta('API Version')}
+        sideRail={getDocsSideRail('/docs/api')}
         title="SSO API Reference"
       >
       <Stack gap="xl">

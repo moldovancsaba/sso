@@ -14,7 +14,7 @@ import { AccentPanel } from '@sovereignsquad/gds-core/server'
 // HOW: Explains access tokens, refresh tokens, ID tokens, and session validation
 
 import { DocsPageShell, PublicShell } from '@sovereignsquad/gds-core/server'
-import { createDocsVersionMeta, getDocsShellProps } from '../../lib/docs-shell-config'
+import { createDocsVersionMeta, getDocsShellProps, getDocsSideRail } from '../../lib/docs-shell-config'
 
 export default function SessionManagementDocs() {
   return (
@@ -23,6 +23,7 @@ export default function SessionManagementDocs() {
         eyebrow="Integration Guide"
         lead="Token lifecycle, refresh behavior, and public-session expectations for SSO consumers."
         meta={createDocsVersionMeta('SSO Version')}
+        sideRail={getDocsSideRail('/docs/session-management')}
         title="Session Management"
       >
       <Stack gap="xl">

@@ -9,7 +9,7 @@ import {
   Box,
 } from '@mantine/core';
 import { AccentPanel, DocsPageShell, PublicShell } from '@sovereignsquad/gds-core/server'
-import { createDocsVersionMeta, getDocsShellProps } from '../../lib/docs-shell-config'
+import { createDocsVersionMeta, getDocsShellProps, getDocsSideRail } from '../../lib/docs-shell-config'
 
 export default function Quickstart() {
   return (
@@ -18,6 +18,7 @@ export default function Quickstart() {
         eyebrow="Getting Started"
         lead="The shortest safe path from client registration to a working OAuth integration."
         meta={createDocsVersionMeta('API Version')}
+        sideRail={getDocsSideRail('/docs/quickstart')}
         title="Quick Start Guide"
       >
       <Stack gap="xl">

@@ -9,7 +9,7 @@ import {
   Anchor,
 } from '@mantine/core';
 import { AccentPanel, DocsPageShell, PublicShell } from '@sovereignsquad/gds-core/server'
-import { createDocsVersionMeta, getDocsShellProps } from '../../../lib/docs-shell-config'
+import { createDocsVersionMeta, getDocsShellProps, getDocsSideRail } from '../../../lib/docs-shell-config'
 // WHAT: React OAuth 2.0 integration example with complete implementation
 // WHY: Developers need copy-paste ready code for React apps using SSO
 // HOW: Provides AuthContext, callback handler, and protected route examples
@@ -21,6 +21,7 @@ export default function ReactExample() {
         eyebrow="Examples"
         lead="Reference React integration using OAuth Authorization Code flow with backend token exchange."
         meta={createDocsVersionMeta('SSO Version')}
+        sideRail={getDocsSideRail('/docs/examples/react')}
         title="React Integration Example"
       >
       <Stack gap="xl">

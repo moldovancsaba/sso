@@ -9,7 +9,7 @@ import {
   Anchor,
 } from '@mantine/core';
 import { AccentPanel, DocsPageShell, PublicShell } from '@sovereignsquad/gds-core/server'
-import { createDocsVersionMeta, getDocsShellProps } from '../../../lib/docs-shell-config'
+import { createDocsVersionMeta, getDocsShellProps, getDocsSideRail } from '../../../lib/docs-shell-config'
 // WHAT: Security best practices documentation for OAuth 2.0 SSO integration
 // WHY: Developers need comprehensive security guidance to avoid vulnerabilities
 // HOW: Covers OAuth 2.0 security, token handling, CSRF protection, and app permissions
@@ -21,6 +21,7 @@ export default function SecurityBestPractices() {
         eyebrow="Security"
         lead="Security rules and implementation guidance for OAuth consumers and permission-aware integrations."
         meta={createDocsVersionMeta('SSO Version')}
+        sideRail={getDocsSideRail('/docs/security/best-practices')}
         title="Security Best Practices"
       >
       <Stack gap="xl">

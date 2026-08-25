@@ -16,7 +16,7 @@ import { DocsCodeBlock } from '@sovereignsquad/gds-core/client'
 // HOW: Explains pending → approved → revoked states and role management
 
 import { DocsPageShell, PublicShell } from '@sovereignsquad/gds-core/server'
-import { createDocsVersionMeta, getDocsShellProps } from '../../lib/docs-shell-config'
+import { createDocsVersionMeta, getDocsShellProps, getDocsSideRail } from '../../lib/docs-shell-config'
 
 export default function AppPermissions() {
   return (
@@ -25,6 +25,7 @@ export default function AppPermissions() {
         eyebrow="Authorization"
         lead="Canonical permission states, role semantics, and lifecycle behavior for application access."
         meta={createDocsVersionMeta('API Version')}
+        sideRail={getDocsSideRail('/docs/app-permissions')}
         title="App Permissions"
       >
       <Stack gap="xl">

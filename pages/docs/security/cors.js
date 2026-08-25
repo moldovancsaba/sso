@@ -9,7 +9,7 @@ import {
   Anchor,
 } from '@mantine/core';
 import { AccentPanel, DocsPageShell, PublicShell } from '@sovereignsquad/gds-core/server'
-import { createDocsVersionMeta, getDocsShellProps } from '../../../lib/docs-shell-config'
+import { createDocsVersionMeta, getDocsShellProps, getDocsSideRail } from '../../../lib/docs-shell-config'
 // WHAT: CORS configuration documentation for SSO OAuth 2.0 integration
 // WHY: Developers need to understand CORS setup for cross-origin SSO requests
 // HOW: Explains SSO CORS policy, registration process, and client-side configuration
@@ -21,6 +21,7 @@ export default function SecurityCORS() {
         eyebrow="Security"
         lead="Allowed origin rules, browser behavior, and safe expectations for cross-origin SSO consumers."
         meta={createDocsVersionMeta('SSO Version')}
+        sideRail={getDocsSideRail('/docs/security/cors')}
         title="CORS Configuration"
       >
       <Stack gap="xl">

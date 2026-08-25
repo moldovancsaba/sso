@@ -6,7 +6,7 @@ import {
   Box,
 } from '@mantine/core'
 import { DocsPageShell, PublicShell } from '@sovereignsquad/gds-core/server'
-import { createDocsVersionMeta, getDocsShellProps } from '../../../lib/docs-shell-config'
+import { createDocsVersionMeta, getDocsShellProps, getDocsSideRail } from '../../../lib/docs-shell-config'
 
 export default function ApiResponses() {
   return (
@@ -16,6 +16,7 @@ export default function ApiResponses() {
         footerNext={{ href: '/docs/api/errors', label: 'Error reference' }}
         lead="Canonical response shapes for tokens, sessions, registration, permissions, and errors."
         meta={createDocsVersionMeta('API Version')}
+        sideRail={getDocsSideRail('/docs/api/responses')}
         title="API Response Formats"
       >
       <Stack gap="xl">

@@ -15,7 +15,7 @@ import { AccentPanel } from '@sovereignsquad/gds-core/server'
 // HOW: Step-by-step workflows for granting/revoking app permissions
 
 import { DocsPageShell, PublicShell } from '@sovereignsquad/gds-core/server'
-import { createDocsVersionMeta, getDocsShellProps } from '../../lib/docs-shell-config'
+import { createDocsVersionMeta, getDocsShellProps, getDocsSideRail } from '../../lib/docs-shell-config'
 
 export default function AdminApproval() {
   return (
@@ -24,6 +24,7 @@ export default function AdminApproval() {
         eyebrow="Operations"
         lead="Administrative workflow for approving, revoking, and auditing application access."
         meta={createDocsVersionMeta('API Version')}
+        sideRail={getDocsSideRail('/docs/admin-approval')}
         title="Admin Approval Process"
       >
       <Stack gap="xl">

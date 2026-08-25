@@ -7,6 +7,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [5.37.0] - 2026-08-25
+
+### 🐛 Fixed
+
+**The docs sidebar was rendering inside the header and overlaying the article.** `getDocsShellProps()` passed the full vertical section tree — a `Stack` of section headings and `NavLink`s wrapped in a `ScrollArea` — to `PublicShell`'s `navigation` prop. That prop is not a sidebar slot. `PublicShell` renders it inside `AppShell.Header`, in a `<Group visibleFrom="sm">` sitting between the brand and the action links, in a header whose height is fixed at 72px. The tree therefore overflowed its container by roughly 900 pixels and painted straight down across the page body.
+
+Measured on the built site before the fix: the `Vanilla JS` nav link resolved to `y = 969` while `header` ended at `y = 72`, `header.contains(navLink)` was `true`, and its rect intersected the `<article>` rect. It was not a breakpoint bug and not an upstream defect — `PublicShell` is a top-navigation shell that never had a sidebar slot, and it was being handed a sidebar.
+
+It looked correct on a phone only by accident: the same shell marks that slot `visibleFrom="sm"` and swaps in a burger below it, so the broken path was hidden exactly where the site was most often eyeballed.
+
+Navigation now uses the three slots the shell actually provides, every one still generated from the single `docsSections` array in `lib/docs-shell-config.js`:
+
+- **Header** — `navItems` + `activeNavId`, one short label per section (`Start`, `Integrate`, `API`, `Examples`, `Security`), rendered horizontally by the package's own `PublicNav` with `aria-current="page"` on the section that owns the current route. Labels are shortened from the column titles because the full ones (`Integration Guide`, `API Reference`) do not fit a header row that also carries the brand and two action links.
+- **Side rail** — `DocsPageShell`'s `sideRail`, which the package renders as `<Stack visibleFrom="lg" w={240}>` beside the article. This is the full page tree, and the slot built for it.
+- **Burger** — `mobileNavigation` unchanged, the full tree below `sm`.
+
+**All three were required.** The shell's breakpoints partition the range rather than overlapping: the burger is `hiddenFrom="sm"`, the header slot is `visibleFrom="sm"`, the side rail is `visibleFrom="lg"`. Moving the tree to the side rail alone — the obvious one-line fix — would have removed the overlap and left every viewport between 768px and 1200px with no docs navigation whatsoever.
+
+Closes #76.
+
+### ✅ Verification
+
+`npm run verify` exits 0 on Node 24.19.0: lint, type-check, 118 tests, build (all 20 docs routes prerendering), `guard:repo`, `check:docs`.
+
+Checked on a served production build: the header nav renders horizontally with no overflow, the side rail renders as a column beside the article, and `aria-current` lands on the right section from a nested route (`Security` for `/docs/security/cors`). In a zero-width measurement context — which evaluates every media query as below `sm` — the burger computes to `display: block` while the header nav's container computes to `display: none`, confirming the narrow-viewport swap.
+
+The intermediate 768px–1200px band was confirmed from the package's own `visibleFrom`/`hiddenFrom` values rather than measured directly: the preview surface used here could not be resized, and its JavaScript context reports a viewport width of 0 regardless of render size.
+
+---
+
 ## [5.36.3] - 2026-08-25
 
 ### 🔒 Security

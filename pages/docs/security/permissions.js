@@ -9,7 +9,7 @@ import {
   Anchor,
 } from '@mantine/core';
 import { AccentPanel, DocsPageShell, PublicShell, SimpleDataTable } from '@sovereignsquad/gds-core/server'
-import { createDocsVersionMeta, getDocsShellProps } from '../../../lib/docs-shell-config'
+import { createDocsVersionMeta, getDocsShellProps, getDocsSideRail } from '../../../lib/docs-shell-config'
 // WHAT: App permissions system documentation for OAuth 2.0 SSO integration
 // WHY: Developers need to understand app-level permissions and roles
 // HOW: Explains backend-derived permissionStatus, app roles, and two-level access control
@@ -39,6 +39,7 @@ export default function SecurityPermissions() {
         eyebrow="Security"
         lead="Operational model and UI expectations for permission-aware access control."
         meta={createDocsVersionMeta('SSO Version')}
+        sideRail={getDocsSideRail('/docs/security/permissions')}
         title="App Permissions System"
       >
       <Stack gap="xl">
