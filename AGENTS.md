@@ -59,6 +59,13 @@ Run these from the `client/` directory:
   Previews by default, unlike the older scripts here, because it writes production auth
   config. Never grants `client_credentials` to a public client, and refuses to run on a
   checkout where `manage_permissions` is not a registered scope.
+- Register the management staff agent: `node scripts/register-management-staff-agent-client.mjs`.
+  Requires `MONGODB_URI`. Grants `client_credentials` and `management:staff` and nothing
+  else, refuses if the client already exists, and refuses to run on a checkout where
+  `management:staff` is not a registered scope — `allowed_scopes` is not validated at
+  registration time, so without that guard it would create a client that looks correct but
+  can never obtain a token. Writes the secret to a mode-600 file (override with
+  `SECRET_OUT`) rather than stdout, so it never reaches terminal history or CI logs.
 - Preview duplicate public-account merges by email: `DRY_RUN=true node scripts/merge-duplicate-accounts.mjs`
 - Apply duplicate public-account merges by email: `node scripts/merge-duplicate-accounts.mjs`
 - Test email delivery configuration: `node scripts/test-email-config.mjs <email>`

@@ -1,4 +1,26 @@
-# Release Notes [![Version Badge](https://img.shields.io/badge/version-5.37.2-blue)](RELEASE_NOTES.md)
+# Release Notes [![Version Badge](https://img.shields.io/badge/version-5.38.0-blue)](RELEASE_NOTES.md)
+
+## [v5.38.0] — 2026-08-25T00:00:00.000Z
+
+### 📦 GDS Installs From The Registry Again
+
+The vendored-tarball arrangement introduced in 5.32.0 is gone. That was always labelled a stopgap: GDS publishes only to GitHub Packages, no `read:packages` credential existed for this repo, and rather than stall the 6.0.0 migration the five packages were checked into `vendor/gds/` as prebuilt tarballs. The cost was no automatic update path — every GDS bump meant rebuilding and re-committing tarballs by hand.
+
+`GDS_PACKAGES_TOKEN` now exists, so `package.json` pins plain versions again, `.npmrc` carries the registry block, and `vendor/gds/` is deleted. Same `6.0.0` packages: this changed how they install, not what installs.
+
+CI passes the secret as `GITHUB_TOKEN` (Actions reserves that name for its own secret, so it cannot be stored under it), and the matching Vercel project variable is set for Production and Preview. Verified rather than assumed — deployments for the migration commit and for current `main` both report success, and `sso.doneisbetter.com` serves 200.
+
+### 🔑 New Machine Scope: `management:staff`
+
+`management:staff` grants a headless caller staff-level access to the management app's console and admin actions. It is `machineOnly`, so it can only be obtained through `client_credentials` and is rejected on `/api/oauth/authorize` — a scope this powerful must never be reachable by a token an end user consented to.
+
+It is deliberately separate from `management:ingest.write` and `management:catalog.read`: a caller that writes listings should not thereby be able to act as staff. `scripts/register-management-staff-agent-client.mjs` registers a client holding it and nothing else.
+
+Because OIDC discovery derives `scopes_supported` from the scope table, this was already being advertised to every client while absent from the integration guide. It is now documented there, and the registration script is recorded in `AGENTS.md`.
+
+### 📝 Why This Release Exists
+
+Four commits had landed on `main` past the released `v5.37.2` without a version bump or a changelog entry. `check:docs` could not catch it — it only checks that the version strings agree with each other, and they did. Meanwhile the changelog's most recent word on install source still explained why the packages *were* vendored, which had become the opposite of the truth.
 
 ## [v5.37.2] — 2026-08-25T00:00:00.000Z
 
