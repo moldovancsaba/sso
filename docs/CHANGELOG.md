@@ -7,6 +7,44 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [5.37.1] - 2026-08-25
+
+### ⚡ Changed
+
+**SMTP connections are now pooled and reused instead of opened per message.** `sendViaNodemailer()` called `nodemailer.createTransport()` on every send, so each magic link and PIN code opened its own TCP connection, performed a STARTTLS upgrade and re-authenticated before delivering one plain-text message.
+
+**The fix #83 proposed would not have worked.** That issue asked for a transporter cache and set the acceptance criterion "a run of N sends against one configuration opens one connection, not N". Measured against a local SMTP server built for the purpose, that is false:
+
+| Strategy | TCP connections for 5 messages |
+| --- | --- |
+| New transport per send (previous behaviour) | 5 |
+| Cached transport, no pool (what #83 asked for) | 5 |
+| Cached transport with `pool: true` | 1 |
+
+A non-pooled nodemailer transport opens a fresh connection on every `sendMail` regardless of whether the transport object is reused, so caching alone changes nothing. Only `pool: true` reduces the count — and a pool is meaningless if the transport holding it is discarded after each send. Both changes were required; either alone would have been wasted effort. Re-measured through the real `sendEmail()` path after the change: **5 messages, 1 connection.**
+
+**Pooling is safe here despite serverless freezing.** The concern was a pooled socket going stale while an instance is frozen, turning a saved connection into a failed magic link. Tested by forcing a peer to drop an idle pooled socket mid-sequence: the following send transparently opened a replacement rather than failing. Three sends across the forced disconnect all succeeded, on two connections, with no error surfaced.
+
+Transports are keyed by credential set rather than held as one global instance, because `sendViaNodemailer()` accepts a per-organisation `emailConfig` (`lib/orgEmailConfig.mjs`); a single global would have silently routed organisation mail through the default account. The key is a SHA-256 digest of the connection parameters, so identity accounts for the password without the password being retained in a `Map` key that could surface in a heap dump or debug log. `maxConnections` is 2 and `maxMessages` 100 — the goal is collapsing a burst onto one connection, not parallelism, and providers cap concurrent connections per account.
+
+### 🐛 Fixed
+
+**`verifyEmailConfig()` was testing a transport that nothing sent through.** `getNodemailerTransporter()` built its own separate transport for `verify()`, so a passing configuration check proved nothing about the connection real mail would take. Both paths now resolve through the same cache.
+
+### 📎 Known Behaviour
+
+A pooled connection is an open handle and keeps the Node event loop alive. This is irrelevant inside an API route, where the response ends the invocation, and all six API callers are unaffected. A plain Node script that imports `lib/email.mjs` will no longer exit on its own after sending. Both existing script callers — `scripts/test-email-config.mjs` and `scripts/test-magic-link.mjs` — already call `process.exit()` explicitly and are unaffected; the constraint is documented at the cache definition for whoever writes the next one. No teardown helper was added because no caller needs one.
+
+Closes #83.
+
+### ✅ Verification
+
+`npm run verify` exits 0 on Node 24.19.0: lint, type-check, 118 tests, build, `guard:repo`, `check:docs`.
+
+Against live Gmail: `verifyEmailConfig()` reports valid with no errors or warnings through the pooled transport, and a real message was delivered end to end with a valid message ID, exiting cleanly. Connection counts were measured against a purpose-built local SMTP server rather than inferred.
+
+---
+
 ## [5.37.0] - 2026-08-25
 
 ### 🐛 Fixed
