@@ -8,7 +8,7 @@ import {
   Box,
 } from '@mantine/core';
 import { DocsPageShell, PublicShell } from '@sovereignsquad/gds-core/server'
-import { createDocsVersionMeta, getDocsShellProps } from '../../lib/docs-shell-config'
+import { createDocsVersionMeta, getDocsShellProps, getDocsSideRail } from '../../lib/docs-shell-config'
 
 export default function IntegrationGuidePage() {
   return (
@@ -17,6 +17,7 @@ export default function IntegrationGuidePage() {
         eyebrow="Integration Guide"
         lead="Choose the right integration surface for your application."
         meta={createDocsVersionMeta('SSO Version')}
+        sideRail={getDocsSideRail('/docs/integration')}
         title="Third-Party Integration Guide"
       >
       <Stack gap="xl">

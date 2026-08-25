@@ -8,7 +8,7 @@ import {
   Box,
 } from '@mantine/core';
 import { DocsPageShell, PublicShell } from '@sovereignsquad/gds-core/server'
-import { createDocsVersionMeta, getDocsShellProps } from '../../lib/docs-shell-config'
+import { createDocsVersionMeta, getDocsShellProps, getDocsSideRail } from '../../lib/docs-shell-config'
 
 export default function Authentication() {
   return (
@@ -17,6 +17,7 @@ export default function Authentication() {
         eyebrow="Integration Guide"
         lead="Recommended authentication and hosted-login model for OAuth-based consumers."
         meta={createDocsVersionMeta('API Version')}
+        sideRail={getDocsSideRail('/docs/authentication')}
         title="Authentication Guide"
       >
       <Stack gap="xl">

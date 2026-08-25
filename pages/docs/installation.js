@@ -9,7 +9,7 @@ import {
   Anchor,
 } from '@mantine/core';
 import { AccentPanel, DocsPageShell, PublicShell } from '@sovereignsquad/gds-core/server'
-import { createDocsVersionMeta, getDocsShellProps } from '../../lib/docs-shell-config'
+import { createDocsVersionMeta, getDocsShellProps, getDocsSideRail } from '../../lib/docs-shell-config'
 // WHAT: Integration guide for developers adding SSO to their applications
 // WHY: Developers need clear steps to integrate OAuth 2.0 SSO into their apps
 // HOW: Provides step-by-step setup, environment configuration, and verification
@@ -21,6 +21,7 @@ export default function Installation() {
         eyebrow="Integration Guide"
         lead="Step-by-step setup for integrating OAuth-based SSO into an external application."
         meta={createDocsVersionMeta('SSO Version')}
+        sideRail={getDocsSideRail('/docs/installation')}
         title="Integration Guide"
       >
       <Stack gap="xl">

@@ -14,7 +14,7 @@ import { AccentPanel } from '@sovereignsquad/gds-core/server'
 // HOW: Covers OAuth errors, app permission errors, and best practices
 
 import { DocsPageShell, PublicShell } from '@sovereignsquad/gds-core/server'
-import { createDocsVersionMeta, getDocsShellProps } from '../../lib/docs-shell-config'
+import { createDocsVersionMeta, getDocsShellProps, getDocsSideRail } from '../../lib/docs-shell-config'
 
 export default function ErrorHandlingDocs() {
   return (
@@ -23,6 +23,7 @@ export default function ErrorHandlingDocs() {
         eyebrow="Integration Guide"
         lead="Production-safe handling of OAuth, session, and permission failures."
         meta={createDocsVersionMeta('SSO Version')}
+        sideRail={getDocsSideRail('/docs/error-handling')}
         title="Error Handling"
       >
       <Stack gap="xl">
