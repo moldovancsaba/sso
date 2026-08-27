@@ -1,4 +1,18 @@
-# Release Notes [![Version Badge](https://img.shields.io/badge/version-5.38.0-blue)](RELEASE_NOTES.md)
+# Release Notes [![Version Badge](https://img.shields.io/badge/version-5.38.1-blue)](RELEASE_NOTES.md)
+
+## [v5.38.1] — 2026-08-25T00:00:00.000Z
+
+### 🛡️ A Guardrail That Notices When main Outruns Its Own Version
+
+`check:docs` verifies that `package.json` and the versioned docs carry the same version **as each other**. They always do — that is precisely why it never caught the thing that went wrong three separate times on 2026-08-25: commits landed on `main`, every document went on agreeing about the previous version, and `main` quietly described itself with a release that had already been published. `npm run verify` was green throughout each time.
+
+`npm run check:release` closes that. The rule is one line: if a tag matching the version in `package.json` exists and does not point at `HEAD`, the code has moved past a published release without a bump. It runs in CI on pushes to `main` only — on a feature branch the version legitimately still holds the last release until the bump commit, so running it earlier would fail every branch that has not bumped yet.
+
+It was written against the live failure: at the time of writing, `main` was one commit past `v5.38.0` with `package.json` still reading `5.38.0`, and the check caught it. All three outcomes are covered — version not yet released, `HEAD` is the release, `HEAD` has moved past it.
+
+### 🧹 Also In This Release
+
+`f51828c2` removed a `protectedSurfacePaths` entry in `gds-adoption.json` for the `components/` directory, which stopped existing when `DocsLayout.js` was deleted in 5.37.0. That commit is what the new guardrail was catching.
 
 ## [v5.38.0] — 2026-08-25T00:00:00.000Z
 

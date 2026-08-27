@@ -14,6 +14,13 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+        with:
+          # WHAT: full history and tags.
+          # WHY: check-release-integrity.mjs compares HEAD against the tag matching the
+          #      current version. The default shallow checkout fetches no tags, so the
+          #      check would find nothing to compare and pass silently - worse than not
+          #      running it, because it would look like it had.
+          fetch-depth: 0
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -37,6 +44,15 @@ jobs:
 
       - name: Check documentation maintenance rules
         run: node scripts/check-docs-maintenance.mjs
+
+      # WHAT: only on pushes to main.
+      # WHY: on a feature branch package.json legitimately still carries the last released
+      #      version until the bump commit, so running this on pull_request would fail
+      #      every branch that has not bumped yet. The contract it enforces belongs to
+      #      main: what is on main must not claim a version that is already published.
+      - name: Check release integrity
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: node scripts/check-release-integrity.mjs
 
       - name: Run contract tests
         run: node --experimental-vm-modules ./node_modules/jest/bin/jest.js --runInBand --passWithNoTests

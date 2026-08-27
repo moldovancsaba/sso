@@ -1,6 +1,6 @@
 {
   "name": "@moldovancsaba/universal-sso",
-  "version": "5.38.0",
+  "version": "5.38.1",
   "description": "A universal Single Sign-On (SSO) service that can be integrated into any project",
   "main": "src/index.ts",
   "type": "module",
@@ -15,6 +15,7 @@
     "test:contracts": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js --runInBand",
     "guard:repo": "node scripts/check-repo-guardrails.mjs",
     "check:docs": "node scripts/check-docs-maintenance.mjs",
+    "check:release": "node scripts/check-release-integrity.mjs",
     "verify": "npm run lint && npm run type-check && npm test && npm run build && npm run guard:repo && npm run check:docs",
     "gds:validate-manifest": "gds-compliance validate-manifest --manifest ./gds-adoption.json",
     "gds:check": "gds-compliance check --manifest ./gds-adoption.json",
