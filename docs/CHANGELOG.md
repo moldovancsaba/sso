@@ -7,6 +7,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [5.38.1] - 2026-08-25
+
+### 🛡️ Tooling
+
+**`npm run check:release` — a guardrail for the failure `check:docs` structurally cannot see.**
+
+`check-docs-maintenance.mjs` asserts that `package.json` and the five versioned docs carry the *same* version as each other. They always did. That is exactly why it never caught what went wrong three separate times on 2026-08-25: commits landed on `main`, every document went on agreeing about the previous version, and `main` described itself with a release that had already been published. `npm run verify` reported green through all three.
+
+Agreement between documents says nothing about whether those documents still describe the code. `scripts/check-release-integrity.mjs` checks that instead, with one rule:
+
+> If a tag matching `package.json`'s version exists **and does not point at `HEAD`**, fail — the code has moved past a published release without a bump.
+
+**Scoped to pushes on `main`, deliberately.** It is not part of `npm run verify` and does not run on `pull_request`. On a feature branch `package.json` legitimately still holds the last released version until the bump commit, so running it earlier would fail every branch that had not bumped yet — a check that cries wolf on normal work gets ignored, which is worse than no check. The contract it enforces belongs to `main`: what is on `main` must not claim a version that is already released.
+
+The workflow's checkout now uses `fetch-depth: 0`. The default shallow checkout fetches no tags, so the check would have found nothing to compare and passed silently — worse than not running at all, because it would have looked like it had run.
+
+Written against the live failure rather than a hypothetical: at the time of writing `main` was one commit past `v5.38.0` with `package.json` still reading `5.38.0`, and the check caught it with the commit count and both SHAs. All three outcomes were then verified — version not yet released (pass), `HEAD` is the release (pass, including annotated-tag dereferencing via `rev-list -n 1`), and `HEAD` past the release (fail). Both tag forms are accepted, `v5.38.0` and bare `5.38.0`, since nothing in the repo enforces the prefix.
+
+An expected-miss probe (`git rev-parse --verify` on a tag that does not exist) has its stderr discarded, so a clean run prints no `fatal:` line. A guardrail that prints a fatal error on every success is how real failures stop being read.
+
+### 🧹 Fixed
+
+`gds-adoption.json` no longer lists `components` under `compliance.protectedSurfacePaths`. That directory ceased to exist in [5.37.0] when `components/DocsLayout.js` — its last file — was deleted. Landed as `f51828c2`; it is the commit the new guardrail was catching.
+
+### 📋 Known Limitation
+
+This detects a version that has already been released. It does not detect the window before a release is cut, where `main` carries an unreleased bump — that state is legitimate and indistinguishable from being mid-flight. Nor does it verify that `docs/CHANGELOG.md` gained an entry describing what actually changed; only a human reading the diff can confirm that.
+
+---
+
 ## [5.38.0] - 2026-08-25
 
 ### 📦 Changed
