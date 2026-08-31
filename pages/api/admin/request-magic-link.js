@@ -5,6 +5,7 @@
  */
 
 import { findUserByEmail } from '../../../lib/users.mjs'
+import { getBaseUrl } from '../../../lib/baseUrl.mjs'
 import { createMagicToken } from '../../../lib/magic.mjs'
 import { sendEmail } from '../../../lib/email.mjs'
 import { buildMagicLinkEmail } from '../../../lib/emailTemplates.mjs'
@@ -55,8 +56,7 @@ export default async function handler(req, res) {
     const { token, expiresAt } = await createMagicToken(user.email, 900, redirect_uri || null)
 
     // Build magic link URL
-    const SSO_BASE_URL = process.env.SSO_BASE_URL || 'http://localhost:3000'
-    const magicLink = `${SSO_BASE_URL}/api/admin/magic-login?token=${encodeURIComponent(token)}`
+    const magicLink = `${getBaseUrl()}/api/admin/magic-login?token=${encodeURIComponent(token)}`
 
     // Send email with magic link
     const emailContent = buildMagicLinkEmail({
