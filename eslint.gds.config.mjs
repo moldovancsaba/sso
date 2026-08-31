@@ -13,7 +13,6 @@ const config = [
       '.next/**',
       'coverage/**',
       'node_modules/**',
-      'client/dist/**',
       'out/**',
       'build/**',
     ],

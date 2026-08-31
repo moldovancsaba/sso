@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [5.39.3] - 2026-08-31
+
+### 🧹 Removed — files from other projects, stale one-offs, orphaned SDKs
+
+**A complete foreign project evicted from the repo root.** Eight Moltbot/Clawdbot files plus `kiro-skill/` — a local-AI-assistant toolset (Ollama model registry mutators, WhatsApp/Telegram/iMessage channel setup, a dashboard linking to `file:///Users/…/moltbot`) with zero references from this codebase, copied in incomplete (it referenced companion files that were never here). Four of them contained a plaintext gateway token; **that token remains in git history and still needs rotation** — deletion does not un-leak it. Also removed `agent_working_loop_canonical_operating_document.md`, the MESSMASS operating document CLAUDE.md §9 had been warning about; §9 now documents the class of problem instead of the single instance.
+
+**Stale one-offs**: `check-user.mjs` (hardcoded one person's email and mutated the production database from the repo root), `check-uuid-issue.mjs` (single-incident debug artifact), root `test-magic-link.mjs` (name-collided with the different `scripts/test-magic-link.mjs` and defaulted to probing production), `package.json.backup` / `package-lock.json.backup` (a pre-rename ancestor of this package), and `examples/external-website-integration.html` (referenced by nothing, hardcoded `localhost:3000`, used the legacy password API).
+
+**Both orphaned SDK packages**: `src/` (a TypeScript client library imported by nothing and excluded from the Next build — its only role was being the sole thing `npm run type-check` checked) and `client/` (`@doneisbetter/sso-client` v5.1.0, unpublishable from here — its build tool isn't installed — while npm still serves v1.0.0). Git history preserves both; a future SDK belongs in its own repository. `package.json` no longer claims `main: src/index.ts`, `tsconfig.json` now includes the repo's actual TypeScript surface (`next-env.d.ts` and any future `.ts`/`.tsx`) instead of the deleted orphan, and the eslint ignore for `client/dist` is gone.
+
+### 🛡️ Guardrail hardened
+
+`guard:repo`'s hardcoded-credential scan now covers **every tracked file**. The old prefix list scanned only `.github/`, `lib/`, `pages/`, `scripts/`, plus two directories that no longer exist (`components/`, `src/`) — and skipped the repo root, which is exactly where the foreign files with the committed token sat.
+
+---
+
 ## [5.39.2] - 2026-08-31
 
 ### 🧹 Configuration and documentation now tell the truth

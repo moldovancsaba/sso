@@ -343,13 +343,13 @@ file a Claude Code session loads automatically), then mirror the user-facing par
 `AGENTS.md`. Re-run the relevant parts of `npm run verify` (`check:docs` in particular)
 after any doc-governance-relevant change.
 
-## 9. Known stray file — do not treat as authoritative
+## 9. Stray files from other projects
 
-`agent_working_loop_canonical_operating_document.md` at the repo root is **not** this
-repo's operating document. It describes a different project (title "MESSMASS", a
-"Sultan" product-owner role, a ChatGPT/Cursor-based agent team, and a Mongoose/Tailwind/
-Socket.io stack that doesn't match this repo), its template sections are unfilled
-("Current Version:", "Last Known Working Commit:" are blank), and it was never updated
-for this repo's actual state. Don't apply its rules or stack assumptions here. It has
-been flagged to the repo owner; until it's removed or corrected, ignore it in favor of
-this file and `docs/ARCHITECTURE.md`.
+A batch of files copied in from unrelated projects (a "MESSMASS" operating document,
+a Moltbot/Clawdbot toolset, two orphaned SDK packages in `src/` and `client/`) was
+removed with owner sign-off on 2026-08-31. If a file at the repo root or a whole
+directory looks like it belongs to a different product — different stack, different
+product names, references to paths outside this repo — do not apply its rules or
+assumptions; flag it for removal instead of working around it. `guard:repo`'s secret
+scan now covers every tracked file precisely because that batch sat in the one place
+the old prefix list didn't scan.

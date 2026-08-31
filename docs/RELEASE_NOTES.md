@@ -1,4 +1,10 @@
-# Release Notes [![Version Badge](https://img.shields.io/badge/version-5.39.2-blue)](RELEASE_NOTES.md)
+# Release Notes [![Version Badge](https://img.shields.io/badge/version-5.39.3-blue)](RELEASE_NOTES.md)
+
+## [v5.39.3] — 2026-08-31T00:00:00.000Z
+
+### 🧹 Eviction Day
+
+Thirty-one tracked files that were not this project left the repository: a complete Moltbot/Clawdbot toolset (with a committed gateway token — now deleted, but still in history and still requiring rotation), the MESSMASS operating document, two orphaned SDK packages (`src/`, `client/`), production-touching debug one-offs at the repo root, and pre-rename `package.json` backups. `npm run type-check` no longer type-checks a package that nothing imports, and `guard:repo`'s secret scan now covers every tracked file instead of a prefix list that skipped the repo root — the one place the leaked token actually sat.
 
 ## [v5.39.2] — 2026-08-31T00:00:00.000Z
 

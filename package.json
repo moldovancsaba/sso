@@ -1,8 +1,7 @@
 {
   "name": "@moldovancsaba/universal-sso",
-  "version": "5.39.2",
+  "version": "5.39.3",
   "description": "A universal Single Sign-On (SSO) service that can be integrated into any project",
-  "main": "src/index.ts",
   "type": "module",
   "scripts": {
     "dev": "next dev -p 5500",
