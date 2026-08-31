@@ -28,14 +28,6 @@ deprecation dates behind it.
 - Test MongoDB connection: `npm run test-connection`
 - Sync versioned docs after a version bump: `npm run sync:version`
 
-### Client package
-
-Run these from the `client/` directory:
-
-- Build the package: `npm run build`
-- Watch and rebuild during development: `npm run dev`
-- Clean build output: `npm run clean`
-
 ## Verified Operational Commands
 
 - Bootstrap the legacy admin user: `NEW_ADMIN_TOKEN=<32-hex-token> node scripts/bootstrap-admin.mjs`

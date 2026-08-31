@@ -6,14 +6,11 @@ import path from 'node:path'
 
 const ROOT = process.cwd()
 
-const SECRET_SCAN_PREFIXES = [
-  '.github/',
-  'components/',
-  'lib/',
-  'pages/',
-  'scripts/',
-  'src/',
-]
+// WHAT: Secret scanning covers every tracked file — no prefix list.
+// WHY: The old prefix list skipped the repo root, which is exactly where a set of
+//      copied-in foreign files sat with a plaintext token in four of them. A scan
+//      that exempts locations is a scan that misses the next accident. (The old
+//      list also named components/ and src/, directories that no longer exist.)
 
 const ROUTE_DUPLICATE_SCAN_PREFIXES = [
   'pages/',
@@ -60,10 +57,6 @@ function findHardcodedMongoUris(files) {
   const offenders = []
 
   for (const file of files) {
-    if (!isUnderTrackedPrefix(file, SECRET_SCAN_PREFIXES)) {
-      continue
-    }
-
     const absolutePath = path.join(ROOT, file)
     if (!existsSync(absolutePath)) {
       continue
