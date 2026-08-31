@@ -1,4 +1,10 @@
-# Release Notes [![Version Badge](https://img.shields.io/badge/version-5.39.3-blue)](RELEASE_NOTES.md)
+# Release Notes [![Version Badge](https://img.shields.io/badge/version-5.39.4-blue)](RELEASE_NOTES.md)
+
+## [v5.39.4] — 2026-08-31T00:00:00.000Z
+
+### 🛡️ Gate Holes Closed
+
+The production build now runs in CI instead of only during Vercel deploys (where a failure takes down login for every dependent app). The GDS compliance scripts that `gds-adoption.json` promised are now actually run — in CI and in `npm run verify`. CI and developers share one jest invocation (`npm test -- --runInBand`), `.mjs` test files can no longer silently not-run, and the duplicate `lint:gds` script is gone.
 
 ## [v5.39.3] — 2026-08-31T00:00:00.000Z
 

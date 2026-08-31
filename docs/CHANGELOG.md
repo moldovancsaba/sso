@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [5.39.4] - 2026-08-31
+
+### 🛡️ The quality gate now checks what it claimed to check
+
+**The production build runs in CI.** `npm run build` was the one gate that ran only on Vercel — that is, only during the deploy itself, where a failed build of the SSO service takes down login for every dependent app. It now runs on every push and pull request, which also finally exercises the build race documented in `next.config.js` somewhere other than production deploys.
+
+**The GDS manifest is enforced, not just present.** `gds-adoption.json` declares `bannedImports` and `protectedSurfacePaths`, but no automation ran the scripts that check them — a stale `protectedSurfacePaths` entry survived for two releases because of exactly this. `gds:validate-manifest` and `gds:check` are now in both CI and `npm run verify`.
+
+**One jest invocation path.** CI invoked jest directly with flags `npm test` didn't have; the two had already drifted. CI now runs `npm test -- --runInBand`. `jest.config.js` additionally matches `.mjs` test files — with the old `.js`-only pattern, an `.mjs` test would silently never run while the suite reported green.
+
+**`lint:gds` removed** — `eslint.config.mjs` re-exports `eslint.gds.config.mjs`, so it was character-for-character the same check as `npm run lint`.
+
+`next.config.js` now documents that its `ignoreBuildErrors`/`ignoreDuringBuilds` flags are load-bearing *because* the checks run as dedicated CI steps — without those steps the flags would mean "nothing checks this anywhere."
+
+---
+
 ## [5.39.3] - 2026-08-31
 
 ### 🧹 Removed — files from other projects, stale one-offs, orphaned SDKs

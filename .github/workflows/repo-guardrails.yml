@@ -39,6 +39,14 @@ jobs:
       - name: Run type checks
         run: npm run type-check
 
+      # WHAT: the production build, in CI, before anything merges.
+      # WHY: this was the one gate that ran only on Vercel — i.e. only during the
+      #      deploy itself, where a failure takes down login for every dependent app.
+      #      next.config.js documents a real build race that was only ever observed
+      #      there; now it gets exercised on every push and pull request first.
+      - name: Run production build
+        run: npm run build
+
       - name: Enforce repository guardrails
         run: node scripts/check-repo-guardrails.mjs
 
@@ -54,5 +62,19 @@ jobs:
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: node scripts/check-release-integrity.mjs
 
+      # WHAT: GDS manifest validation and compliance check.
+      # WHY: gds-adoption.json declares bannedImports and protectedSurfacePaths, but
+      #      until now no automation ran the scripts that enforce them — the manifest
+      #      was a promise nothing kept (a stale protectedSurfacePaths entry survived
+      #      for two releases because of exactly this).
+      - name: Validate GDS manifest
+        run: npm run gds:validate-manifest
+
+      - name: Check GDS compliance
+        run: npm run gds:check
+
+      # WHAT: the same `npm test` developers run, plus --runInBand for CI stability.
+      # WHY: invoking jest directly here duplicated the npm script and the two had
+      #      already drifted; one invocation path means one thing to keep correct.
       - name: Run contract tests
-        run: node --experimental-vm-modules ./node_modules/jest/bin/jest.js --runInBand --passWithNoTests
+        run: npm test -- --runInBand

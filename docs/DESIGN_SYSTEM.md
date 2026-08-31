@@ -160,8 +160,7 @@ Current repo usage proves the public/editorial family is viable on this runtime 
 
 ## Validation
 
-- `npm run lint`
-- `npm run lint:gds`
+- `npm run lint` (the GDS config — `eslint.config.mjs` re-exports `eslint.gds.config.mjs`; the former separate `lint:gds` script was an identical duplicate)
 - `npm run gds:validate-manifest`
 - `npm run gds:check`
 - `npm run build`

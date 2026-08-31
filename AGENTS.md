@@ -24,7 +24,7 @@ deprecation dates behind it.
 - Run tests: `npm test`
 - Run repository guardrails: `npm run guard:repo`
 - Run documentation maintenance checks: `npm run check:docs`
-- Run the full pre-push/pre-merge gate (lint + type-check + test + build + guardrails + docs): `npm run verify`
+- Run the full pre-push/pre-merge gate (lint + type-check + test + build + guardrails + docs + GDS manifest/compliance): `npm run verify`
 - Test MongoDB connection: `npm run test-connection`
 - Sync versioned docs after a version bump: `npm run sync:version`
 

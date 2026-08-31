@@ -178,9 +178,10 @@ Run the full chain before pushing or merging:
 npm run verify
 ```
 
-(`lint` → `type-check` → `test` → `build` → `guard:repo` → `check:docs` — see
-`package.json` for the exact current chain; keep this script and this doc in sync if the
-chain changes.) As of this writing the whole chain passes clean with zero warnings.
+(`lint` → `type-check` → `test` → `build` → `guard:repo` → `check:docs` →
+`gds:validate-manifest` → `gds:check` — see `package.json` for the exact current chain;
+keep this script and this doc in sync if the chain changes.) As of this writing the
+whole chain passes clean with zero warnings.
 
 This chain requires Node 24.x — on any other major version `npm ci` refuses to install
 at all and the gate cannot be run. See Section 7.1 before concluding that anything here
