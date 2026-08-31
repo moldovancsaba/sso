@@ -7,6 +7,7 @@ import { runCors } from '../../../lib/cors.mjs'
 import { getAdminUser } from '../../../lib/auth.mjs'
 import { validateRequestOrigin } from '../../../lib/middleware/csrf.mjs'
 import { generateShareableLink, getOrCreateResourcePassword, validateAnyPassword } from '../../../lib/resourcePasswords.mjs'
+import { getBaseUrl } from '../../../lib/baseUrl.mjs'
 
 export default async function handler(req, res) {
   if (runCors(req, res)) return
@@ -37,10 +38,12 @@ export default async function handler(req, res) {
       // Generate or retrieve password
       const resourcePassword = await getOrCreateResourcePassword(resourceId, resourceType, regenerate)
 
-      // Build base URL from headers, fallback to env
-      const protocol = (req.headers['x-forwarded-proto'] || '').toString() || 'https'
-      const host = (req.headers['x-forwarded-host'] || req.headers['host'] || '').toString() || 'localhost:3000'
-      const baseUrl = `${protocol}://${host}` || process.env.SSO_BASE_URL || ''
+      // WHAT: Canonical base URL, never derived from request headers.
+      // WHY: The old header-derived value fed x-forwarded-host verbatim into a
+      //      generated credential link (host-header injection), and its
+      //      SSO_BASE_URL fallback was unreachable — a template literal is
+      //      never falsy.
+      const baseUrl = getBaseUrl()
 
       // Generate shareable link (generic URL container)
       const shareableLink = await generateShareableLink(resourceId, resourceType, baseUrl)

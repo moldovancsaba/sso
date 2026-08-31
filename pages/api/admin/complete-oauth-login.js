@@ -34,22 +34,28 @@ export default async function handler(req, res) {
     hasCode: !!req.body.code,
   })
 
-  const { code } = req.body
+  const { code, redirect_uri } = req.body
 
   if (!code) {
     return res.status(400).json({ error: 'Authorization code is required' })
   }
 
+  if (!redirect_uri) {
+    return res.status(400).json({ error: 'redirect_uri is required' })
+  }
+
   try {
     // WHAT: Validate and consume authorization code
     // WHY: Ensure code is valid, unused, and meant for admin dashboard
-    // HOW: Use same validation as token endpoint
+    // HOW: Use same validation as token endpoint. The callback page sends the
+    //      redirect_uri it authorized with (standard token-exchange semantics);
+    //      validateAndConsumeCode rejects any value that doesn't exactly match
+    //      the one bound to the code, so guessing it from NODE_ENV — which broke
+    //      on preview deployments and non-default dev ports — is unnecessary.
     const codeData = await validateAndConsumeCode({
       code,
       client_id: 'sso-admin-dashboard',
-      redirect_uri: process.env.NODE_ENV === 'production'
-        ? 'https://sso.doneisbetter.com/admin/callback'
-        : 'http://localhost:3000/admin/callback',
+      redirect_uri,
       code_verifier: undefined, // Admin client doesn't use PKCE
     })
 

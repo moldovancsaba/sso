@@ -45,7 +45,13 @@ export default function AdminCallbackPage() {
         const response = await fetch('/api/admin/complete-oauth-login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ code }),
+          body: JSON.stringify({
+            code,
+            // WHAT: The redirect_uri this flow authorized with (see pages/admin/index.js).
+            // WHY: The server validates it against the value bound to the code instead of
+            //      guessing the deployment's own origin.
+            redirect_uri: `${window.location.origin}/admin/callback`,
+          }),
           credentials: 'include', // Important: include cookies
         })
 

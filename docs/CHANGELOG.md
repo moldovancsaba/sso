@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [5.39.0] - 2026-08-31
+
+### 🐛 Fixed
+
+**Production magic-link emails pointed at `http://localhost:3000`.** Both magic-link endpoints and every email template built links from `process.env.SSO_BASE_URL || 'http://localhost:3000'`, and the production environment did not define `SSO_BASE_URL` — so every emailed link (magic login, forgot-password) carried a localhost URL. Meanwhile `lib/securityHeaders.mjs` and `lib/oauth/tokens.mjs` used the *opposite* fallback (`https://sso.doneisbetter.com`), so the codebase disagreed with itself about what "unconfigured" means.
+
+All base-URL derivation now goes through one function, `getBaseUrl()` in `lib/baseUrl.mjs`, with one precedence order: `SSO_BASE_URL` (trimmed, trailing slashes stripped) → the deployment's own host on Vercel previews (`VERCEL_ENV=preview` + `VERCEL_URL`) → `https://sso.doneisbetter.com` when `NODE_ENV=production` → `http://localhost:5500` otherwise. The development fallback finally matches the port `npm run dev` actually listens on (`next dev -p 5500`); the old fallbacks pointed at 3000, where nothing runs.
+
+Call sites converted: both `request-magic-link` endpoints, `lib/emailTemplates.mjs` (which also stops caching the base URL in a module-level constant — it is now read at call time), `lib/securityHeaders.mjs` (CSP `connect-src`), `pages/api/resource-passwords/index.js`, `pages/api/.well-known/openid-configuration.js`, `lib/oauth/tokens.mjs`, and `scripts/generate-magic-link.mjs`.
+
+**OIDC issuer precedence mismatch.** Token signing resolved the issuer as `JWT_ISSUER || SSO_BASE_URL || <prod>`, while the discovery document resolved `SSO_BASE_URL || JWT_ISSUER || <request host>` — opposite orders, so setting both variables to different values made discovery advertise one issuer while tokens carried another, and spec-compliant clients would reject every token. Both now resolve identically: `JWT_ISSUER || getBaseUrl()`.
+
+**Host-header injection in resource-password shareable links.** `pages/api/resource-passwords/index.js` embedded `x-forwarded-host` verbatim into the generated credential link, and its intended `SSO_BASE_URL` fallback was unreachable (a template literal is never falsy). The link is now built from `getBaseUrl()` only.
+
+**Admin OAuth login guessed its own callback URL from `NODE_ENV`.** `pages/api/admin/complete-oauth-login.js` hardcoded the production callback when `NODE_ENV=production` — which is also true on every Vercel preview deployment, where admin login therefore could not complete, and hardcoded port 3000 in development, where the dev server runs on 5500. The callback page (`pages/admin/callback.js`) now sends the `redirect_uri` it actually authorized with, and the server validates it against the value bound to the authorization code — standard token-exchange semantics, no guessing.
+
+### 🧪 Tests
+
+`__tests__/base-url.test.js` covers the precedence order, trailing-slash and whitespace handling, the preview branch, and the production-fallback regression this release fixes.
+
+---
+
 ## [5.38.1] - 2026-08-25
 
 ### 🛡️ Tooling

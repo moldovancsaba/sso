@@ -1,6 +1,14 @@
-# Release Notes [![Version Badge](https://img.shields.io/badge/version-5.38.1-blue)](RELEASE_NOTES.md)
+# Release Notes [![Version Badge](https://img.shields.io/badge/version-5.39.0-blue)](RELEASE_NOTES.md)
 
-## [v5.38.1] — 2026-08-25T00:00:00.000Z
+## [v5.39.0] — 2026-08-31T00:00:00.000Z
+
+### 🐛 Production Emails No Longer Link to localhost
+
+Every emailed link — magic login and forgot-password alike — was built from `SSO_BASE_URL` with a fallback of `http://localhost:3000`, and production did not define `SSO_BASE_URL`. Users received magic links pointing at their own machine. The variable is now set in the production environment, and the code no longer permits that failure mode: all absolute-URL construction goes through `getBaseUrl()` (`lib/baseUrl.mjs`), whose production fallback is the production domain, whose Vercel-preview branch uses the preview's own host, and whose development fallback finally matches the real dev port (5500, not 3000).
+
+The same change unified the OIDC issuer (token signing and the discovery document previously resolved it in *opposite* precedence orders), removed a host-header injection from resource-password shareable links, and stopped admin OAuth login from guessing its callback URL from `NODE_ENV` — a guess that was wrong on every Vercel preview and on every non-default dev port. The admin callback page now sends the `redirect_uri` it authorized with, validated server-side against the value bound to the authorization code.
+
+
 
 ### 🛡️ A Guardrail That Notices When main Outruns Its Own Version
 

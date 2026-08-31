@@ -14,6 +14,7 @@
 
 import { runCors } from '../../../lib/cors.mjs'
 import { SCOPE_DEFINITIONS } from '../../../lib/oauth/scopes.mjs'
+import { getBaseUrl } from '../../../lib/baseUrl.mjs'
 
 export default async function handler(req, res) {
   // Apply CORS
@@ -23,10 +24,10 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
-  // Get base URL from environment or request
-  const baseUrl = process.env.SSO_BASE_URL || 
-                  process.env.JWT_ISSUER || 
-                  `${req.headers['x-forwarded-proto'] || 'https'}://${req.headers.host}`
+  // WHAT: JWT_ISSUER overrides, then the canonical base URL.
+  // WHY: Must resolve identically to lib/oauth/tokens.mjs — discovery advertising
+  //      one issuer while tokens carry another makes clients reject every token.
+  const baseUrl = process.env.JWT_ISSUER || getBaseUrl()
 
   // OIDC Discovery Document
   const discoveryDocument = {
