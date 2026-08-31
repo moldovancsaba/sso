@@ -44,7 +44,6 @@ npm run test
 npm run build
 npm run guard:repo
 npm run check:docs
-npm run validate-config
 npm run test-connection
 ```
 

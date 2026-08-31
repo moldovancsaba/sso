@@ -1,7 +1,7 @@
 # SSO Service
 
-Version: 5.39.1  
-Last updated: 2026-08-21T00:00:00.000Z
+Version: 5.39.2  
+Last updated: 2026-08-31T00:00:00.000Z
 
 This repository provides the SSO service for `https://sso.doneisbetter.com`.
 
@@ -128,27 +128,35 @@ The May 2026 hardening pass delivered these changes:
 
 ## Important Environment Variables
 
+The complete, accurate list lives in `.env.example` — every variable there is read by
+the code, with its real default. The ones that break auth flows when missing:
+
 ```bash
 MONGODB_URI=...
-MONGODB_DB=sso
 
-SESSION_SECRET=...
-CSRF_SECRET=...
-
+# Canonical base URL for emailed links, OIDC issuer, CSP.
+# Unset in production it falls back to https://sso.doneisbetter.com;
+# on any other deployment set it explicitly.
 SSO_BASE_URL=https://sso.doneisbetter.com
-SSO_COOKIE_DOMAIN=.doneisbetter.com
+
 SSO_ALLOWED_ORIGINS=https://sso.doneisbetter.com,https://doneisbetter.com
 
-PUBLIC_SESSION_COOKIE=public-session
-ADMIN_SESSION_COOKIE=admin-session
+# Cross-subdomain SSO cookie domain. CAUTION: leave unset on Vercel
+# previews/forks — lib/publicSessions.mjs otherwise forces .doneisbetter.com,
+# the browser drops the cookie, and login silently fails.
+SSO_COOKIE_DOMAIN=.doneisbetter.com
 
-FACEBOOK_APP_ID=...
-FACEBOOK_APP_SECRET=...
-FACEBOOK_REDIRECT_URI=https://sso.doneisbetter.com/api/auth/facebook/callback
+JWT_SECRET=...           # HS256 fallback + public magic links (PUBLIC_MAGIC_SECRET overrides)
+CSRF_SECRET=...          # falls back to SESSION_SECRET
+ADMIN_MAGIC_SECRET=...   # absent = admin magic links silently never send
 
-GOOGLE_CLIENT_ID=...
-GOOGLE_CLIENT_SECRET=...
-GOOGLE_REDIRECT_URI=https://sso.doneisbetter.com/api/auth/google/callback
+# Email transport (lib/email.mjs): EMAIL_PROVIDER (nodemailer|resend),
+# SMTP_HOST/PORT/SECURE/USER/PASS or RESEND_API_KEY, EMAIL_FROM, EMAIL_FROM_NAME.
+
+# Social login: GOOGLE_CLIENT_ID/SECRET/REDIRECT_URI, FACEBOOK_APP_ID/SECRET/REDIRECT_URI.
+
+# OAuth2/OIDC signing: JWT_PRIVATE_KEY / JWT_PUBLIC_KEY (inline PEM contents,
+# not paths; falls back to keys/private.pem + keys/public.pem on disk).
 ```
 
 ## Local Commands
@@ -163,7 +171,6 @@ npm run test
 npm run build
 npm run guard:repo
 npm run check:docs
-npm run validate-config
 npm run test-connection
 npm run sync:version
 ```
