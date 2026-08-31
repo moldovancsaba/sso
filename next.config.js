@@ -3,6 +3,12 @@ const nextConfig = {
   reactStrictMode: true,
   pageExtensions: ['js', 'jsx'],
   poweredByHeader: false,
+  // WHAT: lint and type checks are NOT run inside `next build`.
+  // WHY: both run as dedicated steps in `npm run verify` and in CI
+  //      (.github/workflows/repo-guardrails.yml), where their failures are
+  //      attributable and don't entangle with the build race documented below.
+  //      These flags are load-bearing: without the CI steps they would mean
+  //      "nothing checks this anywhere" — keep them and the workflow in sync.
   typescript: {
     ignoreBuildErrors: true
   },
