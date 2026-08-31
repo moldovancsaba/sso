@@ -1,4 +1,10 @@
-# Release Notes [![Version Badge](https://img.shields.io/badge/version-5.39.0-blue)](RELEASE_NOTES.md)
+# Release Notes [![Version Badge](https://img.shields.io/badge/version-5.39.1-blue)](RELEASE_NOTES.md)
+
+## [v5.39.1] — 2026-08-31T00:00:00.000Z
+
+### 🐛 Magic Links Now Work for Password-Registered Users
+
+Requesting a magic link required a verified email, but no path to verification existed for password registrations: the field was never set at signup, the function that sets it had no callers, and the verification email linked to endpoints that were never built. Affected users got the fake-success message and no email, indefinitely. The gate now blocks only explicitly-unverified addresses — the convention the rest of the codebase already follows — and a successful magic-link login records the email as verified, making the link itself the verification mechanism. The four dead email templates (including the one advertising nonexistent confirm endpoints) are gone.
 
 ## [v5.39.0] — 2026-08-31T00:00:00.000Z
 

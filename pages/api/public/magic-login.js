@@ -4,7 +4,7 @@
  * WHY: Completes passwordless authentication flow for public users
  */
 
-import { ensurePublicUserId, findPublicUserByEmail } from '../../../lib/publicUsers.mjs'
+import { ensurePublicUserId, findPublicUserByEmail, setEmailVerified } from '../../../lib/publicUsers.mjs'
 import { createPublicSession, setPublicSessionCookie } from '../../../lib/publicSessions.mjs'
 import { resolveSafeRedirect } from '../../../lib/redirects.mjs'
 import logger from '../../../lib/logger.mjs'
@@ -131,6 +131,22 @@ export default async function handler(req, res) {
     // WHAT: Set secure session cookie using helper function
     // WHY: Ensures consistent cookie attributes (domain, secure, etc.) across all auth methods
     setPublicSessionCookie(res, sessionToken)
+
+    // WHAT: Using a magic link proves inbox ownership, so record the email as verified.
+    // WHY: This is the only verification path for password-registered users — no
+    //      registration-time verification flow exists.
+    if (normalizedUser.emailVerified !== true) {
+      try {
+        await setEmailVerified({ userId: normalizedUser.id })
+      } catch (verifyError) {
+        // A bookkeeping failure must not fail a login that already succeeded.
+        logger.warn('Failed to mark email verified after magic login', {
+          event: 'public_magic_login_verify_update_failed',
+          userId: normalizedUser.id,
+          error: verifyError.message,
+        })
+      }
+    }
 
     // WHAT: Determine final redirect destination
     // WHY: User should return to where they originally requested authentication

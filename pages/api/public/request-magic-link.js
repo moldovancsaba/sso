@@ -111,8 +111,15 @@ export default async function handler(req, res) {
       })
     }
 
-    // Check if email is verified
-    if (!user.emailVerified) {
+    // WHAT: Block only an explicitly-unverified email; undefined counts as verified.
+    // WHY: Matches the convention everywhere else (session.js, login.js, admin
+    //      public-users listing). The old `!user.emailVerified` blocked every
+    //      password-registered user forever: createPublicUser never sets the field
+    //      and no verification flow exists to set it, so those users silently got
+    //      the fake-success response and no email. Ownership is still proven —
+    //      the link only works from the recipient's inbox, and using it marks the
+    //      email verified (see magic-login.js).
+    if (user.emailVerified === false) {
       logger.warn('Magic link requested for unverified email', {
         event: 'public_magic_link_unverified',
         email: emailLower,
