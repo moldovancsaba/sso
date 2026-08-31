@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [5.39.2] - 2026-08-31
+
+### 🧹 Configuration and documentation now tell the truth
+
+**`lib/config.js` deleted.** Nothing imported it. It was generic boilerplate from a different project shape (endpoint-path config, `HOST`/`PORT`, its own CORS list), and roughly two-thirds of `.env.example` documented variables that only it read — meaning most of the example file configured nothing. `npm run validate-config` (which only validated that dead module) is gone; `scripts/test-connection.js` now reads `MONGODB_URI`/`MONGODB_DB` directly — the variables `lib/db.mjs` actually uses — and loads `.env.local` like the other scripts.
+
+**`.env.example` rewritten from the code, not the folklore.** Every variable listed is actually read by the service, grouped by subsystem, with real defaults: the entire email transport (`EMAIL_PROVIDER`, `SMTP_*`, `RESEND_API_KEY`, `EMAIL_FROM`, `EMAIL_FROM_NAME`), the magic-link secrets (`ADMIN_MAGIC_SECRET` — whose absence makes admin magic links silently never send — and `PUBLIC_MAGIC_SECRET` with its `JWT_SECRET` fallback), inline-PEM `JWT_PRIVATE_KEY`/`JWT_PUBLIC_KEY` (the previously-documented `*_PATH` variants were read by nothing), rate-limit and TTL knobs, and the Vercel-preview warning for `SSO_COOKIE_DOMAIN`. `npm run setup` now copies to `.env.local` (which Next.js loads and git ignores) instead of `.env`.
+
+**Duplicated `SSO_ALLOWED_ORIGINS` default unified.** `lib/cors.mjs` and `lib/middleware/csrf.mjs` each hardcoded the same fallback list; CSRF now imports `getAllowedOrigins()` from the CORS module, so the two trust decisions cannot drift apart.
+
+**`HANDOVER.md` deleted.** It described `main` as being at 5.32.1 on a commit that is dozens of releases old, and no maintenance check covered it — a stale snapshot presenting itself as current state.
+
+`docs/README.md` environment section now points at `.env.example` as the authoritative list and calls out the variables whose absence breaks auth flows outright.
+
+---
+
 ## [5.39.1] - 2026-08-31
 
 ### 🐛 Fixed

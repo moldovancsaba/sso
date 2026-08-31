@@ -1,6 +1,6 @@
 {
   "name": "@moldovancsaba/universal-sso",
-  "version": "5.39.1",
+  "version": "5.39.2",
   "description": "A universal Single Sign-On (SSO) service that can be integrated into any project",
   "main": "src/index.ts",
   "type": "module",
@@ -19,9 +19,8 @@
     "verify": "npm run lint && npm run type-check && npm test && npm run build && npm run guard:repo && npm run check:docs",
     "gds:validate-manifest": "gds-compliance validate-manifest --manifest ./gds-adoption.json",
     "gds:check": "gds-compliance check --manifest ./gds-adoption.json",
-    "validate-config": "node -e \"import('./lib/config.js').then(c => c.validateConfig())\"",
     "test-connection": "node scripts/test-connection.js",
-    "setup": "cp .env.example .env && echo 'Please edit .env with your configuration'",
+    "setup": "cp .env.example .env.local && echo 'Please edit .env.local with your configuration'",
     "vercel-build": "next build",
     "sync:version": "node scripts/sync-version.mjs"
   },

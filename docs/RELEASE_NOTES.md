@@ -1,4 +1,10 @@
-# Release Notes [![Version Badge](https://img.shields.io/badge/version-5.39.1-blue)](RELEASE_NOTES.md)
+# Release Notes [![Version Badge](https://img.shields.io/badge/version-5.39.2-blue)](RELEASE_NOTES.md)
+
+## [v5.39.2] — 2026-08-31T00:00:00.000Z
+
+### 🧹 Configuration Tells the Truth Again
+
+The dead `lib/config.js` is gone, along with `npm run validate-config` (it only validated that dead module) and the stale `HANDOVER.md` (which described a state dozens of releases old). `.env.example` was rewritten from the code: every variable in it is actually read by the service — including the entire previously-undocumented email transport and the magic-link secrets, one of which (`ADMIN_MAGIC_SECRET`) silently disables admin magic links when absent. The CORS and CSRF origin allowlists now share one default instead of two hardcoded copies, and `npm run setup` writes `.env.local` (git-ignored, Next-loaded) instead of `.env`.
 
 ## [v5.39.1] — 2026-08-31T00:00:00.000Z
 
