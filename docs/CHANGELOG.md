@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [5.39.1] - 2026-08-31
+
+### 🐛 Fixed
+
+**Password-registered users could never receive a magic link.** `pages/api/public/request-magic-link.js` required `user.emailVerified` to be truthy, but nothing in the system could ever make it so for password registrations: `createPublicUser` never sets the field, `setEmailVerified` had zero callers, the email-verification template was dead code, and the confirm endpoints it linked to (`/api/{admin,public}/email-verification/confirm`) were never built. Those users received the anti-enumeration fake-success response and no email — forever. Only Google/Facebook-created accounts (which arrive with `emailVerified: true`) passed the gate.
+
+The gate now blocks only an *explicitly* unverified email (`emailVerified === false`), matching the convention already used by `session.js`, `login.js`, and the admin user listing, all of which treat an absent field as verified. Ownership is still proven — the link is only usable from the recipient's inbox — and successful magic-link login now records it: `magic-login.js` calls `setEmailVerified` (its first-ever caller) after creating the session, so this is also the system's first working verification path. A failure of that bookkeeping update logs a warning rather than failing a login that already succeeded.
+
+### 🧹 Removed
+
+The four email-template builders nothing ever called: `buildPasswordResetEmail`, `buildEmailVerificationEmail`, `buildPasswordResetSuccessEmail`, `buildWelcomeAfterVerificationEmail`, along with their now-unused helpers (`formatDuration`, `PASSWORD_RESET_TOKEN_TTL` / `EMAIL_VERIFICATION_TOKEN_TTL` reads in this module). The verification builder advertised endpoints that do not exist; keeping it around invited someone to trust it. The three live templates (login PIN, magic link, forgot password) are unchanged.
+
+---
+
 ## [5.39.0] - 2026-08-31
 
 ### 🐛 Fixed
