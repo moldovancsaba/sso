@@ -1,28 +1,9 @@
-import { getAdminUser } from '../../../lib/auth.mjs'
-import { listUsers } from '../../../lib/users.mjs'
-
+// Deprecated endpoint — replaced by /api/admin/users
+// Removed rather than migrated: it gated on getAdminUser alone, which the current OAuth admin
+// login never satisfies, and nothing in this repo or its docs called it.
 export default async function handler(req, res) {
-  if (req.method !== 'GET') {
-    res.setHeader('Allow', 'GET')
-    return res.status(405).end(`Method ${req.method} Not Allowed`)
-  }
-
-  const admin = await getAdminUser(req)
-  if (!admin) return res.status(401).json({ error: 'Unauthorized' })
-
-  try {
-    const users = await listUsers()
-    const result = users.map(u => ({
-      id: u._id?.toString(),
-      email: u.email,
-      name: u.name,
-      role: u.role,
-      createdAt: u.createdAt,
-      updatedAt: u.updatedAt,
-    }))
-    return res.status(200).json(result)
-  } catch (error) {
-    console.error('Error fetching users:', error)
-    return res.status(500).json({ error: 'Error connecting to database' })
-  }
+  return res.status(410).json({
+    error: 'Endpoint removed',
+    message: 'Use /api/admin/users for user listing',
+  })
 }

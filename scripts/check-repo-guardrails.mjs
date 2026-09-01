@@ -120,6 +120,45 @@ function findDesignSsotViolations(files) {
   return offenders
 }
 
+// WHAT: getAdminUser reads only the legacy `admin-session` cookie. The current admin login is
+//       OAuth-based and issues a `public-session` cookie plus an appPermissions grant instead,
+//       so a gate built on getAdminUser alone rejects every real admin.
+// WHY:  This shipped twice — /admin/activity's page gate redirect-looped, and admin logout was
+//       a silent no-op — because the 2024 migration script only rewrote pages/api/admin/**, and
+//       nothing stopped new code from reaching for the obvious-looking helper afterwards. The
+//       resolver (resolveAdminIdentity) and the API middleware (requireUnifiedAdmin) both live
+//       in lib/auth.mjs, so that file is the only legitimate place to name getAdminUser.
+const LEGACY_ADMIN_GATE_PATTERN = /\bgetAdminUser\b/
+const LEGACY_ADMIN_GATE_ALLOWED_FILES = new Set([
+  'lib/auth.mjs',
+  'lib/unifiedAuth.mjs',
+  '__tests__/admin-session-identity.test.js',
+  'scripts/check-repo-guardrails.mjs', // this file names the pattern it bans
+])
+
+function findLegacyAdminGates(files) {
+  const offenders = []
+
+  for (const file of files) {
+    if (!/\.(js|jsx|mjs|cjs|ts|tsx)$/.test(file)) continue
+    if (LEGACY_ADMIN_GATE_ALLOWED_FILES.has(file)) continue
+
+    const absolutePath = path.join(ROOT, file)
+    if (!existsSync(absolutePath)) continue
+
+    const lines = readFileSync(absolutePath, 'utf8').split('\n')
+    lines.forEach((line, index) => {
+      // Prose mentions in comments are how the trap gets explained; only real code counts.
+      const code = line.replace(/\/\/.*$/, '').replace(/^\s*\*.*$/, '')
+      if (LEGACY_ADMIN_GATE_PATTERN.test(code)) {
+        offenders.push(`${file}:${index + 1}`)
+      }
+    })
+  }
+
+  return offenders
+}
+
 function failWithReport(title, offenders) {
   console.error(`\n[repo-guardrails] ${title}`)
   for (const offender of offenders) {
@@ -132,6 +171,7 @@ function main() {
   const hardcodedMongoUriFiles = findHardcodedMongoUris(files)
   const duplicateRouteFiles = findDuplicateRouteFiles(files)
   const designSsotViolations = findDesignSsotViolations(files)
+  const legacyAdminGates = findLegacyAdminGates(files)
 
   if (hardcodedMongoUriFiles.length > 0) {
     failWithReport('Hardcoded MongoDB credential-bearing URI found in tracked source files:', hardcodedMongoUriFiles)
@@ -148,7 +188,19 @@ function main() {
     )
   }
 
-  if (hardcodedMongoUriFiles.length > 0 || duplicateRouteFiles.length > 0 || designSsotViolations.length > 0) {
+  if (legacyAdminGates.length > 0) {
+    failWithReport(
+      'getAdminUser used outside lib/auth.mjs. It checks only the legacy admin-session cookie, which the OAuth admin login never sets — use resolveAdminIdentity(req), or requireUnifiedAdmin(req, res) in API routes:',
+      legacyAdminGates,
+    )
+  }
+
+  if (
+    hardcodedMongoUriFiles.length > 0 ||
+    duplicateRouteFiles.length > 0 ||
+    designSsotViolations.length > 0 ||
+    legacyAdminGates.length > 0
+  ) {
     process.exit(1)
   }
 

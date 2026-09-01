@@ -25,7 +25,7 @@ import { IconAlertCircle, IconCircleCheck, IconLogout } from '@tabler/icons-reac
 import { DataToolbar, StateBlock } from '@sovereignsquad/gds-core/server'
 import { ResponsiveDataView } from '@sovereignsquad/gds-admin/client'
 import { PageHeader } from '@sovereignsquad/gds-admin/server'
-import { fetchAdminJson, isAuthRedirectError } from '../../lib/adminAuthFlow.js'
+import { fetchAdminJson, isAuthRedirectError, logoutAdmin } from '../../lib/adminAuthFlow.js'
 
 const adminNavItems = [
   { href: '/admin/dashboard', label: 'Dashboard' },
@@ -386,8 +386,7 @@ export default function AdminUsersPage() {
 
   async function handleLogout() {
     try {
-      await fetch('/api/admin/login', { method: 'DELETE', credentials: 'include' })
-      window.location.href = '/admin'
+      await logoutAdmin()
     } catch (logoutError) {
       console.error('Logout error:', logoutError)
       setMessage({ type: 'error', text: 'Logout failed. Please try again.' })

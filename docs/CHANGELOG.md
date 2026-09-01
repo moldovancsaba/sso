@@ -7,6 +7,51 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [5.39.5] - 2026-09-01
+
+### 🛡️ Every remaining single-model auth gate, and a guardrail so there is no next one
+
+After fixing the two reported symptoms (below), the whole class was swept out. Each item was a
+gate that knew about only one of the two live session models, and so rejected — or failed to
+revoke — the session type that every current admin actually holds.
+
+**Gates that rejected every real admin:**
+
+- `GET /api/users` — the pre-unified admin user list. Zero callers in this repo or its docs, superseded by `/api/admin/users`; now a 410 tombstone matching its two siblings in that directory rather than a migrated route nothing uses.
+- `POST /api/resource-passwords` — 401 for any admin signed in through the current flow. A 2024 audit report (`docs/archive/audit-reports/AUTHENTICATION_AUDIT.md`) had already flagged this endpoint as needing investigation; it was never done.
+- `PUT /api/resource-passwords` — the documented "admin bypass" branch could never fire.
+- `GET /api/users/:userId/apps/:clientId/permissions` — its admin-session authorization path was dead, leaving only the access-token path.
+
+**Logouts that revoked less than they claimed:**
+
+- `/logout` (the public logout page) called `POST /api/public/logout` **and** `POST /api/users/logout` — but the latter has answered 410 since it was deprecated, so the "clear all active sessions" promise covered only half, silently, for anyone holding a legacy session.
+- The 410 bodies of `/api/users/logout` and `/api/auth/logout` told integrators to "use `DELETE /api/admin/login` to logout", which is itself only half a logout. Both now name both endpoints.
+
+**Dead legacy-only helpers removed** — traps rather than bugs, since nothing called them, but each was the obvious-looking thing for the next person to reach for: `requireAdmin()`, `isAuthenticated()`, and `hasPermission()` from `lib/auth.mjs`, and `withAdminMutation()`, `withAdminQuery()`, and `withAdmin()` from `lib/adminHelpers.mjs` (which is now just `auditLog`, the only export anything ever imported). Also removed `scripts/convert-to-unified-admin.sh`, the migration script responsible for the whole class: it globbed only `pages/api/admin/**`, which is exactly why every gate outside that directory survived the migration untouched, and it hardcoded absolute paths from a machine that is not this one.
+
+**Guardrail:** `npm run guard:repo` now fails if `getAdminUser` appears in code outside `lib/auth.mjs`. It is not a deprecated function — it is the legacy half of a two-half answer, and there is no correct reason for a call site to pick that half deliberately. `docs/ARCHITECTURE.md` gains a **Session Models** section stating the two models, the three rules for choosing a gate, and why a page gate that disagrees with its data API produces an infinite redirect rather than an error; `AGENTS.md` mirrors the short form.
+
+### 🐛 Admin logout did nothing, and /admin/activity redirected forever
+
+Both were the same unfinished migration. Admin login runs through OAuth (`/admin` → `/api/oauth/authorize` → `/admin/callback` → `complete-oauth-login`), and that flow issues **only** a `public-session` cookie backed by an `appPermissions` admin grant — it never sets the legacy `admin-session` cookie. Parts of the admin surface were still written against `admin-session` alone:
+
+- **Logout was a no-op.** All four admin pages called `DELETE /api/admin/login`, which clears `admin-session` — a cookie the admin did not have. The public session survived untouched, the page reloaded, and the admin was still signed in with no error shown. `logoutAdmin()` in `lib/adminAuthFlow.js` now revokes both models and is shared by all four pages instead of being copy-pasted four times.
+- **`/admin/activity` looped.** Its `getServerSideProps` called `getAdminUser` (legacy cookie only) and redirected to `/admin` on failure; `/admin` saw a perfectly valid unified session, re-authorized instantly, and sent the browser back to `/admin/activity`. Its own API route (`requireUnifiedAdmin`) had never had this problem — only the page gate.
+
+`resolveAdminIdentity(req)` in `lib/auth.mjs` is now the single implementation of "is this request an admin, under either model", used by both `/api/admin/session` and the activity page gate.
+
+**Also:** `pages/api/admin/login.js` ran its 3-attempt login rate limiter before the method branch, so `DELETE` (logout) consumed the login budget and could itself be rejected with 429 — leaving an admin unable to sign out exactly after the failed attempts that make signing out urgent. The limiter is now scoped to `POST`.
+
+### 🐛 Client management actions are reachable again on desktop
+
+The admin OAuth clients list rendered no Edit / Regenerate Secret / Suspend / Delete controls on desktop viewports. `ResponsiveDataView` (`@sovereignsquad/gds-admin`) renders the card layout from `renderCard` only below 48em and the `columns` table above it — and `pages/admin/oauth-clients.js` had put every action button inside `renderCard` alone, so the entire management surface existed only on mobile-width screens. The table now carries an `actions` column, matching what `pages/admin/users.js` already did. Both layouts render the same `ClientActions` component, so they cannot drift apart again.
+
+The API side was never affected: `POST`/`PATCH`/`DELETE /api/admin/oauth-clients[/:clientId]` and the secret-regeneration endpoint were all present and working — this was purely a missing UI affordance.
+
+Still desktop-invisible and not addressed here: `client_id`, redirect URIs, and the copy-to-clipboard controls also live only in `renderCard`.
+
+---
+
 ## [5.39.4] - 2026-08-31
 
 ### 🛡️ The quality gate now checks what it claimed to check

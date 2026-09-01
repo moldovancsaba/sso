@@ -1,6 +1,6 @@
 # SSO Service
 
-Version: 5.39.4  
+Version: 5.39.5  
 Last updated: 2026-08-31T00:00:00.000Z
 
 This repository provides the SSO service for `https://sso.doneisbetter.com`.

@@ -19,13 +19,20 @@ import {
 import { IconAlertCircle, IconLogout } from '@tabler/icons-react'
 import { DataToolbar, StateBlock } from '@sovereignsquad/gds-core/server'
 import { PageHeader } from '@sovereignsquad/gds-admin/server'
+import { logoutAdmin } from '../../lib/adminAuthFlow.js'
 
 export async function getServerSideProps(context) {
-  const { getAdminUser } = await import('../../lib/auth.mjs')
+  // WHAT: Accept either session model, matching /api/admin/session and the activity API's
+  //       own requireUnifiedAdmin gate.
+  // WHY: This gate used to call getAdminUser directly, which reads only the legacy
+  //       `admin-session` cookie. The OAuth admin login issues a `public-session` instead, so
+  //       every current admin was redirected to /admin, re-authorized instantly, and sent
+  //       straight back here — an endless redirect loop.
+  const { resolveAdminIdentity } = await import('../../lib/auth.mjs')
 
-  const admin = await getAdminUser(context.req)
+  const identity = await resolveAdminIdentity(context.req)
 
-  if (!admin) {
+  if (!identity) {
     return {
       redirect: {
         destination: '/admin?redirect=/admin/activity',
@@ -37,9 +44,9 @@ export async function getServerSideProps(context) {
   return {
     props: {
       admin: {
-        id: admin.id,
-        email: admin.email,
-        role: admin.role,
+        id: identity.user.id,
+        email: identity.user.email,
+        role: identity.user.role,
       },
     },
   }
@@ -90,8 +97,7 @@ export default function ActivityDashboard({ admin }) {
 
   async function handleLogout() {
     try {
-      await fetch('/api/admin/login', { method: 'DELETE', credentials: 'include' })
-      window.location.href = '/admin'
+      await logoutAdmin()
     } catch (logoutError) {
       console.error('Logout error:', logoutError)
       setError('Logout failed. Please try again.')

@@ -4,7 +4,7 @@
  * WHY: Provide generic passwording for resources with admin-session bypass.
  */
 import { runCors } from '../../../lib/cors.mjs'
-import { getAdminUser } from '../../../lib/auth.mjs'
+import { resolveAdminIdentity } from '../../../lib/auth.mjs'
 import { validateRequestOrigin } from '../../../lib/middleware/csrf.mjs'
 import { generateShareableLink, getOrCreateResourcePassword, validateAnyPassword } from '../../../lib/resourcePasswords.mjs'
 import { getBaseUrl } from '../../../lib/baseUrl.mjs'
@@ -25,7 +25,7 @@ export default async function handler(req, res) {
         return res.status(403).json({ success: false, error: 'Request origin not allowed' })
       }
 
-      const admin = await getAdminUser(req)
+      const admin = await resolveAdminIdentity(req)
       if (!admin) {
         return res.status(401).json({ success: false, error: 'Admin authentication required' })
       }
@@ -80,7 +80,7 @@ export default async function handler(req, res) {
       }
 
       // Admin bypass: if request has a valid admin session, accept immediately
-      const admin = await getAdminUser(req)
+      const admin = await resolveAdminIdentity(req)
       if (admin) {
         return res.status(200).json({
           success: true,

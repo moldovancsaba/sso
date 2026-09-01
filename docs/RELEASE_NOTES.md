@@ -1,4 +1,18 @@
-# Release Notes [![Version Badge](https://img.shields.io/badge/version-5.39.4-blue)](RELEASE_NOTES.md)
+# Release Notes [![Version Badge](https://img.shields.io/badge/version-5.39.5-blue)](RELEASE_NOTES.md)
+
+## [v5.39.5] — 2026-09-01T00:00:00.000Z
+
+### 🛡️ Single-Model Auth Gates Swept Out
+
+Admin logout did nothing and `/admin/activity` redirect-looped, both because they gated on the legacy `admin-session` cookie that the current OAuth admin login never issues. Fixing the two reports turned up six more of the same: `GET /api/users`, both halves of `/api/resource-passwords`, the admin path of the app-permissions read, the public `/logout` page (which paired its working call with a 410 tombstone), and the deprecation notices telling integrators to log out with a half-logout. Six unused legacy-only auth helpers were deleted along with the 2024 migration script that caused the whole class — it only ever rewrote `pages/api/admin/**`. `npm run guard:repo` now fails the build if `getAdminUser` is used outside `lib/auth.mjs`, and `docs/ARCHITECTURE.md` documents both session models and which resolver to use where.
+
+### 🐛 Admin Session Fixes
+
+Admin logout did nothing: every admin page cleared the legacy `admin-session` cookie, but the OAuth admin login issues a `public-session` cookie and never sets that one — so the admin stayed signed in, silently. `/admin/activity` failed the mirror-image way, gating the page on the legacy cookie and bouncing admins into an endless `/admin` ↔ `/admin/activity` redirect. One `resolveAdminIdentity` helper now answers "is this an admin" for both the session API and the page gate, and one `logoutAdmin` helper revokes both session models. The admin login rate limiter no longer applies to logout requests.
+
+### 🐛 OAuth Client Actions Return to Desktop
+
+Editing, suspending, deleting, and regenerating secrets for OAuth clients was impossible on a desktop browser: every one of those buttons lived in the mobile card renderer, which the shared responsive data view only mounts below 48em. The desktop table now has an Actions column, and both layouts share one component. No API change — the endpoints were working the whole time.
 
 ## [v5.39.4] — 2026-08-31T00:00:00.000Z
 

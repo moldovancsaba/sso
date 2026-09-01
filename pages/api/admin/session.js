@@ -4,9 +4,8 @@
  * WHY: Admin dashboard needs to validate admin session exclusively
  */
 
-import { getAdminUser } from '../../../lib/auth.mjs'
 import logger from '../../../lib/logger.mjs'
-import { getPublicUserWithAdminCheck, hasBoundAdminSession, isFreshAuthenticationTimestamp } from '../../../lib/auth.mjs'
+import { hasBoundAdminSession, isFreshAuthenticationTimestamp, resolveAdminIdentity } from '../../../lib/auth.mjs'
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
@@ -15,55 +14,35 @@ export default async function handler(req, res) {
   }
 
   try {
-    const unifiedAdmin = await getPublicUserWithAdminCheck(req)
+    const identity = await resolveAdminIdentity(req)
 
-    if (unifiedAdmin?.adminPermission?.role === 'admin') {
-      const authenticatedAt = unifiedAdmin.session?.authenticatedAt || unifiedAdmin.session?.createdAt || null
-      const hasBoundSession = hasBoundAdminSession(unifiedAdmin.session, req)
-
-      return res.status(200).json({
-        isValid: true,
-        user: {
-          id: unifiedAdmin.user.id,
-          email: unifiedAdmin.user.email,
-          name: unifiedAdmin.user.name,
-          role: unifiedAdmin.adminPermission.role,
-          permissions: ['read', 'write', 'delete', 'manage-users', 'manage-orgs', 'manage-org-users'],
-        },
-        auth: {
-          model: 'unified-public-session',
-          authenticatedAt,
-          requiresRecentAuth: !isFreshAuthenticationTimestamp(authenticatedAt),
-          hasBoundSession,
-          requiresBoundSession: !hasBoundSession,
-        }
-      })
-    }
-
-    // WHAT: Get ADMIN user only (not public user)
-    // WHY: Admin dashboard should only accept admin sessions
-    const adminUser = await getAdminUser(req)
-    
-    if (!adminUser) {
+    if (!identity) {
       return res.status(401).json({
         isValid: false,
         message: 'No active admin session found'
       })
     }
 
-    // WHAT: Return sanitized admin info
-    // WHY: Dashboard needs name, email, role for display
+    if (identity.model === 'legacy-admin-session') {
+      return res.status(200).json({
+        isValid: true,
+        user: identity.user,
+        auth: { model: identity.model },
+      })
+    }
+
+    const authenticatedAt = identity.session?.authenticatedAt || identity.session?.createdAt || null
+    const hasBoundSession = hasBoundAdminSession(identity.session, req)
+
     return res.status(200).json({
       isValid: true,
-      user: {
-        id: adminUser.id,
-        email: adminUser.email,
-        name: adminUser.name,
-        role: adminUser.role,
-        permissions: adminUser.permissions
-      },
+      user: identity.user,
       auth: {
-        model: 'legacy-admin-session',
+        model: identity.model,
+        authenticatedAt,
+        requiresRecentAuth: !isFreshAuthenticationTimestamp(authenticatedAt),
+        hasBoundSession,
+        requiresBoundSession: !hasBoundSession,
       }
     })
   } catch (error) {

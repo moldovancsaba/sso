@@ -4,6 +4,7 @@ import { useRouter } from 'next/router'
 import { Box, Loader, Stack, Text, ThemeIcon } from '@mantine/core'
 import { AuthShell } from '@sovereignsquad/gds-core/server'
 import { IconLogout } from '@tabler/icons-react'
+import { revokeAllSessions } from '../lib/adminAuthFlow.js'
 
 export default function LogoutPage() {
   const router = useRouter()
@@ -13,18 +14,12 @@ export default function LogoutPage() {
   useEffect(() => {
     const performLogout = async () => {
       try {
-        await fetch('/api/public/logout', {
-          method: 'POST',
-          credentials: 'include',
-        }).catch((err) => {
-          console.error('[Logout] Public logout error:', err)
-        })
-
-        await fetch('/api/users/logout', {
-          method: 'POST',
-          credentials: 'include',
-        }).catch((err) => {
-          console.error('[Logout] Admin logout error:', err)
+        // WHAT: One shared revoke covering both session models.
+        // WHY: This used to pair the public logout with POST /api/users/logout — an endpoint
+        //      that has answered 410 since it was deprecated, so the admin half of "clear all
+        //      active sessions" silently did nothing for anyone holding a legacy session.
+        await revokeAllSessions().catch((err) => {
+          console.error('[Logout] Session revocation error:', err)
         })
 
         await new Promise((resolve) => setTimeout(resolve, 500))

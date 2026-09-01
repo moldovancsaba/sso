@@ -1,6 +1,6 @@
 # Architecture — SSO
 
-Version: 5.39.4  
+Version: 5.39.5  
 Last updated: 2026-08-21T00:00:00.000Z
 
 ## Stack
@@ -24,7 +24,7 @@ Last updated: 2026-08-21T00:00:00.000Z
 - Legacy `super-admin` values are normalized to `admin`
 - Legacy session cookie: `admin-session`
 - Legacy session storage: `adminSessions`
-- Current admin UI authorization also supports a public session plus `sso-admin-dashboard` app permission
+- Current admin UI authorization uses a public session plus an `sso-admin-dashboard` app permission; the legacy cookie above is still accepted but is no longer issued by any login path. See **Session Models** below before writing an auth gate
 - Session timeout: 4 hours with server-side validation and sliding extension on activity
 - High-risk unified-admin mutations require recent authentication; default freshness window is 15 minutes unless `ADMIN_FRESH_AUTH_WINDOW_MS` overrides it
 - The admin UI handles `REAUTH_REQUIRED` by returning the operator to `/admin`, preserving the current admin route, and resuming at that route after OAuth login completes
@@ -53,6 +53,50 @@ Last updated: 2026-08-21T00:00:00.000Z
   - `active` -> `approved`
   - `guest` -> `none`
   - `owner`, `superadmin`, `super-admin` -> `admin`
+
+## Session Models — read this before writing any auth gate
+
+Two admin session models are live at the same time. Almost every admin bug in this codebase's
+recent history has been a gate that knew about only one of them.
+
+| | Legacy | Current |
+|---|---|---|
+| Cookie | `admin-session` | `public-session` |
+| Issued by | `POST /api/admin/login` (email + password) | OAuth: `/admin` → `/api/oauth/authorize` → `/admin/callback` → `complete-oauth-login` |
+| Storage | `adminSessions` | `publicSessions` |
+| Admin rights from | `users.role === 'admin'` | `appPermissions` grant for `sso-admin-dashboard` |
+| Read by | `getAdminUser(req)` | `getPublicUserWithAdminCheck(req)` |
+
+**Anyone signing in through the admin UI today gets the current model and no `admin-session`
+cookie at all.** A gate written against `getAdminUser` therefore rejects every real admin while
+looking perfectly correct in review and passing every test that mocks a legacy session.
+
+### The rules
+
+1. **Never call `getAdminUser` outside `lib/auth.mjs`.** `npm run guard:repo` fails the build if
+   you do. It is not deprecated — it is the legacy half of a two-half answer.
+2. **API routes: `requireUnifiedAdmin(req, res)`** (`lib/auth.mjs`). Handles the origin check,
+   the 401/403 responses, and freshness/binding requirements.
+3. **Everything else — page `getServerSideProps` gates, multi-auth endpoints where an admin
+   session is one accepted path among several: `resolveAdminIdentity(req)`** (`lib/auth.mjs`).
+   Returns `{model, user, session}` or `null`, accepting either model.
+4. **A page's gate must accept exactly what its data API accepts.** When they disagree and the
+   page redirects to `/admin` on failure, you get an infinite loop: `/admin` finds the session
+   perfectly valid, re-authorizes instantly, and sends the browser straight back to the page
+   that just rejected it. This is what happened to `/admin/activity`.
+5. **Logging out means revoking both models.** Client code calls `revokeAllSessions()` from
+   `lib/adminAuthFlow.js`; never hand-roll a logout from one endpoint. `DELETE /api/admin/login`
+   clears only `admin-session` and returns `200` when there was nothing to clear, so a
+   half-logout looks exactly like a successful one — the admin stays signed in and no error is
+   ever shown.
+
+### Why this keeps happening
+
+The migration to the unified model was done with a script (`scripts/convert-to-unified-admin.sh`,
+since removed) that globbed only `pages/api/admin/**`. Every legacy gate outside that directory
+survived untouched: page-level gates, `/api/users/*`, `/api/resource-passwords`, and all four
+copies of the logout handler. The guardrail in rule 1 exists because the next such omission
+should fail CI rather than wait for someone to notice they cannot sign out.
 
 ## Main Flows
 

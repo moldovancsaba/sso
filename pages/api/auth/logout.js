@@ -1,8 +1,8 @@
-// Deprecated username-based logout endpoint
-// Use DELETE /api/admin/login to clear the admin cookie session
+// Deprecated username-based logout endpoint — see pages/api/users/logout.js for why a single
+// replacement endpoint would be misleading.
 export default async function handler(req, res) {
   res.status(410).json({
     error: 'Endpoint removed',
-    message: 'Use DELETE /api/admin/login to logout',
+    message: 'Use POST /api/public/logout and DELETE /api/admin/login, or navigate to /logout',
   })
 }

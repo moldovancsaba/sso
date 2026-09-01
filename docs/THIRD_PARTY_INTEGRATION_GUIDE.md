@@ -1,6 +1,6 @@
 # Third-Party Integration Guide — SSO Service
 
-**Version**: 5.39.4  
+**Version**: 5.39.5  
 **Last Updated**: 2026-08-21T00:00:00.000Z  
 **Service URL**: https://sso.doneisbetter.com  
 **Status**: Current Runtime Guide

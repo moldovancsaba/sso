@@ -24,7 +24,7 @@ import {
   permissionHasAccess,
 } from '../../../../../../lib/appPermissions.mjs'
 import { logAccessAttempt, logPermissionChange } from '../../../../../../lib/appAccessLogs.mjs'
-import { getAdminUser } from '../../../../../../lib/auth.mjs'
+import { resolveAdminIdentity } from '../../../../../../lib/auth.mjs'
 import { getDb } from '../../../../../../lib/db.mjs'
 import { 
   requireOAuthToken, 
@@ -116,12 +116,12 @@ async function handleGet(req, res) {
 
     // Option 2: Admin session authentication (for admin UI)
     if (!isAuthorized) {
-      const adminUser = await getAdminUser(req)
-      if (adminUser) {
+      const adminIdentity = await resolveAdminIdentity(req)
+      if (adminIdentity) {
         isAuthorized = true
         authorizedVia = 'admin_session'
         logger.debug('Permission GET authorized via admin session', {
-          adminId: adminUser.id,
+          adminId: adminIdentity.user.id,
           userId: req.query.userId,
         })
       }

@@ -61,6 +61,24 @@ deprecation dates behind it.
 - Apply duplicate public-account merges by email: `node scripts/merge-duplicate-accounts.mjs`
 - Test email delivery configuration: `node scripts/test-email-config.mjs <email>`
 
+## Auth gates — the one rule that keeps being broken
+
+Two admin session models are live at once. `getAdminUser(req)` reads only the legacy
+`admin-session` cookie, which **no current login path issues** — everyone signing in through the
+admin UI gets a `public-session` cookie plus an `sso-admin-dashboard` app permission instead. A
+gate written against `getAdminUser` looks correct, reviews clean, and rejects every real admin.
+
+- API routes: `requireUnifiedAdmin(req, res)` from `lib/auth.mjs`.
+- Page `getServerSideProps` gates and multi-auth endpoints: `resolveAdminIdentity(req)` from
+  `lib/auth.mjs`.
+- Client-side logout: `revokeAllSessions()` from `lib/adminAuthFlow.js`. Never hand-roll one —
+  `DELETE /api/admin/login` alone returns `200` while leaving the admin fully signed in.
+- A page's gate must accept exactly what its data API accepts, or the page and `/admin` will
+  bounce the browser between them forever.
+
+`npm run guard:repo` fails if `getAdminUser` appears outside `lib/auth.mjs`. Full detail:
+[`docs/ARCHITECTURE.md` → Session Models](docs/ARCHITECTURE.md).
+
 ## Notes
 
 - Root app env defaults live in [`.env.example`](.env.example).

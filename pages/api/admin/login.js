@@ -30,11 +30,15 @@ function getClientMetadata(req) {
 }
 
 export default async function handler(req, res) {
-  // Apply stricter rate limiting to admin login endpoint (3 attempts vs 5 for public)
-  await applyRateLimiter(adminLoginRateLimiter, req, res)
-  if (res.writableEnded) return // limit exceeded — 429 already sent
-
   if (req.method === 'POST') {
+    // Apply stricter rate limiting to admin login endpoint (3 attempts vs 5 for public)
+    // WHAT: Scoped to POST only.
+    // WHY: This ran before the method branch, so DELETE (logout) spent the login budget and
+    //      could itself be rejected with 429 — leaving a signed-in admin unable to sign out
+    //      precisely after the failed login attempts that make signing out matter most.
+    await applyRateLimiter(adminLoginRateLimiter, req, res)
+    if (res.writableEnded) return // limit exceeded — 429 already sent
+
     // Ensure CSRF token is set for subsequent requests
     await new Promise((resolve) => ensureCsrfToken(req, res, resolve))
     

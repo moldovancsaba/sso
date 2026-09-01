@@ -24,7 +24,7 @@ import {
   IconLogout,
   IconUsers,
 } from '@tabler/icons-react'
-import { fetchAdminJson, isAuthRedirectError } from '../../lib/adminAuthFlow.js'
+import { fetchAdminJson, isAuthRedirectError, logoutAdmin } from '../../lib/adminAuthFlow.js'
 import { PageHeader as GdsPageHeader } from '@sovereignsquad/gds-admin/server'
 
 const adminNavItems = [
@@ -104,8 +104,7 @@ export default function AdminDashboard() {
 
   async function handleLogout() {
     try {
-      await fetch('/api/admin/login', { method: 'DELETE', credentials: 'include' })
-      window.location.href = '/admin'
+      await logoutAdmin()
     } catch (e) {
       console.error('Logout error:', e)
       setError('Logout failed. Please try again.')
