@@ -7,6 +7,50 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [5.40.0] - 2026-09-01
+
+### ✨ Multi-domain OAuth clients can return the user to the domain they arrived on
+
+One application served on two domains — a rebrand keeping the old name alive — belongs on a
+single OAuth client so that all users stay in one account pool. `redirect_uri` is already a
+per-request parameter that this service exact-matches and honours verbatim, so an
+application only has to send its own current host for this to work. **No change here was
+needed for that, and it remains the correct fix.**
+
+New opt-in `preserve_initiating_origin` on an OAuth client covers the case where the
+application is not yours to change and hardcodes one domain into `redirect_uri`. The failure
+it addresses is not cosmetic: the application writes its OAuth state and PKCE verifier in a
+cookie on the domain the user started from, then names a callback on the other domain, which
+cannot read that cookie. Sign-in fails with a generic error, and the retry — now originating
+from the second domain — succeeds and strands the user under the wrong brand.
+
+With the flag set, `/api/oauth/authorize` reads the initiating origin from `Referer` and
+delivers to the client's registered redirect URI at that origin with the same path, if one
+exists. The token endpoint correspondingly accepts a sibling-origin `redirect_uri`, because
+such an application repeats the value it sent rather than the one it was redirected to.
+
+Bounded deliberately:
+
+- A swap can only ever produce a URI already registered on that same client, same path. There
+  is no reachable unregistered destination, so this cannot become an open redirect.
+- No `Referer`, an unparseable one, or no matching registered URI leaves the request
+  untouched. The second pass through `/authorize` after login carries a `Referer` of this
+  service's own login page, which matches no client origin, so the value carried through the
+  login round-trip passes through unchanged.
+- The token-endpoint relaxation is confined to two callbacks on one client differing only by
+  origin. The code is already bound to the client, the client authenticates with its secret,
+  and PKCE binds the code to the browser that began the flow.
+- Registration and update refuse the flag unless the client has redirect URIs on at least two
+  distinct origins, so it cannot be enabled where it would silently do nothing.
+- `Referer` is the only signal a top-level cross-site GET navigation carries, and a
+  `no-referrer` policy removes it. This is cover while an application is corrected, not a
+  permanent substitute — `docs/ARCHITECTURE.md` says so at the point of use.
+
+Manageable from `/admin/oauth-clients`: a "Preserve initiating origin" checkbox on the client
+form and a "Multi-domain" badge on clients that have it.
+
+---
+
 ## [5.39.5] - 2026-09-01
 
 ### 🛡️ Every remaining single-model auth gate, and a guardrail so there is no next one

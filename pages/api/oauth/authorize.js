@@ -20,6 +20,7 @@
 import { getPublicUserFromRequest } from '../../../lib/publicSessions.mjs'
 import { getAuthenticatedUser } from '../../../lib/unifiedAuth.mjs'
 import { validateAuthorizationRequest, checkInternalClientAccess } from '../../../lib/oauth/authorizationValidation.mjs'
+import { getInitiatingOrigin, resolveRedirectUriForOrigin } from '../../../lib/oauth/redirectOrigin.mjs'
 import { createAuthorizationCode } from '../../../lib/oauth/codes.mjs'
 import { getDb } from '../../../lib/db.mjs'
 import logger from '../../../lib/logger.mjs'
@@ -53,7 +54,6 @@ export default async function handler(req, res) {
   const {
     response_type,
     client_id,
-    redirect_uri,
     scope,
     state,
     nonce, // OIDC nonce parameter: random value to prevent replay attacks
@@ -63,6 +63,11 @@ export default async function handler(req, res) {
     provider, // Optional login provider hint: 'google' | 'facebook'
     login_hint, // Optional login hint (email) forwarded to provider login
   } = req.query
+
+  // WHAT: Reassigned below for clients that opted into origin preservation.
+  // WHY: see lib/oauth/redirectOrigin.mjs — a multi-domain client whose application
+  //      hardcodes one origin would otherwise send every user to that one domain.
+  let { redirect_uri } = req.query
 
   try {
     const requestedProvider = normalizeProvider(provider)
@@ -107,6 +112,31 @@ export default async function handler(req, res) {
     }
 
     const { client, finalScope } = validation
+
+    // WHAT: Return the user to the domain they started on, when this client allows it.
+    // WHY: Only ever resolves to another redirect URI already registered on this same
+    //      client with the same path; anything uncertain leaves redirect_uri untouched.
+    //      Runs after validation so the requested URI is proven to belong to this client
+    //      first. On the second pass through this endpoint (after login) the Referer is
+    //      this service's own login page, which matches no registered origin, so the value
+    //      carried through the login round-trip passes through unchanged.
+    const initiatingOrigin = getInitiatingOrigin(req)
+    const originPreservedRedirectUri = resolveRedirectUriForOrigin({
+      client,
+      redirect_uri,
+      initiatingOrigin,
+    })
+
+    if (originPreservedRedirectUri !== redirect_uri) {
+      logger.info('Authorization redirect_uri re-pointed to the initiating origin', {
+        client_id,
+        client_name: client.name,
+        requested: redirect_uri,
+        delivering_to: originPreservedRedirectUri,
+        initiating_origin: initiatingOrigin,
+      })
+      redirect_uri = originPreservedRedirectUri
+    }
 
     // WHAT: Check if user is authenticated (admin OR public session)
     // WHY: Admin users need to access sso-admin-dashboard via OAuth too

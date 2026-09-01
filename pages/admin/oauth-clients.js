@@ -47,6 +47,7 @@ function initialClientForm() {
     homepage_uri: '',
     logo_uri: '',
     require_pkce: false,
+    preserve_initiating_origin: false,
     grant_types: ['authorization_code', 'refresh_token'],
   }
 }
@@ -145,6 +146,13 @@ function ClientForm({ formData, loading, onChange, onSubmit, submitLabel, onCanc
         description="Enable this for public clients such as SPAs or mobile apps."
         label="Require PKCE"
         onChange={(event) => onChange('require_pkce', event.currentTarget.checked)}
+      />
+
+      <Checkbox
+        checked={formData.preserve_initiating_origin}
+        description="For one application served on several domains. Returns the user to whichever registered domain they started on, instead of the one the application hardcoded into redirect_uri. Only ever redirects to a URI already registered above, on the same path. Requires redirect URIs on at least two different origins."
+        label="Preserve initiating origin"
+        onChange={(event) => onChange('preserve_initiating_origin', event.currentTarget.checked)}
       />
 
       <Stack gap="xs">
@@ -251,6 +259,7 @@ export default function OAuthClientsPage() {
       homepage_uri: formData.homepage_uri.trim() || null,
       logo_uri: formData.logo_uri.trim() || null,
       require_pkce: formData.require_pkce,
+      preserve_initiating_origin: formData.preserve_initiating_origin,
       grant_types: formData.grant_types,
     }
   }
@@ -378,6 +387,7 @@ export default function OAuthClientsPage() {
       homepage_uri: client.homepage_uri || '',
       logo_uri: client.logo_uri || '',
       require_pkce: client.require_pkce || false,
+      preserve_initiating_origin: client.preserve_initiating_origin || false,
       grant_types: client.grant_types && client.grant_types.length > 0
         ? client.grant_types
         : ['authorization_code', 'refresh_token'],
@@ -584,6 +594,11 @@ export default function OAuthClientsPage() {
                         Client Credentials
                       </Badge>
                     ) : null}
+                    {client.preserve_initiating_origin ? (
+                      <Badge color="teal" variant="light">
+                        Multi-domain
+                      </Badge>
+                    ) : null}
                   </Group>
                 ),
               },
@@ -675,6 +690,11 @@ function ClientCardContent({
             {(client.grant_types || []).includes('client_credentials') ? (
               <Badge color="violet" variant="light">
                 Client Credentials
+              </Badge>
+            ) : null}
+            {client.preserve_initiating_origin ? (
+              <Badge color="teal" variant="light">
+                Multi-domain
               </Badge>
             ) : null}
           </Group>

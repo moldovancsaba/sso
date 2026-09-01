@@ -1,6 +1,6 @@
 # Architecture — SSO
 
-Version: 5.39.5  
+Version: 5.40.0  
 Last updated: 2026-08-21T00:00:00.000Z
 
 ## Stack
@@ -43,6 +43,41 @@ Last updated: 2026-08-21T00:00:00.000Z
 - Supported grants in the current codebase are authorization code, refresh token, and client credentials
 - `client_credentials` issues a token with no user context: no `sub` claim, no refresh token, no ID token. `validateAccessToken()` resolves such a token to `userId: null`, so it can never satisfy a user-identity comparison
 - Machine clients should be registered one per automated caller, with no redirect URIs, since revocation and audit are per-client
+
+### Multi-domain clients (`preserve_initiating_origin`)
+
+One application served on several domains belongs on **one** OAuth client, with every
+domain's callback registered on it — that keeps all users in a single account pool. Because
+`redirect_uri` is a per-request parameter that the SSO exact-matches and honours verbatim,
+an application only has to send its own current host to have users stay on the domain they
+arrived at. **That is the correct fix and needs nothing from this service.**
+
+`preserve_initiating_origin` (default `false`) is the safety net for an application that is
+not yours to change — one that builds `redirect_uri` from a build-time constant and so
+sends every user to a single domain. When it is set:
+
+- `/api/oauth/authorize` reads the initiating origin from `Referer` and, if the client has a
+  registered redirect URI at that origin **with the same path** as the requested one,
+  delivers there instead. Anything uncertain — no `Referer`, unparseable, no such registered
+  URI — leaves the request untouched. A swap can therefore only ever resolve to a URI an
+  admin already registered on that same client; it cannot become an open redirect.
+- The token endpoint additionally accepts a `redirect_uri` that is a sibling origin of the
+  one the code was bound to, since such an application repeats the value it sent rather than
+  the one it was redirected to. Confined to two callbacks on the same client differing only
+  by origin; the code is already bound to the client, the client authenticates with its
+  secret, and PKCE binds the code to the browser that began the flow.
+- Registration and update reject the flag unless the client has redirect URIs on at least
+  two distinct origins, so it cannot be set where it would silently do nothing.
+
+Why it is a net rather than the fix: `Referer` is the only signal a top-level cross-site GET
+navigation carries, and a `no-referrer` policy removes it. Under that policy the flow falls
+back to today's behaviour. Treat this as cover while the application is corrected, not as a
+permanent substitute.
+
+Symptom this exists for: the application writes its OAuth state and PKCE verifier in a
+cookie on the domain the user started on, then names a callback on the other domain. The
+callback cannot read that cookie, so sign-in fails; retrying from the second domain works
+and strands the user under the wrong brand.
 
 ### App permissions
 - Collection: `appPermissions`

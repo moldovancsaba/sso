@@ -1,4 +1,10 @@
-# Release Notes [![Version Badge](https://img.shields.io/badge/version-5.39.5-blue)](RELEASE_NOTES.md)
+# Release Notes [![Version Badge](https://img.shields.io/badge/version-5.40.0-blue)](RELEASE_NOTES.md)
+
+## [v5.40.0] — 2026-09-01T00:00:00.000Z
+
+### ✨ One Client, Two Domains, Stay Where You Landed
+
+An application served on two domains belongs on one OAuth client, and `redirect_uri` is already per-request — so an app that sends its own current host keeps users on the domain they arrived at, with no change to this service. New opt-in `preserve_initiating_origin` covers the case where the app is not yours to change and hardcodes one domain: the authorization endpoint then delivers to the client's registered callback at the origin the user actually started on, and the token endpoint accepts the sibling origin the app will repeat back. A swap can only ever resolve to a URI already registered on that same client with the same path, and anything uncertain falls back untouched. Settable from the admin client form; refused on single-domain clients.
 
 ## [v5.39.5] — 2026-09-01T00:00:00.000Z
 
