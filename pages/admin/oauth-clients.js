@@ -29,7 +29,7 @@ import {
 } from '@tabler/icons-react'
 import { ResponsiveDataView } from '@sovereignsquad/gds-admin/client'
 import { PageHeader } from '@sovereignsquad/gds-admin/server'
-import { fetchAdminJson, isAuthRedirectError } from '../../lib/adminAuthFlow.js'
+import { fetchAdminJson, isAuthRedirectError, logoutAdmin } from '../../lib/adminAuthFlow.js'
 
 const adminNavItems = [
   { href: '/admin/dashboard', label: 'Dashboard' },
@@ -66,6 +66,27 @@ function toggleGrantType(current, value, checked) {
 
 function isErrorMessage(message) {
   return message.includes('Error') || message.includes('Failed') || message.includes('Invalid')
+}
+
+function ClientActions({ admin, client, onDelete, onEdit, onRegenerateSecret, onToggleStatus }) {
+  if (admin?.role !== 'admin') return null
+
+  return (
+    <Group gap="xs" wrap="wrap">
+      <Button onClick={() => onEdit(client)} size="compact-sm" variant="default">
+        Edit
+      </Button>
+      <Button onClick={() => onRegenerateSecret(client.client_id, client.name)} size="compact-sm" variant="default">
+        Regenerate Secret
+      </Button>
+      <Button onClick={() => onToggleStatus(client.client_id, client.status)} size="compact-sm" variant="default">
+        {client.status === 'active' ? 'Suspend' : 'Activate'}
+      </Button>
+      <Button color="red" onClick={() => onDelete(client.client_id, client.name)} size="compact-sm">
+        Delete
+      </Button>
+    </Group>
+  )
 }
 
 function ClientForm({ formData, loading, onChange, onSubmit, submitLabel, onCancel }) {
@@ -366,8 +387,7 @@ export default function OAuthClientsPage() {
 
   async function handleLogout() {
     try {
-      await fetch('/api/admin/login', { method: 'DELETE', credentials: 'include' })
-      window.location.href = '/admin'
+      await logoutAdmin()
     } catch (logoutError) {
       console.error('Logout error:', logoutError)
       setMessage('Logout failed. Please try again.')
@@ -585,6 +605,20 @@ export default function OAuthClientsPage() {
                 label: 'Updated',
                 render: (client) => new Date(client.updated_at).toLocaleDateString(),
               },
+              {
+                key: 'actions',
+                label: 'Actions',
+                render: (client) => (
+                  <ClientActions
+                    admin={admin}
+                    client={client}
+                    onDelete={handleDeleteClient}
+                    onEdit={handleStartEdit}
+                    onRegenerateSecret={handleRegenerateSecret}
+                    onToggleStatus={handleToggleStatus}
+                  />
+                ),
+              },
             ]}
             data={clients}
             emptyDescription="Create an OAuth client to register the first integrated application."
@@ -646,22 +680,14 @@ function ClientCardContent({
           </Group>
         </Stack>
 
-        {admin?.role === 'admin' ? (
-          <Group gap="xs" wrap="wrap">
-            <Button onClick={() => handleStartEdit(client)} variant="default">
-              Edit
-            </Button>
-            <Button onClick={() => handleRegenerateSecret(client.client_id, client.name)} variant="default">
-              Regenerate Secret
-            </Button>
-            <Button onClick={() => handleToggleStatus(client.client_id, client.status)} variant="default">
-              {client.status === 'active' ? 'Suspend' : 'Activate'}
-            </Button>
-            <Button color="red" onClick={() => handleDeleteClient(client.client_id, client.name)}>
-              Delete
-            </Button>
-          </Group>
-        ) : null}
+        <ClientActions
+          admin={admin}
+          client={client}
+          onDelete={handleDeleteClient}
+          onEdit={handleStartEdit}
+          onRegenerateSecret={handleRegenerateSecret}
+          onToggleStatus={handleToggleStatus}
+        />
       </Group>
 
       <div>
