@@ -1,4 +1,16 @@
-# Release Notes [![Version Badge](https://img.shields.io/badge/version-5.40.0-blue)](RELEASE_NOTES.md)
+# Release Notes [![Version Badge](https://img.shields.io/badge/version-5.40.1-blue)](RELEASE_NOTES.md)
+
+## [v5.40.1] — 2026-09-04T00:00:00.000Z
+
+### 🐛 Client ID Returns to the Desktop Clients Table
+
+v5.39.5 restored the OAuth client management *actions* to the desktop table but not the
+client's identifier: the `client_id` was rendered only in the mobile card layout, which
+the shared responsive data view mounts below 48em. On any desktop browser the Registered
+Clients table showed name, status, scopes, updated date, and actions — but no way to read
+or copy a client's id, which is exactly the value an integrator needs to set a downstream
+app's `SSO_CLIENT_ID`. The desktop table now carries a Client ID column with the same
+copy control the card already provided. No API or data change.
 
 ## [v5.40.0] — 2026-09-01T00:00:00.000Z
 

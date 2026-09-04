@@ -579,6 +579,31 @@ export default function OAuthClientsPage() {
                 ),
               },
               {
+                // The card layout (ClientCardContent) surfaces the client_id, but
+                // the desktop table did not — leaving no way to read or copy a
+                // client's id on desktop, which is exactly what an integrator
+                // needs to configure a downstream app's SSO_CLIENT_ID.
+                key: 'client_id',
+                label: 'Client ID',
+                render: (client) => (
+                  <Group align="center" gap="xs" wrap="nowrap">
+                    <Code>{client.client_id}</Code>
+                    <CopyButton value={client.client_id}>
+                      {({ copied, copy }) => (
+                        <ActionIcon
+                          aria-label="Copy client ID"
+                          color={copied ? 'teal' : 'gray'}
+                          onClick={copy}
+                          variant="subtle"
+                        >
+                          <IconCopy size={16} />
+                        </ActionIcon>
+                      )}
+                    </CopyButton>
+                  </Group>
+                ),
+              },
+              {
                 key: 'status',
                 label: 'Status',
                 render: (client) => (
