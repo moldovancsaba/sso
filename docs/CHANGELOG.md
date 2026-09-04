@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [5.40.1] - 2026-09-04
+
+### Fixed
+
+- **Desktop OAuth clients table now shows the Client ID.** v5.39.5 restored the client
+  management action buttons to the desktop table but left the `client_id` rendered only
+  in the mobile card layout (mounted below 48em). Desktop admins had no way to read or
+  copy a client's id — the value needed to configure a downstream app's `SSO_CLIENT_ID`.
+  Added a Client ID column, with the same copy-to-clipboard control the card already had.
+  UI only; no API or data change.
+
+---
+
 ## [5.40.0] - 2026-09-01
 
 ### ✨ Multi-domain OAuth clients can return the user to the domain they arrived on
