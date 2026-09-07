@@ -44,6 +44,41 @@ Last updated: 2026-08-21T00:00:00.000Z
 - `client_credentials` issues a token with no user context: no `sub` claim, no refresh token, no ID token. `validateAccessToken()` resolves such a token to `userId: null`, so it can never satisfy a user-identity comparison
 - Machine clients should be registered one per automated caller, with no redirect URIs, since revocation and audit are per-client
 
+### OAuth client branding
+
+Each `oauthClients` document carries a `branding` sub-document — `null` by default, set only
+through `updateClient()`'s versioned write path (`lib/oauth/branding.mjs`):
+
+```
+branding: null | {
+  logo_asset_id: string | null,
+  primary_color: string | null,   // "^#[0-9a-fA-F]{6}$", WCAG-contrast-gated at write time
+  accent_color: string | null,    // same format/gate as primary_color
+  welcome_text: string | null,    // plain text, <= 280 chars, tags/entities stripped
+  custom_css: string | null,      // structurally checked here only; content-validated upstream
+  css_status: 'clean' | 'rejected' | null,
+  css_diagnostics: string[] | null,
+  version: integer,               // starts at 1 on first write
+  updated_at: string,             // ISO 8601, server-set
+  updated_by: string,             // admin user id, server-set
+}
+```
+
+Writes go through `PATCH /api/admin/oauth-clients/{clientId}` with an additive `branding`
+object and a required `expected_version`, using optimistic concurrency: the update is an
+atomic `findOneAndUpdate` filtered on the client's current `branding.version`, so two admins
+editing branding at once get a `409` on the second write rather than a silent overwrite.
+`primary_color`/`accent_color` must independently clear a 3.0:1 WCAG contrast ratio against
+this service's GDS-themed background and text colors (checked via
+`@sovereignsquad/gds-theme`'s own `checkGdsContrast`, not a local reimplementation) before
+they are accepted. `logo_asset_id` and `custom_css` are trusted, pre-validated pass-through
+values here — this module performs only structural checks on them; the asset-upload and
+CSS-safety pipelines that produce them are separate, later work
+(moldovancsaba/sso#99, moldovancsaba/sso#98).
+
+A client with `branding: null` renders identically to the pre-existing generic login,
+register, and consent experience — branding is additive, never required.
+
 ### Multi-domain clients (`preserve_initiating_origin`)
 
 One application served on several domains belongs on **one** OAuth client, with every

@@ -11,6 +11,7 @@
 
 import { requireUnifiedAdmin } from '../../../../lib/auth.mjs'
 import { getClient, updateClient, deleteClient } from '../../../../lib/oauth/clients.mjs'
+import { BrandingValidationError, BrandingVersionConflictError, BrandingNotFoundError } from '../../../../lib/oauth/branding.mjs'
 import logger from '../../../../lib/logger.mjs'
 import { runCors } from '../../../../lib/cors.mjs'
 
@@ -71,7 +72,16 @@ export default async function handler(req, res) {
       delete updates.owner_user_id
       delete updates.client_secret
 
-      const updatedClient = await updateClient(clientId, updates)
+      // WHAT: version/updated_at/updated_by on a branding patch are always server-computed.
+      // WHY: Same reasoning as owner_user_id above - stripped here so a caller cannot
+      //      forge them, the same way updateClientBranding() never trusts them from input.
+      if (updates.branding && typeof updates.branding === 'object' && !Array.isArray(updates.branding)) {
+        delete updates.branding.version
+        delete updates.branding.updated_at
+        delete updates.branding.updated_by
+      }
+
+      const updatedClient = await updateClient(clientId, updates, adminUser.id)
 
       logger.info('OAuth client updated', {
         adminId: adminUser.id,
@@ -116,6 +126,23 @@ export default async function handler(req, res) {
     // Method not allowed
     return res.status(405).json({ error: `Method ${req.method} not allowed` })
   } catch (error) {
+    // WHAT: The three typed branding errors get their own status codes; every other
+    //       error (including all pre-existing, non-branding failure modes) falls
+    //       through to the generic 500 below, unchanged.
+    if (error instanceof BrandingValidationError) {
+      return res.status(400).json({ error: 'invalid_branding', message: error.message, diagnostics: error.diagnostics })
+    }
+    if (error instanceof BrandingVersionConflictError) {
+      return res.status(409).json({
+        error: 'branding_version_conflict',
+        message: 'The branding record has changed since it was last read. Reload and reapply your changes.',
+        current_version: error.currentVersion,
+      })
+    }
+    if (error instanceof BrandingNotFoundError) {
+      return res.status(404).json({ error: 'Client not found' })
+    }
+
     logger.error('OAuth client operation error', {
       error: error.message,
       method: req.method,
