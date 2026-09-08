@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [Unreleased]
+
+### Added
+
+**OAuth client branding data model and write path (moldovancsaba/sso#97).** `oauthClients` documents now carry a `branding` sub-document (`null` by default): `logo_asset_id`, `primary_color`, `accent_color`, `welcome_text`, `custom_css`, `css_status`, `css_diagnostics`, plus a `version`/`updated_at`/`updated_by` audit triplet. Writes go through `PATCH /api/admin/oauth-clients/{clientId}` with optimistic concurrency (`expected_version`, `409` on a stale write) via a new single write path, `updateClientBranding()` in `lib/oauth/branding.mjs`. `primary_color`/`accent_color` are validated for hex format and must independently clear a 3.0:1 WCAG contrast ratio — via `@sovereignsquad/gds-theme`'s own `checkGdsContrast`, not a local reimplementation — against this service's GDS-themed reference colors; `welcome_text` has HTML stripped and is capped at 280 characters. `logo_asset_id` and `custom_css` are accepted here as structurally-checked, pre-validated pass-through values — their content validation is separate, later work (moldovancsaba/sso#99, moldovancsaba/sso#98).
+
+This is schema-and-API groundwork only: nothing renders branding yet (that is moldovancsaba/sso#105), and this change does not bump the service version — the OAuth client branding initiative's coordinated version bump ships with moldovancsaba/sso#108, once user-visible behavior actually lands.
+
+---
+
 ## [5.40.1] - 2026-09-04
 
 ### Fixed
