@@ -79,6 +79,10 @@ export default async function handler(req, res) {
         delete updates.branding.version
         delete updates.branding.updated_at
         delete updates.branding.updated_by
+        // Same reasoning: the CSS verdict is computed from the CSS, never accepted from the
+        // caller, so a request cannot self-certify hostile CSS as `clean`.
+        delete updates.branding.css_status
+        delete updates.branding.css_diagnostics
       }
 
       const updatedClient = await updateClient(clientId, updates, adminUser.id)
@@ -130,7 +134,23 @@ export default async function handler(req, res) {
     //       error (including all pre-existing, non-branding failure modes) falls
     //       through to the generic 500 below, unchanged.
     if (error instanceof BrandingValidationError) {
-      return res.status(400).json({ error: 'invalid_branding', message: error.message, diagnostics: error.diagnostics })
+      // WHAT: 400 for a malformed request (missing expected_version, an empty patch); 422
+      //       for a well-formed request whose submitted values were refused.
+      // WHY: Those are different failures — one is "you didn't ask correctly", the other is
+      //      "you asked correctly and the answer is no" — and the admin diagnostics panel
+      //      needs to tell them apart. css_diagnostics carries the validator's own sentences
+      //      verbatim so the UI never has to reconstruct meaning from a code; `diagnostics`
+      //      is kept as an alias for existing callers of the 400 shape.
+      if (error.malformedRequest) {
+        return res.status(400).json({ error: 'invalid_branding', message: error.message, diagnostics: error.diagnostics })
+      }
+      return res.status(422).json({
+        error: 'branding_validation_failed',
+        message: error.message,
+        css_status: 'rejected',
+        css_diagnostics: error.diagnostics,
+        diagnostics: error.diagnostics,
+      })
     }
     if (error instanceof BrandingVersionConflictError) {
       return res.status(409).json({

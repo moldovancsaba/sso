@@ -151,15 +151,25 @@ describe('PATCH branding contract', () => {
     expect(second.res.body.current_version).toBe(1)
   })
 
-  test('400: an invalid hex color returns a diagnostic naming the field', async () => {
+  // WHAT: 422, not 400, for an invalid hex color.
+  // WHY: moldovancsaba/sso#98 refines this contract: the request itself is well-formed (a
+  //      recognized key, a plausible-looking value) and it is the *value* that is refused —
+  //      that is a 422, distinct from the malformed-request 400 case below (missing
+  //      expected_version). See lib/oauth/brandingValidation.mjs and BrandingValidationError's
+  //      malformedRequest flag in lib/oauth/branding.mjs.
+  test('422: an invalid hex color returns a diagnostic naming the field', async () => {
     seedClient(null)
     const { req, res } = makeReqRes({ body: { branding: { primary_color: 'not-a-color' }, expected_version: 0 } })
 
     await handler(req, res)
 
-    expect(res.statusCode).toBe(400)
-    expect(res.body.error).toBe('invalid_branding')
+    expect(res.statusCode).toBe(422)
+    expect(res.body.error).toBe('branding_validation_failed')
+    expect(res.body.css_status).toBe('rejected')
+    expect(res.body.css_diagnostics.some((d) => d.includes('primary_color'))).toBe(true)
     expect(res.body.diagnostics.some((d) => d.includes('primary_color'))).toBe(true)
+    // #98 acceptance criteria: a rejected write changes nothing, including version.
+    expect(fakeDocs[0].branding).toBeNull()
   })
 
   test('400: branding present without expected_version is rejected', async () => {
@@ -199,6 +209,35 @@ describe('PATCH branding contract', () => {
     expect(res.statusCode).toBe(200)
     expect(res.body.client.branding.version).toBe(1)
     expect(res.body.client.branding.updated_by).toBe('admin-1')
+  })
+
+  test('css_status/css_diagnostics cannot be forged by the caller alongside hostile CSS', async () => {
+    // WHAT: The exact hazard lib/oauth/brandingValidation.mjs closes — a caller submitting
+    //       css_status: 'clean' alongside CSS that would actually be rejected.
+    // WHY:  Before this field was refused as an input, this request would have persisted
+    //       'clean' verbatim and skipped CSS validation for this write entirely (css_status/
+    //       css_diagnostics were writable, custom_css itself had no content validation).
+    seedClient(null)
+    const { req, res } = makeReqRes({
+      body: {
+        branding: {
+          custom_css: '@import url("http://evil.test/x.css");',
+          css_status: 'clean',
+          css_diagnostics: null,
+        },
+        expected_version: 0,
+      },
+    })
+
+    await handler(req, res)
+
+    expect(res.statusCode).toBe(422)
+    expect(res.body.error).toBe('branding_validation_failed')
+    expect(res.body.css_status).toBe('rejected')
+    expect(res.body.css_diagnostics.some((d) => d.includes('custom_css'))).toBe(true)
+    // The forged css_status never reaches storage — the stored document is untouched, not
+    // merely "not set to clean".
+    expect(fakeDocs[0].branding).toBeNull()
   })
 
   test('a non-branding field update is unaffected by this change', async () => {

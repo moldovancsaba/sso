@@ -68,13 +68,41 @@ Writes go through `PATCH /api/admin/oauth-clients/{clientId}` with an additive `
 object and a required `expected_version`, using optimistic concurrency: the update is an
 atomic `findOneAndUpdate` filtered on the client's current `branding.version`, so two admins
 editing branding at once get a `409` on the second write rather than a silent overwrite.
-`primary_color`/`accent_color` must independently clear a 3.0:1 WCAG contrast ratio against
-this service's GDS-themed background and text colors (checked via
-`@sovereignsquad/gds-theme`'s own `checkGdsContrast`, not a local reimplementation) before
-they are accepted. `logo_asset_id` and `custom_css` are trusted, pre-validated pass-through
-values here — this module performs only structural checks on them; the asset-upload and
-CSS-safety pipelines that produce them are separate, later work
-(moldovancsaba/sso#99, moldovancsaba/sso#98).
+
+Every write touching `custom_css`, `primary_color`, or `accent_color` passes through
+`validateBranding()` (`lib/oauth/brandingValidation.mjs`) before `updateClientBranding()`
+persists anything:
+
+- **`custom_css`** is validated by composing `@sovereignsquad/gds-core`'s own
+  `validateCreatorCss` — the same policy `CreatorThemeBoundary` enforces at render time.
+  This module does not reimplement any part of that policy; it only normalizes the result
+  shape and scopes when the check runs. An empty or whitespace-only value is treated as "no
+  custom CSS", not as CSS to validate.
+- **`primary_color`/`accent_color`** must independently clear a 3.0:1 WCAG AA
+  (SC 1.4.11, UI-component threshold) contrast ratio against both of this service's resolved
+  GDS theme colors — the background and the default text color, read from `mantineTheme` in
+  `lib/theme/mantineTheme.js` rather than duplicated as a second literal anywhere. The check
+  runs whenever either color field is touched, evaluated as the *effective* pair (the
+  patched value where given, the current stored value otherwise), so changing only one color
+  per request cannot bypass the gate. A 4.5:1 normal-text threshold is implemented and
+  exported (`NORMAL_TEXT_THRESHOLD`) but not applied here, since neither color renders
+  paragraph-length text today.
+- A rejection from either check produces the same outcome shape
+  (`css_status: 'rejected'`, `css_diagnostics: [...]`) and an HTTP `422` from the PATCH
+  endpoint — deliberate field reuse, not a naming accident: these two fields are the general
+  branding-validation outcome for a write, not solely a CSS-specific status. HTTP `400` is
+  reserved for a malformed request (missing `expected_version`, an empty patch); `422` is for
+  a well-formed request whose submitted values were refused. A rejected write changes
+  **nothing** in the stored document — no field, no `version` increment — so `css_status`/
+  `css_diagnostics` as stored always reflect the last *successful* write; the
+  `'rejected'`/diagnostics pairing appears only in the `422` response body as request-scoped
+  admin feedback and never lands in MongoDB. `css_status` and `css_diagnostics` are
+  server-computed outcomes: a caller cannot set them directly on a PATCH (rejected at both
+  the field-validator level and stripped before merge in the API handler), which closes off
+  self-certifying hostile CSS as `'clean'`.
+- `logo_asset_id` is trusted, pre-validated pass-through here — this module performs only a
+  structural check on it; the asset-upload pipeline that produces it is separate, later work
+  (moldovancsaba/sso#99).
 
 A client with `branding: null` renders identically to the pre-existing generic login,
 register, and consent experience — branding is additive, never required.
