@@ -275,6 +275,7 @@ should fail CI rather than wait for someone to notice they cannot sign out.
 ### Permission reads and writes
 - Self-service reads are constrained to the token subject and token client
 - App-to-app permission mutations require a client token with `manage_permissions`
+- A client lists its own users (`GET /api/apps/{clientId}/users`, `lib/appUsers.mjs`: live consents ∪ permission records, joined with the account) with the same machine token and scope; no other client, user token or session may read it
 - Admin-session mutation paths remain available for the admin UI
 - Sensitive unified-admin mutations can return `REAUTH_REQUIRED` even when the session is otherwise valid
 - Permission DTOs normalize legacy values but the canonical runtime contract is still `none|user|admin` plus `pending|approved|revoked`

@@ -146,6 +146,32 @@ Valid callers:
 - the same client with `manage_permissions`
 - an authenticated admin session
 
+### Client user listing
+
+```http
+GET /api/apps/{clientId}/users?search=&page=1&limit=50
+Authorization: Bearer MACHINE_ACCESS_TOKEN
+```
+
+Every SSO account related to the client — a live consent (the consent screen) or a
+permission record (an access request or an admin grant) — joined with the account's email,
+name, status and last sign-in. This is how an application's own rights management shows a
+user *before* that user's first sign-in to it: the application learns about a user only on
+sign-in, SSO knows the whole list.
+
+Requirements:
+
+- bearer token must belong to the same client (`client_credentials` grant)
+- bearer token must include `manage_permissions`
+
+`search` matches email or name as a literal, case-insensitive substring; `limit` is at most
+200. The response is `{ clientId, users, total, page, pages, limit }`, each user
+`{ id, email, name, status, emailVerified, picture, createdAt, lastLoginAt, consent, permission }`
+where `consent` is `{ scope, grantedAt }` or `null` and `permission` is the canonical
+permission DTO fields (`role`, `status`, `hasAccess`, `requestedAt`, `grantedAt`,
+`lastAccessedAt`) or `null`. Accounts that no longer exist are omitted; a revoked consent no
+longer relates the user to the client. No password hash or provider payload is ever included.
+
 ### App-managed permission write
 
 ```http
