@@ -119,6 +119,22 @@ Example no-record response:
 }
 ```
 
+### List a client's users
+`GET /api/apps/{clientId}/users`
+
+Authorized callers:
+- bearer token with `manage_permissions` for the same `clientId` (machine token; no admin
+  session or user token path — the list names every user of the client by email)
+
+Query: `search` (email or name, literal case-insensitive substring), `page`, `limit` (max 200).
+
+Response: `{ clientId, users, total, page, pages, limit }`. A user is every account with a
+live consent for the client (`userConsents`, `revoked_at: null`) or a permission record for
+it (`appPermissions`), joined with `publicUsers` (then `users`) for `id`, `email`, `name`,
+`status`, `emailVerified`, `picture`, `createdAt`, `lastLoginAt`; `consent` carries
+`{ scope, grantedAt }` or `null`, `permission` the canonical DTO fields or `null`. Ordered by
+last sign-in, newest account first among the never-signed-in.
+
 ### Create a pending access request
 `POST /api/users/{userId}/apps/{clientId}/request-access`
 
