@@ -14,6 +14,7 @@ This release assigns a version to three changes that reached `main` without one:
 ### Changed
 
 - **`npm run check:docs` now also enforces the root `README.md` version header.** It was not in the enforced list, and had drifted to `5.38.1` while `package.json` moved on to `5.40.1` — the second time (see [5.33.3]).
+- **GDS installs from vendored release tarballs again.** CI failed at `npm ci` with `403 ... Account has reached its billing limit` from GitHub Packages (the sovereignsquad Packages quota), so no PR could go green. The five `@sovereignsquad/gds-*@6.0.0` packages are now the upstream `gds-v6.0.0` release assets in `vendor/gds/`, referenced through `file:` specs and `overrides`, byte-identical to the registry packages (lockfile `integrity` unchanged). `.npmrc` drops the registry block and `repo-guardrails.yml` drops the token. This reverses the 2026-08-25 move back to the registry for the reason messmass and camera re-vendored on 2026-09-08; see `docs/DESIGN_SYSTEM.md` "Install Source".
 - **The live API reference documents the client user listing.** `/docs/api` and `/docs/api/endpoints` (`pages/docs/api/`) now list `GET /api/apps/{clientId}/users`, which #115 documented only in the markdown guides.
 
 ### Added

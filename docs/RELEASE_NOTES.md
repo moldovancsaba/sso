@@ -2,7 +2,11 @@
 
 ## [v5.41.0] — 2026-09-28T00:00:00.000Z
 
-This release gives a version to three changes that were merged to `main`, and therefore deployed, without one: #110 and #111 on 2026-09-08 and #115 on 2026-09-20. Nothing new ships with it except documentation, and `check:docs` now also guards the root `README.md` version header.
+This release gives a version to three changes that were merged to `main`, and therefore deployed, without one: #110 and #111 on 2026-09-08 and #115 on 2026-09-20. Nothing new ships with it except documentation, `check:docs` now also guarding the root `README.md` version header, and GDS installing from vendored tarballs again.
+
+### 📦 Design System Installs Without GitHub Packages
+
+The design-system packages are checked in again as the upstream release tarballs, byte-identical to what was installed before. GitHub Packages had started refusing installs (the organisation's quota ran out), which failed every CI run at its first step. Same `6.0.0` packages, no token needed.
 
 ### 🎨 OAuth Clients Can Carry Branding
 
