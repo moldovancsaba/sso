@@ -1,7 +1,7 @@
 # Multi-App Permission System
 
-Version: 5.29.0  
-Last updated: 2026-05-20T00:00:00.000Z
+Version: 5.41.0  
+Last updated: 2026-09-28T00:00:00.000Z
 
 ## Purpose
 

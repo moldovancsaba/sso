@@ -5,6 +5,10 @@ Operating rules for AI coding assistants working in this repo live in
 environment quirks). This file is the command reference; keep it in sync with
 `CLAUDE.md` Section 8 and with the real `package.json` scripts.
 
+This repo has no `HANDOVER.md` (the stale one was removed in 5.39.2) — `CLAUDE.md` fills
+that role. Current state and open work live in `docs/TASKLIST.md`, `docs/ROADMAP.md`, and
+`docs/CHANGELOG.md`; the runtime contract in `docs/README.md` and `docs/ARCHITECTURE.md`.
+
 ## Repo Workflows
 
 ### Root app
@@ -26,7 +30,7 @@ deprecation dates behind it.
 - Run documentation maintenance checks: `npm run check:docs`
 - Run the full pre-push/pre-merge gate (lint + type-check + test + build + guardrails + docs + GDS manifest/compliance): `npm run verify`
 - Test MongoDB connection: `npm run test-connection`
-- Sync versioned docs after a version bump: `npm run sync:version`
+- Sync versioned docs after a version bump: `npm run sync:version` — do not run unmodified; it also rewrites historical `v5.x.x` headers in `docs/RELEASE_NOTES.md` (see `CLAUDE.md` Section 4)
 
 ## Verified Operational Commands
 

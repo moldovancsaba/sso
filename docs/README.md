@@ -1,7 +1,7 @@
 # SSO Service
 
-Version: 5.40.1  
-Last updated: 2026-08-31T00:00:00.000Z
+Version: 5.41.0  
+Last updated: 2026-09-28T00:00:00.000Z
 
 This repository provides the SSO service for `https://sso.doneisbetter.com`.
 
@@ -97,6 +97,9 @@ Legacy compatibility inputs are normalized in runtime:
 - OIDC discovery available at `/.well-known/openid-configuration`
 - JWKS available at `/.well-known/jwks.json`
 - ID tokens carry identity claims. App-level access state still comes from `appPermissions` and related APIs.
+- Machine-to-machine: the `client_credentials` grant issues a token with no user context (no `sub`, no refresh token, no ID token). `scope` is required, and machine-only scopes (`manage_permissions`, the `<resource>:<capability>` scopes) are obtainable only through this grant, never on `/api/oauth/authorize`. See "Method 4" in [THIRD_PARTY_INTEGRATION_GUIDE.md](THIRD_PARTY_INTEGRATION_GUIDE.md).
+- `GET /api/apps/{clientId}/users`: a client lists its own users (every account with a live consent or a permission record for it) using a `manage_permissions` machine token for that same client; no other client, user token, or session can read it.
+- OAuth client branding: each `oauthClients` document carries a `branding` sub-document (`null` by default), written only through `PATCH /api/admin/oauth-clients/{clientId}` with optimistic concurrency (`expected_version`, `409` on a stale write). `custom_css` and the two brand colors are validated at write time (`422` on refusal). No page renders the `branding` sub-document yet (moldovancsaba/sso#105). See [ARCHITECTURE.md](ARCHITECTURE.md#oauth-client-branding).
 
 ### Canonical session endpoints
 
@@ -172,5 +175,5 @@ npm run build
 npm run guard:repo
 npm run check:docs
 npm run test-connection
-npm run sync:version
+npm run sync:version   # do not run unmodified — see CLAUDE.md §4
 ```

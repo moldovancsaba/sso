@@ -210,9 +210,9 @@ set:
 - `AGENTS.md` — command reference; keep in sync with real `package.json` scripts
 
 Version bumps: `package.json` is the source of truth. `npm run check:docs` enforces that
-`docs/README.md`, `docs/ARCHITECTURE.md`, `docs/ROADMAP.md`, `docs/TASKLIST.md`, and
-`docs/THIRD_PARTY_INTEGRATION_GUIDE.md` carry the matching `Version:` string — bump all
-of them together, not just `package.json`. `npm run sync:version` exists but is a blunt
+`README.md`, `docs/README.md`, `docs/ARCHITECTURE.md`, `docs/ROADMAP.md`,
+`docs/TASKLIST.md`, and `docs/THIRD_PARTY_INTEGRATION_GUIDE.md` carry the matching
+`Version:` string — bump all of them together, not just `package.json`. `npm run sync:version` exists but is a blunt
 regex replace across a *different* file list (including `docs/RELEASE_NOTES.md`) that
 will also rewrite historical `v5.x.x` headers inside that file — do not run it
 unmodified; do version-string updates by hand with a scoped edit instead, or fix the

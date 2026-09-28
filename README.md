@@ -1,8 +1,8 @@
 # Universal SSO Service
 
-Version: 5.38.1  
+Version: 5.41.0  
 Status: Active  
-Last updated: 2026-08-21T00:00:00.000Z
+Last updated: 2026-09-28T00:00:00.000Z
 
 This repository contains the DoneIsBetter SSO service for `https://sso.doneisbetter.com`.
 
@@ -23,6 +23,9 @@ It provides:
 - Legacy admin sessions use the `admin-session` cookie
 - The current admin UI uses OAuth plus a public session with admin app permission checks
 - App-level authorization is not encoded by default into the ID token; use permission APIs when app access or app role matters
+- Machine-to-machine callers use the `client_credentials` grant: no user context, `scope` required, machine-only scopes (`manage_permissions`, `<resource>:<capability>`) obtainable only this way
+- A client lists its own users with `GET /api/apps/{clientId}/users` and a `manage_permissions` machine token for that same client
+- OAuth clients carry a `branding` sub-document (`null` by default), written through `PATCH /api/admin/oauth-clients/{clientId}` with optimistic concurrency and write-time CSS/contrast validation; no page renders it yet
 
 ## Start Here
 

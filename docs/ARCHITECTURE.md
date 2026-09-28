@@ -1,7 +1,7 @@
 # Architecture — SSO
 
-Version: 5.40.1  
-Last updated: 2026-08-21T00:00:00.000Z
+Version: 5.41.0  
+Last updated: 2026-09-28T00:00:00.000Z
 
 ## Stack
 
@@ -47,7 +47,9 @@ Last updated: 2026-08-21T00:00:00.000Z
 ### OAuth client branding
 
 Each `oauthClients` document carries a `branding` sub-document — `null` by default, set only
-through `updateClient()`'s versioned write path (`lib/oauth/branding.mjs`):
+through the versioned write path `updateClientBranding()` (`lib/oauth/branding.mjs`), to
+which `updateClient()` (`lib/oauth/clients.mjs`) delegates any `branding` key before
+applying the flat fields:
 
 ```
 branding: null | {
@@ -55,7 +57,7 @@ branding: null | {
   primary_color: string | null,   // "^#[0-9a-fA-F]{6}$", WCAG-contrast-gated at write time
   accent_color: string | null,    // same format/gate as primary_color
   welcome_text: string | null,    // plain text, <= 280 chars, tags/entities stripped
-  custom_css: string | null,      // structurally checked here only; content-validated upstream
+  custom_css: string | null,      // content-validated at write time by validateBranding() (gds-core validateCreatorCss)
   css_status: 'clean' | 'rejected' | null,
   css_diagnostics: string[] | null,
   version: integer,               // starts at 1 on first write

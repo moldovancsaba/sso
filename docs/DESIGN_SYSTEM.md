@@ -45,24 +45,25 @@ This file records only local adapter state, migration blockers, validation comma
 
 ## Install Source
 
-GDS publishes exclusively to GitHub Packages (`npm.pkg.github.com`), which requires an
-authenticated, `read:packages`-scoped token for every install — including of public
-packages. This repo's CI/Vercel environments previously had no such token configured, so
-all five consumed `@sovereignsquad/gds-*` packages were vendored as prebuilt tarballs in
-`vendor/gds/` and referenced via `file:` dependencies — see git history on this file for
-that stopgap's full rationale.
+Vendored release tarballs, since 5.41.0 (2026-09-28). All five consumed
+`@sovereignsquad/gds-*@6.0.0` packages are the upstream `gds-v6.0.0` release assets,
+checked in under `vendor/gds/` and referenced through `file:` dependencies, with
+`overrides` pinning the transitive `gds-core`/`gds-theme`/`gds-admin` references to the
+same tarballs. `.npmrc` has no GitHub Packages block and CI needs no token. Each tarball
+is byte-identical to the registry package it replaced (the lockfile `integrity` hashes
+did not change), so this changes how GDS installs, not what installs.
 
-A `GDS_PACKAGES_TOKEN` repository secret is now provisioned (2026-08-25), so the
-dependencies resolve from the registry again: `.npmrc` carries the
-`@sovereignsquad:registry=...`/`_authToken` block, `package.json` pins exact versions
-(`6.0.0`, matching what was vendored — a pure install-mechanism change, not a version
-bump), and `vendor/gds/` is deleted. CI (`repo-guardrails.yml`) exports
-`GITHUB_TOKEN: ${{ secrets.GDS_PACKAGES_TOKEN }}` for the install step (the secret can't be
-named `GITHUB_TOKEN` directly — that name is reserved by GitHub Actions). The same value is
-also set as a `GITHUB_TOKEN` project environment variable in Vercel (Production and Preview,
-2026-08-25) — see GDS's `INSTALLATION_GUIDE.md` "Getting GITHUB_TOKEN into a deployment
-host's build" for the recipe. Confirmed live: the latest Vercel deployment is `READY` and
-`sso.doneisbetter.com` serves correctly.
+Why back to vendoring: GDS publishes only to GitHub Packages (`npm.pkg.github.com`), and
+the sovereignsquad organisation's Packages quota ran out (`403 ... Account has reached
+its billing limit` on `npm ci`), first on 2026-09-07 and again by 2026-09-28. messmass
+and camera switched to vendored tarballs on 2026-09-08 for the same reason; SSO was
+still on the registry install of 2026-08-25 (`GDS_PACKAGES_TOKEN`), so every new CI run
+here failed at install. The `GDS_PACKAGES_TOKEN` secret and the Vercel `GITHUB_TOKEN`
+variable are no longer read by anything and can be removed.
+
+To upgrade GDS: `gh release download gds-v<V> --repo sovereignsquad/general-design-system
+--pattern 'sovereignsquad-gds-*-<V>.tgz' --dir vendor/gds`, point the `file:` specs and
+`overrides` at the new files, `npm install`, and commit the tarballs.
 
 ## Current Direct Consumption
 
