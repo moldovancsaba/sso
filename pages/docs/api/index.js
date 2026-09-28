@@ -67,6 +67,7 @@ export default function ApiDocs() {
             <List.Item><code>GET /api/users/[userId]/apps/[clientId]/permissions</code> - read a permission record</List.Item>
             <List.Item><code>PUT /api/users/[userId]/apps/[clientId]/permissions</code> - app-managed permission update</List.Item>
             <List.Item><code>DELETE /api/users/[userId]/apps/[clientId]/permissions</code> - app-managed revoke</List.Item>
+            <List.Item><code>GET /api/apps/[clientId]/users</code> - list the client&apos;s own users (machine token with <code>manage_permissions</code>)</List.Item>
             <List.Item><code>POST /api/users/[userId]/apps/[clientId]/request-access</code> - create pending access request</List.Item>
             <List.Item><code>PUT /api/admin/users/[userId]/apps/[clientId]/permissions</code> - admin-managed permission update</List.Item>
             <List.Item><code>DELETE /api/admin/users/[userId]/apps/[clientId]/permissions</code> - admin-managed revoke</List.Item>

@@ -163,6 +163,29 @@ Content-Type: application/json
           <Title mb="xs" mt="lg" order={3}>DELETE /api/users/[userId]/apps/[clientId]/permissions</Title>
           <Text size="sm">Client-managed revoke for the same client.</Text>
 
+          <Title mb="xs" mt="lg" order={3}>GET /api/apps/[clientId]/users</Title>
+          <Text size="sm">
+            Lists every SSO account related to the client — a live consent or a permission record —
+            joined with the account. This is how an application&apos;s own rights management sees a user
+            before that user&apos;s first sign-in to it. Requires a <code>client_credentials</code> bearer
+            token for the same client with <code>manage_permissions</code>: <code>401</code> without a valid
+            token, <code>403</code> without the scope or for another client&apos;s id.
+          </Text>
+          <Code block>
+            {`GET /api/apps/{clientId}/users?search=&page=1&limit=50
+Authorization: Bearer MACHINE_ACCESS_TOKEN`}
+          </Code>
+          <Text size="sm">
+            <code>search</code> matches email or name as a literal, case-insensitive substring;{' '}
+            <code>limit</code> is at most 200. The response is{' '}
+            <code>{'{ clientId, users, total, page, pages, limit }'}</code>; each user carries{' '}
+            <code>id</code>, <code>email</code>, <code>name</code>, <code>status</code>,{' '}
+            <code>emailVerified</code>, <code>picture</code>, <code>createdAt</code>,{' '}
+            <code>lastLoginAt</code>, <code>consent</code> (<code>{'{ scope, grantedAt }'}</code> or{' '}
+            <code>null</code>) and <code>permission</code> (the canonical permission DTO fields or{' '}
+            <code>null</code>). No password hash or provider payload is ever included.
+          </Text>
+
           <Title mb="xs" mt="lg" order={3}>POST /api/users/[userId]/apps/[clientId]/request-access</Title>
           <Text size="sm">Creates a pending access request for the same token subject and same token client.</Text>
           <Code block>

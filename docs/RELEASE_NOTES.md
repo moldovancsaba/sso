@@ -1,4 +1,20 @@
-# Release Notes [![Version Badge](https://img.shields.io/badge/version-5.40.1-blue)](RELEASE_NOTES.md)
+# Release Notes [![Version Badge](https://img.shields.io/badge/version-5.41.0-blue)](RELEASE_NOTES.md)
+
+## [v5.41.0] — 2026-09-28T00:00:00.000Z
+
+This release gives a version to three changes that were merged to `main`, and therefore deployed, without one: #110 and #111 on 2026-09-08 and #115 on 2026-09-20. Nothing new ships with it except documentation, and `check:docs` now also guards the root `README.md` version header.
+
+### 🎨 OAuth Clients Can Carry Branding
+
+Every OAuth client now has a `branding` record — logo reference, primary and accent colors, welcome text, and custom CSS — empty by default. Admins write it through `PATCH /api/admin/oauth-clients/{clientId}`, which carries a version number: two admins editing the same client at once get a `409` on the second save instead of silently overwriting each other. This is groundwork only. No login, register, or consent page renders branding yet, and the admin editor for it is still open work (#101, #105).
+
+### 🛡️ Branding Is Checked Before It Is Stored
+
+Custom CSS goes through the design system's own `validateCreatorCss` — the same policy its `CreatorThemeBoundary` enforces at render time — so the write path and the renderer cannot disagree about what is safe. Both brand colors must keep at least 3.0:1 WCAG contrast against the theme's background and text colors, measured with an unrounded calculation, because the design system's own ratio is rounded to two decimals and would let 2.996 pass as 3.00. Each color is judged on its own, so an illegible color can no longer slip through while its partner is unset. The verdict fields (`css_status`, `css_diagnostics`) are server-computed only, so a request cannot mark hostile CSS as clean. A malformed request gets `400`; a well-formed one whose values are refused gets `422` with the reasons.
+
+### 👥 An App Can See All of Its Users
+
+An application learns about a user only at that user's first sign-in to it, so someone who registered and consented but never came back was invisible to the app's own rights management. `GET /api/apps/{clientId}/users` hands the app the list SSO already holds — every account with a live consent or a permission record for it, with email, name, status, and last sign-in, and never a password hash or provider payload. Only the app itself can ask, with a `manage_permissions` machine token issued to that same client.
 
 ## [v5.40.1] — 2026-09-04T00:00:00.000Z
 

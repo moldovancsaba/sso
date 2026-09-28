@@ -11,6 +11,7 @@ const packageJson = JSON.parse(
 const expectedVersion = packageJson.version
 
 const versionedDocs = [
+  'README.md',
   'docs/README.md',
   'docs/ARCHITECTURE.md',
   'docs/ROADMAP.md',

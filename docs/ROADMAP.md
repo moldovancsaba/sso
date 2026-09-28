@@ -1,9 +1,22 @@
 # Roadmap
 
-Version: 5.40.1  
-Last updated: 2026-08-21T00:00:00.000Z
+Version: 5.41.0  
+Last updated: 2026-09-28T00:00:00.000Z
+
+## In Progress
+
+### OAuth client branding (#97–#109)
+- #97 and #98 are closed by #110 and #111 (the `branding` data model, its versioned write path, and write-time custom-CSS and contrast validation — released in 5.41.0)
+- Open: #99 logo asset ingestion, #100 branding audit trail and rollback, #101 branding editor UI, #102 logo upload widget, #103 custom CSS editor with live diagnostics, #104 branding history console, #105 login/register branding rendering, #106 canonical scope metadata for consent, #107 theming docs and GDS exception record, #108 theming release gate, #109 self-service branding access RFC
+- No page renders the `branding` sub-document yet; #105 is the first user-visible piece
 
 ## Recently Delivered
+
+### September 2026 (5.40.1–5.41.0)
+- The desktop OAuth clients table shows each client's `client_id` with a copy control (#96, 5.40.1)
+- OAuth client branding contract: a `branding` sub-document on `oauthClients` with a single versioned write path and optimistic concurrency (#110, closes #97)
+- Write-time custom-CSS validation through GDS `validateCreatorCss` and 3.0:1 WCAG contrast enforcement for brand colors (#111, closes #98)
+- `GET /api/apps/{clientId}/users`: a client lists its own users for its rights management (#115)
 
 ### GDS 6.0.0 migration completed in August 2026
 - Migrated the design-system dependency from the abandoned `@doneisbetter/gds-*@3.0.0` npm mirror directly to `@sovereignsquad/gds-*@6.0.0`, the current release line published by the upstream `sovereignsquad/general-design-system` repo on GitHub Packages
@@ -86,3 +99,4 @@ Schedule a phase by opening a real implementation issue at that time.
 - Live SAML federation
 - Live SCIM provisioning
 - End-to-end zero-trust session architecture
+- Client branding on the login, register, and consent pages (#105)
