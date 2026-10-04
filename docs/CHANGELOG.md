@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [Unreleased]
+
+### Security
+- **Dependency updates after the 5.41.0 audit.** `next` 15.5.26 (two critical advisories), `nodemailer` 10.0.9 (mail transport; checked against the pooled SMTP usage in `lib/email.mjs` with a local fake server, identical to 9.0.5), `qs` 6.16.0, `js-yaml` 3.15.2, and, in this change, `sharp` 0.35.5 (the `next` bump only widened its allowed range, so the lockfile had stayed on 0.34.5 with two open high alerts), `@tiptap/*` pinned to 3.31.3 through `overrides` (it arrives only as a dependency of the vendored `@sovereignsquad/gds-core`; sso imports none of it), and `brace-expansion` 1.1.21 and 5.0.12 (dev-only). `npm audit --omit=dev` reports 0 vulnerabilities. The remaining `npm audit` highs are the jest and eslint dev toolchain.
+
 ## [5.41.0] - 2026-09-28
 
 This release assigns a version to three changes that reached `main` without one: #110 and #111 (merged 2026-09-08) and #115 (merged 2026-09-20). Production deploys from `main`, so all three have been live since those dates — GitHub records a Production deployment for each merge commit, the latest (`f16066f6`) reporting success on 2026-09-20. The entries under **Added** were written at merge time and are carried over from `[Unreleased]`, corrected where the later change superseded the earlier one; what is new in this release is under **Changed**.
