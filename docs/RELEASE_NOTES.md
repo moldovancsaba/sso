@@ -1,4 +1,16 @@
-# Release Notes [![Version Badge](https://img.shields.io/badge/version-5.41.0-blue)](RELEASE_NOTES.md)
+# Release Notes [![Version Badge](https://img.shields.io/badge/version-5.41.1-blue)](RELEASE_NOTES.md)
+
+## [v5.41.1] — 2026-10-05T00:00:00.000Z
+
+This release gives a version to the dependency updates and the licence change that were merged to `main`, and therefore deployed, after 5.41.0 without one. No application code changed.
+
+### 🛡️ Dependency Updates
+
+`next` 15.5.26 (two critical advisories), `nodemailer` 10.0.9, `sharp` 0.35.5, `qs` 6.16.0 and `js-yaml` 3.15.2 are updated, `@tiptap/*` is pinned to 3.31.3 through `overrides`, and the dev-only `brace-expansion` is updated. `npm audit --omit=dev` reports 0 vulnerabilities.
+
+### 📄 MIT License
+
+The repository now carries an MIT `LICENSE` file. `package.json` already declared `MIT`.
 
 ## [v5.41.0] — 2026-09-28T00:00:00.000Z
 
