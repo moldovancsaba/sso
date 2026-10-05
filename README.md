@@ -60,3 +60,7 @@ npm run test-connection
 - Design, UI, and UX rules are governed by the shared SSOT in the [general-design-system repo](https://github.com/sovereignsquad/general-design-system).  
 - [docs/DESIGN_SYSTEM.md](docs/DESIGN_SYSTEM.md) tracks local migration state and adapter decisions for this repository.
 - Current local CSS and theme infrastructure should be treated as legacy implementation to migrate toward that Mantine-first SSOT.
+
+## License
+
+MIT. See [LICENSE](LICENSE).
