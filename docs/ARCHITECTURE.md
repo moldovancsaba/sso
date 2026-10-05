@@ -1,7 +1,7 @@
 # Architecture — SSO
 
-Version: 5.41.0  
-Last updated: 2026-09-28T00:00:00.000Z
+Version: 5.41.1  
+Last updated: 2026-10-05T00:00:00.000Z
 
 ## Stack
 

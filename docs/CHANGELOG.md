@@ -9,8 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [5.41.1] - 2026-10-05
+
+This release gives a version to the dependency updates and the licence change that reached `main` after 5.41.0 without one (#95, #113, #114, #117, #120, #122). No application code changed.
+
 ### Security
 - **Dependency updates after the 5.41.0 audit.** `next` 15.5.26 (two critical advisories), `nodemailer` 10.0.9 (mail transport; checked against the pooled SMTP usage in `lib/email.mjs` with a local fake server, identical to 9.0.5), `qs` 6.16.0, `js-yaml` 3.15.2, and, in this change, `sharp` 0.35.5 (the `next` bump only widened its allowed range, so the lockfile had stayed on 0.34.5 with two open high alerts), `@tiptap/*` pinned to 3.31.3 through `overrides` (it arrives only as a dependency of the vendored `@sovereignsquad/gds-core`; sso imports none of it), and `brace-expansion` 1.1.21 and 5.0.12 (dev-only). `npm audit --omit=dev` reports 0 vulnerabilities. The remaining `npm audit` highs are the jest and eslint dev toolchain.
+
+### Added
+
+- **MIT `LICENSE`** (Copyright (c) 2026 moldovancsaba) and a License section in `README.md` (#122). `package.json` already declared `MIT`.
 
 ## [5.41.0] - 2026-09-28
 
