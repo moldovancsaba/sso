@@ -6,7 +6,7 @@
  */
 
 const SSO_BASE_URL = 'https://sso.doneisbetter.com'
-const ADMIN_TOKEN = process.env.QUIZ_ITEM_ADMIN_TOKEN
+const ADMIN_TOKEN = (process.env.SSO_QUIZ_ITEM_ADMIN_TOKEN ?? process.env.QUIZ_ITEM_ADMIN_TOKEN)
 
 async function validateTokenWithSSO(token) {
   console.log('🔍 Validating token with SSO...')

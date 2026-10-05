@@ -1,4 +1,16 @@
-# Release Notes [![Version Badge](https://img.shields.io/badge/version-5.41.1-blue)](RELEASE_NOTES.md)
+# Release Notes [![Version Badge](https://img.shields.io/badge/version-5.42.0-blue)](RELEASE_NOTES.md)
+
+## [v5.42.0] — 2026-10-05T00:00:00.000Z
+
+The service's own environment variables now carry an `SSO_` prefix. Nothing needs to change in an existing deployment: the old names still work.
+
+### 🏷️ Prefixed Environment Variables
+
+70 variables are renamed (for example `MONGODB_URI` to `SSO_MONGODB_URI`, `JWT_SECRET` to `SSO_JWT_SECRET`, `RESEND_API_KEY` to `SSO_RESEND_API_KEY`). The code reads the new name and falls back to the old one; if both are set the new one wins. Platform variables and names that already started with `SSO_` are unchanged. The old names will stop working in a later release, after Vercel and local files have moved over.
+
+### ✅ Name Check In The Gate
+
+`npm run check:env` is part of `npm run verify` and keeps the code and `.env.example` in agreement on variable names.
 
 ## [v5.41.1] — 2026-10-05T00:00:00.000Z
 

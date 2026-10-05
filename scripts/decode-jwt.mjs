@@ -5,7 +5,7 @@
  * WHY: Need to check what scopes and claims are in the token
  */
 
-const token = process.env.QUIZ_ITEM_ADMIN_TOKEN
+const token = (process.env.SSO_QUIZ_ITEM_ADMIN_TOKEN ?? process.env.QUIZ_ITEM_ADMIN_TOKEN)
 
 if (!token) {
   console.error('❌ QUIZ_ITEM_ADMIN_TOKEN not set')

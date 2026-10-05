@@ -1,6 +1,6 @@
 # SSO Service
 
-Version: 5.41.1  
+Version: 5.42.0  
 Last updated: 2026-10-05T00:00:00.000Z
 
 This repository provides the SSO service for `https://sso.doneisbetter.com`.
@@ -135,7 +135,7 @@ The complete, accurate list lives in `.env.example` — every variable there is 
 the code, with its real default. The ones that break auth flows when missing:
 
 ```bash
-MONGODB_URI=...
+SSO_MONGODB_URI=...
 
 # Canonical base URL for emailed links, OIDC issuer, CSP.
 # Unset in production it falls back to https://sso.doneisbetter.com;
@@ -149,16 +149,16 @@ SSO_ALLOWED_ORIGINS=https://sso.doneisbetter.com,https://doneisbetter.com
 # the browser drops the cookie, and login silently fails.
 SSO_COOKIE_DOMAIN=.doneisbetter.com
 
-JWT_SECRET=...           # HS256 fallback + public magic links (PUBLIC_MAGIC_SECRET overrides)
-CSRF_SECRET=...          # falls back to SESSION_SECRET
-ADMIN_MAGIC_SECRET=...   # absent = admin magic links silently never send
+SSO_JWT_SECRET=...           # HS256 fallback + public magic links (SSO_PUBLIC_MAGIC_SECRET overrides)
+SSO_CSRF_SECRET=...          # falls back to SSO_SESSION_SECRET
+SSO_ADMIN_MAGIC_SECRET=...   # absent = admin magic links silently never send
 
-# Email transport (lib/email.mjs): EMAIL_PROVIDER (nodemailer|resend),
-# SMTP_HOST/PORT/SECURE/USER/PASS or RESEND_API_KEY, EMAIL_FROM, EMAIL_FROM_NAME.
+# Email transport (lib/email.mjs): SSO_EMAIL_PROVIDER (nodemailer|resend),
+# SSO_SMTP_HOST/PORT/SECURE/USER/PASS or SSO_RESEND_API_KEY, SSO_EMAIL_FROM, SSO_EMAIL_FROM_NAME.
 
-# Social login: GOOGLE_CLIENT_ID/SECRET/REDIRECT_URI, FACEBOOK_APP_ID/SECRET/REDIRECT_URI.
+# Social login: SSO_GOOGLE_CLIENT_ID/SECRET/REDIRECT_URI, SSO_FACEBOOK_APP_ID/SECRET/REDIRECT_URI.
 
-# OAuth2/OIDC signing: JWT_PRIVATE_KEY / JWT_PUBLIC_KEY (inline PEM contents,
+# OAuth2/OIDC signing: SSO_JWT_PRIVATE_KEY / SSO_JWT_PUBLIC_KEY (inline PEM contents,
 # not paths; falls back to keys/private.pem + keys/public.pem on disk).
 ```
 

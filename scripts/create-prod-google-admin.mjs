@@ -8,7 +8,7 @@ import { randomUUID } from 'crypto'
 
 dotenv.config()
 
-const MONGODB_URI = process.env.MONGODB_URI
+const MONGODB_URI = (process.env.SSO_MONGODB_URI ?? process.env.MONGODB_URI)
 const ADMIN_EMAIL = 'moldovancsaba@gmail.com'
 const ADMIN_NAME = 'Csaba Moldovan'
 const ADMIN_ROLE = 'super-admin'

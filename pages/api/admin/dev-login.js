@@ -9,7 +9,7 @@ import { generateMD5StylePassword } from '../../../lib/resourcePasswords.mjs'
 import { createSession } from '../../../lib/sessions.mjs'
 
 function devBypassEnabled() {
-  const flag = (process.env.ADMIN_DEV_BYPASS || '').toLowerCase()
+  const flag = ((process.env.SSO_ADMIN_DEV_BYPASS ?? process.env.ADMIN_DEV_BYPASS) || '').toLowerCase()
   const enabled = flag === '1' || flag === 'true' || flag === 'yes'
   return enabled && process.env.NODE_ENV !== 'production'
 }
@@ -20,7 +20,7 @@ function devBypassEnabled() {
 //      worth surfacing immediately rather than relying on that check silently doing the right
 //      thing forever.
 if (process.env.NODE_ENV === 'production') {
-  const flag = (process.env.ADMIN_DEV_BYPASS || '').toLowerCase()
+  const flag = ((process.env.SSO_ADMIN_DEV_BYPASS ?? process.env.ADMIN_DEV_BYPASS) || '').toLowerCase()
   if (flag === '1' || flag === 'true' || flag === 'yes') {
     console.error(
       'SECURITY WARNING: ADMIN_DEV_BYPASS is set in a production environment. It has no ' +
@@ -48,7 +48,7 @@ export default async function handler(req, res) {
       let user = await findUserByEmail(email)
       if (!user) {
         const name = email.split('@')[0]
-        const role = (process.env.ADMIN_DEV_ROLE || 'admin').trim() || 'admin'
+        const role = ((process.env.SSO_ADMIN_DEV_ROLE ?? process.env.ADMIN_DEV_ROLE) || 'admin').trim() || 'admin'
         const password = generateMD5StylePassword()
         user = await createUser({ email, name, role, password })
       }

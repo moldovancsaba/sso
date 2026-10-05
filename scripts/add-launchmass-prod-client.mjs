@@ -11,9 +11,9 @@ import * as dotenv from 'dotenv';
 
 dotenv.config({ path: '.env.local' });
 
-const uri = process.env.MONGODB_URI;
-const dbName = process.env.MONGODB_DB || 'sso_database';
-const launchmassClientSecret = process.env.LAUNCHMASS_CLIENT_SECRET;
+const uri = (process.env.SSO_MONGODB_URI ?? process.env.MONGODB_URI);
+const dbName = (process.env.SSO_MONGODB_DB ?? process.env.MONGODB_DB) || 'sso_database';
+const launchmassClientSecret = (process.env.SSO_LAUNCHMASS_CLIENT_SECRET ?? process.env.LAUNCHMASS_CLIENT_SECRET);
 
 if (!uri) {
   throw new Error('MONGODB_URI must be set');

@@ -11,8 +11,8 @@ import { getDb } from '../lib/db.mjs'
 import { MongoClient } from 'mongodb'
 
 async function getAdminClientSecret() {
-  const uri = process.env.MONGODB_URI
-  const dbName = process.env.MONGODB_DB || 'sso'
+  const uri = (process.env.SSO_MONGODB_URI ?? process.env.MONGODB_URI)
+  const dbName = (process.env.SSO_MONGODB_DB ?? process.env.MONGODB_DB) || 'sso'
 
   if (!uri) {
     console.error('❌ MONGODB_URI not configured')

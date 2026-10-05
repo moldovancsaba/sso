@@ -35,7 +35,7 @@ describe('public session cookie contract', () => {
       ...originalEnv,
       NODE_ENV: 'production',
       SSO_COOKIE_DOMAIN: '.doneisbetter.com',
-      PUBLIC_SESSION_COOKIE: 'public-session',
+      SSO_PUBLIC_SESSION_COOKIE: 'public-session',
     }
 
     const response = createMockResponse()
@@ -51,7 +51,7 @@ describe('public session cookie contract', () => {
       ...originalEnv,
       NODE_ENV: 'production',
       SSO_COOKIE_DOMAIN: '.doneisbetter.com',
-      PUBLIC_SESSION_COOKIE: 'public-session',
+      SSO_PUBLIC_SESSION_COOKIE: 'public-session',
     }
 
     const response = createMockResponse()

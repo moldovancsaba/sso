@@ -27,41 +27,42 @@ deprecation dates behind it.
 - Run type checks: `npm run type-check`
 - Run tests: `npm test`
 - Run repository guardrails: `npm run guard:repo`
+- Check environment variable names (`SSO_` prefix, documented in `.env.example`): `npm run check:env`
 - Run documentation maintenance checks: `npm run check:docs`
-- Run the full pre-push/pre-merge gate (lint + type-check + test + build + guardrails + docs + GDS manifest/compliance): `npm run verify`
+- Run the full pre-push/pre-merge gate (lint + type-check + test + build + guardrails + env names + docs + GDS manifest/compliance): `npm run verify`
 - Test MongoDB connection: `npm run test-connection`
 - Sync versioned docs after a version bump: `npm run sync:version` — do not run unmodified; it also rewrites historical `v5.x.x` headers in `docs/RELEASE_NOTES.md` (see `CLAUDE.md` Section 4)
 
 ## Verified Operational Commands
 
-- Bootstrap the legacy admin user: `NEW_ADMIN_TOKEN=<32-hex-token> node scripts/bootstrap-admin.mjs`
+- Bootstrap the legacy admin user: `SSO_NEW_ADMIN_TOKEN=<32-hex-token> node scripts/bootstrap-admin.mjs`
 - Bootstrap the internal admin OAuth client: `node scripts/bootstrap-admin-client.mjs`
 - Migrate legacy admin users into the unified permission system: `node scripts/migrate-admins-to-unified-system.mjs`
-- Generate an admin magic link: `NEW_MAGIC_EMAIL=<email> node scripts/generate-magic-link.mjs`
+- Generate an admin magic link: `SSO_NEW_MAGIC_EMAIL=<email> node scripts/generate-magic-link.mjs`
 - Check a user record: `node scripts/check-user.mjs <email>`
 - Grant admin dashboard access: `node scripts/grant-admin-access.mjs <email> [admin|super-admin]`
   Note: `admin` is the canonical runtime role; `super-admin` is accepted only as a legacy compatibility input.
-- Alternative grant-admin invocation: `ADMIN_EMAIL=<email> node scripts/grant-admin-access.mjs`
-- Grant admin dashboard permission through app permissions: `EMAIL=<email> node scripts/grant-admin-permission.mjs`
+- Alternative grant-admin invocation: `SSO_ADMIN_EMAIL=<email> node scripts/grant-admin-access.mjs`
+- Grant admin dashboard permission through app permissions: `SSO_EMAIL=<email> node scripts/grant-admin-permission.mjs`
 - Grant app access for a user: `node scripts/grant-app-access.mjs <userEmail> [clientId] [role]`
 - Verify an OAuth client configuration: `node scripts/verify-oauth-client.mjs <client_id>`
 - Verify a stored OAuth client secret against a plaintext secret: `node scripts/verify-client-secret.mjs <client_id> <plaintext_secret>`
 - Preview machine-to-machine enablement across OAuth clients: `node scripts/enable-m2m-clients.mjs`
-- Apply it: `DRY_RUN=false node scripts/enable-m2m-clients.mjs` (add `M2M_CLIENTS=name1,name2` to narrow it).
-- Strip machine access from a client: `REVOKE_M2M="name-a,name-b" DRY_RUN=false node scripts/enable-m2m-clients.mjs`.
+- Apply it: `SSO_DRY_RUN=false node scripts/enable-m2m-clients.mjs` (add `SSO_M2M_CLIENTS=name1,name2` to narrow it).
+- Strip machine access from a client: `SSO_REVOKE_M2M="name-a,name-b" SSO_DRY_RUN=false node scripts/enable-m2m-clients.mjs`.
 - Register the try-on machine client: `node scripts/register-try-on-client.mjs`. Refuses if the client already exists, and writes the secret to a mode-600 file rather than stdout so it never reaches terminal history or CI logs.
   Revocation wins over the eligibility pass, so a named client is never re-granted in the same run.
   Previews by default, unlike the older scripts here, because it writes production auth
   config. Never grants `client_credentials` to a public client, and refuses to run on a
   checkout where `manage_permissions` is not a registered scope.
 - Register the management staff agent: `node scripts/register-management-staff-agent-client.mjs`.
-  Requires `MONGODB_URI`. Grants `client_credentials` and `management:staff` and nothing
+  Requires `SSO_MONGODB_URI`. Grants `client_credentials` and `management:staff` and nothing
   else, refuses if the client already exists, and refuses to run on a checkout where
   `management:staff` is not a registered scope — `allowed_scopes` is not validated at
   registration time, so without that guard it would create a client that looks correct but
   can never obtain a token. Writes the secret to a mode-600 file (override with
-  `SECRET_OUT`) rather than stdout, so it never reaches terminal history or CI logs.
-- Preview duplicate public-account merges by email: `DRY_RUN=true node scripts/merge-duplicate-accounts.mjs`
+  `SSO_SECRET_OUT`) rather than stdout, so it never reaches terminal history or CI logs.
+- Preview duplicate public-account merges by email: `SSO_DRY_RUN=true node scripts/merge-duplicate-accounts.mjs`
 - Apply duplicate public-account merges by email: `node scripts/merge-duplicate-accounts.mjs`
 - Test email delivery configuration: `node scripts/test-email-config.mjs <email>`
 

@@ -16,8 +16,8 @@ if (!testEmail) {
 }
 
 console.log('🧪 Testing email configuration...')
-console.log(`   Provider: ${process.env.EMAIL_PROVIDER}`)
-console.log(`   From: ${process.env.EMAIL_FROM}`)
+console.log(`   Provider: ${(process.env.SSO_EMAIL_PROVIDER ?? process.env.EMAIL_PROVIDER)}`)
+console.log(`   From: ${(process.env.SSO_EMAIL_FROM ?? process.env.EMAIL_FROM)}`)
 console.log(`   Test recipient: ${testEmail}`)
 console.log('')
 
@@ -34,8 +34,8 @@ This is a test email from your SSO v5.1.0 email system.
 If you received this email, your email configuration is working correctly.
 
 Configuration Details:
-- Provider: ${process.env.EMAIL_PROVIDER}
-- From: ${process.env.EMAIL_FROM}
+- Provider: ${(process.env.SSO_EMAIL_PROVIDER ?? process.env.EMAIL_PROVIDER)}
+- From: ${(process.env.SSO_EMAIL_FROM ?? process.env.EMAIL_FROM)}
 - Timestamp: ${new Date().toISOString()}
 
 This email was sent from a test script: scripts/test-email-config.mjs

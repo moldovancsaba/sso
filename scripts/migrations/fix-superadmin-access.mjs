@@ -11,8 +11,8 @@ import * as dotenv from 'dotenv';
 
 dotenv.config({ path: '.env.local' });
 
-const MONGODB_URI = process.env.MONGODB_URI;
-const MONGODB_DB = process.env.MONGODB_DB || 'sso_database';
+const MONGODB_URI = (process.env.SSO_MONGODB_URI ?? process.env.MONGODB_URI);
+const MONGODB_DB = (process.env.SSO_MONGODB_DB ?? process.env.MONGODB_DB) || 'sso_database';
 const LAUNCHMASS_CLIENT_ID = '04dc2cc1-9fd3-4ffa-9813-450dca97af92';
 
 if (!MONGODB_URI) {

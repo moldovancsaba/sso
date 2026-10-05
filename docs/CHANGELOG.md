@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [5.42.0] - 2026-10-05
+
+### Changed
+
+- **The service's environment variables now start with `SSO_`** (`NEXT_PUBLIC_SSO_` for browser-visible ones), for example `MONGODB_URI` is now `SSO_MONGODB_URI` and `JWT_SECRET` is `SSO_JWT_SECRET`. 70 names changed; platform names (`NODE_ENV`, `VERCEL_*`, `TURBO_*`) and names that already carried the prefix did not. The code reads the new name first and falls back to the old one, so an existing environment keeps working unchanged and when both are set the `SSO_` name wins. The fallback will be removed in a later release. Maintenance scripts use the same names (`SSO_DRY_RUN`, `SSO_SECRET_OUT`, ...). `.env.example` lists the new names and now documents the maintenance-script variables. (#124)
+
+### Added
+
+- **`npm run check:env`**, part of `npm run verify`: fails when application code reads a service variable without the prefix (outside the temporary fallback form), or reads an `SSO_` variable that `.env.example` does not document. It checks names only and never reads an env file.
+
 ## [5.41.1] - 2026-10-05
 
 This release gives a version to the dependency updates and the licence change that reached `main` after 5.41.0 without one (#95, #113, #114, #117, #120, #122). No application code changed.

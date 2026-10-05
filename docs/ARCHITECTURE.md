@@ -1,6 +1,6 @@
 # Architecture — SSO
 
-Version: 5.41.1  
+Version: 5.42.0  
 Last updated: 2026-10-05T00:00:00.000Z
 
 ## Stack
@@ -26,7 +26,7 @@ Last updated: 2026-10-05T00:00:00.000Z
 - Legacy session storage: `adminSessions`
 - Current admin UI authorization uses a public session plus an `sso-admin-dashboard` app permission; the legacy cookie above is still accepted but is no longer issued by any login path. See **Session Models** below before writing an auth gate
 - Session timeout: 4 hours with server-side validation and sliding extension on activity
-- High-risk unified-admin mutations require recent authentication; default freshness window is 15 minutes unless `ADMIN_FRESH_AUTH_WINDOW_MS` overrides it
+- High-risk unified-admin mutations require recent authentication; default freshness window is 15 minutes unless `SSO_ADMIN_FRESH_AUTH_WINDOW_MS` overrides it
 - The admin UI handles `REAUTH_REQUIRED` by returning the operator to `/admin`, preserving the current admin route, and resuming at that route after OAuth login completes
 
 ### Public users

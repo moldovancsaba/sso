@@ -8,8 +8,8 @@ import dotenv from 'dotenv'
 
 dotenv.config({ path: '.env.local' })
 
-const ADMIN_TOKEN = process.env.QUIZ_ITEM_ADMIN_TOKEN
-const AMANOBA_BASE_URL = process.env.AMANOBA_BASE_URL || 'https://amanoba.com'
+const ADMIN_TOKEN = (process.env.SSO_QUIZ_ITEM_ADMIN_TOKEN ?? process.env.QUIZ_ITEM_ADMIN_TOKEN)
+const AMANOBA_BASE_URL = (process.env.SSO_AMANOBA_BASE_URL ?? process.env.AMANOBA_BASE_URL) || 'https://amanoba.com'
 
 async function main() {
   console.log('🧪 Testing Amanoba admin API token...\n')
