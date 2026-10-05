@@ -12,8 +12,8 @@ import { MongoClient } from 'mongodb'
  * WHAT: Get MongoDB connection from environment
  * WHY: Reuse existing DB connection pattern; support both local and production
  */
-const MONGODB_URI = process.env.MONGODB_URI
-const MONGODB_DB = process.env.MONGODB_DB || 'sso'
+const MONGODB_URI = (process.env.SSO_MONGODB_URI ?? process.env.MONGODB_URI)
+const MONGODB_DB = (process.env.SSO_MONGODB_DB ?? process.env.MONGODB_DB) || 'sso'
 
 if (!MONGODB_URI) {
   console.error('❌ MONGODB_URI is not set in environment variables')

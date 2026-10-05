@@ -28,7 +28,7 @@ describe('oauth callback state contract', () => {
   beforeEach(() => {
     process.env = {
       ...originalEnv,
-      SESSION_SECRET: 'test-session-secret',
+      SSO_SESSION_SECRET: 'test-session-secret',
     }
   })
 

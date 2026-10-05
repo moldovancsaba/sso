@@ -9,8 +9,8 @@
 import { MongoClient } from 'mongodb';
 import readline from 'readline';
 
-const MONGODB_URI = process.env.MONGODB_URI;
-const MONGODB_DB = process.env.MONGODB_DB || 'sso';
+const MONGODB_URI = (process.env.SSO_MONGODB_URI ?? process.env.MONGODB_URI);
+const MONGODB_DB = (process.env.SSO_MONGODB_DB ?? process.env.MONGODB_DB) || 'sso';
 
 if (!MONGODB_URI) {
   console.error('❌ MONGODB_URI environment variable is required');

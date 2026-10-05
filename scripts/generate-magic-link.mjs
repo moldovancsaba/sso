@@ -12,9 +12,9 @@ import { getBaseUrl } from '../lib/baseUrl.mjs'
 dotenv.config({ path: '.env.local' })
 
 async function main() {
-  const email = (process.env.NEW_MAGIC_EMAIL || '').trim().toLowerCase()
+  const email = ((process.env.SSO_NEW_MAGIC_EMAIL ?? process.env.NEW_MAGIC_EMAIL) || '').trim().toLowerCase()
   const baseUrl = getBaseUrl()
-  const ttl = Number(process.env.MAGIC_TTL_SECONDS || 900)
+  const ttl = Number((process.env.SSO_MAGIC_TTL_SECONDS ?? process.env.MAGIC_TTL_SECONDS) || 900)
 
   if (!email || !email.includes('@')) {
     console.error('ERR: Set NEW_MAGIC_EMAIL to the admin email (e.g., nimdasuper@doneisbetter.com)')

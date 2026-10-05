@@ -11,8 +11,8 @@ import { MongoClient } from 'mongodb';
 dotenv.config({ path: '.env.local' });
 
 async function testConnection() {
-  const uri = process.env.MONGODB_URI;
-  const dbName = process.env.MONGODB_DB || 'sso';
+  const uri = (process.env.SSO_MONGODB_URI ?? process.env.MONGODB_URI);
+  const dbName = (process.env.SSO_MONGODB_DB ?? process.env.MONGODB_DB) || 'sso';
 
   if (!uri) {
     console.error('ERR: MONGODB_URI is not set (env or .env.local)');

@@ -112,8 +112,8 @@ describe('generateAccessToken audience claim', () => {
     publicKeyEncoding: { type: 'spki', format: 'pem' },
   })
 
-  process.env.JWT_PRIVATE_KEY = privateKey
-  process.env.JWT_PUBLIC_KEY = publicKey
+  process.env.SSO_JWT_PRIVATE_KEY = privateKey
+  process.env.SSO_JWT_PUBLIC_KEY = publicKey
 
   test('stamps the resource as aud while client_id stays the caller', async () => {
     const { generateAccessToken } = await import('../lib/oauth/tokens.mjs')

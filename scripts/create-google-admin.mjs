@@ -19,8 +19,8 @@ async function createGoogleAdmin() {
   try {
     // IMPORTANT: Production uses database name 'sso', not 'sso_database'
     // Override MONGODB_DB environment variable
-    const originalDbName = process.env.MONGODB_DB
-    process.env.MONGODB_DB = 'sso'
+    const originalDbName = (process.env.SSO_MONGODB_DB ?? process.env.MONGODB_DB)
+    process.env.SSO_MONGODB_DB = 'sso'
     
     const db = await getDb()
     const usersCollection = db.collection('users')

@@ -53,7 +53,7 @@ export default async function handler(req, res) {
         })
       )
       
-      const sessionCookieName = process.env.PUBLIC_SESSION_COOKIE || 'public-session'
+      const sessionCookieName = (process.env.SSO_PUBLIC_SESSION_COOKIE ?? process.env.PUBLIC_SESSION_COOKIE) || 'public-session'
       const token = cookies[sessionCookieName]
       
       if (token) {

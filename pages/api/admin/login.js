@@ -196,7 +196,7 @@ export default async function handler(req, res) {
   if (req.method === 'DELETE') {
     try {
       // Extract session token from cookie
-      const cookieName = process.env.ADMIN_SESSION_COOKIE || 'admin-session'
+      const cookieName = (process.env.SSO_ADMIN_SESSION_COOKIE ?? process.env.ADMIN_SESSION_COOKIE) || 'admin-session'
       const adminSession = getCookie(req, cookieName)
       
       if (adminSession) {

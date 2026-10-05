@@ -71,7 +71,7 @@ export default async function handler(req, res) {
       const settings = await getSettings()
       
       // Check environment variable override (DISABLE_LOGIN_PIN=true disables PIN)
-      const envDisabled = process.env.DISABLE_LOGIN_PIN === 'true'
+      const envDisabled = (process.env.SSO_DISABLE_LOGIN_PIN ?? process.env.DISABLE_LOGIN_PIN) === 'true'
       const dbEnabled = settings[SETTING_KEY] !== false
       
       return res.status(200).json({
@@ -106,7 +106,7 @@ export default async function handler(req, res) {
       
       // WHAT: Check for environment variable override
       // WHY: Environment variables take precedence over database settings
-      if (process.env.DISABLE_LOGIN_PIN === 'true' && enabled) {
+      if ((process.env.SSO_DISABLE_LOGIN_PIN ?? process.env.DISABLE_LOGIN_PIN) === 'true' && enabled) {
         return res.status(409).json({
           error: {
             code: 'ENV_OVERRIDE',

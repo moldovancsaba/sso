@@ -75,7 +75,7 @@ export default async function handler(req, res) {
 
     const redirectUri = getSocialCallbackRedirectUri(
       req,
-      process.env.FACEBOOK_REDIRECT_URI,
+      (process.env.SSO_FACEBOOK_REDIRECT_URI ?? process.env.FACEBOOK_REDIRECT_URI),
       '/api/auth/facebook/callback'
     )
 
