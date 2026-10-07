@@ -1,6 +1,6 @@
 # Universal SSO Service
 
-Version: 5.43.1  
+Version: 5.43.2  
 Status: Active  
 Last updated: 2026-10-07T00:00:00.000Z
 
