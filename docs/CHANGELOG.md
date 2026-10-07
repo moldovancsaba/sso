@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [5.43.0] - 2026-10-07
+
+### Changed
+
+- **GDS design-system packages updated from 6.0.0 to 6.8.0** (`gds-core`, `gds-theme`, `gds-admin` at runtime; `gds-compliance` and `gds-eslint-config` for tooling). The vendored tarballs are the `gds-v6.8.0` release assets, and each one's integrity hash matches the version published on GitHub Packages. Peer dependency ranges (Mantine `^7.9 || ^8.3 || ^9`, React `^18.2 || ^19`) are unchanged between the two releases, `gdsVersion` in `gds-adoption.json` follows, and `docs/DESIGN_SYSTEM.md` states the new version.
+- **The five `@tiptap/*` overrides added in 5.41.1 are removed.** They pinned `3.31.3` while GDS 6.0.0 declared an older range; GDS 6.8.0 declares `^3.31.3`, so tiptap now resolves as one set at `3.31.4`. sso imports none of it.
+- The refreshed lockfile also moves `@types/react` and `@types/react-dom` to `19.3.0`, `fast-equals` to `5.4.3` and `use-sync-external-store` to `1.7.0`, and installs `leaflet` `1.9.4` (a GDS core dependency).
+
 ## [5.42.0] - 2026-10-05
 
 ### Changed

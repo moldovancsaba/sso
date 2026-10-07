@@ -11,7 +11,7 @@ Design / UI / UX SSOT (authoritative):
 - [Adoption & Migration Playbook](https://github.com/sovereignsquad/general-design-system/blob/main/ADOPTION_AND_MIGRATION_PLAYBOOK.md)
 - [Compliance Toolkit](https://github.com/sovereignsquad/general-design-system/blob/main/COMPLIANCE_TOOLKIT.md)
 
-Aligned SSOT version/date: `6.0.0 / 2026-08-12`
+Aligned SSOT version/date: `6.8.0 / 2026-10-07`
 
 This file records only local adapter state, migration blockers, validation commands, and approved exceptions. The shared GDS repo is authoritative for design rules, runtime contracts, and package usage.
 
@@ -39,14 +39,14 @@ This file records only local adapter state, migration blockers, validation comma
 - Current app root wiring: [pages/_app.js](../pages/_app.js)
 - Current manifest: [gds-adoption.json](../gds-adoption.json)
 - Installed runtime packages:
-  - `@sovereignsquad/gds-theme@6.0.0`
-  - `@sovereignsquad/gds-core@6.0.0`
-  - `@sovereignsquad/gds-admin@6.0.0`
+  - `@sovereignsquad/gds-theme@6.8.0`
+  - `@sovereignsquad/gds-core@6.8.0`
+  - `@sovereignsquad/gds-admin@6.8.0`
 
 ## Install Source
 
 Vendored release tarballs, since 5.41.0 (2026-09-28). All five consumed
-`@sovereignsquad/gds-*@6.0.0` packages are the upstream `gds-v6.0.0` release assets,
+`@sovereignsquad/gds-*@6.8.0` packages are the upstream `gds-v6.8.0` release assets,
 checked in under `vendor/gds/` and referenced through `file:` dependencies, with
 `overrides` pinning the transitive `gds-core`/`gds-theme`/`gds-admin` references to the
 same tarballs. `.npmrc` has no GitHub Packages block and CI needs no token. Each tarball
