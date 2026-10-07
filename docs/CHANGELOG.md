@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [5.43.1] - 2026-10-07
+
+### Security
+
+- **Two production dependency advisories cleared, lockfile only.** `proxy-addr` 2.0.7 to 2.0.8 (GHSA-jqcg-44mw-7w3h, IP spoofing through an IPv4-mapped IPv6 trust subnet; it reaches sso through `express-rate-limit` and `express`, which the API rate limiter in `lib/apiHelpers.mjs` uses) and `source-map-js` 1.2.1 to 1.2.2 (GHSA-68fv-2mgg-jv7q, event-loop denial of service; it reaches sso through `next` and `postcss`). `package.json` is unchanged and `npm audit --omit=dev` now reports 0 findings. The remaining `npm audit` findings are the jest and eslint dev toolchain.
+
 ## [5.43.0] - 2026-10-07
 
 ### Changed
