@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "gdsVersion": "6.0.0",
+  "gdsVersion": "6.8.0",
   "productArchetype": "hybrid",
   "supportedEntryPoints": [
     "@sovereignsquad/gds-theme/client",

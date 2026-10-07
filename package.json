@@ -1,6 +1,6 @@
 {
   "name": "@moldovancsaba/universal-sso",
-  "version": "5.42.0",
+  "version": "5.43.0",
   "description": "A universal Single Sign-On (SSO) service that can be integrated into any project",
   "type": "module",
   "scripts": {
@@ -42,9 +42,9 @@
     "@mantine/hooks": "9.2.1",
     "@mantine/modals": "9.2.1",
     "@mantine/notifications": "9.2.1",
-    "@sovereignsquad/gds-admin": "file:vendor/gds/sovereignsquad-gds-admin-6.0.0.tgz",
-    "@sovereignsquad/gds-core": "file:vendor/gds/sovereignsquad-gds-core-6.0.0.tgz",
-    "@sovereignsquad/gds-theme": "file:vendor/gds/sovereignsquad-gds-theme-6.0.0.tgz",
+    "@sovereignsquad/gds-admin": "file:vendor/gds/sovereignsquad-gds-admin-6.8.0.tgz",
+    "@sovereignsquad/gds-core": "file:vendor/gds/sovereignsquad-gds-core-6.8.0.tgz",
+    "@sovereignsquad/gds-theme": "file:vendor/gds/sovereignsquad-gds-theme-6.8.0.tgz",
     "@tabler/icons-react": "3.44.0",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
@@ -62,8 +62,8 @@
     "zod": "4.2.1"
   },
   "devDependencies": {
-    "@sovereignsquad/gds-compliance": "file:vendor/gds/sovereignsquad-gds-compliance-6.0.0.tgz",
-    "@sovereignsquad/gds-eslint-config": "file:vendor/gds/sovereignsquad-gds-eslint-config-6.0.0.tgz",
+    "@sovereignsquad/gds-compliance": "file:vendor/gds/sovereignsquad-gds-compliance-6.8.0.tgz",
+    "@sovereignsquad/gds-eslint-config": "file:vendor/gds/sovereignsquad-gds-eslint-config-6.8.0.tgz",
     "@types/bcryptjs": "^2.4.6",
     "@types/jsonwebtoken": "^9.0.0",
     "@types/node": "24.13.3",
@@ -79,14 +79,9 @@
   },
   "overrides": {
     "postcss": "8.5.26",
-    "@sovereignsquad/gds-core": "file:vendor/gds/sovereignsquad-gds-core-6.0.0.tgz",
-    "@sovereignsquad/gds-theme": "file:vendor/gds/sovereignsquad-gds-theme-6.0.0.tgz",
-    "@sovereignsquad/gds-admin": "file:vendor/gds/sovereignsquad-gds-admin-6.0.0.tgz",
-    "@tiptap/core": "3.31.3",
-    "@tiptap/pm": "3.31.3",
-    "@tiptap/react": "3.31.3",
-    "@tiptap/extension-bubble-menu": "3.31.3",
-    "@tiptap/extension-floating-menu": "3.31.3"
+    "@sovereignsquad/gds-core": "file:vendor/gds/sovereignsquad-gds-core-6.8.0.tgz",
+    "@sovereignsquad/gds-theme": "file:vendor/gds/sovereignsquad-gds-theme-6.8.0.tgz",
+    "@sovereignsquad/gds-admin": "file:vendor/gds/sovereignsquad-gds-admin-6.8.0.tgz"
   },
   "repository": {
     "type": "git",

@@ -1,4 +1,12 @@
-# Release Notes [![Version Badge](https://img.shields.io/badge/version-5.42.0-blue)](RELEASE_NOTES.md)
+# Release Notes [![Version Badge](https://img.shields.io/badge/version-5.43.0-blue)](RELEASE_NOTES.md)
+
+## [v5.43.0] — 2026-10-07T00:00:00.000Z
+
+The design-system packages move from 6.0.0 to 6.8.0. No application code changed.
+
+### 🎨 Design System 6.8.0
+
+`@sovereignsquad/gds-core`, `gds-theme`, `gds-admin`, `gds-compliance` and `gds-eslint-config` are updated from 6.0.0 to 6.8.0. They are the upstream release assets, checked against the published packages. Peer dependency ranges are unchanged. The five `@tiptap/*` overrides from 5.41.1 are no longer needed (GDS 6.8.0 declares a compatible range) and are removed, so tiptap resolves as one consistent set.
 
 ## [v5.42.0] — 2026-10-05T00:00:00.000Z
 
