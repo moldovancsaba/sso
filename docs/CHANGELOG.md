@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [5.43.2] - 2026-10-07
+
+### Fixed
+
+- **Home page no longer logs React hydration error #418 on load.** The four capability cards on `/` passed their `meta` line as a `<Text>` element, but GDS `EditorialCard` already wraps `meta` in a `<Text>` (a `<p>`), so each card rendered a `<p>` inside a `<p>`. `meta` is now a plain string and the card supplies the styling, which keeps the same size and dimmed colour. The server-rendered HTML of `/` goes from four nested paragraphs to none. The error was already present before the GDS 6.8.0 update.
+
 ## [5.43.1] - 2026-10-07
 
 ### Security

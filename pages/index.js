@@ -46,25 +46,25 @@ const capabilityCards = [
   {
     badge: <Badge size="sm" variant="light">Hosted authentication</Badge>,
     description: 'Centralized sign-in, session continuity, account recovery, and public-user access from one governed identity surface.',
-    meta: <Text c="dimmed" size="sm">Password, magic link, social login, PIN verification, and shared session validation.</Text>,
+    meta: 'Password, magic link, social login, PIN verification, and shared session validation.',
     title: 'User identity and sessions',
   },
   {
     badge: <Badge size="sm" variant="light">Application access</Badge>,
     description: 'OAuth and authorization flows for products that need centralized login, consent, token exchange, and permission-aware session handling.',
-    meta: <Text c="dimmed" size="sm">OAuth / OIDC flows, public session validation, and per-application access controls.</Text>,
+    meta: 'OAuth / OIDC flows, public session validation, and per-application access controls.',
     title: 'OAuth and client integrations',
   },
   {
     badge: <Badge size="sm" variant="light">Operational governance</Badge>,
     description: 'Administrative oversight for approvals, activity review, access recovery, and controlled privileged actions.',
-    meta: <Text c="dimmed" size="sm">Audited operator actions, approval workflows, and unified administrative controls.</Text>,
+    meta: 'Audited operator actions, approval workflows, and unified administrative controls.',
     title: 'Admin and approval controls',
   },
   {
     badge: <Badge leftSection={<IconBuilding size={12} />} size="sm" variant="light">Enterprise readiness</Badge>,
     description: 'The service is structured to support shared identity boundaries, organization-level controls, and future federation-oriented operational models.',
-    meta: <Text c="dimmed" size="sm">Organization data models, audited operations, and controlled extension points for enterprise use.</Text>,
+    meta: 'Organization data models, audited operations, and controlled extension points for enterprise use.',
     title: 'Scalable identity foundation',
   },
 ]

@@ -1,6 +1,6 @@
 {
   "name": "@moldovancsaba/universal-sso",
-  "version": "5.43.1",
+  "version": "5.43.2",
   "description": "A universal Single Sign-On (SSO) service that can be integrated into any project",
   "type": "module",
   "scripts": {

@@ -1,4 +1,12 @@
-# Release Notes [![Version Badge](https://img.shields.io/badge/version-5.43.1-blue)](RELEASE_NOTES.md)
+# Release Notes [![Version Badge](https://img.shields.io/badge/version-5.43.2-blue)](RELEASE_NOTES.md)
+
+## [v5.43.2] — 2026-10-07T00:00:00.000Z
+
+The home page no longer logs a React hydration error when it loads.
+
+### 🐛 Hydration Fix
+
+The four capability cards on the home page nested one paragraph inside another, which React reports as hydration error #418 (the page still worked). Each card's secondary line is now a plain string and the design-system card styles it. Appearance is unchanged.
 
 ## [v5.43.1] — 2026-10-07T00:00:00.000Z
 
