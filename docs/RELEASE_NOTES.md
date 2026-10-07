@@ -1,4 +1,12 @@
-# Release Notes [![Version Badge](https://img.shields.io/badge/version-5.43.0-blue)](RELEASE_NOTES.md)
+# Release Notes [![Version Badge](https://img.shields.io/badge/version-5.43.1-blue)](RELEASE_NOTES.md)
+
+## [v5.43.1] — 2026-10-07T00:00:00.000Z
+
+Two security advisories in production dependencies are cleared. No application code changed.
+
+### 🛡️ Dependency Advisories
+
+`proxy-addr` (IP spoofing through an IPv4-mapped IPv6 trust subnet, reached through the API rate limiter's `express-rate-limit`) and `source-map-js` (event-loop denial of service, reached through `next`) are updated to their patched versions. `npm audit --omit=dev` reports 0 findings.
 
 ## [v5.43.0] — 2026-10-07T00:00:00.000Z
 
