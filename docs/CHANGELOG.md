@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Removed
+
+- **Three unused dependencies: `helmet`, `cors` and `@mantine/form`.** Nothing imports them (`lib/cors.mjs` is hand-written and the `cors` text in `pages/docs/security/cors.js` is a code sample for integrators, not an import; the security headers are set by `middleware.js`). `npm ls` shows no package that needs any of them; 5 packages leave the lockfile (`@mantine/form`, its `klona` and `@standard-schema/spec`, `cors`, `helmet`). Kept although nothing imports them directly: `@mantine/dates`, `@mantine/modals` and `@mantine/hooks` (peers of the GDS packages and of `@mantine/core`), `eslint-config-next` (loaded by name through `compat.extends('next/core-web-vitals')`).
+
+### Security
+
+- **`sprintf-js` is out of the dependency tree (Dependabot alert 62, GHSA-hp3w-g68c-fv3c, no patched release).** It came in through `jest` > `@jest/transform` > `babel-plugin-istanbul` > `@istanbuljs/load-nyc-config` > `js-yaml` 3 > `argparse` 1. A new override points `@istanbuljs/load-nyc-config` at the `js-yaml` 4 the rest of the tree already uses (it only calls `load()`, which exists in both); `js-yaml` 3, `argparse` 1, `esprima` and `sprintf-js` leave the lockfile. `npm audit` goes from 37 findings (6 moderate, 31 high) to 32 (1 moderate, 31 high); `npm audit --omit=dev` is unchanged at one moderate (`next` 15.5.26, see the separate Next patch change). The 31 high ones are all development tools (`braces` through `jest` 29 and `eslint-config-next`) and need the `jest` 30 move or have no patched release.
+
 ### Changed
 
 - **Jest 29 to 30.5.2 (development tool only).** The 225 tests pass unchanged under `node --experimental-vm-modules`, with the same `--runInBand` CI invocation. Jest 30 no longer pulls `glob` 7 and `inflight` (both flagged deprecated by npm) nor `micromatch`/`braces` through `jest-haste-map`, which takes 26 of the 31 high development-only `npm audit` findings away. A `test-exclude` override (`^8.0.0`) moves `babel-plugin-istanbul`'s `test-exclude` 7, which needs the deprecated `glob` 10.5.0, to 8 (`glob` 13). `npm ci` deprecation warnings go from three (`eslint@9.39.5`, `glob@7.2.3`, `inflight@1.0.6`) to one (`eslint@9.39.5`; ESLint 9 is itself no longer supported, ESLint 10 is blocked until `eslint-plugin-react`, `eslint-plugin-jsx-a11y` and `eslint-plugin-import` allow it).
