@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Jest 29 to 30.5.2 (development tool only).** The 225 tests pass unchanged under `node --experimental-vm-modules`, with the same `--runInBand` CI invocation. Jest 30 no longer pulls `glob` 7 and `inflight` (both flagged deprecated by npm) nor `micromatch`/`braces` through `jest-haste-map`, which takes 26 of the 31 high development-only `npm audit` findings away. A `test-exclude` override (`^8.0.0`) moves `babel-plugin-istanbul`'s `test-exclude` 7, which needs the deprecated `glob` 10.5.0, to 8 (`glob` 13). `npm ci` deprecation warnings go from three (`eslint@9.39.5`, `glob@7.2.3`, `inflight@1.0.6`) to one (`eslint@9.39.5`; ESLint 9 is itself no longer supported, ESLint 10 is blocked until `eslint-plugin-react`, `eslint-plugin-jsx-a11y` and `eslint-plugin-import` allow it).
+
 ## [5.43.2] - 2026-10-07
 
 ### Fixed
