@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
-- **Three unused dependencies: `helmet`, `cors` and `@mantine/form`.** Nothing imports them (`lib/cors.mjs` is hand-written and the `cors` text in `pages/docs/security/cors.js` is a code sample for integrators, not an import; security headers come from `next.config.js`). `npm ls` shows no package that needs any of them; 5 packages leave the lockfile (`@mantine/form`, its `klona` and `@standard-schema/spec`, `cors`, `helmet`). Kept although nothing imports them directly: `@mantine/dates`, `@mantine/modals` and `@mantine/hooks` (peers of the GDS packages and of `@mantine/core`), `eslint-config-next` (loaded by name through `compat.extends('next/core-web-vitals')`).
+- **Three unused dependencies: `helmet`, `cors` and `@mantine/form`.** Nothing imports them (`lib/cors.mjs` is hand-written and the `cors` text in `pages/docs/security/cors.js` is a code sample for integrators, not an import; the security headers are set by `middleware.js`). `npm ls` shows no package that needs any of them; 5 packages leave the lockfile (`@mantine/form`, its `klona` and `@standard-schema/spec`, `cors`, `helmet`). Kept although nothing imports them directly: `@mantine/dates`, `@mantine/modals` and `@mantine/hooks` (peers of the GDS packages and of `@mantine/core`), `eslint-config-next` (loaded by name through `compat.extends('next/core-web-vitals')`).
 
 ### Security
 
