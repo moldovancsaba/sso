@@ -17,7 +17,7 @@ import logger from '../lib/logger.mjs'
 
 // WHAT: Check if running in dry-run mode (preview only, no changes)
 // WHY: Allow admin to review changes before applying them
-const DRY_RUN = process.env.DRY_RUN === 'true'
+const DRY_RUN = (process.env.SSO_DRY_RUN ?? process.env.DRY_RUN) === 'true'
 
 /**
  * WHAT: Find all accounts that have duplicate emails

@@ -9,8 +9,54 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Removed
+
+- **Three unused dependencies: `helmet`, `cors` and `@mantine/form`.** Nothing imports them (`lib/cors.mjs` is hand-written and the `cors` text in `pages/docs/security/cors.js` is a code sample for integrators, not an import; the security headers are set by `middleware.js`). `npm ls` shows no package that needs any of them; 5 packages leave the lockfile (`@mantine/form`, its `klona` and `@standard-schema/spec`, `cors`, `helmet`). Kept although nothing imports them directly: `@mantine/dates`, `@mantine/modals` and `@mantine/hooks` (peers of the GDS packages and of `@mantine/core`), `eslint-config-next` (loaded by name through `compat.extends('next/core-web-vitals')`).
+
+### Security
+
+- **`sprintf-js` is out of the dependency tree (Dependabot alert 62, GHSA-hp3w-g68c-fv3c, no patched release).** It came in through `jest` > `@jest/transform` > `babel-plugin-istanbul` > `@istanbuljs/load-nyc-config` > `js-yaml` 3 > `argparse` 1. A new override points `@istanbuljs/load-nyc-config` at the `js-yaml` 4 the rest of the tree already uses (it only calls `load()`, which exists in both); `js-yaml` 3, `argparse` 1, `esprima` and `sprintf-js` leave the lockfile. `npm audit` goes from 37 findings (6 moderate, 31 high) to 32 (1 moderate, 31 high); `npm audit --omit=dev` is unchanged at one moderate (`next` 15.5.26, see the separate Next patch change). The 31 high ones are all development tools (`braces` through `jest` 29 and `eslint-config-next`) and need the `jest` 30 move or have no patched release.
+
+## [5.43.2] - 2026-10-07
+
+### Fixed
+
+- **Home page no longer logs React hydration error #418 on load.** The four capability cards on `/` passed their `meta` line as a `<Text>` element, but GDS `EditorialCard` already wraps `meta` in a `<Text>` (a `<p>`), so each card rendered a `<p>` inside a `<p>`. `meta` is now a plain string and the card supplies the styling, which keeps the same size and dimmed colour. The server-rendered HTML of `/` goes from four nested paragraphs to none. The error was already present before the GDS 6.8.0 update.
+
+## [5.43.1] - 2026-10-07
+
+### Security
+
+- **Two production dependency advisories cleared, lockfile only.** `proxy-addr` 2.0.7 to 2.0.8 (GHSA-jqcg-44mw-7w3h, IP spoofing through an IPv4-mapped IPv6 trust subnet; it reaches sso through `express-rate-limit` and `express`, which the API rate limiter in `lib/apiHelpers.mjs` uses) and `source-map-js` 1.2.1 to 1.2.2 (GHSA-68fv-2mgg-jv7q, event-loop denial of service; it reaches sso through `next` and `postcss`). `package.json` is unchanged and `npm audit --omit=dev` now reports 0 findings. The remaining `npm audit` findings are the jest and eslint dev toolchain.
+
+## [5.43.0] - 2026-10-07
+
+### Changed
+
+- **GDS design-system packages updated from 6.0.0 to 6.8.0** (`gds-core`, `gds-theme`, `gds-admin` at runtime; `gds-compliance` and `gds-eslint-config` for tooling). The vendored tarballs are the `gds-v6.8.0` release assets, and each one's integrity hash matches the version published on GitHub Packages. Peer dependency ranges (Mantine `^7.9 || ^8.3 || ^9`, React `^18.2 || ^19`) are unchanged between the two releases, `gdsVersion` in `gds-adoption.json` follows, and `docs/DESIGN_SYSTEM.md` states the new version.
+- **The five `@tiptap/*` overrides added in 5.41.1 are removed.** They pinned `3.31.3` while GDS 6.0.0 declared an older range; GDS 6.8.0 declares `^3.31.3`, so tiptap now resolves as one set at `3.31.4`. sso imports none of it.
+- The refreshed lockfile also moves `@types/react` and `@types/react-dom` to `19.3.0`, `fast-equals` to `5.4.3` and `use-sync-external-store` to `1.7.0`, and installs `leaflet` `1.9.4` (a GDS core dependency).
+
+## [5.42.0] - 2026-10-05
+
+### Changed
+
+- **The service's environment variables now start with `SSO_`** (`NEXT_PUBLIC_SSO_` for browser-visible ones), for example `MONGODB_URI` is now `SSO_MONGODB_URI` and `JWT_SECRET` is `SSO_JWT_SECRET`. 70 names changed; platform names (`NODE_ENV`, `VERCEL_*`, `TURBO_*`) and names that already carried the prefix did not. The code reads the new name first and falls back to the old one, so an existing environment keeps working unchanged and when both are set the `SSO_` name wins. The fallback will be removed in a later release. Maintenance scripts use the same names (`SSO_DRY_RUN`, `SSO_SECRET_OUT`, ...). `.env.example` lists the new names and now documents the maintenance-script variables. (#124)
+
+### Added
+
+- **`npm run check:env`**, part of `npm run verify`: fails when application code reads a service variable without the prefix (outside the temporary fallback form), or reads an `SSO_` variable that `.env.example` does not document. It checks names only and never reads an env file.
+
+## [5.41.1] - 2026-10-05
+
+This release gives a version to the dependency updates and the licence change that reached `main` after 5.41.0 without one (#95, #113, #114, #117, #120, #122). No application code changed.
+
 ### Security
 - **Dependency updates after the 5.41.0 audit.** `next` 15.5.26 (two critical advisories), `nodemailer` 10.0.9 (mail transport; checked against the pooled SMTP usage in `lib/email.mjs` with a local fake server, identical to 9.0.5), `qs` 6.16.0, `js-yaml` 3.15.2, and, in this change, `sharp` 0.35.5 (the `next` bump only widened its allowed range, so the lockfile had stayed on 0.34.5 with two open high alerts), `@tiptap/*` pinned to 3.31.3 through `overrides` (it arrives only as a dependency of the vendored `@sovereignsquad/gds-core`; sso imports none of it), and `brace-expansion` 1.1.21 and 5.0.12 (dev-only). `npm audit --omit=dev` reports 0 vulnerabilities. The remaining `npm audit` highs are the jest and eslint dev toolchain.
+
+### Added
+
+- **MIT `LICENSE`** (Copyright (c) 2026 moldovancsaba) and a License section in `README.md` (#122). `package.json` already declared `MIT`.
 
 ## [5.41.0] - 2026-09-28
 

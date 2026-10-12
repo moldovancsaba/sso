@@ -38,10 +38,10 @@ config()
 
 const CLIENT_NAME = 'management-staff-agent'
 const SCOPES = ['management:staff']
-const SECRET_OUT = process.env.SECRET_OUT || '.management-staff-agent-client-secret.local'
+const SECRET_OUT = (process.env.SSO_SECRET_OUT ?? process.env.SECRET_OUT) || '.management-staff-agent-client-secret.local'
 
 async function main() {
-  if (!process.env.MONGODB_URI) {
+  if (!(process.env.SSO_MONGODB_URI ?? process.env.MONGODB_URI)) {
     console.error('MONGODB_URI is not set.')
     process.exit(1)
   }

@@ -1,4 +1,52 @@
-# Release Notes [![Version Badge](https://img.shields.io/badge/version-5.41.0-blue)](RELEASE_NOTES.md)
+# Release Notes [![Version Badge](https://img.shields.io/badge/version-5.43.2-blue)](RELEASE_NOTES.md)
+
+## [v5.43.2] — 2026-10-07T00:00:00.000Z
+
+The home page no longer logs a React hydration error when it loads.
+
+### 🐛 Hydration Fix
+
+The four capability cards on the home page nested one paragraph inside another, which React reports as hydration error #418 (the page still worked). Each card's secondary line is now a plain string and the design-system card styles it. Appearance is unchanged.
+
+## [v5.43.1] — 2026-10-07T00:00:00.000Z
+
+Two security advisories in production dependencies are cleared. No application code changed.
+
+### 🛡️ Dependency Advisories
+
+`proxy-addr` (IP spoofing through an IPv4-mapped IPv6 trust subnet, reached through the API rate limiter's `express-rate-limit`) and `source-map-js` (event-loop denial of service, reached through `next`) are updated to their patched versions. `npm audit --omit=dev` reports 0 findings.
+
+## [v5.43.0] — 2026-10-07T00:00:00.000Z
+
+The design-system packages move from 6.0.0 to 6.8.0. No application code changed.
+
+### 🎨 Design System 6.8.0
+
+`@sovereignsquad/gds-core`, `gds-theme`, `gds-admin`, `gds-compliance` and `gds-eslint-config` are updated from 6.0.0 to 6.8.0. They are the upstream release assets, checked against the published packages. Peer dependency ranges are unchanged. The five `@tiptap/*` overrides from 5.41.1 are no longer needed (GDS 6.8.0 declares a compatible range) and are removed, so tiptap resolves as one consistent set.
+
+## [v5.42.0] — 2026-10-05T00:00:00.000Z
+
+The service's own environment variables now carry an `SSO_` prefix. Nothing needs to change in an existing deployment: the old names still work.
+
+### 🏷️ Prefixed Environment Variables
+
+70 variables are renamed (for example `MONGODB_URI` to `SSO_MONGODB_URI`, `JWT_SECRET` to `SSO_JWT_SECRET`, `RESEND_API_KEY` to `SSO_RESEND_API_KEY`). The code reads the new name and falls back to the old one; if both are set the new one wins. Platform variables and names that already started with `SSO_` are unchanged. The old names will stop working in a later release, after Vercel and local files have moved over.
+
+### ✅ Name Check In The Gate
+
+`npm run check:env` is part of `npm run verify` and keeps the code and `.env.example` in agreement on variable names.
+
+## [v5.41.1] — 2026-10-05T00:00:00.000Z
+
+This release gives a version to the dependency updates and the licence change that were merged to `main`, and therefore deployed, after 5.41.0 without one. No application code changed.
+
+### 🛡️ Dependency Updates
+
+`next` 15.5.26 (two critical advisories), `nodemailer` 10.0.9, `sharp` 0.35.5, `qs` 6.16.0 and `js-yaml` 3.15.2 are updated, `@tiptap/*` is pinned to 3.31.3 through `overrides`, and the dev-only `brace-expansion` is updated. `npm audit --omit=dev` reports 0 vulnerabilities.
+
+### 📄 MIT License
+
+The repository now carries an MIT `LICENSE` file. `package.json` already declared `MIT`.
 
 ## [v5.41.0] — 2026-09-28T00:00:00.000Z
 

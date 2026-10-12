@@ -23,7 +23,7 @@ import { sendEmail } from '../lib/email.mjs'
 import { buildMagicLinkEmail } from '../lib/emailTemplates.mjs'
 import crypto from 'crypto'
 
-const EMAIL = process.env.NEW_MAGIC_EMAIL
+const EMAIL = (process.env.SSO_NEW_MAGIC_EMAIL ?? process.env.NEW_MAGIC_EMAIL)
 
 if (!EMAIL) {
   console.error('❌ Error: NEW_MAGIC_EMAIL environment variable is required')
@@ -36,13 +36,13 @@ console.log('')
 
 // Test environment variables
 console.log('📋 Environment Variables:')
-console.log('  MONGODB_URI:', process.env.MONGODB_URI ? '✅ Set' : '❌ Missing')
-console.log('  PUBLIC_MAGIC_SECRET:', process.env.PUBLIC_MAGIC_SECRET ? '✅ Set' : '❌ Missing')
-console.log('  JWT_SECRET:', process.env.JWT_SECRET ? '✅ Set' : '❌ Missing')
+console.log('  MONGODB_URI:', (process.env.SSO_MONGODB_URI ?? process.env.MONGODB_URI) ? '✅ Set' : '❌ Missing')
+console.log('  PUBLIC_MAGIC_SECRET:', (process.env.SSO_PUBLIC_MAGIC_SECRET ?? process.env.PUBLIC_MAGIC_SECRET) ? '✅ Set' : '❌ Missing')
+console.log('  JWT_SECRET:', (process.env.SSO_JWT_SECRET ?? process.env.JWT_SECRET) ? '✅ Set' : '❌ Missing')
 console.log('  SSO_BASE_URL:', process.env.SSO_BASE_URL || 'http://localhost:3000')
-console.log('  SMTP_HOST:', process.env.SMTP_HOST ? '✅ Set' : '❌ Missing')
-console.log('  SMTP_USER:', process.env.SMTP_USER ? '✅ Set' : '❌ Missing')
-console.log('  SMTP_PASS:', process.env.SMTP_PASS ? '✅ Set' : '❌ Missing')
+console.log('  SMTP_HOST:', (process.env.SSO_SMTP_HOST ?? process.env.SMTP_HOST) ? '✅ Set' : '❌ Missing')
+console.log('  SMTP_USER:', (process.env.SSO_SMTP_USER ?? process.env.SMTP_USER) ? '✅ Set' : '❌ Missing')
+console.log('  SMTP_PASS:', (process.env.SSO_SMTP_PASS ?? process.env.SMTP_PASS) ? '✅ Set' : '❌ Missing')
 console.log('')
 
 try {
@@ -67,7 +67,7 @@ try {
   }
   
   // Check secret
-  const SECRET = process.env.PUBLIC_MAGIC_SECRET || process.env.JWT_SECRET
+  const SECRET = (process.env.SSO_PUBLIC_MAGIC_SECRET ?? process.env.PUBLIC_MAGIC_SECRET) || (process.env.SSO_JWT_SECRET ?? process.env.JWT_SECRET)
   if (!SECRET) {
     console.error('❌ PUBLIC_MAGIC_SECRET or JWT_SECRET must be set')
     process.exit(1)

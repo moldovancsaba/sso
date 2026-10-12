@@ -40,7 +40,7 @@ export default async function handler(req, res) {
     const email = (payload?.email || '').toLowerCase().trim()
 
     // Optional allowlist: if ADMIN_MAGIC_ALLOWED_EMAILS is set, restrict usage
-    const allow = (process.env.ADMIN_MAGIC_ALLOWED_EMAILS || '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean)
+    const allow = ((process.env.SSO_ADMIN_MAGIC_ALLOWED_EMAILS ?? process.env.ADMIN_MAGIC_ALLOWED_EMAILS) || '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean)
     if (allow.length && !allow.includes(email)) {
       return res.status(403).json({ error: 'Not allowed for this email' })
     }

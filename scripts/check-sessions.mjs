@@ -4,7 +4,7 @@ import dotenv from 'dotenv'
 
 dotenv.config()
 
-const client = new MongoClient(process.env.MONGODB_URI)
+const client = new MongoClient((process.env.SSO_MONGODB_URI ?? process.env.MONGODB_URI))
 await client.connect()
 const db = client.db('sso')
 

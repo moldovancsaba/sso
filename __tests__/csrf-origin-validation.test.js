@@ -14,6 +14,7 @@ describe('validateRequestOrigin', () => {
   beforeEach(() => {
     process.env.NODE_ENV = 'production'
     process.env.SSO_ALLOWED_ORIGINS = 'https://sso.doneisbetter.com,https://doneisbetter.com,https://cardmass.doneisbetter.com'
+    delete process.env.SSO_ADMIN_DEV_BYPASS
     delete process.env.ADMIN_DEV_BYPASS
   })
 
@@ -66,14 +67,29 @@ describe('validateRequestOrigin', () => {
 
   test('respects the ADMIN_DEV_BYPASS escape hatch outside production only', () => {
     process.env.NODE_ENV = 'development'
+    process.env.SSO_ADMIN_DEV_BYPASS = 'true'
+    const result = validateRequestOrigin(req({ headers: { origin: 'https://attacker.example.com' } }))
+    expect(result.valid).toBe(true)
+  })
+
+  test('still honours the legacy unprefixed ADMIN_DEV_BYPASS name (fallback)', () => {
+    process.env.NODE_ENV = 'development'
     process.env.ADMIN_DEV_BYPASS = 'true'
     const result = validateRequestOrigin(req({ headers: { origin: 'https://attacker.example.com' } }))
     expect(result.valid).toBe(true)
   })
 
+  test('the SSO_-prefixed name wins over the legacy name when both are set', () => {
+    process.env.NODE_ENV = 'development'
+    process.env.SSO_ADMIN_DEV_BYPASS = 'false'
+    process.env.ADMIN_DEV_BYPASS = 'true'
+    const result = validateRequestOrigin(req({ headers: { origin: 'https://attacker.example.com' } }))
+    expect(result.valid).toBe(false)
+  })
+
   test('ignores ADMIN_DEV_BYPASS in production', () => {
     process.env.NODE_ENV = 'production'
-    process.env.ADMIN_DEV_BYPASS = 'true'
+    process.env.SSO_ADMIN_DEV_BYPASS = 'true'
     const result = validateRequestOrigin(req({ headers: { origin: 'https://attacker.example.com' } }))
     expect(result.valid).toBe(false)
   })

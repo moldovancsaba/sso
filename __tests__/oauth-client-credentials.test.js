@@ -20,8 +20,8 @@ const { privateKey, publicKey } = generateKeyPairSync('rsa', {
   publicKeyEncoding: { type: 'spki', format: 'pem' },
 })
 
-process.env.JWT_PRIVATE_KEY = privateKey
-process.env.JWT_PUBLIC_KEY = publicKey
+process.env.SSO_JWT_PRIVATE_KEY = privateKey
+process.env.SSO_JWT_PUBLIC_KEY = publicKey
 
 // WHAT: Stub the database so revocation lookups never touch a real cluster.
 // WHY: verifyAccessToken() consults refreshTokens to check for revocation.

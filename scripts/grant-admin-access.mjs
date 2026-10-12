@@ -24,7 +24,7 @@ const ADMIN_CLIENT_ID = 'sso-admin-dashboard'
 async function grantAdminAccess() {
   try {
     // WHAT: Get email from env or command line
-    const email = process.env.ADMIN_EMAIL || process.argv[2]
+    const email = (process.env.SSO_ADMIN_EMAIL ?? process.env.ADMIN_EMAIL) || process.argv[2]
     const requestedRole = (process.argv[3] || 'admin').trim().toLowerCase()
     const role = requestedRole === 'super-admin' ? 'admin' : requestedRole
 

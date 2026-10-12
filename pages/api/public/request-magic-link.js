@@ -20,7 +20,7 @@ import { applyRateLimiter } from '../../../lib/apiHelpers.mjs'
  * WHY: Reuses proven security pattern from admin magic links
  */
 async function createPublicMagicToken(email, ttlSeconds = 900, redirectUri = null) {
-  const SECRET = process.env.PUBLIC_MAGIC_SECRET || process.env.JWT_SECRET
+  const SECRET = (process.env.SSO_PUBLIC_MAGIC_SECRET ?? process.env.PUBLIC_MAGIC_SECRET) || (process.env.SSO_JWT_SECRET ?? process.env.JWT_SECRET)
   if (!SECRET) {
     throw new Error('PUBLIC_MAGIC_SECRET or JWT_SECRET must be set')
   }

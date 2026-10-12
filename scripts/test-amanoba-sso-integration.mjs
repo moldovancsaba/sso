@@ -8,8 +8,8 @@ import dotenv from 'dotenv'
 
 dotenv.config({ path: '.env.local' })
 
-const SSO_TOKEN = process.env.QUIZ_ITEM_ADMIN_TOKEN
-const AMANOBA_BASE_URL = process.env.AMANOBA_BASE_URL || 'https://amanoba.com'
+const SSO_TOKEN = (process.env.SSO_QUIZ_ITEM_ADMIN_TOKEN ?? process.env.QUIZ_ITEM_ADMIN_TOKEN)
+const AMANOBA_BASE_URL = (process.env.SSO_AMANOBA_BASE_URL ?? process.env.AMANOBA_BASE_URL) || 'https://amanoba.com'
 const SSO_USERINFO_URL = process.env.SSO_USERINFO_URL || 'https://sso.doneisbetter.com/api/oauth/userinfo'
 
 async function main() {

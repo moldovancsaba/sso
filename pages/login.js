@@ -43,8 +43,8 @@ export async function getServerSideProps(context) {
     props: {
       initialRedirect: redirect || null,
       initialOAuthRequest: oauth_request || null,
-      googleEnabled: Boolean(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET),
-      facebookEnabled: Boolean(process.env.FACEBOOK_APP_ID && process.env.FACEBOOK_APP_SECRET),
+      googleEnabled: Boolean((process.env.SSO_GOOGLE_CLIENT_ID ?? process.env.GOOGLE_CLIENT_ID) && (process.env.SSO_GOOGLE_CLIENT_SECRET ?? process.env.GOOGLE_CLIENT_SECRET)),
+      facebookEnabled: Boolean((process.env.SSO_FACEBOOK_APP_ID ?? process.env.FACEBOOK_APP_ID) && (process.env.SSO_FACEBOOK_APP_SECRET ?? process.env.FACEBOOK_APP_SECRET)),
     },
   }
 }

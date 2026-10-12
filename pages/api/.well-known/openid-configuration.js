@@ -27,7 +27,7 @@ export default async function handler(req, res) {
   // WHAT: JWT_ISSUER overrides, then the canonical base URL.
   // WHY: Must resolve identically to lib/oauth/tokens.mjs — discovery advertising
   //      one issuer while tokens carry another makes clients reject every token.
-  const baseUrl = process.env.JWT_ISSUER || getBaseUrl()
+  const baseUrl = (process.env.SSO_JWT_ISSUER ?? process.env.JWT_ISSUER) || getBaseUrl()
 
   // OIDC Discovery Document
   const discoveryDocument = {

@@ -17,7 +17,7 @@ const __dirname = dirname(__filename);
 // Load environment variables from .env.local
 dotenv.config({ path: join(__dirname, '..', '.env.local') });
 
-const uri = process.env.MONGODB_URI;
+const uri = (process.env.SSO_MONGODB_URI ?? process.env.MONGODB_URI);
 
 if (!uri) {
   console.error('❌ MONGODB_URI not found in environment variables');
@@ -30,7 +30,7 @@ try {
   await client.connect();
   console.log('✅ Connected to MongoDB');
   
-  const dbName = process.env.MONGODB_DB || 'sso';
+  const dbName = (process.env.SSO_MONGODB_DB ?? process.env.MONGODB_DB) || 'sso';
   const db = client.db(dbName);
   console.log(`📊 Using database: ${dbName}`);
   const oauthClients = db.collection('oauthClients');

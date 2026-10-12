@@ -5,7 +5,7 @@
  * WHY: Need to understand how Amanoba actually authenticates API requests
  */
 
-const AMANOBA_BASE_URL = process.env.AMANOBA_BASE_URL || 'https://amanoba.com'
+const AMANOBA_BASE_URL = (process.env.SSO_AMANOBA_BASE_URL ?? process.env.AMANOBA_BASE_URL) || 'https://amanoba.com'
 
 async function main() {
   console.log('🔍 Investigating Amanoba authentication system...\n')

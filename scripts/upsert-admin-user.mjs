@@ -12,11 +12,11 @@ dotenv.config({ path: '.env.local' })
 
 async function main() {
   try {
-    const email = (process.env.UPSERT_EMAIL || 'nimdasuper@doneisbetter.com').trim().toLowerCase()
-    const name = (process.env.UPSERT_NAME || 'Nimda Super').toString().trim()
-    const requestedRole = (process.env.UPSERT_ROLE || 'admin').toString().trim().toLowerCase()
+    const email = ((process.env.SSO_UPSERT_EMAIL ?? process.env.UPSERT_EMAIL) || 'nimdasuper@doneisbetter.com').trim().toLowerCase()
+    const name = ((process.env.SSO_UPSERT_NAME ?? process.env.UPSERT_NAME) || 'Nimda Super').toString().trim()
+    const requestedRole = ((process.env.SSO_UPSERT_ROLE ?? process.env.UPSERT_ROLE) || 'admin').toString().trim().toLowerCase()
     const role = requestedRole === 'super-admin' ? 'admin' : requestedRole
-    const password = (process.env.UPSERT_PASSWORD || '').toString().trim()
+    const password = ((process.env.SSO_UPSERT_PASSWORD ?? process.env.UPSERT_PASSWORD) || '').toString().trim()
 
     if (!email || !email.includes('@')) {
       console.error('ERR: UPSERT_EMAIL must be a valid email (default nimdasuper@doneisbetter.com)')

@@ -1,8 +1,8 @@
 # Universal SSO Service
 
-Version: 5.41.0  
+Version: 5.43.2  
 Status: Active  
-Last updated: 2026-09-28T00:00:00.000Z
+Last updated: 2026-10-07T00:00:00.000Z
 
 This repository contains the DoneIsBetter SSO service for `https://sso.doneisbetter.com`.
 
@@ -60,3 +60,7 @@ npm run test-connection
 - Design, UI, and UX rules are governed by the shared SSOT in the [general-design-system repo](https://github.com/sovereignsquad/general-design-system).  
 - [docs/DESIGN_SYSTEM.md](docs/DESIGN_SYSTEM.md) tracks local migration state and adapter decisions for this repository.
 - Current local CSS and theme infrastructure should be treated as legacy implementation to migrate toward that Mantine-first SSOT.
+
+## License
+
+MIT. See [LICENSE](LICENSE).

@@ -55,10 +55,10 @@ const SCOPES = [
   'classscout:ingest.write', 'classscout:catalog.read',
   'management:ingest.write', 'management:catalog.read',
 ]
-const SECRET_OUT = process.env.SECRET_OUT || '.openclaw-worker-client-secret.local'
+const SECRET_OUT = (process.env.SSO_SECRET_OUT ?? process.env.SECRET_OUT) || '.openclaw-worker-client-secret.local'
 
 async function main() {
-  if (!process.env.MONGODB_URI) {
+  if (!(process.env.SSO_MONGODB_URI ?? process.env.MONGODB_URI)) {
     console.error('MONGODB_URI is not set.')
     process.exit(1)
   }

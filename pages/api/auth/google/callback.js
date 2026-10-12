@@ -90,7 +90,7 @@ export default async function handler(req, res) {
     // WHY: Must match the redirect URI used in the authorization request
     const redirectUri = getSocialCallbackRedirectUri(
       req,
-      process.env.GOOGLE_REDIRECT_URI,
+      (process.env.SSO_GOOGLE_REDIRECT_URI ?? process.env.GOOGLE_REDIRECT_URI),
       '/api/auth/google/callback'
     )
 

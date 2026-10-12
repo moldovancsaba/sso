@@ -32,7 +32,7 @@ export default async function handler(req, res) {
     // WHY: Support localhost testing while keeping production secure
     const redirectUri = getSocialCallbackRedirectUri(
       req,
-      process.env.GOOGLE_REDIRECT_URI,
+      (process.env.SSO_GOOGLE_REDIRECT_URI ?? process.env.GOOGLE_REDIRECT_URI),
       '/api/auth/google/callback'
     )
 

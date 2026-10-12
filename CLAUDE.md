@@ -178,7 +178,7 @@ Run the full chain before pushing or merging:
 npm run verify
 ```
 
-(`lint` → `type-check` → `test` → `build` → `guard:repo` → `check:docs` →
+(`lint` → `type-check` → `test` → `build` → `guard:repo` → `check:env` → `check:docs` →
 `gds:validate-manifest` → `gds:check` — see `package.json` for the exact current chain;
 keep this script and this doc in sync if the chain changes.) As of this writing the
 whole chain passes clean with zero warnings.

@@ -14,7 +14,7 @@ async function fixAdminRole() {
     const db = await getDb()
     
     // Find the user by email (you can specify your email here)
-    const email = process.env.ADMIN_EMAIL || 'sso@doneisbetter.com'
+    const email = (process.env.SSO_ADMIN_EMAIL ?? process.env.ADMIN_EMAIL) || 'sso@doneisbetter.com'
     
     console.log(`Looking for user: ${email}`)
     const user = await db.collection('publicUsers').findOne({ 

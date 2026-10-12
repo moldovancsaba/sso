@@ -9,9 +9,9 @@ import { MongoClient } from 'mongodb'
 // Load local env (ignored by git); env vars present in the environment override
 dotenv.config({ path: '.env.local' })
 
-const MONGODB_URI = (process.env.MONGODB_URI || '').trim()
-const MONGODB_DB = (process.env.MONGODB_DB || 'sso').trim()
-const NEW_ADMIN_TOKEN = (process.env.NEW_ADMIN_TOKEN || '').trim()
+const MONGODB_URI = ((process.env.SSO_MONGODB_URI ?? process.env.MONGODB_URI) || '').trim()
+const MONGODB_DB = ((process.env.SSO_MONGODB_DB ?? process.env.MONGODB_DB) || 'sso').trim()
+const NEW_ADMIN_TOKEN = ((process.env.SSO_NEW_ADMIN_TOKEN ?? process.env.NEW_ADMIN_TOKEN) || '').trim()
 
 async function main() {
   if (!MONGODB_URI) {

@@ -15,9 +15,9 @@ import dotenv from 'dotenv'
 dotenv.config()
 
 async function grantAdminPermission() {
-  const email = process.env.EMAIL
-  const uri = process.env.MONGODB_URI
-  const dbName = process.env.MONGODB_DB || 'sso'
+  const email = (process.env.SSO_EMAIL ?? process.env.EMAIL)
+  const uri = (process.env.SSO_MONGODB_URI ?? process.env.MONGODB_URI)
+  const dbName = (process.env.SSO_MONGODB_DB ?? process.env.MONGODB_DB) || 'sso'
 
   if (!email) {
     console.error('❌ EMAIL environment variable required')

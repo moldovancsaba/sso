@@ -1,6 +1,6 @@
 {
   "name": "@moldovancsaba/universal-sso",
-  "version": "5.41.0",
+  "version": "5.43.2",
   "description": "A universal Single Sign-On (SSO) service that can be integrated into any project",
   "type": "module",
   "scripts": {
@@ -13,8 +13,9 @@
     "test:contracts": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js --runInBand",
     "guard:repo": "node scripts/check-repo-guardrails.mjs",
     "check:docs": "node scripts/check-docs-maintenance.mjs",
+    "check:env": "node scripts/check-env.mjs",
     "check:release": "node scripts/check-release-integrity.mjs",
-    "verify": "npm run lint && npm run type-check && npm test && npm run build && npm run guard:repo && npm run check:docs && npm run gds:validate-manifest && npm run gds:check",
+    "verify": "npm run lint && npm run type-check && npm test && npm run build && npm run guard:repo && npm run check:env && npm run check:docs && npm run gds:validate-manifest && npm run gds:check",
     "gds:validate-manifest": "gds-compliance validate-manifest --manifest ./gds-adoption.json",
     "gds:check": "gds-compliance check --manifest ./gds-adoption.json",
     "test-connection": "node scripts/test-connection.js",
@@ -37,19 +38,16 @@
   "dependencies": {
     "@mantine/core": "9.2.1",
     "@mantine/dates": "9.2.1",
-    "@mantine/form": "9.2.1",
     "@mantine/hooks": "9.2.1",
     "@mantine/modals": "9.2.1",
     "@mantine/notifications": "9.2.1",
-    "@sovereignsquad/gds-admin": "file:vendor/gds/sovereignsquad-gds-admin-6.0.0.tgz",
-    "@sovereignsquad/gds-core": "file:vendor/gds/sovereignsquad-gds-core-6.0.0.tgz",
-    "@sovereignsquad/gds-theme": "file:vendor/gds/sovereignsquad-gds-theme-6.0.0.tgz",
+    "@sovereignsquad/gds-admin": "file:vendor/gds/sovereignsquad-gds-admin-6.8.0.tgz",
+    "@sovereignsquad/gds-core": "file:vendor/gds/sovereignsquad-gds-core-6.8.0.tgz",
+    "@sovereignsquad/gds-theme": "file:vendor/gds/sovereignsquad-gds-theme-6.8.0.tgz",
     "@tabler/icons-react": "3.44.0",
     "bcryptjs": "^2.4.3",
-    "cors": "^2.8.5",
     "dotenv": "^16.6.1",
     "express-rate-limit": "7.5.1",
-    "helmet": "^7.0.0",
     "jsonwebtoken": "^9.0.0",
     "mongodb": "^6.0.0",
     "next": "15.5.26",
@@ -61,8 +59,8 @@
     "zod": "4.2.1"
   },
   "devDependencies": {
-    "@sovereignsquad/gds-compliance": "file:vendor/gds/sovereignsquad-gds-compliance-6.0.0.tgz",
-    "@sovereignsquad/gds-eslint-config": "file:vendor/gds/sovereignsquad-gds-eslint-config-6.0.0.tgz",
+    "@sovereignsquad/gds-compliance": "file:vendor/gds/sovereignsquad-gds-compliance-6.8.0.tgz",
+    "@sovereignsquad/gds-eslint-config": "file:vendor/gds/sovereignsquad-gds-eslint-config-6.8.0.tgz",
     "@types/bcryptjs": "^2.4.6",
     "@types/jsonwebtoken": "^9.0.0",
     "@types/node": "24.13.3",
@@ -78,14 +76,12 @@
   },
   "overrides": {
     "postcss": "8.5.26",
-    "@sovereignsquad/gds-core": "file:vendor/gds/sovereignsquad-gds-core-6.0.0.tgz",
-    "@sovereignsquad/gds-theme": "file:vendor/gds/sovereignsquad-gds-theme-6.0.0.tgz",
-    "@sovereignsquad/gds-admin": "file:vendor/gds/sovereignsquad-gds-admin-6.0.0.tgz",
-    "@tiptap/core": "3.31.3",
-    "@tiptap/pm": "3.31.3",
-    "@tiptap/react": "3.31.3",
-    "@tiptap/extension-bubble-menu": "3.31.3",
-    "@tiptap/extension-floating-menu": "3.31.3"
+    "@istanbuljs/load-nyc-config": {
+      "js-yaml": "^4.3.2"
+    },
+    "@sovereignsquad/gds-core": "file:vendor/gds/sovereignsquad-gds-core-6.8.0.tgz",
+    "@sovereignsquad/gds-theme": "file:vendor/gds/sovereignsquad-gds-theme-6.8.0.tgz",
+    "@sovereignsquad/gds-admin": "file:vendor/gds/sovereignsquad-gds-admin-6.8.0.tgz"
   },
   "repository": {
     "type": "git",

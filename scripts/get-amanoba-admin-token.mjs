@@ -5,11 +5,11 @@
  * WHY: Amanoba uses its own authentication, not SSO
  */
 
-const AMANOBA_BASE_URL = process.env.AMANOBA_BASE_URL || 'https://amanoba.com'
+const AMANOBA_BASE_URL = (process.env.SSO_AMANOBA_BASE_URL ?? process.env.AMANOBA_BASE_URL) || 'https://amanoba.com'
 
 // You'll need to provide these credentials
-const ADMIN_EMAIL = process.env.AMANOBA_ADMIN_EMAIL || 'your-admin@email.com'
-const ADMIN_PASSWORD = process.env.AMANOBA_ADMIN_PASSWORD || 'your-password'
+const ADMIN_EMAIL = (process.env.SSO_AMANOBA_ADMIN_EMAIL ?? process.env.AMANOBA_ADMIN_EMAIL) || 'your-admin@email.com'
+const ADMIN_PASSWORD = (process.env.SSO_AMANOBA_ADMIN_PASSWORD ?? process.env.AMANOBA_ADMIN_PASSWORD) || 'your-password'
 
 async function main() {
   console.log('🔐 Getting Amanoba admin token...\n')

@@ -43,7 +43,7 @@ config({ path: '.env.local' })
 config()
 
 // WHAT: Preview unless explicitly told otherwise. See the SAFETY note above.
-const DRY_RUN = process.env.DRY_RUN !== 'false'
+const DRY_RUN = (process.env.SSO_DRY_RUN ?? process.env.DRY_RUN) !== 'false'
 
 // WHAT: Clients that should be able to act on their own behalf. Naming them is MANDATORY.
 // WHY: an empty list used to mean "every eligible confidential client", so a bare run granted
@@ -52,7 +52,7 @@ const DRY_RUN = process.env.DRY_RUN !== 'false'
 //      credential able to rewrite any user's permissions, which then had to be revoked by hand.
 //      Granting is now always a named, deliberate act; a bare run still surveys and still strips
 //      dead scopes, but it cannot hand anything out.
-const ONLY = (process.env.M2M_CLIENTS || '')
+const ONLY = ((process.env.SSO_M2M_CLIENTS ?? process.env.M2M_CLIENTS) || '')
   .split(',')
   .map((s) => s.trim())
   .filter(Boolean)
@@ -62,7 +62,7 @@ const ONLY = (process.env.M2M_CLIENTS || '')
 //      surface for no benefit - its bearer can write permission records for every user
 //      of that client. Revoking removes the client_credentials grant and the
 //      manage_permissions scope; nothing else about the client is touched.
-const REVOKE = (process.env.REVOKE_M2M || '')
+const REVOKE = ((process.env.SSO_REVOKE_M2M ?? process.env.REVOKE_M2M) || '')
   .split(',')
   .map((s) => s.trim())
   .filter(Boolean)
@@ -73,10 +73,10 @@ const REVOKE = (process.env.REVOKE_M2M || '')
 //      writes provider records to classscout wants `classscout:ingest.write` and must never
 //      hold the other. Set M2M_SCOPE to grant least privilege; the old value stays the default
 //      only so an existing documented invocation keeps behaving as its operator expects.
-const M2M_SCOPE = (process.env.M2M_SCOPE || 'manage_permissions').trim()
+const M2M_SCOPE = ((process.env.SSO_M2M_SCOPE ?? process.env.M2M_SCOPE) || 'manage_permissions').trim()
 
 async function main() {
-  if (!process.env.MONGODB_URI) {
+  if (!(process.env.SSO_MONGODB_URI ?? process.env.MONGODB_URI)) {
     console.error('MONGODB_URI is not set. Populate it before running.')
     process.exit(1)
   }
@@ -95,11 +95,11 @@ async function main() {
     process.exit(1)
   }
 
-  const mongo = new MongoClient(process.env.MONGODB_URI, { serverSelectionTimeoutMS: 15000 })
+  const mongo = new MongoClient((process.env.SSO_MONGODB_URI ?? process.env.MONGODB_URI), { serverSelectionTimeoutMS: 15000 })
   await mongo.connect()
 
   try {
-    const clients = mongo.db(process.env.MONGODB_DB).collection('oauthClients')
+    const clients = mongo.db((process.env.SSO_MONGODB_DB ?? process.env.MONGODB_DB)).collection('oauthClients')
     const records = await clients.find({}).toArray()
 
     console.log(DRY_RUN ? '=== DRY RUN - no writes ===\n' : '=== APPLYING CHANGES ===\n')
