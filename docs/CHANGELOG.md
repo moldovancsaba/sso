@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Security
+
+- **Next.js 15.5.26 to 15.5.27 (patch, same minor).** Closes the two production `npm audit` advisories that name `next` < 15.5.27: GHSA-4jqv-mc3x-m676 (cache poisoning of SSG and ISR pages in self-hosted applications) and GHSA-mcj8-r9mp-w47p (cache poisoning in SSG/ISR rendering that leads to cross-user content substitution and persistent denial of service). `npm audit --omit=dev` goes from one moderate finding to none. The lockfile moves only `next`, `@next/env` and the nine `@next/swc-*` binaries. messmass already runs 15.5.27. The app is deployed on Vercel, not self-hosted, so the advisories were likely not reachable in production; the bump is for a clean audit and for staying level with the rest of the fleet.
+
 ## [5.43.2] - 2026-10-07
 
 ### Fixed
