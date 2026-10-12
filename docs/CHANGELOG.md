@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Removed
+
+- **Three unused dependencies: `helmet`, `cors` and `@mantine/form`.** Nothing imports them (`lib/cors.mjs` is hand-written and the `cors` text in `pages/docs/security/cors.js` is a code sample for integrators, not an import; the security headers are set by `middleware.js`). `npm ls` shows no package that needs any of them; 5 packages leave the lockfile (`@mantine/form`, its `klona` and `@standard-schema/spec`, `cors`, `helmet`). Kept although nothing imports them directly: `@mantine/dates`, `@mantine/modals` and `@mantine/hooks` (peers of the GDS packages and of `@mantine/core`), `eslint-config-next` (loaded by name through `compat.extends('next/core-web-vitals')`).
+
+### Security
+
+- **`sprintf-js` is out of the dependency tree (Dependabot alert 62, GHSA-hp3w-g68c-fv3c, no patched release).** It came in through `jest` > `@jest/transform` > `babel-plugin-istanbul` > `@istanbuljs/load-nyc-config` > `js-yaml` 3 > `argparse` 1. A new override points `@istanbuljs/load-nyc-config` at the `js-yaml` 4 the rest of the tree already uses (it only calls `load()`, which exists in both); `js-yaml` 3, `argparse` 1, `esprima` and `sprintf-js` leave the lockfile. `npm audit` goes from 37 findings (6 moderate, 31 high) to 32 (1 moderate, 31 high); `npm audit --omit=dev` is unchanged at one moderate (`next` 15.5.26, see the separate Next patch change). The 31 high ones are all development tools (`braces` through `jest` 29 and `eslint-config-next`) and need the `jest` 30 move or have no patched release.
+
 ## [5.43.2] - 2026-10-07
 
 ### Fixed
