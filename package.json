@@ -38,7 +38,6 @@
   "dependencies": {
     "@mantine/core": "9.2.1",
     "@mantine/dates": "9.2.1",
-    "@mantine/form": "9.2.1",
     "@mantine/hooks": "9.2.1",
     "@mantine/modals": "9.2.1",
     "@mantine/notifications": "9.2.1",
@@ -47,10 +46,8 @@
     "@sovereignsquad/gds-theme": "file:vendor/gds/sovereignsquad-gds-theme-6.8.0.tgz",
     "@tabler/icons-react": "3.44.0",
     "bcryptjs": "^2.4.3",
-    "cors": "^2.8.5",
     "dotenv": "^16.6.1",
     "express-rate-limit": "7.5.1",
-    "helmet": "^7.0.0",
     "jsonwebtoken": "^9.0.0",
     "mongodb": "^6.0.0",
     "next": "15.5.26",
@@ -79,6 +76,9 @@
   },
   "overrides": {
     "postcss": "8.5.26",
+    "@istanbuljs/load-nyc-config": {
+      "js-yaml": "^4.3.2"
+    },
     "@sovereignsquad/gds-core": "file:vendor/gds/sovereignsquad-gds-core-6.8.0.tgz",
     "@sovereignsquad/gds-theme": "file:vendor/gds/sovereignsquad-gds-theme-6.8.0.tgz",
     "@sovereignsquad/gds-admin": "file:vendor/gds/sovereignsquad-gds-admin-6.8.0.tgz"
