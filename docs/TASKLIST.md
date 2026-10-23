@@ -5,7 +5,7 @@ Last updated: 2026-10-23T00:00:00.000Z
 
 ## Active
 
-- Cross-product privacy erasure initiative (#135–#143; Camera #509 blocks backup erasure proof): SSO #135 ledger and #143 subject-proof contract are implemented. The Camera resolver, Facebook callback, product deletion adapters, coordinator, accessible request and admin surfaces, evidence PDF, and end-to-end production gate remain sequenced work. Do not claim the workflow is production-ready until required issues and the backup prerequisite are complete.
+- Cross-product privacy erasure initiative (#135–#143; Camera #509 blocks backup erasure proof): SSO #135 ledger, #143 subject-proof contract, Camera #724 exact photo resolver, and SSO #136 signed Meta callback intake are implemented or merged. The coordinator, product deletion adapters, accessible request/admin surfaces, evidence PDF, and end-to-end production gate remain sequenced work. Do not claim the workflow is production-ready until required issues and the backup prerequisite are complete.
 
 - OAuth client branding initiative — open issues (the data model and write-time validation, #97/#98, shipped in 5.41.0; see `docs/ROADMAP.md`):
   - #99 Logo asset ingestion pipeline
