@@ -175,6 +175,12 @@ Before accepting cases, configure these SSO-owned deployment variables (also lis
   implementing a hash migration.
 - `SSO_PRIVACY_RESOLVER_CLIENT_ID`: exact OAuth client id allowed to request the encrypted
   subject reference after approval.
+- `SSO_PRIVACY_BACKUP_RETENTION_DAYS`: owner-approved finite backup lifetime, integer from 1
+  through 3650. There is deliberately no default: a missing or invalid value is surfaced as
+  `retentionPolicy.configured: false`, and the backup release gate must stay blocked. The
+  replay journal stores only opaque case/photo/submission/event/partner references, no
+  subject identity, e-mail, media URL, or image bytes; Mongo TTL removes entries only after
+  the configured expiry.
 - `SSO_PRIVACY_TARGET_CLIENTS`: JSON object mapping each target name to its exact,
   confidential OAuth client id, for example `{"camera":"…","fanmass":"…"}`. Include
   all five targets before enabling their receipts. Do not use the broad admin Atlas account
@@ -188,6 +194,9 @@ Before accepting cases, configure these SSO-owned deployment variables (also lis
   and dedicated SSO erasure secret. Messmass resolves its own event from Camera event and
   partner references, rejecting missing or ambiguous links.
 - `CRON_SECRET`: Vercel platform secret used to authenticate the once-per-minute worker.
+  Optional `SSO_CRON_SECRET` takes precedence when configured; the scheduled request must
+  send the matching bearer value. Do not set both to different values unless the scheduler
+  is explicitly configured with `SSO_CRON_SECRET`.
 
 To rotate an encryption key, add a new version to the keyring, change the active version,
 and retain every prior version until no open case uses it. The API fails closed when the
@@ -195,6 +204,23 @@ active or referenced key is missing. Do not remove an old version just because i
 longer active. No production secrets or OAuth client registrations are changed by a code
 release; deployment configuration must be set separately before service-to-service calls
 can succeed.
+
+### Backup restore tombstone feed
+
+After Camera confirms that a photo's media is erased, the SSO coordinator first writes an
+idempotent `privacyErasureTombstones` row in the SSO application database, then advances
+`currentPhoto`. A write failure keeps that photo as the current coordinator item and retries.
+This feed is available when restoring Camera's database alone, while the SSO application
+database remains available. It does not survive a restore that also rewinds the SSO database
+or the whole Atlas cluster; those restore modes require a separately retained/off-database
+tombstone export before release. `GET /api/internal/privacy/backup-tombstones?limit=250&cursor=…`
+exports a deterministic keyset page to the dedicated Camera resolver client (`sso:privacy.resolve`)
+or a freshly authenticated privacy admin. The endpoint is private/no-store, caps pages at
+500, and exports only opaque product references and timestamps. The response includes the
+retention-policy readiness bit; an unconfigured retention period is not treated as permission
+to create a backup or issue a terminal `camera_backup` receipt. Restore tooling must apply the
+entire feed to an isolated restore, verify every database/media target, and keep the restore
+blocked if any page or provider result is unknown.
 
 ## Failure and recovery
 
