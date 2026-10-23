@@ -6,8 +6,8 @@ Last updated: 2026-10-23T00:00:00.000Z
 ## In Progress
 
 ### Cross-product privacy erasure (#135–#143)
-- SSO #135 implements the durable, encrypted erasure case ledger and scoped API contract; SSO #143 adds its case-bound, versioned identity proof for product resolvers.
-- Follow-on SSO issues cover the Facebook deletion callback, coordinator, accessible intake/admin UI, evidence PDF, and end-to-end production gate.
+- SSO #135 implements the durable, encrypted erasure case ledger; #143 adds its case-bound, versioned identity proof; #136 implements signed Meta callback intake and sanitized status lookup.
+- Remaining SSO issues cover the coordinator, accessible intake/admin UI, evidence PDF, and end-to-end production gate.
 - Camera, Fanmass, and Messmass implement their own deletion adapters and backup handling; SSO does not write directly to their databases.
 - Cases must not be represented as complete until all four required product targets have a terminal receipt. Backup erasure remains blocked by Camera #509.
 - See [PRIVACY_ERASURE_CASE_LEDGER.md](PRIVACY_ERASURE_CASE_LEDGER.md) for the actual state machine and runtime limits.

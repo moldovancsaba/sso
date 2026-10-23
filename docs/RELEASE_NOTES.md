@@ -2,7 +2,9 @@
 
 ## Unreleased
 
-The restricted privacy resolver now provides a versioned proof for the exact SSO account behind an approved request. Facebook identifiers are resolved inside SSO and are not sent to product services; a verified email is included only when the account explicitly records it as verified. This establishes the safe identity contract needed by Camera's exact photo resolver; it does not perform deletion.
+SSO now accepts signed Meta data-deletion callbacks and durably opens or retrieves a case before returning the required status URL and confirmation code. The callback does not synchronously contact product services. The cross-product deletion flow remains incomplete until its coordinator, product adapters, backup controls, and production configuration are delivered.
+
+The restricted privacy resolver also provides a versioned proof for the exact SSO account behind an approved request. Facebook identifiers are resolved inside SSO and are not sent to product services; a verified email is included only when the account explicitly records it as verified. This establishes the safe identity contract needed by Camera's exact photo resolver; it does not perform deletion.
 
 ## [v5.43.2] — 2026-10-07T00:00:00.000Z
 

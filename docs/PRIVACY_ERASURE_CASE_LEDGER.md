@@ -74,6 +74,8 @@ All routes are private and set `Cache-Control: private, no-store`.
 | `GET /api/internal/privacy/requests/{requestId}` | SSO admin, or `sso:privacy.read` / `sso:privacy.resolve` | Read a safe case DTO. `includeSubject=true` additionally requires the exact resolver client, `sso:privacy.resolve`, and an approved case in deletion. It writes an access audit record before returning `subjectProof` v1. |
 | `PATCH /api/internal/privacy/requests/{requestId}/decision` | Fresh, request-bound SSO admin | Verify, request verification, move to decision, approve/reject, extend once, or record an approved retained exception. |
 | `PATCH /api/internal/privacy/requests/{requestId}/targets/{target}` | Userless `sso` audience token with `sso:privacy.write`; client must match the configured target | Submit an idempotent deletion receipt for that service's own target. |
+| `POST /api/privacy/meta-data-deletion` | Meta signed request | Verify the provider signature and durably create or retrieve the corresponding Facebook erasure case. It does not synchronously call a product service. |
+| `GET /api/public/privacy/deletion-status?confirmation_code={code}` | Public, unguessable confirmation code | Return only the case state, received/deadline timestamps, and target status values. No identity or evidence is returned. |
 
 OAuth service tokens must have no user subject and an `aud` of `sso`. Add scopes to a
 confidential OAuth client only when the specific service is ready to integrate. The resolver
@@ -106,6 +108,42 @@ stable SSO account id. Zero or multiple account matches return a safe `409` and 
 candidate proof. The provider id, account name, and other profile fields never leave
 SSO. `camera_photo` remains an exact photo reference and has no account email proof.
 Products return only their own opaque record references and must not log the proof.
+
+### Meta data-deletion callback
+
+Configure `https://sso.doneisbetter.com/api/privacy/meta-data-deletion` as the Meta
+Data Deletion Request Callback URL. The route accepts a bounded
+`application/x-www-form-urlencoded` POST containing exactly one `signed_request` field.
+It validates the HMAC-SHA256 signature using `SSO_FACEBOOK_APP_SECRET` before reading the
+app-scoped `user_id`, then creates or retrieves a Facebook case in the SSO ledger. The
+successful provider response is `{ "url": "…", "confirmation_code": "…" }`; the URL
+returns a no-store JSON status summary and the confirmation code is the random ledger case
+UUID without separators. Both values are returned only after durable case creation.
+
+The callback does not contact Camera, Fanmass, or Messmass synchronously and does not claim
+that data was deleted. The downstream coordinator and product receipts remain responsible
+for completion. Repeated delivery of the same signed request maps to the same case using
+the app id, signed subject, and `issued_at` as the idempotency material. `issued_at` is
+required and future-skew is bounded; an old value is accepted because the request is signed
+and retries must remain safe. If Meta includes `expires`, it describes the embedded OAuth
+token and is deliberately not treated as the deletion request's expiry. The case ledger's
+unique idempotency index prevents a replay from creating a second case.
+
+The callback uses `SSO_FACEBOOK_APP_ID` and `SSO_FACEBOOK_APP_SECRET`. During a planned
+secret rotation, `SSO_FACEBOOK_APP_SECRET_PREVIOUS` is accepted only while
+`SSO_FACEBOOK_APP_SECRET_PREVIOUS_EXPIRES_AT` is in the future. Remove the previous secret
+after the overlap window. The endpoint fails closed with a retryable service error when
+required credentials or ledger encryption keys are unavailable. Invalid signatures and
+malformed requests create no case. Rate limiting is configured by
+`SSO_RATE_LIMIT_META_DELETION_MAX` (default 600 per 15 minutes per client IP) and is shared
+by the callback and public status endpoint; logs contain only a fixed event name, never the
+provider subject, request body, confirmation code, or IP.
+
+Protocol reference: [Meta Data Deletion Request Callback](https://developers.facebook.com/docs/development/create-an-app/app-dashboard/data-deletion-callback/).
+The official page returned HTTP 429 during this implementation on 2026-10-23, so app
+dashboard setup and response acceptance must be confirmed in Meta's current dashboard
+before production enablement. The implementation follows Meta's signed-request HMAC-SHA256
+callback shape and response fields; this note does not represent a production smoke test.
 
 ## Configuration and rotation
 
