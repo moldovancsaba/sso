@@ -1,6 +1,8 @@
-# Release Notes [![Version Badge](https://img.shields.io/badge/version-5.43.2-blue)](RELEASE_NOTES.md)
+# Release Notes [![Version Badge](https://img.shields.io/badge/version-5.44.0-blue)](RELEASE_NOTES.md)
 
 ## Unreleased
+
+## [v5.44.0] — 2026-10-23T15:36:00.000Z
 
 SSO now accepts signed Meta data-deletion callbacks and durably opens or retrieves a case before returning the required status URL and confirmation code. The callback does not synchronously contact product services. The cross-product deletion flow remains incomplete until its coordinator, product adapters, backup controls, and production configuration are delivered.
 
