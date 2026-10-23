@@ -1,3 +1,5 @@
+import { applyRateLimiter } from '../../../../lib/apiHelpers.mjs'
+import { metaDeletionRateLimiter } from '../../../../lib/middleware/rateLimit.mjs'
 import { ErasureCaseError, getErasureCase } from '../../../../lib/privacy/erasureCases.mjs'
 import logger from '../../../../lib/logger.mjs'
 
@@ -14,6 +16,12 @@ export default async function handler(req, res) {
   if (req.method !== 'GET') {
     res.setHeader('Allow', 'GET')
     return res.status(405).json({ error: 'method_not_allowed' })
+  }
+  try {
+    await applyRateLimiter(metaDeletionRateLimiter, req, res)
+    if (res.writableEnded) return
+  } catch {
+    return res.status(503).json({ error: 'deletion_status_unavailable' })
   }
   const code = typeof req.query?.confirmation_code === 'string' ? req.query.confirmation_code : ''
   const requestId = requestIdFromCode(code)
