@@ -28,13 +28,16 @@ export default async function handler(req, res) {
   if (!requestId) return res.status(404).json({ error: 'deletion_status_not_found' })
   try {
     const record = await getErasureCase(requestId)
-    if (!record || record.source !== 'facebook') return res.status(404).json({ error: 'deletion_status_not_found' })
+    if (!record || !['facebook', 'participant'].includes(record.source)) return res.status(404).json({ error: 'deletion_status_not_found' })
+    const targets = Array.isArray(record.targets)
+      ? record.targets.map(({ target, status }) => ({ target, status }))
+      : Object.entries(record.targets || {}).map(([target, receipt]) => ({ target, status: receipt.status }))
     return res.status(200).json({
       confirmation_code: code.toLowerCase(),
       status: record.state,
       received_at: record.receivedAt,
       response_due_at: record.dueAt,
-      targets: (record.targets || []).map(({ target, status }) => ({ target, status })),
+      targets,
     })
   } catch (error) {
     if (!(error instanceof ErasureCaseError)) logger.error('Public deletion status lookup failed', { event: 'public_deletion_status_error' })

@@ -1,95 +1,39 @@
-/**
- * pages/api/public/account.js - Delete user account
- * WHAT: Permanently deletes user account and all associated data
- * WHY: Users have right to delete their account and data (GDPR compliance)
- */
-
-import { clearPublicSessionCookie, getPublicUserFromRequest } from '../../../lib/publicSessions.mjs'
-import { getDb } from '../../../lib/db.mjs'
-import logger from '../../../lib/logger.mjs'
+import { getPublicUserFromRequest } from '../../../lib/publicSessions.mjs'
+import { applyRateLimiter } from '../../../lib/apiHelpers.mjs'
+import { strictRateLimiter } from '../../../lib/middleware/rateLimit.mjs'
 import { validateRequestOrigin } from '../../../lib/middleware/csrf.mjs'
+import { createErasureCase, ErasureCaseError } from '../../../lib/privacy/erasureCases.mjs'
+import logger from '../../../lib/logger.mjs'
 
+/** Legacy account-delete entry point: submit a verified case instead of bypassing cross-product erasure. */
 export default async function handler(req, res) {
+  res.setHeader('Cache-Control', 'private, no-store, max-age=0')
   if (req.method !== 'DELETE') {
     res.setHeader('Allow', 'DELETE')
-    return res.status(405).json({ error: 'Method not allowed' })
+    return res.status(405).json({ error: 'method_not_allowed' })
   }
-
-  const originCheck = validateRequestOrigin(req)
-  if (!originCheck.valid) {
-    return res.status(403).json({ error: 'Request origin not allowed' })
-  }
-
+  if (!validateRequestOrigin(req).valid) return res.status(403).json({ error: 'request_origin_not_allowed' })
   try {
-    // Get logged-in user
+    await applyRateLimiter(strictRateLimiter, req, res)
+    if (res.writableEnded) return
     const user = await getPublicUserFromRequest(req)
-    
-    if (!user) {
-      return res.status(401).json({ error: 'Authentication required' })
-    }
-
-    const db = await getDb()
-    
-    // WHAT: Delete all user data across all collections
-    // WHY: Complete removal of user data for privacy compliance
-    
-    // Delete user record
-    await db.collection('publicUsers').deleteOne({ 
-      email: user.email 
+    if (!user || typeof user.id !== 'string' || !user.id.trim()) return res.status(401).json({ error: 'authentication_required' })
+    const result = await createErasureCase({
+      body: { source: 'participant', subjectRef: { kind: 'sso_user', id: user.id } },
+      idempotencyKey: req.headers['idempotency-key'],
+      actor: { type: 'participant', id: 'authenticated_user' },
+      verifiedSessionAt: new Date(),
     })
-    
-    // Delete all sessions
-    await db.collection('publicSessions').deleteMany({ 
-      userId: user.id 
-    })
-    
-    // Delete all OAuth authorizations
-    await db.collection('authorizationCodes').deleteMany({ 
-      userId: user.id 
-    })
-    
-    // Delete all access tokens
-    await db.collection('accessTokens').deleteMany({ 
-      userId: user.id 
-    })
-    
-    // Delete all refresh tokens
-    await db.collection('refreshTokens').deleteMany({ 
-      userId: user.id 
-    })
-    
-    // Delete any login PINs
-    await db.collection('loginPins').deleteMany({ 
-      userId: user.id 
-    })
-    
-    // Delete any magic link tokens
-    await db.collection('publicMagicTokens').deleteMany({ 
-      email: user.email 
-    })
-
-    logger.info('User account deleted', {
-      event: 'account_deleted',
-      userId: user.id,
-      email: user.email
-    })
-
-    clearPublicSessionCookie(res)
-
     return res.status(200).json({
       success: true,
-      message: 'Account deleted successfully'
+      requestRecorded: true,
+      confirmation_code: result.case.requestId.replaceAll('-', ''),
+      status: result.case.state,
+      message: 'Your deletion request was recorded. It will be reviewed before account data is removed.',
     })
-
   } catch (error) {
-    logger.error('Delete account error', {
-      event: 'delete_account_error',
-      error: error.message,
-      stack: error.stack
-    })
-
-    return res.status(500).json({
-      error: 'An unexpected error occurred'
-    })
+    if (!(error instanceof ErasureCaseError)) logger.error('Account deletion request could not be recorded', { event: 'account_erasure_request_failed' })
+    if (error instanceof ErasureCaseError) return res.status(error.status).json({ error: error.code })
+    return res.status(503).json({ error: 'privacy_request_unavailable' })
   }
 }

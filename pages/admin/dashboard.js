@@ -32,6 +32,7 @@ const adminNavItems = [
   { href: '/admin/users', label: 'Users' },
   { href: '/admin/activity', label: 'Activity' },
   { href: '/admin/oauth-clients', label: 'Clients' },
+  { href: '/admin/privacy-erasure', label: 'Privacy erasure' },
 ]
 
 function StatCard({ description, href, icon: Icon, title, value }) {
@@ -265,6 +266,11 @@ export default function AdminDashboard() {
               <Grid.Col span={{ base: 12, sm: 6 }}>
                 <Button component={Link} fullWidth href="/admin/activity" leftSection={<IconChecklist size={18} />} variant="default">
                   View Activity
+                </Button>
+              </Grid.Col>
+              <Grid.Col span={{ base: 12, sm: 6 }}>
+                <Button component={Link} fullWidth href="/admin/privacy-erasure" leftSection={<IconChecklist size={18} />} variant="default">
+                  Review erasure requests
                 </Button>
               </Grid.Col>
               <Grid.Col span={{ base: 12, sm: 6 }}>
