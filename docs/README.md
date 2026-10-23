@@ -126,6 +126,7 @@ The May 2026 hardening pass delivered these changes:
 - [docs/DESIGN_SYSTEM.md](DESIGN_SYSTEM.md): local implementation/migration tracking for GDS adoption (non-authoritative)
 - [docs/THIRD_PARTY_INTEGRATION_GUIDE.md](THIRD_PARTY_INTEGRATION_GUIDE.md): integration guide for app teams
 - [docs/MULTI_APP_PERMISSIONS.md](MULTI_APP_PERMISSIONS.md): app-permission semantics and workflows
+- [docs/PRIVACY_ERASURE_CASE_LEDGER.md](PRIVACY_ERASURE_CASE_LEDGER.md): cross-product erasure case contract, deadlines, configuration, and recovery
 - [docs/ROLE_SYSTEM_MIGRATION.md](ROLE_SYSTEM_MIGRATION.md): compatibility notes for legacy roles
 - [docs/TASKLIST.md](TASKLIST.md): current backlog
 
@@ -157,6 +158,10 @@ SSO_ADMIN_MAGIC_SECRET=...   # absent = admin magic links silently never send
 # SSO_SMTP_HOST/PORT/SECURE/USER/PASS or SSO_RESEND_API_KEY, SSO_EMAIL_FROM, SSO_EMAIL_FROM_NAME.
 
 # Social login: SSO_GOOGLE_CLIENT_ID/SECRET/REDIRECT_URI, SSO_FACEBOOK_APP_ID/SECRET/REDIRECT_URI.
+
+# Privacy erasure ledger: keyring, active encryption-key version, independent HMAC key,
+# resolver OAuth client id, and per-product target-client map; see
+# docs/PRIVACY_ERASURE_CASE_LEDGER.md before configuring these values.
 
 # OAuth2/OIDC signing: SSO_JWT_PRIVATE_KEY / SSO_JWT_PUBLIC_KEY (inline PEM contents,
 # not paths; falls back to keys/private.pem + keys/public.pem on disk).

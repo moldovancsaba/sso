@@ -5,6 +5,8 @@ Last updated: 2026-10-07T00:00:00.000Z
 
 ## Active
 
+- Cross-product privacy erasure initiative (#135–#141; Camera #509 blocks backup erasure proof): SSO #135 is the current implementation item. The coordinator, Facebook callback, accessible request and admin surfaces, evidence PDF, and end-to-end production gate remain sequenced follow-up work. Product deletion adapters are tracked in Camera, Fanmass, and Messmass. Do not claim the workflow is production-ready until the required issues and backup prerequisite are complete.
+
 - OAuth client branding initiative — open issues (the data model and write-time validation, #97/#98, shipped in 5.41.0; see `docs/ROADMAP.md`):
   - #99 Logo asset ingestion pipeline
   - #100 Branding audit trail and rollback

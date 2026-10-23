@@ -274,6 +274,14 @@ should fail CI rather than wait for someone to notice they cannot sign out.
 - `validateScopes()` gates only the interactive `/authorize` flow and rejects machine-only scopes there; the `client_credentials` path validates against `client.allowed_scopes` instead
 - The distinction is load-bearing: a bearer of `manage_permissions` can write permission records for every user of that client, so it must never be reachable by a token one end user consented to
 
+### Cross-product erasure case ledger
+- SSO owns the durable `privacyErasureCases` ledger and its response deadline; each product remains responsible for deleting its own records and sends a scoped receipt to SSO.
+- Case identity references are AES-256-GCM encrypted at rest. Ordinary list/detail DTOs remove the encrypted value, idempotency fingerprints, and target-operation hashes.
+- `sso:privacy.read`, `sso:privacy.write`, and `sso:privacy.resolve` are machine-only OAuth scopes for tokens with audience `sso` and no user subject. Target receipt writes additionally compare the bearer client id with `SSO_PRIVACY_TARGET_CLIENTS`; identity resolution requires the single `SSO_PRIVACY_RESOLVER_CLIENT_ID`.
+- Identity resolution is denied until an administrator verifies the subject and approves the case. Decision routes require a fresh, request-bound unified-admin session. Reads and writes send `Cache-Control: private, no-store`.
+- Four targets are mandatory (`sso`, `camera`, `fanmass`, `messmass`). A target may report `deleted`, `not_found`, or an explicit failure. Only an administrator can record a retained exception. SSO derives completion from all target receipts; a product cannot declare a different product's receipt.
+- Runtime API details, the state machine, key rotation, deadlines, and backup limitations are specified in [PRIVACY_ERASURE_CASE_LEDGER.md](PRIVACY_ERASURE_CASE_LEDGER.md). Production operation remains blocked until key material and OAuth client mappings are configured, and backup erasure remains unverified pending Camera #509.
+
 ### Permission reads and writes
 - Self-service reads are constrained to the token subject and token client
 - App-to-app permission mutations require a client token with `manage_permissions`
