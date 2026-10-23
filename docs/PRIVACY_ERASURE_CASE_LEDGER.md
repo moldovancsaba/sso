@@ -19,7 +19,9 @@ Canonical product targets are `sso`, `camera`, `fanmass`, and `messmass`. Every 
 include all four. A product with no matching record reports `not_found`; it is not silently
 omitted. FanMass receives only the photo references it needs to delete its per-photo
 analytics. Identity resolution is available only to the single configured resolver client,
-and only after subject verification and an approved deletion decision.
+and only after subject verification and an approved deletion decision. The resolver receives
+a versioned SSO-account proof, never a raw Facebook provider identifier. A verified e-mail is
+included only when `publicUsers.emailVerified` is exactly `true`.
 
 ## State and safety rules
 
@@ -69,7 +71,7 @@ All routes are private and set `Cache-Control: private, no-store`.
 | --- | --- | --- |
 | `POST /api/internal/privacy/requests` | Fresh SSO admin session, or userless `sso` audience token with `sso:privacy.write` | Create an idempotent case. Requires `Idempotency-Key`; accepts source category and opaque `{kind,id}` subject reference. |
 | `GET /api/internal/privacy/requests` | SSO admin, or `sso:privacy.read` | Paginated case list; filters by state or response due date. Excludes encrypted identity and idempotency values. |
-| `GET /api/internal/privacy/requests/{requestId}` | SSO admin, or `sso:privacy.read` / `sso:privacy.resolve` | Read a safe case DTO. `includeSubject=true` additionally requires the exact resolver client, `sso:privacy.resolve`, and an approved case in deletion. It writes an access audit record before returning the subject reference. |
+| `GET /api/internal/privacy/requests/{requestId}` | SSO admin, or `sso:privacy.read` / `sso:privacy.resolve` | Read a safe case DTO. `includeSubject=true` additionally requires the exact resolver client, `sso:privacy.resolve`, and an approved case in deletion. It writes an access audit record before returning `subjectProof` v1. |
 | `PATCH /api/internal/privacy/requests/{requestId}/decision` | Fresh, request-bound SSO admin | Verify, request verification, move to decision, approve/reject, extend once, or record an approved retained exception. |
 | `PATCH /api/internal/privacy/requests/{requestId}/targets/{target}` | Userless `sso` audience token with `sso:privacy.write`; client must match the configured target | Submit an idempotent deletion receipt for that service's own target. |
 
@@ -77,6 +79,33 @@ OAuth service tokens must have no user subject and an `aud` of `sso`. Add scopes
 confidential OAuth client only when the specific service is ready to integrate. The resolver
 scope is more sensitive than status reads and must be assigned to one dedicated coordinator
 client.
+
+### Subject proof v1
+
+`includeSubject=true` returns `case.subjectProof`, not the encrypted case reference or a
+raw provider identifier:
+
+```json
+{
+  "version": 1,
+  "caseId": "opaque-case-uuid",
+  "subject": { "kind": "sso_user", "id": "stable-sso-account-id" },
+  "verifiedEmail": {
+    "value": "normalized@example.test",
+    "proof": "sso_account_email_verified",
+    "verifiedAt": "2026-10-20T10:00:00.000Z"
+  }
+}
+```
+
+`verifiedEmail` is omitted unless the account's `emailVerified` field is exactly
+`true` and the address is syntactically valid. `verifiedAt` is `null` when SSO has no
+verification timestamp; SSO does not invent one. A `facebook_subject` is matched
+exactly in SSO's `publicUsers.socialProviders.facebook.id` index and translated to its
+stable SSO account id. Zero or multiple account matches return a safe `409` and no
+candidate proof. The provider id, account name, and other profile fields never leave
+SSO. `camera_photo` remains an exact photo reference and has no account email proof.
+Products return only their own opaque record references and must not log the proof.
 
 ## Configuration and rotation
 

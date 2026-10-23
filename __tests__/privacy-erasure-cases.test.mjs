@@ -43,6 +43,26 @@ const database = {
         const row = rows.find((item) => matches(item, filter))
         return row ? structuredClone(row) : null
       },
+      find(filter, options = {}) {
+        let result = rows.filter((item) => matches(item, filter)).map((item) => {
+          const copy = structuredClone(item)
+          for (const [field, include] of Object.entries(options.projection || {})) {
+            if (include === 0) delete copy[field]
+          }
+          return copy
+        })
+        const cursor = {
+          sort(order) {
+            const [[key, direction]] = Object.entries(order)
+            result.sort((a, b) => (readPath(a, key) < readPath(b, key) ? -1 : 1) * direction)
+            return cursor
+          },
+          skip(count) { result = result.slice(count); return cursor },
+          limit(count) { result = result.slice(0, count); return cursor },
+          async toArray() { return result },
+        }
+        return cursor
+      },
       async updateOne(filter, update) {
         const row = rows.find((item) => matches(item, filter))
         if (!row) return { modifiedCount: 0 }
@@ -215,6 +235,54 @@ describe('durable erasure ledger contract', () => {
       .resolves.toEqual({ kind: 'camera_photo', id: 'photo-123' })
     expect(store.get('privacyErasureAudit')).toHaveLength(1)
     expect(JSON.stringify(store.get('privacyErasureAudit'))).not.toContain('photo-123')
+  })
+
+  test('resolves Facebook identity inside SSO and returns only the account plus explicitly verified email proof', async () => {
+    const created = await erasure.createErasureCase({
+      body: { source: 'facebook', subjectRef: { kind: 'facebook_subject', id: 'provider-user-123' }, targets },
+      idempotencyKey: 'facebook-proof-case-0001',
+      actor,
+    })
+    await erasure.transitionErasureCase({ requestId: created.case.requestId, body: { action: 'verify', method: 'facebook_callback' }, actor })
+    await erasure.transitionErasureCase({ requestId: created.case.requestId, body: { action: 'ready_for_decision' }, actor })
+    await erasure.transitionErasureCase({ requestId: created.case.requestId, body: { action: 'approve' }, actor })
+    store.set('publicUsers', [{ id: 'sso-account-123', email: '  Person@Example.test ', emailVerified: true, emailVerifiedAt: '2026-10-20T10:00:00.000Z', socialProviders: { facebook: { id: 'provider-user-123' } }, name: 'Do not expose' }])
+
+    const proof = await erasure.resolveErasureSubjectProof({ requestId: created.case.requestId, actor: { type: 'service', id: 'camera-resolver' } })
+
+    expect(proof).toEqual({
+      version: 1,
+      caseId: created.case.requestId,
+      subject: { kind: 'sso_user', id: 'sso-account-123' },
+      verifiedEmail: { value: 'person@example.test', proof: 'sso_account_email_verified', verifiedAt: '2026-10-20T10:00:00.000Z' },
+    })
+    expect(JSON.stringify(proof)).not.toContain('provider-user-123')
+    expect(JSON.stringify(proof)).not.toContain('Do not expose')
+    expect(JSON.stringify(store.get('privacyErasureAudit'))).not.toContain('person@example.test')
+  })
+
+  test('omits unverified e-mail proof and fails closed on duplicate provider mappings', async () => {
+    const makeApproved = async (subjectRef, key) => {
+      const created = await erasure.createErasureCase({ body: { source: 'facebook', subjectRef, targets }, idempotencyKey: key, actor })
+      await erasure.transitionErasureCase({ requestId: created.case.requestId, body: { action: 'verify', method: 'facebook_callback' }, actor })
+      await erasure.transitionErasureCase({ requestId: created.case.requestId, body: { action: 'ready_for_decision' }, actor })
+      await erasure.transitionErasureCase({ requestId: created.case.requestId, body: { action: 'approve' }, actor })
+      return created.case.requestId
+    }
+
+    const ssoCaseId = await makeApproved({ kind: 'sso_user', id: 'sso-account-456' }, 'unverified-email-case-0001')
+    store.set('publicUsers', [{ id: 'sso-account-456', email: 'person@example.test', emailVerified: false }])
+    const proof = await erasure.resolveErasureSubjectProof({ requestId: ssoCaseId, actor: { type: 'service', id: 'camera-resolver' } })
+    expect(proof.subject).toEqual({ kind: 'sso_user', id: 'sso-account-456' })
+    expect(proof).not.toHaveProperty('verifiedEmail')
+
+    const duplicateCaseId = await makeApproved({ kind: 'facebook_subject', id: 'duplicate-provider-id' }, 'duplicate-provider-case-001')
+    store.set('publicUsers', [
+      { id: 'sso-account-a', socialProviders: { facebook: { id: 'duplicate-provider-id' } } },
+      { id: 'sso-account-b', socialProviders: { facebook: { id: 'duplicate-provider-id' } } },
+    ])
+    await expect(erasure.resolveErasureSubjectProof({ requestId: duplicateCaseId, actor: { type: 'service', id: 'camera-resolver' } }))
+      .rejects.toMatchObject({ status: 409, code: 'subject_mapping_ambiguous' })
   })
 
   test('target receipts are idempotent, retryable, auditable, and complete only after all targets are terminal', async () => {

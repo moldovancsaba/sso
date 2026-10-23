@@ -1,4 +1,4 @@
-import { ErasureCaseError, getErasureCase, resolveErasureSubject, toPublicCase } from '../../../../../lib/privacy/erasureCases.mjs'
+import { ErasureCaseError, getErasureCase, resolveErasureSubjectProof, toPublicCase } from '../../../../../lib/privacy/erasureCases.mjs'
 import { requirePrivacyActor, sendPrivacyError } from '../../../../../lib/privacy/http.mjs'
 import logger from '../../../../../lib/logger.mjs'
 
@@ -24,7 +24,7 @@ export default async function handler(req, res) {
     }
     const dto = toPublicCase(caseDoc)
     if (wantsSubject) {
-      dto.subjectRef = await resolveErasureSubject({ requestId: caseDoc.requestId, actor })
+      dto.subjectProof = await resolveErasureSubjectProof({ requestId: caseDoc.requestId, actor })
     }
     return res.status(200).json({ success: true, case: dto })
   } catch (error) {

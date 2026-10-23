@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - **Cross-product privacy erasure case ledger (issue #135).** SSO now has a private, revisioned case API with an encrypted subject reference, one-month response deadline, a single documented extension, verified/admin-approved identity resolution, and mandatory receipts for SSO, Camera, Fanmass, and Messmass. Machine tokens use SSO-audience privacy scopes; target receipts are restricted to the OAuth client configured for that product. Cases remain incomplete while any required target is pending or failed. Configuration and operational limitations are documented in `docs/PRIVACY_ERASURE_CASE_LEDGER.md`; this does not yet connect the apps' deletion adapters or certify backup erasure.
+- **Case-bound product subject proof (issue #143).** The restricted SSO resolver now maps an approved Facebook subject to one exact SSO account internally and returns only the stable account ID plus its explicitly verified primary email, when available. Duplicate or missing provider mappings fail closed; raw Facebook IDs and profile names are never returned to product resolvers. The proof is versioned and audited; this does not itself delete account or photo data.
 
 ### Removed
 

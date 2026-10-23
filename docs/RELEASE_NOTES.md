@@ -1,5 +1,9 @@
 # Release Notes [![Version Badge](https://img.shields.io/badge/version-5.43.2-blue)](RELEASE_NOTES.md)
 
+## Unreleased
+
+The restricted privacy resolver now provides a versioned proof for the exact SSO account behind an approved request. Facebook identifiers are resolved inside SSO and are not sent to product services; a verified email is included only when the account explicitly records it as verified. This establishes the safe identity contract needed by Camera's exact photo resolver; it does not perform deletion.
+
 ## [v5.43.2] — 2026-10-07T00:00:00.000Z
 
 The home page no longer logs a React hydration error when it loads.
