@@ -1,321 +1,191 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/router'
 import {
-  Alert,
   Anchor,
-  Box,
+  BodyText,
   Button,
-  Card,
-  Group,
-  List,
+  FormField,
+  InlineAlert,
+  PublicFlowShell,
   Stack,
-  Text,
-  Title,
-} from '@mantine/core'
-import { ArticleShell, PublicBrandFooter, PublicShell } from '@sovereignsquad/gds-core/server'
-import { IconAlertTriangle, IconCheck, IconInfoCircle, IconTrash } from '@tabler/icons-react'
+  TextInput,
+} from '@sovereignsquad/gds-core/client'
+import { PublicBrandFooter, PublicShell } from '@sovereignsquad/gds-core/server'
+
+const GENERIC_VERIFICATION_MESSAGE = 'If you can access that inbox, a confirmation link will be sent.'
+
+function makeIdempotencyKey() {
+  if (typeof window !== 'undefined' && window.crypto?.randomUUID) return window.crypto.randomUUID()
+  if (typeof window === 'undefined' || !window.crypto?.getRandomValues) throw new Error('secure_random_unavailable')
+  const bytes = window.crypto.getRandomValues(new Uint8Array(24))
+  return Array.from(bytes, (byte) => byte.toString(16).padStart(2, '0')).join('')
+}
 
 export default function DataDeletionPage() {
-  const [user, setUser] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [deleting, setDeleting] = useState(false)
-  const [showConfirmation, setShowConfirmation] = useState(false)
-  const [message, setMessage] = useState('')
-  const [error, setError] = useState('')
+  const router = useRouter()
+  const [session, setSession] = useState('loading')
+  const [email, setEmail] = useState('')
+  const [confirmationCode, setConfirmationCode] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [notice, setNotice] = useState(null)
+  const [certificateAvailable, setCertificateAvailable] = useState(false)
 
   useEffect(() => {
-    checkSession()
+    let active = true
+    fetch('/api/public/session', { credentials: 'include', cache: 'no-store' })
+      .then((response) => response.ok ? response.json() : null)
+      .then((result) => { if (active) setSession(result?.isValid && result?.user?.id ? 'authenticated' : 'guest') })
+      .catch(() => { if (active) setSession('guest') })
+    return () => { active = false }
   }, [])
 
-  async function checkSession() {
+  useEffect(() => {
+    if (router.isReady && typeof router.query.confirmation_code === 'string') {
+      setConfirmationCode(router.query.confirmation_code)
+    }
+  }, [router.isReady, router.query.confirmation_code])
+
+  async function submitRequest(event) {
+    event.preventDefault()
+    setBusy(true)
+    setNotice(null)
+    setCertificateAvailable(false)
     try {
-      const res = await fetch('/api/public/session', { credentials: 'include' })
-      if (res.ok) {
-        const data = await res.json()
-        if (data?.isValid && data?.user) {
-          setUser(data.user)
-        }
+      const authenticated = session === 'authenticated'
+      const response = await fetch(authenticated
+        ? '/api/public/privacy/erasure-request'
+        : '/api/public/privacy/erasure-verification', {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(authenticated ? { 'Idempotency-Key': makeIdempotencyKey() } : {}),
+        },
+        body: JSON.stringify(authenticated ? {} : { email }),
+      })
+      const result = await response.json().catch(() => ({}))
+      if (!response.ok) throw new Error(result.error || 'privacy_request_unavailable')
+      if (authenticated && result.confirmation_code) {
+        setConfirmationCode(result.confirmation_code)
+        setNotice({ severity: 'success', title: 'Request recorded', message: `Your request is awaiting review. Keep this confirmation code: ${result.confirmation_code}` })
+      } else {
+        setNotice({ severity: 'info', title: 'Check your inbox', message: GENERIC_VERIFICATION_MESSAGE })
+        setEmail('')
       }
-    } catch (err) {
-      console.error('Session check failed:', err)
+    } catch (error) {
+      const message = error.message === 'authentication_required'
+        ? 'Your sign-in session expired. Refresh this page and try again.'
+        : error.message === 'invalid_email'
+          ? 'Enter the email address you used when sending your photos.'
+          : 'The request could not be recorded. Please try again later.'
+      setNotice({ severity: 'error', title: 'Request not sent', message })
     } finally {
-      setLoading(false)
+      setBusy(false)
     }
   }
 
-  async function handleDeleteAccount() {
-    setDeleting(true)
-    setError('')
-    setMessage('')
-
-    try {
-      const res = await fetch(`/api/users/${user.id}`, {
-        method: 'DELETE',
-        credentials: 'include',
-      })
-
-      if (res.ok) {
-        setMessage(
-          'Your account and all associated data have been successfully deleted. You will be redirected to the homepage in 3 seconds.'
-        )
-        setTimeout(() => {
-          window.location.href = '/'
-        }, 3000)
-      } else {
-        const data = await res.json()
-        setError(data.message || 'Failed to delete account. Please try again or contact support.')
-      }
-    } catch (err) {
-      console.error('Deletion error:', err)
-      setError('An error occurred. Please contact support@doneisbetter.com for assistance.')
-    } finally {
-      setDeleting(false)
-      setShowConfirmation(false)
+  async function lookupStatus(event) {
+    event.preventDefault()
+    setBusy(true)
+    setNotice(null)
+    setCertificateAvailable(false)
+    const code = confirmationCode.replaceAll('-', '').trim()
+    if (!/^[0-9a-f]{32}$/i.test(code)) {
+      setNotice({ severity: 'error', title: 'Check the code', message: 'Enter the 32-character confirmation code from your request receipt.' })
+      setBusy(false)
+      return
     }
+    try {
+      const response = await fetch(`/api/public/privacy/deletion-status?confirmation_code=${encodeURIComponent(code)}`, { cache: 'no-store' })
+      const result = await response.json().catch(() => ({}))
+      if (!response.ok) throw new Error('not_found')
+      const targets = (result.targets || []).map((item) => `${item.target}: ${item.status}`).join(' · ')
+      setCertificateAvailable(['completed', 'retained_exception'].includes(result.status))
+      setNotice({
+        severity: 'info',
+        title: `Request status: ${result.status}`,
+        message: `${targets || 'Deletion targets are being prepared.'} A request is complete only after every required system and backup receipt has been verified.`,
+      })
+    } catch {
+      setNotice({ severity: 'error', title: 'Request not found', message: 'Check the confirmation code and try again.' })
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const stage = {
+    id: 'data-erasure-request',
+    title: 'Request deletion of your data',
+    description: 'Use your signed-in account or verify control of the email address you used for your photos.',
+    status: session === 'loading' ? 'loading' : 'ready',
+    body: session === 'loading' ? null : (
+      <Stack gap="lg">
+        <BodyText>
+          No data is deleted by opening this page. After identity is verified, an authorized reviewer checks the request and each product records its own deletion evidence.
+        </BodyText>
+        <form onSubmit={submitRequest}>
+          <Stack gap="md">
+            {session === 'authenticated' ? (
+              <BodyText>Your current SSO session will be used to identify the account. The request will still be reviewed before deletion begins.</BodyText>
+            ) : (
+              <FormField
+                label="Email address used for your photos"
+                description="We send a one-time link to verify that you control this inbox."
+              >
+                <TextInput
+                  autoComplete="email"
+                  disabled={busy}
+                  id="privacy-email"
+                  onChange={(event) => setEmail(event.currentTarget.value)}
+                  placeholder="you@example.com"
+                  required
+                  type="email"
+                  value={email}
+                />
+              </FormField>
+            )}
+            <Button disabled={busy} loading={busy} type="submit">
+              {session === 'authenticated' ? 'Submit deletion request' : 'Send verification link'}
+            </Button>
+          </Stack>
+        </form>
+        {notice ? <InlineAlert title={notice.title} message={notice.message} severity={notice.severity} /> : null}
+        {certificateAvailable && confirmationCode ? (
+          <Anchor
+            download
+            href={`/api/public/privacy/deletion-certificate?confirmation_code=${encodeURIComponent(confirmationCode.replaceAll('-', ''))}`}
+          >Download the erasure record PDF</Anchor>
+        ) : null}
+        <form onSubmit={lookupStatus}>
+          <Stack gap="md">
+            <FormField label="Confirmation code" description="Check the progress of an existing request without signing in.">
+              <TextInput
+                autoComplete="off"
+                disabled={busy}
+                id="privacy-confirmation-code"
+                onChange={(event) => setConfirmationCode(event.currentTarget.value)}
+                value={confirmationCode}
+              />
+            </FormField>
+            <Button disabled={busy} loading={busy} type="submit" variant="outline">Check request status</Button>
+          </Stack>
+        </form>
+        <BodyText>
+          Need help? <Anchor href="mailto:support@doneisbetter.com">Contact support</Anchor>. <Anchor component={Link} href="/privacy">Read the privacy policy</Anchor>.
+        </BodyText>
+      </Stack>
+    ),
   }
 
   return (
     <PublicShell
-      brand={
-        <Anchor component={Link} href="/" fw={700} td="none">
-          DoneIsBetter SSO
-        </Anchor>
-      }
+      brand={<Anchor component={Link} href="/" fw={700} td="none">DoneIsBetter SSO</Anchor>}
       compact
-      footer={
-        <PublicBrandFooter
-          brandTitle="DoneIsBetter"
-          compact
-          description="Universal SSO service for shared identity, OAuth, and centralized account access."
-          legal={<Text c="dimmed" size="xs">© 2025 DoneIsBetter. All rights reserved.</Text>}
-          secondary={
-            <Group gap="md">
-              <Anchor component={Link} href="/" size="xs">Home</Anchor>
-              <Anchor component={Link} href="/privacy" size="xs">Privacy Policy</Anchor>
-              <Anchor component={Link} href="/terms" size="xs">Terms of Service</Anchor>
-            </Group>
-          }
-        />
-      }
+      footer={<PublicBrandFooter brandTitle="DoneIsBetter" compact description="Universal SSO service for shared identity, OAuth, and centralized account access." />}
       maxContentWidth="md"
     >
-      <Box py="xl">
-        <ArticleShell
-          eyebrow="Information"
-          lead="Your right to be forgotten."
-          title="Data Deletion Request"
-        >
-      <Stack gap="xl">
-        <Stack gap="xs">
-          <Title order={2}>Account and Data Deletion</Title>
-          <Text size="sm">
-            In accordance with privacy regulations such as GDPR and CCPA, you can request deletion of
-            your personal data and account from DoneIsBetter SSO.
-          </Text>
-        </Stack>
-
-        {loading ? (
-          <Alert color="blue" icon={<IconInfoCircle size={16} />} title="Loading session">
-            Loading your session information...
-          </Alert>
-        ) : user ? (
-          <>
-            <Card p="lg">
-              <Stack gap="xs">
-                <Title order={2}>Your Account</Title>
-                <Text size="sm">
-                  <strong>Email:</strong> {user.email}
-                </Text>
-                <Text size="sm">
-                  <strong>Username:</strong> {user.username || 'Not set'}
-                </Text>
-                <Text size="sm">
-                  <strong>User ID:</strong> {user.id}
-                </Text>
-              </Stack>
-            </Card>
-
-            <Stack gap="xs">
-              <Title order={2}>What Will Be Deleted</Title>
-              <Text size="sm">
-                If you proceed with account deletion, the following data will be permanently removed:
-              </Text>
-              <List spacing="xs" size="sm">
-                <List.Item>
-                  <strong>Account Information</strong> - Email, username, password, and profile data
-                </List.Item>
-                <List.Item>
-                  <strong>Authentication Records</strong> - Session tokens and login history
-                </List.Item>
-                <List.Item>
-                  <strong>Permissions</strong> - All role-based access controls and admin privileges
-                </List.Item>
-                <List.Item>
-                  <strong>Activity Logs</strong> - Authentication logs and audit trails after 90 days
-                </List.Item>
-                <List.Item>
-                  <strong>OAuth Clients</strong> - Any registered OAuth applications
-                </List.Item>
-                <List.Item>
-                  <strong>Third-Party Access</strong> - Authorization tokens for integrated applications
-                </List.Item>
-              </List>
-              <Alert color="red" icon={<IconAlertTriangle size={16} />} title="Irreversible action">
-                Once deleted, your data cannot be recovered.
-              </Alert>
-            </Stack>
-
-            <Stack gap="xs">
-              <Title order={2}>Timeline</Title>
-              <List spacing="xs" size="sm">
-                <List.Item>
-                  <strong>Immediate:</strong> Your account will be deactivated and you will be logged out.
-                </List.Item>
-                <List.Item>
-                  <strong>Within 24 hours:</strong> Personal information will be removed from active databases.
-                </List.Item>
-                <List.Item>
-                  <strong>Within 30 days:</strong> All backup copies will be permanently deleted.
-                </List.Item>
-                <List.Item>
-                  <strong>Within 90 days:</strong> Authentication logs will be purged from audit systems.
-                </List.Item>
-              </List>
-            </Stack>
-
-            <Stack gap="xs">
-              <Title order={2}>Important Notes</Title>
-              <List spacing="xs" size="sm">
-                <List.Item>You will lose access to all applications using DoneIsBetter SSO.</List.Item>
-                <List.Item>If you have admin rights, those permissions will be revoked.</List.Item>
-                <List.Item>Anonymous usage statistics may be retained without personal identifiers.</List.Item>
-                <List.Item>Legal compliance records may be retained as required by law.</List.Item>
-              </List>
-            </Stack>
-
-            <Stack gap="md">
-              <Title order={2}>Delete Your Account</Title>
-
-              {message ? (
-                <Alert color="green" icon={<IconCheck size={16} />} title="Deletion requested">
-                  {message}
-                </Alert>
-              ) : null}
-
-              {error ? (
-                <Alert color="red" icon={<IconAlertTriangle size={16} />} title="Deletion failed">
-                  {error}
-                </Alert>
-              ) : null}
-
-              {!showConfirmation ? (
-                <Button
-                  color="red"
-                  leftSection={<IconTrash size={16} />}
-                  onClick={() => setShowConfirmation(true)}
-                  w="fit-content"
-                >
-                  Request Account Deletion
-                </Button>
-              ) : (
-                <Alert color="yellow" icon={<IconAlertTriangle size={16} />} title="Are you absolutely sure?">
-                  <Stack gap="md">
-                    <Text size="sm">
-                      This will permanently delete your account and all associated data. This action
-                      cannot be undone.
-                    </Text>
-                    <Group>
-                      <Button color="red" loading={deleting} onClick={handleDeleteAccount}>
-                        Yes, Delete My Account
-                      </Button>
-                      <Button disabled={deleting} onClick={() => setShowConfirmation(false)} variant="default">
-                        Cancel
-                      </Button>
-                    </Group>
-                  </Stack>
-                </Alert>
-              )}
-            </Stack>
-          </>
-        ) : (
-          <>
-            <Alert color="yellow" icon={<IconInfoCircle size={16} />} title="Authentication required">
-              To delete your account, you must be logged in. This ensures only account owners can request
-              deletion of their own data.
-            </Alert>
-
-            <Button component={Link} href="/login" w="fit-content">
-              Sign In to Continue
-            </Button>
-
-            <Stack gap="xs">
-              <Title order={2}>Alternative: Email Request</Title>
-              <Text size="sm">
-                If you cannot access your account but need to request data deletion, contact us:
-              </Text>
-              <List spacing="xs" size="sm">
-                <List.Item>
-                  <strong>Email:</strong>{' '}
-                  <Anchor href="mailto:support@doneisbetter.com">support@doneisbetter.com</Anchor>
-                </List.Item>
-                <List.Item>
-                  <strong>Subject Line:</strong> Data Deletion Request
-                </List.Item>
-                <List.Item>
-                  <strong>Include:</strong> Your email address and any identifying information
-                </List.Item>
-              </List>
-              <Text size="sm">
-                We will verify your identity and process your request within 30 days as required by law.
-              </Text>
-            </Stack>
-          </>
-        )}
-
-        <Stack gap="xs">
-          <Title order={2}>Privacy Rights</Title>
-          <Text size="sm">For more information about how we handle your data:</Text>
-          <List spacing="xs" size="sm">
-            <List.Item>
-              <Anchor component={Link} href="/privacy">
-                Privacy Policy
-              </Anchor>{' '}
-              - Our data collection and usage practices
-            </List.Item>
-            <List.Item>
-              <Anchor component={Link} href="/terms">
-                Terms of Service
-              </Anchor>{' '}
-              - Service agreement and user responsibilities
-            </List.Item>
-            <List.Item>
-              <Anchor component={Link} href="/docs">
-                Documentation
-              </Anchor>{' '}
-              - Technical details about our SSO service
-            </List.Item>
-          </List>
-        </Stack>
-
-        <Stack gap="xs">
-          <Title order={2}>Questions or Concerns</Title>
-          <Text size="sm">If you have questions about data deletion or privacy:</Text>
-          <List spacing="xs" size="sm">
-            <List.Item>
-              <strong>Email:</strong>{' '}
-              <Anchor href="mailto:support@doneisbetter.com">support@doneisbetter.com</Anchor>
-            </List.Item>
-            <List.Item>
-              <strong>Response Time:</strong> Within 48 hours for privacy-related inquiries
-            </List.Item>
-            <List.Item>
-              <strong>Support Hours:</strong> Monday to Friday, 9:00 AM to 5:00 PM (UTC)
-            </List.Item>
-          </List>
-        </Stack>
-      </Stack>
-        </ArticleShell>
-      </Box>
+      <PublicFlowShell eyebrow="Privacy" stage={stage} />
     </PublicShell>
   )
 }

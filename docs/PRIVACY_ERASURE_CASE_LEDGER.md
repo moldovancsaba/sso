@@ -15,13 +15,13 @@ verification evidence references are HMACed before storage. Case history and the
 `privacyErasureAudit` access record contain opaque actor IDs and controlled values only;
 they do not contain a name, e-mail, Facebook ID, image, or free-text evidence.
 
-Canonical product targets are `sso`, `camera`, `fanmass`, and `messmass`. Every case must
-include all four. A product with no matching record reports `not_found`; it is not silently
+Canonical targets are `sso`, `camera`, `fanmass`, `messmass`, and `camera_backup`. Every case must
+include all five. A product with no matching record reports `not_found`; it is not silently
 omitted. FanMass receives only the photo references it needs to delete its per-photo
 analytics. Identity resolution is available only to the single configured resolver client,
 and only after subject verification and an approved deletion decision. The resolver receives
-a versioned SSO-account proof, never a raw Facebook provider identifier. A verified e-mail is
-included only when `publicUsers.emailVerified` is exactly `true`.
+a versioned account proof, never a raw Facebook provider identifier. Guest email proof is
+issued only after the requester confirms control of the inbox.
 
 ## State and safety rules
 
@@ -45,11 +45,25 @@ deleting ----------------------> retained_exception
 - Product receipts are `deleted`, `not_found`, `retryable_failure`, or
   `permanent_failure`. The OAuth client-to-target allowlist prevents a product from
   writing another product's receipt. Receipt writes require an idempotency key.
-- The system derives `completed` only when all four required targets are `deleted` or
-  `not_found`. Failure leaves the case open as `partially_failed` for retry.
+- The system derives `completed` only when all five required targets are terminal and the
+  backup target has verified deletion evidence (or an administrator-approved exception).
+  Primary-image deletion never implies backup deletion.
+- The system derives `completed` only when all targets are terminal and the backup receipt
+  is verified `deleted`. `not_found` is terminal for ordinary product targets, but cannot
+  satisfy the backup gate. Failure leaves the case open as `partially_failed` for retry.
 - A target may be marked `retained_exception` only by a freshly authenticated
   administrator, with a controlled reason code. This is an explicit exception record; it
   is not proof that the legal request is satisfied.
+- The Vercel Cron coordinator claims one approved case under a short lease and advances at
+  most one Camera photo per invocation. It snapshots Camera's paged resolver one photo at
+  a time, waits for Camera media verification, then sends the exact event/photo tuple to
+  Fanmass and Messmass in sequence. A missing or ambiguous identity, missing partner link,
+  provider review, or exhausted deletion causes a visible `needs_review` pause. It never
+  sends an image or identity to Fanmass; Fanmass receives only the event/photo deletion
+  reference. Retries are idempotent and use bounded exponential backoff.
+- After all photo records and the SSO account target are terminal, the coordinator stops at
+  `awaiting_backup_receipt`. It does not claim backup deletion. Camera must provide the
+  separate evidence-backed backup receipt before SSO can issue a full completion record.
 - An approved response-time extension is recorded once, with a controlled reason and a
   notice timestamp inside the original response period. It moves the response deadline to
   three calendar months after receipt.
@@ -74,8 +88,11 @@ All routes are private and set `Cache-Control: private, no-store`.
 | `GET /api/internal/privacy/requests/{requestId}` | SSO admin, or `sso:privacy.read` / `sso:privacy.resolve` | Read a safe case DTO. `includeSubject=true` additionally requires the exact resolver client, `sso:privacy.resolve`, and an approved case in deletion. It writes an access audit record before returning `subjectProof` v1. |
 | `PATCH /api/internal/privacy/requests/{requestId}/decision` | Fresh, request-bound SSO admin | Verify, request verification, move to decision, approve/reject, extend once, or record an approved retained exception. |
 | `PATCH /api/internal/privacy/requests/{requestId}/targets/{target}` | Userless `sso` audience token with `sso:privacy.write`; client must match the configured target | Submit an idempotent deletion receipt for that service's own target. |
+| `POST /api/internal/privacy/requests/{requestId}/resume` | Fresh SSO admin session | Resume a coordinator paused for review, with a controlled reason recorded in case history. |
+| `GET /api/internal/privacy/process-erasure` | Vercel Cron `Authorization: Bearer $CRON_SECRET` | Claim one approved case under a lease and execute one photo-sized step. A minute schedule is declared in `vercel.json`. |
 | `POST /api/privacy/meta-data-deletion` | Meta signed request | Verify the provider signature and durably create or retrieve the corresponding Facebook erasure case. It does not synchronously call a product service. |
 | `GET /api/public/privacy/deletion-status?confirmation_code={code}` | Public, unguessable confirmation code | Return only the case state, received/deadline timestamps, and target status values. No identity or evidence is returned. |
+| `GET /api/public/privacy/deletion-certificate?confirmation_code={code}` | Public, unguessable confirmation code; terminal cases only | Download a one-page PDF listing sanitized target statuses, timestamps, and a digest of the receipt set. Retained exceptions are clearly labelled and are not called full deletion. |
 
 OAuth service tokens must have no user subject and an `aud` of `sso`. Add scopes to a
 confidential OAuth client only when the specific service is ready to integrate. The resolver
@@ -160,8 +177,17 @@ Before accepting cases, configure these SSO-owned deployment variables (also lis
   subject reference after approval.
 - `SSO_PRIVACY_TARGET_CLIENTS`: JSON object mapping each target name to its exact,
   confidential OAuth client id, for example `{"camera":"…","fanmass":"…"}`. Include
-  all four targets before enabling their receipts. Do not use the broad admin Atlas account
+  all five targets before enabling their receipts. Do not use the broad admin Atlas account
   as an application credential.
+- `SSO_PRIVACY_CAMERA_BASE_URL` and `SSO_PRIVACY_CAMERA_RESOLVER_SECRET`: the Camera base
+  URL and its dedicated exact-subject resolver secret. This coordinator credential is not
+  the Camera media encryption key.
+- `SSO_PRIVACY_FANMASS_BASE_URL` and `SSO_PRIVACY_FANMASS_API_KEY`: Fanmass's API base and
+  service API key. The coordinator sends only a request ID plus Camera event/photo IDs.
+- `SSO_PRIVACY_MESSMASS_BASE_URL` and `SSO_PRIVACY_MESSMASS_SECRET`: Messmass's API base
+  and dedicated SSO erasure secret. Messmass resolves its own event from Camera event and
+  partner references, rejecting missing or ambiguous links.
+- `CRON_SECRET`: Vercel platform secret used to authenticate the once-per-minute worker.
 
 To rotate an encryption key, add a new version to the keyring, change the active version,
 and retain every prior version until no open case uses it. The API fails closed when the
@@ -179,18 +205,21 @@ can succeed.
 - Target receipts use the case revision and retain up to 1,000 operation fingerprints per
   case. A conflict returns `409`; retry with the same idempotency key. At the bound, stop
   automated updates and have an administrator reconcile the product receipt.
-- Missing database access, key material, or target authorization fails closed. No state is
-  marked complete after an unverified or unacknowledged target.
-- A backup restore can resurrect erased data. Production backup inventory, retention, restore
+- Missing database access, key material, or target configuration fails closed. The worker
+  records a safe error code and pauses for retry or operator review; no state is marked
+  complete after an unverified or unacknowledged target.
+- A backup restore can resurrect erased data. Camera backup inventory, retention, restore
   controls, and replay proof remain blocked on Camera #509; until that work is delivered,
-  this ledger cannot certify that backup copies have been purged or made unrecoverable.
+  the coordinator intentionally leaves `camera_backup` pending and this ledger cannot issue
+  a full completion certificate.
 - There is no TTL deletion on case or audit records. Their retention and pseudonymization
   period must be approved in the evidence/retention issue before production operation.
 
 ## Verification
 
 The unit suite covers authenticated states, encryption and key rotation behavior, idempotent
-creation and receipts, deadline calculation, response extensions, cross-target completion,
-identity-resolution gating, and safe DTOs. The full `npm run verify` gate remains required
+creation and receipts, deadline calculation, response extensions, evidence-gated backup
+completion, one-photo coordinator execution, certificate generation, identity-resolution
+gating, and safe DTOs. The full `npm run verify` gate remains required
 before merge. This ledger does not by itself prove an end-to-end deletion across products;
 that proof comes from the integration coordinator and each product adapter's receipt.

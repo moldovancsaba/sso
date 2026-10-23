@@ -9,7 +9,6 @@ import {
   Container,
   Group,
   Loader,
-  Modal,
   PasswordInput,
   Paper,
   Stack,
@@ -17,6 +16,7 @@ import {
   TextInput,
 } from '@mantine/core'
 import { PageHeader } from '@sovereignsquad/gds-admin/server'
+import { Button as GdsButton, SectionPanel } from '@sovereignsquad/gds-core/client'
 import { IconAlertCircle, IconCircleCheck } from '@tabler/icons-react'
 
 export async function getServerSideProps(context) {
@@ -86,9 +86,6 @@ export default function AccountPage({ initialUser }) {
   const [authorizations, setAuthorizations] = useState([])
   const [authsLoading, setAuthsLoading] = useState(true)
   const [changingPassword, setChangingPassword] = useState(false)
-  const [deleteConfirmEmail, setDeleteConfirmEmail] = useState('')
-  const [deleteError, setDeleteError] = useState('')
-  const [deleteLoading, setDeleteLoading] = useState(false)
   const [editingProfile, setEditingProfile] = useState(false)
   const [passwordData, setPasswordData] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' })
   const [passwordError, setPasswordError] = useState('')
@@ -98,7 +95,6 @@ export default function AccountPage({ initialUser }) {
   const [profileError, setProfileError] = useState('')
   const [profileLoading, setProfileLoading] = useState(false)
   const [profileSuccess, setProfileSuccess] = useState(false)
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [unlinkError, setUnlinkError] = useState('')
   const [unlinkingProvider, setUnlinkingProvider] = useState(null)
   const [unlinkLoading, setUnlinkLoading] = useState(false)
@@ -127,12 +123,6 @@ export default function AccountPage({ initialUser }) {
       }
     })()
   }, [user])
-
-  const resetDeleteModal = () => {
-    setShowDeleteConfirm(false)
-    setDeleteConfirmEmail('')
-    setDeleteError('')
-  }
 
   const handleProfileUpdate = async (event) => {
     event.preventDefault()
@@ -276,35 +266,6 @@ export default function AccountPage({ initialUser }) {
       setUnlinkingProvider(null)
     } finally {
       setUnlinkLoading(false)
-    }
-  }
-
-  const handleDeleteAccount = async () => {
-    if (deleteConfirmEmail.toLowerCase().trim() !== user.email.toLowerCase()) {
-      setDeleteError('Email does not match')
-      return
-    }
-
-    setDeleteLoading(true)
-    setDeleteError('')
-
-    try {
-      const res = await fetch('/api/public/account', {
-        method: 'DELETE',
-        credentials: 'include',
-      })
-
-      if (res.ok) {
-        window.location.href = '/?deleted=true'
-      } else {
-        const data = await res.json()
-        setDeleteError(data.error || 'Failed to delete account')
-      }
-    } catch (err) {
-      console.error('Delete account error:', err)
-      setDeleteError('An unexpected error occurred')
-    } finally {
-      setDeleteLoading(false)
     }
   }
 
@@ -562,63 +523,14 @@ export default function AccountPage({ initialUser }) {
           </Stack>
         </Card>
 
-        <Card border="red" withBorder>
-          <Stack gap="md">
-            <Text c="red" fw={700} size="lg">Danger Zone</Text>
-            <Text c="dimmed" size="sm">
-              Permanently delete your account and all associated data.
-            </Text>
-            <Group>
-              <Button color="red" onClick={() => setShowDeleteConfirm(true)}>
-                Delete Account
-              </Button>
-            </Group>
-          </Stack>
-        </Card>
-
-        <Modal
-          onClose={resetDeleteModal}
-          opened={showDeleteConfirm}
-          title="Delete Account"
+        <SectionPanel
+          description="Submit an authenticated request for review. Your account is not removed until the SSO case is approved and each connected system reports its deletion evidence."
+          eyebrow="Privacy"
+          title="Account and photo deletion"
+          tone="warning"
         >
-          <Stack gap="md">
-            <Alert color="red" icon={<IconAlertCircle size={18} />}>
-              This action cannot be undone. It permanently deletes your account, active sessions, connected services, and account history.
-            </Alert>
-
-            {deleteError ? (
-              <Alert color="red" icon={<IconAlertCircle size={18} />}>
-                {deleteError}
-              </Alert>
-            ) : null}
-
-            <Text size="sm">
-              Type <strong>{user.email}</strong> to confirm.
-            </Text>
-            <TextInput
-              onChange={(event) => {
-                setDeleteConfirmEmail(event.currentTarget.value)
-                setDeleteError('')
-              }}
-              placeholder="Enter your email"
-              value={deleteConfirmEmail}
-            />
-
-            <Group justify="flex-end">
-              <Button onClick={resetDeleteModal} variant="default">
-                Cancel
-              </Button>
-              <Button
-                color="red"
-                disabled={deleteConfirmEmail.toLowerCase().trim() !== user.email.toLowerCase()}
-                loading={deleteLoading}
-                onClick={handleDeleteAccount}
-              >
-                Delete My Account
-              </Button>
-            </Group>
-          </Stack>
-        </Modal>
+          <GdsButton component={Link} href="/data-deletion">Request account and photo deletion</GdsButton>
+        </SectionPanel>
         </Stack>
       </Container>
     </>

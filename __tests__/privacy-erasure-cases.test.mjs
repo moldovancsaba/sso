@@ -105,8 +105,17 @@ const database = {
 jest.unstable_mockModule('../lib/db.mjs', () => ({ getDb: async () => database }))
 const erasure = await import('../lib/privacy/erasureCases.mjs')
 
-const targets = ['sso', 'camera', 'fanmass', 'messmass']
+const targets = ['sso', 'camera', 'fanmass', 'messmass', 'camera_backup']
 const actor = { type: 'admin', id: 'admin-uuid' }
+const verifiedBackupEvidence = {
+  provider: 's3',
+  inventoryComplete: true,
+  remainingObjectCount: 0,
+  deletedObjectCount: 2,
+  inventorySha256: 'ab'.repeat(32),
+  deletionReceiptSha256: 'cd'.repeat(32),
+  verifiedAt: '2026-10-23T12:00:00.000Z',
+}
 
 beforeEach(() => {
   store.clear()
@@ -179,7 +188,7 @@ describe('request deadlines and input contracts', () => {
     expect(() => erasure.validateCreateRequest({ ...valid, subjectRef: { kind: 'sso_user', id: 'person@example.com' } }, 'request-key-0000001'))
       .toThrow('opaque identifier')
     expect(() => erasure.validateCreateRequest({ ...valid, targets: ['sso'] }, 'request-key-0000001'))
-      .toThrow('All four product targets')
+      .toThrow('All five erasure targets')
   })
 })
 
@@ -235,6 +244,65 @@ describe('durable erasure ledger contract', () => {
       .resolves.toEqual({ kind: 'camera_photo', id: 'photo-123' })
     expect(store.get('privacyErasureAudit')).toHaveLength(1)
     expect(JSON.stringify(store.get('privacyErasureAudit'))).not.toContain('photo-123')
+  })
+
+  test('creates a guest case only from a verified email-control step and keeps backup completion blocked', async () => {
+    const verifiedAt = new Date('2026-10-23T12:00:00.000Z')
+    const created = await erasure.createErasureCase({
+      body: { source: 'participant', subjectRef: { kind: 'verified_email', id: 'fan@example.com' }, targets },
+      idempotencyKey: 'guest-email-verified-case-0001',
+      actor: { type: 'participant', id: 'verified_email' },
+      verifiedEmailAt: verifiedAt,
+    })
+    expect(created.case.state).toBe('awaiting_decision')
+    expect(created.case.verification.method).toBe('email_control')
+    const proof = await erasure.resolveErasureSubjectProof({ requestId: created.case.requestId, actor: { type: 'service', id: 'resolver' } })
+      .catch((error) => error)
+    expect(proof).toMatchObject({ code: 'case_not_approved' })
+
+    const approved = await erasure.transitionErasureCase({
+      requestId: created.case.requestId,
+      body: { action: 'approve' },
+      actor,
+    })
+    expect(approved.state).toBe('deleting')
+    expect(approved.targets.camera_backup.status).toBe('pending')
+  })
+
+  test('an authenticated account request is recorded for review and cannot bypass backup evidence', async () => {
+    const verifiedAt = new Date('2026-10-23T12:00:00.000Z')
+    const created = await erasure.createErasureCase({
+      body: { source: 'participant', subjectRef: { kind: 'sso_user', id: 'account-verified-123' }, targets },
+      idempotencyKey: 'authenticated-account-erasure-0001',
+      actor: { type: 'participant', id: 'authenticated_user' },
+      verifiedSessionAt: verifiedAt,
+    })
+    expect(created.case.state).toBe('awaiting_decision')
+    expect(created.case.verification.method).toBe('authenticated_session')
+    expect(created.case.decision).toBeNull()
+
+    await erasure.transitionErasureCase({ requestId: created.case.requestId, body: { action: 'approve' }, actor })
+    for (const target of ['sso', 'camera', 'fanmass', 'messmass']) {
+      await erasure.recordTargetReceipt({ requestId: created.case.requestId, target, body: { status: 'not_found' }, idempotencyKey: `${target}-receipt-account-0001`, actor: { type: 'service', id: `${target}-client` } })
+    }
+    await expect(erasure.recordTargetReceipt({
+      requestId: created.case.requestId,
+      target: 'camera_backup',
+      body: { status: 'not_found' },
+      idempotencyKey: 'backup-not-found-account-0001',
+      actor: { type: 'service', id: 'camera-client' },
+    })).rejects.toMatchObject({ code: 'backup_evidence_required', status: 409 })
+    const pending = await erasure.getErasureCase(created.case.requestId)
+    expect(pending.state).toBe('deleting')
+    const completed = await erasure.recordTargetReceipt({
+      requestId: created.case.requestId,
+      target: 'camera_backup',
+      body: { status: 'deleted', evidence: verifiedBackupEvidence },
+      idempotencyKey: 'backup-deleted-account-0001',
+      actor: { type: 'service', id: 'camera-client' },
+    })
+    expect(completed.state).toBe('completed')
+    expect(completed.targets.camera_backup.evidence).toMatchObject({ provider: 's3', remainingObjectCount: 0 })
   })
 
   test('resolves Facebook identity inside SSO and returns only the account plus explicitly verified email proof', async () => {
@@ -309,6 +377,29 @@ describe('durable erasure ledger contract', () => {
     for (const target of ['sso', 'fanmass', 'messmass']) {
       result = await erasure.recordTargetReceipt({ requestId: created.case.requestId, target, body: { status: 'not_found' }, idempotencyKey: `${target}-operation-000001`, actor: { type: 'service', id: `${target}-client` } })
     }
+    expect(result.state).toBe('deleting')
+    expect(result.targets.camera_backup.status).toBe('pending')
+    await expect(erasure.recordTargetReceipt({
+      requestId: created.case.requestId,
+      target: 'camera_backup',
+      body: { status: 'not_found' },
+      idempotencyKey: 'backup-operation-000001',
+      actor: { type: 'service', id: 'camera-client' },
+    })).rejects.toMatchObject({ code: 'backup_evidence_required', status: 409 })
+    await expect(erasure.recordTargetReceipt({
+      requestId: created.case.requestId,
+      target: 'camera_backup',
+      body: { status: 'deleted' },
+      idempotencyKey: 'backup-operation-no-evidence-0001',
+      actor: { type: 'service', id: 'camera-client' },
+    })).rejects.toMatchObject({ code: 'backup_evidence_required', status: 409 })
+    result = await erasure.recordTargetReceipt({
+      requestId: created.case.requestId,
+      target: 'camera_backup',
+      body: { status: 'deleted', evidence: verifiedBackupEvidence },
+      idempotencyKey: 'backup-operation-000002',
+      actor: { type: 'service', id: 'camera-client' },
+    })
     expect(result.state).toBe('completed')
     expect(Object.values(result.targets).every((receipt) => ['deleted', 'not_found'].includes(receipt.status))).toBe(true)
     const listing = await erasure.listErasureCases({ state: 'completed', limit: 10, skip: 0 })
@@ -328,5 +419,18 @@ describe('durable erasure ledger contract', () => {
     expect(updated.targets.camera.status).toBe('retained_exception')
     expect(updated.targets.camera.reasonCode).toBe('legal_retention')
     expect(updated.state).toBe('deleting')
+  })
+
+  test('resumes a blocked coordinator only through an auditable administrator action', async () => {
+    const created = await erasure.createErasureCase({ body: { source: 'admin', subjectRef: { kind: 'camera_photo', id: 'photo-123' }, targets }, idempotencyKey: 'resume-coordinator-case-0001', actor })
+    await erasure.transitionErasureCase({ requestId: created.case.requestId, body: { action: 'verify', method: 'manual_document_check' }, actor })
+    await erasure.transitionErasureCase({ requestId: created.case.requestId, body: { action: 'ready_for_decision' }, actor })
+    await erasure.transitionErasureCase({ requestId: created.case.requestId, body: { action: 'approve' }, actor })
+    const stored = store.get('privacyErasureCases')[0]
+    stored.coordinator = { blocked: true, status: 'needs_review', lastErrorCode: 'provider_review_required' }
+
+    const resumed = await erasure.resumeErasureCoordinator({ requestId: created.case.requestId, reasonCode: 'technical_failure', actor })
+    expect(resumed.coordinator).toMatchObject({ blocked: false, status: 'queued', lastErrorCode: null })
+    expect(resumed.history.at(-1)).toMatchObject({ action: 'coordinator_resumed', reasonCode: 'technical_failure', actorId: actor.id })
   })
 })
