@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Cross-product privacy erasure case ledger (issue #135).** SSO now has a private, revisioned case API with an encrypted subject reference, one-month response deadline, a single documented extension, verified/admin-approved identity resolution, and mandatory receipts for SSO, Camera, Fanmass, and Messmass. Machine tokens use SSO-audience privacy scopes; target receipts are restricted to the OAuth client configured for that product. Cases remain incomplete while any required target is pending or failed. Configuration and operational limitations are documented in `docs/PRIVACY_ERASURE_CASE_LEDGER.md`; this does not yet connect the apps' deletion adapters or certify backup erasure.
+
 ### Removed
 
 - **Three unused dependencies: `helmet`, `cors` and `@mantine/form`.** Nothing imports them (`lib/cors.mjs` is hand-written and the `cors` text in `pages/docs/security/cors.js` is a code sample for integrators, not an import; the security headers are set by `middleware.js`). `npm ls` shows no package that needs any of them; 5 packages leave the lockfile (`@mantine/form`, its `klona` and `@standard-schema/spec`, `cors`, `helmet`). Kept although nothing imports them directly: `@mantine/dates`, `@mantine/modals` and `@mantine/hooks` (peers of the GDS packages and of `@mantine/core`), `eslint-config-next` (loaded by name through `compat.extends('next/core-web-vitals')`).

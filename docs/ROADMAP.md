@@ -5,6 +5,13 @@ Last updated: 2026-10-07T00:00:00.000Z
 
 ## In Progress
 
+### Cross-product privacy erasure (#135–#141)
+- SSO #135 implements the durable, encrypted erasure case ledger and scoped API contract.
+- Follow-on SSO issues cover the Facebook deletion callback, coordinator, accessible intake/admin UI, evidence PDF, and end-to-end production gate.
+- Camera, Fanmass, and Messmass implement their own deletion adapters and backup handling; SSO does not write directly to their databases.
+- Cases must not be represented as complete until all four required product targets have a terminal receipt. Backup erasure remains blocked by Camera #509.
+- See [PRIVACY_ERASURE_CASE_LEDGER.md](PRIVACY_ERASURE_CASE_LEDGER.md) for the actual state machine and runtime limits.
+
 ### OAuth client branding (#97–#109)
 - #97 and #98 are closed by #110 and #111 (the `branding` data model, its versioned write path, and write-time custom-CSS and contrast validation — released in 5.41.0)
 - Open: #99 logo asset ingestion, #100 branding audit trail and rollback, #101 branding editor UI, #102 logo upload widget, #103 custom CSS editor with live diagnostics, #104 branding history console, #105 login/register branding rendering, #106 canonical scope metadata for consent, #107 theming docs and GDS exception record, #108 theming release gate, #109 self-service branding access RFC

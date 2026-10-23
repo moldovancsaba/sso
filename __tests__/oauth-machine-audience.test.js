@@ -21,6 +21,7 @@ describe('RESOURCE_SCOPE_PREFIXES', () => {
   test('is derived from the scope table, not hand-listed', () => {
     expect(RESOURCE_SCOPE_PREFIXES.has('classscout')).toBe(true)
     expect(RESOURCE_SCOPE_PREFIXES.has('management')).toBe(true)
+    expect(RESOURCE_SCOPE_PREFIXES.has('sso')).toBe(true)
   })
 
   test('excludes manage_permissions, which is machine-only but names no resource', () => {
@@ -60,7 +61,8 @@ describe('OIDC discovery advertises every registered scope', () => {
   test('every resource scope is therefore advertised', () => {
     const advertised = Object.keys(SCOPE_DEFINITIONS)
     for (const scope of ['classscout:ingest.write', 'classscout:catalog.read',
-                         'management:ingest.write', 'management:catalog.read']) {
+                         'management:ingest.write', 'management:catalog.read',
+                         'sso:privacy.read', 'sso:privacy.write', 'sso:privacy.resolve']) {
       expect(advertised).toContain(scope)
     }
   })
@@ -72,6 +74,14 @@ describe('resolveMachineAudience', () => {
       ok: true,
       audience: 'classscout',
     })
+  })
+
+  test('privacy case scopes target the SSO resource', () => {
+    expect(resolveMachineAudience(['sso:privacy.read', 'sso:privacy.write'])).toEqual({
+      ok: true,
+      audience: 'sso',
+    })
+    expect(SCOPE_DEFINITIONS['sso:privacy.resolve'].machineOnly).toBe(true)
   })
 
   test('collapses several scopes on one resource to that one audience', () => {
