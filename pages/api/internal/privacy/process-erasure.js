@@ -3,7 +3,7 @@ import { processOneErasureStep } from '../../../../lib/privacy/erasureCoordinato
 import logger from '../../../../lib/logger.mjs'
 
 function validCronSecret(req) {
-  const expected = process.env.CRON_SECRET?.trim() || ''
+  const expected = (process.env.SSO_CRON_SECRET ?? process.env.CRON_SECRET)?.trim() || ''
   const authorization = req.headers.authorization || ''
   const provided = authorization.startsWith('Bearer ') ? authorization.slice(7).trim() : ''
   if (!expected || !provided) return false

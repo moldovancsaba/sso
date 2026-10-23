@@ -6,6 +6,8 @@ SSO now accepts signed Meta data-deletion callbacks and durably opens or retriev
 
 The restricted privacy resolver also provides a versioned proof for the exact SSO account behind an approved request. Facebook identifiers are resolved inside SSO and are not sent to product services; a verified email is included only when the account explicitly records it as verified. This establishes the safe identity contract needed by Camera's exact photo resolver; it does not perform deletion.
 
+The cross-product coordinator now writes a separate, identity-minimized backup replay tombstone before advancing past each Camera photo whose media deletion is verified. A private keyset endpoint exposes those exact product references for isolated restore replay. Missing journal writes remain retryable; backup creation and full deletion certificates still stay blocked until an owner-approved finite retention value and provider-level backup/replay receipts are configured and verified.
+
 ## [v5.43.2] — 2026-10-07T00:00:00.000Z
 
 The home page no longer logs a React hydration error when it loads.
