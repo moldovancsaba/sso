@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [5.44.0] - 2026-10-23
+
 ### Added
 
 - **Self-service deletion, one-photo coordinator, privacy operations UI, and erasure record PDF.** Authenticated users can submit a case without supplying another identity; guests verify control of the photo email inbox. The GDS public flow exposes safe status and only offers an identity-free PDF after terminal receipts. The admin case queue supports pagination, review, and audited coordinator resume. A once-per-minute worker leases approved cases and advances one exact Camera photo sequentially across Camera, Fanmass, Messmass, and SSO with retries. Camera backup remains an explicit evidence gate; no completion certificate is issued while that receipt is missing.
@@ -1039,4 +1041,4 @@ See Git history for changes before v5.26.0.
 
 **Maintained By:** SSO Development Team  
 **Last Updated:** 2026-08-01  
-**Current Version:** 5.31.1
+**Current Version:** 5.44.0
