@@ -16,6 +16,8 @@ It provides:
 
 ## Runtime Summary
 
+- [Project board review and manual movement / Scrum journal](docs/PROJECT_BOARD_MOVEMENT_LOG.md)
+
 - Public authentication methods: email/password, magic link, PIN verification, Google, Facebook
 - Canonical admin role: `admin`
 - Canonical app-permission roles: `none`, `user`, `admin`
