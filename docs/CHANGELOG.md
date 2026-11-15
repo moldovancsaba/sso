@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- Documentation review (2026-11-15): added the read-only Project 13 / issue review and manual owner movement journal. No authentication behavior, account data, scope policy or board state changed.
+
 ## [5.44.0] - 2026-10-23
 
 ### Added

@@ -15,6 +15,8 @@ It currently acts as:
 
 ## Design SSOT
 
+- [Project board review and manual movement / Scrum journal](PROJECT_BOARD_MOVEMENT_LOG.md)
+
 All design, UI, and UX rules now defer to one shared cross-project source of truth:
 
 - [general-design-system README](https://github.com/sovereignsquad/general-design-system/blob/main/README.md)
